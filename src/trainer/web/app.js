@@ -2,7 +2,7 @@
 const $ = (s) => document.querySelector(s);
 const escape = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const zoneNames = {main:'主卡组',extra:'额外卡组',side:'副卡组',1:'卡组',2:'手牌',4:'怪兽区',8:'魔法陷阱区',16:'墓地',32:'除外',64:'额外卡组',128:'叠放素材'};
-const statusNames = {starting:'正在启动',running:'训练中',stopping:'正在保存报告',completed:'手动结束',interrupted:'中断',damaged:'记录损坏'};
+const statusNames = {starting:'正在启动',running:'展开中',stopping:'正在保存草稿',completed:'手动结束',interrupted:'中断',damaged:'记录损坏'};
 const reasons = {manual:'手动结束',client_closed:'关闭了模拟器窗口',engine_ended:'引擎提前结束',native_exit_without_end:'模拟器异常退出或记录未完成',deck_load_failed:'构筑载入失败',launch_failed:'启动失败'};
 const zones = ['main', 'extra', 'side'];
 const zoneLimits = {main:60, extra:15, side:15};
@@ -25,12 +25,20 @@ async function card(code) {
   return app.pendingCards.get(code);
 }
 function switchView(view) {
+  if (typeof flow !== 'undefined' && app.view !== view) {
+    if (app.view === 'design' && flow.design && view !== 'training') notice('前置设计尚未开始，填写内容保留在“展开前置设计”中；退出应用会丢失这些设置。');
+    else if (app.view === 'training' && app.active) notice('当前展开尚未保存为方案，记录继续进行，可返回展开场地。');
+    else if (app.view === 'history' && flow.draft) notice('草稿尚未保存为正式方案，可返回继续调整；退出前请保存名称和备注修改。');
+  }
+  app.view = view;
   if (view !== 'decks') setLibraryOpen(false, false);
   $('#editor').hidden = view !== 'decks';
   $('#history').hidden = view !== 'history';
   $('#training').hidden = view !== 'training';
-  document.body.classList.toggle('history-view', view === 'history');
-  for (const name of ['decks', 'history', 'training']) {
+  $('#design').hidden = view !== 'design';
+  $('#plans').hidden = view !== 'plans';
+  document.body.classList.toggle('history-view', view === 'history' || view === 'plans');
+  for (const name of ['decks', 'history', 'training', 'design', 'plans']) {
     const button = $(`#nav-${name}`);
     button.classList.toggle('active', view === name);
     if (view === name) button.setAttribute('aria-current', 'page');
@@ -40,7 +48,7 @@ function switchView(view) {
 }
 async function syncNativeHost() {
   if (!window.trainerDesktop) return;
-  if ($('#training').hidden) return window.trainerDesktop.updateLayout({visible:false});
+  if ($('#training').hidden || (typeof flow !== 'undefined' && flow.confirming)) return window.trainerDesktop.updateLayout({visible:false});
   const box = $('#native-stage').getBoundingClientRect();
   return window.trainerDesktop.updateLayout({visible:true,x:box.x,y:box.y,width:box.width,height:box.height,
     viewportWidth:window.innerWidth,viewportHeight:window.innerHeight});
@@ -67,10 +75,13 @@ function updateStart() {
   $('#undo-deck').disabled = app.busy || !app.undo.length;
   $('#sort-deck').disabled = app.busy || !zones.some(zone => app.deck[zone].length);
   $('#delete-deck').disabled = app.busy || !$('#compact-deck').value;
-  $('#nav-training').hidden = !window.trainerDesktop;
+  $('#nav-training').hidden = false;
   $('#nav-training').disabled = !app.active;
-  $('#finish-training').disabled = !app.active || app.active.status === 'stopping';
-  $('#training-title').textContent = app.active ? `${app.active.name} · ${statusNames[app.active.status]}` : '单人训练';
+  const flowBusy = typeof flow !== 'undefined' && flow.busy;
+  $('#finish-training').disabled = !app.active || app.active.status === 'stopping' || flowBusy;
+  $('#end-training').disabled = $('#finish-training').disabled;
+  $('#restart-expansion').disabled = !app.active?.plan_stage || app.active.status === 'stopping' || flowBusy;
+  $('#training-title').textContent = app.active ? `${app.active.name} · ${statusNames[app.active.status]}` : '展开场地';
 }
 function setLibraryOpen(open, focus = true) {
   $('#card-library').hidden = !open;
@@ -549,11 +560,30 @@ async function saveDeck() {
     notice('构筑已保存。');
   } finally { app.busy = false; dirty(); updateDetailCounts(); }
 }
-async function refreshHistory(){const previous=app.active;app.history=await api('/api/history');app.active=app.history.find(h=>['running','starting','stopping'].includes(h.status))||null;$('#history-count').textContent=app.history.length||'';$('#active-training').hidden=!app.active;$('#end-training').disabled=app.active?.status==='stopping';if(app.active){$('#active-title').textContent=`${app.active.name} · ${statusNames[app.active.status]}`;$('#active-info').textContent=`${dt(app.active.started_ms)} 开始 · ${window.trainerDesktop ? "点击训练场地继续操作，过程自动记录。" : "请在模拟器窗口手动操作，过程自动记录。"}`;}updateStart();const historyKey=JSON.stringify(app.history);if(app.historyKey!==historyKey){app.historyKey=historyKey;$('#history-list').innerHTML=app.history.map(h=>`<button class="history-item ${h.id===app.reportId?'current':''}" data-report="${h.id}"><strong>${escape(h.name)}</strong><small>${dt(h.started_ms)}</small><span class="badge ${h.status==='interrupted'?'warning':''}">${statusNames[h.status]||h.status}</span></button>`).join('')||'<div class="empty">还没有训练记录<br><small>保存构筑后，开始第一次训练。</small></div>';};if(previous&&!app.active){await showReport(previous.id);notice('训练记录已保存。');}else if(app.reportId && !$('#history').hidden && app.reportId===app.active?.id){await showReport(app.reportId,false);}}
+async function refreshHistory(){
+  const previous=app.active;
+  const generation=app.historyGeneration=(app.historyGeneration||0)+1;
+  const history=await api('/api/history');
+  if(generation!==app.historyGeneration)return;
+  app.history=history;
+  app.active=app.history.find(h=>['running','starting','stopping'].includes(h.status))||null;
+  $('#history-count').textContent=app.history.filter(h=>h.plan_stage==='draft').length||'';
+  $('#active-training').hidden=!app.active;
+  if(app.active){$('#active-title').textContent=`${app.active.name} · ${statusNames[app.active.status]}`;$('#active-info').textContent=`${dt(app.active.started_ms)} 开始 · 过程正在记录，尚未保存为方案。`;}
+  updateStart();
+  const historyKey=JSON.stringify(app.history);
+  if(app.historyKey!==historyKey){
+    app.historyKey=historyKey;
+    $('#history-list').innerHTML=app.history.map(h=>`<button class="history-item ${h.id===app.reportId?'current':''}" data-report="${h.id}"><strong>${escape(h.name)}</strong><small>${escape(h.deck_name || '原训练历史')}</small><small>${dt(h.started_ms)}</small><span class="badge ${h.status==='interrupted'?'warning':''}">${escape(typeof stageNames!=='undefined'&&stageNames[h.plan_stage] || statusNames[h.status] || h.status)}</span></button>`).join('')||'<div class="empty">还没有展开记录<br><small>保存牌组后进入方案前置设计。</small></div>';
+  }
+  if(typeof flow!=='undefined' && flow.restarting)return;
+  if(previous&&!app.active){await showReport(previous.id);notice(previous.plan_stage?'本次展开已保留为待确认草稿，请检查后点击“保存方案”。':'历史记录已保留。');}
+  else if(app.reportId && !$('#history').hidden && app.reportId===app.active?.id){await showReport(app.reportId,false);}
+}
 function cardsHtml(cards){return `<div class="report-cards">${cards.map(c=>`<div class="mini-card"><img src="/pics/${c.code}.jpg" alt="${escape(c.name)}"><small>${escape(c.name)}<br>#${c.instance_id??'未知'}</small></div>`).join('')}</div>`;}
 function loc(l) {
   if (!l) return '未知区域';
-  const side = l.controller === 0 ? '我方' : l.controller === 1 ? '占位方' : '未知方';
+  const side = l.controller === 0 ? '我方' : l.controller === 1 ? '对手' : '未知方';
   if (l.location & 128) return side + '叠放素材';
   if (l.location === 4) return side + (l.sequence >= 5 ? `额外怪兽区 ${l.sequence - 4}` : `主怪兽区 ${l.sequence + 1}`);
   return side + (zoneNames[l.location] || '未知区域') + (l.location === 8 ? ` ${l.sequence + 1}` : '');
@@ -562,14 +592,16 @@ function loc(l) {
 function positions(v){return ({1:'攻击表示',2:'里侧攻击表示',4:'守备表示',8:'里侧守备表示'})[v]||'表示未知';}
 function eventSummary(e){const names=e.cards.map(c=>c.name||String(c.code||'未知')).join('、');let text=names;if(e.origin)text+=`　${loc(e.origin)} → ${loc(e.destination)}`;if(e.cost)text+=`　费用：${e.cost.lp!==undefined?`${e.cost.lp} LP`:'引擎标记 COST'}`;if(e.chain)text+=`　连锁 ${e.chain}`;if(e.message===41)text+=`　${({1:'抽卡阶段',2:'准备阶段',4:'主要阶段 1',8:'战斗开始',128:'战斗结束',256:'主要阶段 2',512:'结束阶段'})[e.value]||e.value}`;if(e.amount!==undefined)text+=`　${e.player===0?'我方':'占位方'} ${e.amount} LP`;if(e.result)text+=`　${e.result}`;return text||'具体内容见原始事件；未提供的语义为未知。';}
 async function showReport(id, navigate = true) {
+  if (typeof allowReportChange === 'function' && !await allowReportChange(id)) return;
   app.reportId = id;
   const r = await api(`/api/report/${id}`);
   if (app.reportId !== id) return;
   if (navigate) switchView('history');
-  const renderKey = `${id}:${r.report_version}:${r.record_count}:${r.status}:${app.allEvents}`;
+  if (typeof prepareDraft === 'function') prepareDraft(r);
+  const renderKey = `${id}:${r.report_version}:${r.record_count}:${r.status}:${r.plan_stage}:${app.allEvents}`;
   if (app.reportKey !== renderKey) {
     app.reportKey = renderKey;
-    $('#report').innerHTML = renderTrainingReport(r, {raw: app.allEvents});
+    $('#report').innerHTML = (typeof expansionSummary === 'function' ? expansionSummary(r) : '') + renderTrainingReport(r, {raw: app.allEvents});
     $('#all-events').onchange = run(async e => {
       app.allEvents = e.target.checked;
       await showReport(id, false);
@@ -654,28 +686,21 @@ $('#search-button').onclick = run(submitSearch);
 $('#filter').onchange = run(submitSearch);
 $('#prev-page').onclick = run(async () => { app.offset = Math.max(0, app.offset-60); await search(); });
 $('#next-page').onclick = run(async () => { app.offset += 60; await search(); });
-$('#start-training').onclick=run(async()=>{
-  if(app.dirty||!app.id)return notice('请先保存构筑。');
-  $('#start-training').disabled=true;
-  try {
-    if(window.trainerDesktop){$('#native-loading').hidden=false;$('#native-loading').textContent='正在准备训练场地……';switchView('training');await syncNativeHost();}
-    const session=await api('/api/start',{deck_id:app.id});app.reportId=session.id;await refreshHistory();
-    if(window.trainerDesktop) void waitNativeFrame(session.id).catch(e=>notice(e.message));
-    notice(window.trainerDesktop?'训练场地已启动，完成后点击“结束训练”。':'已启动模拟器。请在训练窗口手动展开，完成后点击“结束训练”。');
-  } catch(error) {switchView('decks');throw error;} finally{updateStart();}
-});
 $('#end-training').onclick=run(async()=>{if(!app.active)return;await api('/api/stop',{id:app.active.id});await refreshHistory();});$('#view-live').onclick=run(()=>showReport(app.active.id));$('#refresh-history').onclick=run(refreshHistory);
-window.addEventListener('beforeunload',e=>{if(app.dirty){e.preventDefault();e.returnValue='';}});
+window.addEventListener('beforeunload',e=>{if(typeof unsavedSummary==='function'?unsavedSummary():app.dirty){e.preventDefault();e.returnValue='';}});
 new ResizeObserver(fitDeckGrid).observe($('#deck-cards'));
-run(async()=>{app.savedState=deckState();const data=await api('/api/bootstrap');app.token=data.token;$('#resource-count').textContent=`${data.cards.toLocaleString()} 张卡牌`;await Promise.all([deckList(),search(),refreshHistory(),renderDeck()]);updateStart();setInterval(()=>refreshHistory().catch(()=>{}),1500);})();
+run(async()=>{app.savedState=deckState();const data=await api('/api/bootstrap');app.token=data.token;$('#resource-count').textContent=`${data.cards.toLocaleString()} 张卡牌`;await Promise.all([deckList(),search(),refreshHistory(),renderDeck()]);updateStart();setInterval(()=>{if(typeof flow!=='undefined'&&flow.busy)return;refreshHistory().catch(()=>{});},1500);})();
 
 $('#compact-open').onclick=run(()=>{const id=$('#compact-deck').value;if(id)return openDeck(id);notice('请先选择构筑。');});
 $('#compact-deck').onchange = updateStart;
-$('#nav-training').onclick = () => switchView('training');
+$('#nav-training').onclick = () => {switchView('training');if(app.active && window.trainerDesktop)void waitNativeFrame(app.active.id).catch(e=>notice(e.message));};
 $('#training-report').onclick = run(() => app.active && showReport(app.active.id));
 $('#finish-training').onclick = run(async () => {if(app.active){await api('/api/stop',{id:app.active.id});await refreshHistory();}});
 new ResizeObserver(() => {void syncNativeHost().catch(() => {});}).observe($('#native-stage'));
 window.addEventListener('resize', () => {void syncNativeHost().catch(() => {});});
+new ResizeObserver(([entry]) => {
+  document.documentElement.style.setProperty('--app-bar-height', `${entry.target.getBoundingClientRect().height}px`);
+}).observe($('.app-bar'));
 $('#delete-deck').onclick = run(deleteDeck);
 $('#library-toggle').onclick = () => setLibraryOpen($('#card-library').hidden);
 $('#library-close').onclick = () => setLibraryOpen(false);

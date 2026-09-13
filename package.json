@@ -1,8 +1,8 @@
 {
   "name": "ygo-trainer-desktop",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "private": true,
-  "description": "游戏王工具箱：本地卡组编辑、单人训练与展开报告",
+  "description": "游戏王工具箱：牌组编辑、起手设计、展开记录与方案管理",
   "main": "desktop/main.cjs",
   "author": "YGO Trainer contributors",
   "license": "UNLICENSED",
@@ -25,15 +25,44 @@
     "appId": "local.ygotrainer.desktop",
     "productName": "YGOTrainer",
     "asar": true,
-    "directories": { "output": "release/1.0.3" },
-    "files": ["desktop/main.cjs", "desktop/preload.cjs", "desktop/loading.html", "package.json"],
-    "extraResources": [
-      { "from": ".local/desktop-bundle/python", "to": "python" },
-      { "from": "src/trainer", "to": "trainer", "filter": ["**/*", "!**/__pycache__/**", "!**/*.pyc", "!single_thread.inc"] },
-      { "from": ".local/desktop-bundle/runtime.zip", "to": "runtime.zip" },
-      { "from": ".local/desktop-bundle/notices", "to": "notices" }
+    "directories": {
+      "output": "release/1.1.0"
+    },
+    "files": [
+      "desktop/main.cjs",
+      "desktop/preload.cjs",
+      "desktop/loading.html",
+      "package.json"
     ],
-    "win": { "target": "zip", "signAndEditExecutable": false, "executableName": "YGOTrainer" },
+    "extraResources": [
+      {
+        "from": ".local/desktop-bundle/python",
+        "to": "python"
+      },
+      {
+        "from": "src/trainer",
+        "to": "trainer",
+        "filter": [
+          "**/*",
+          "!**/__pycache__/**",
+          "!**/*.pyc",
+          "!single_thread.inc"
+        ]
+      },
+      {
+        "from": ".local/desktop-bundle/runtime.zip",
+        "to": "runtime.zip"
+      },
+      {
+        "from": ".local/desktop-bundle/notices",
+        "to": "notices"
+      }
+    ],
+    "win": {
+      "target": "zip",
+      "signAndEditExecutable": false,
+      "executableName": "YGOTrainer"
+    },
     "artifactName": "YGOTrainer-${version}-windows-${arch}.${ext}",
     "compression": "normal",
     "publish": null

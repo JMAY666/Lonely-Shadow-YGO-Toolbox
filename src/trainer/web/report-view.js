@@ -44,11 +44,15 @@ function renderTrainingReport(r, options) {
   }).join('');
   const deck = ['main', 'extra', 'side'].map(zone => `<b>${zoneNames[zone]}（${r.deck[zone].length}）</b><div class="report-deck">
     ${[...new Set(r.deck[zone])].map(c => `${escape(r.catalog[c]?.name || c)} [${c}] × ${r.deck[zone].filter(x => x === c).length}`).join('<br>')}</div>`).join('');
+  const opponent = r.expansion?.opponent_ai && r.final_state ? `<h3>对手最终场面 · LP ${r.final_state.lp[1]}</h3>${[4,8,2,16,32,1,64].map(zone=>{
+    const cards=r.final_state.cards.filter(c=>c.controller===1&&c.location===zone).sort((a,b)=>a.sequence-b.sequence);
+    return `<div class="zone-row"><b>${zoneNames[zone]} <small>${cards.length}</small></b><div>${[4,8,2].includes(zone)?cardsHtml(cards):`<p>${cards.map(c=>escape(c.name)).join('、')||'空'}</p>`}</div>`;
+  }).join('')}` : '';
   return `<div class="eyebrow">TRAINING REPORT</div><h2>${escape(r.name)}</h2>
     <p>${dt(r.started_ms)} · ${duration(r.duration_ms)}</p>
     <span class="badge ${r.status === 'interrupted' ? 'warning' : ''}">${statusNames[r.status]}</span>
     <span class="badge ${!r.loaded_verified ? 'warning' : ''}">${r.loaded_verified ? '选定构筑与引擎载入一致' : '尚未确认构筑载入'}</span>
-    <p>${escape(reasons[r.end_reason] || r.end_reason || '训练仍在进行')}</p>
+    <p>${escape(reasons[r.end_reason] || r.end_reason || '展开仍在进行')}</p>
     ${r.warnings.length ? `<ul class="warnings">${[...new Set(r.warnings)].map(w => `<li>${escape(w)}</li>`).join('')}</ul>` : ''}
     <div class="stats">${Object.entries(r.statistics).map(([key, value]) => `<div class="stat"><strong>${value}</strong><span>${escape(key)}</span></div>`).join('')}</div>
     <small>${escape(r.statistics_note)}</small>
@@ -60,7 +64,7 @@ function renderTrainingReport(r, options) {
     <ol class="timeline">${timeline || '<li><p>暂无需要复盘的展开动作。</p></li>'}</ol>
     <h3>最终场面与各区域 <small>快照 ${r.final_state_ref || '未知'}</small></h3>
     ${r.final_state ? `<p>回合 ${r.final_state.turn} · LP ${r.final_state.lp[0]} · 未结束连锁 ${r.final_state.chain_depth}</p>
-      ${board}` : '<p>未采集到状态。</p>'}
+      ${board}${opponent}` : '<p>未采集到状态。</p>'}
     <details><summary>本次构筑快照 · 主 ${r.deck.main.length} / 额外 ${r.deck.extra.length} / 副 ${r.deck.side.length}</summary>${deck}</details>
     <div class="sources">训练标识：${id}<br>构筑 SHA-256：${r.deck_sha256}<br>
       来源：核心原始消息、cardid 与区域状态；效果文本来自本次构筑快照。<br>${escape(r.legality)}

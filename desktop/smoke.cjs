@@ -28,8 +28,21 @@ async function launch(first = false, testControl = true) {
   application = await electron.launch({ executablePath: executable, args,
     env: {...env, YGO_DESKTOP_TEST: testControl ? '1' : '0'}, timeout: 120000 });
   page = await application.firstWindow();
+  // Capture the app's renderer while its window stays hidden. CDP screenshots can stall on a hidden HWND.
+  page.screenshot = async ({path:target}) => {
+    await page.evaluate(()=>window.scrollTo(0,0));
+    const png = await application.evaluate(async ({BrowserWindow}) => {
+      const contents=BrowserWindow.getAllWindows().find(w=>!w.getParentWindow()).webContents;
+      await contents.capturePage(undefined,{stayHidden:true}); // Wake the hidden compositor before the final frame.
+      await new Promise(resolve=>setTimeout(resolve,150));
+      return (await contents.capturePage(undefined,{stayHidden:true})).toPNG().toString('base64');
+    });
+    const buffer=Buffer.from(png,'base64');fs.writeFileSync(target,buffer);return buffer;
+  };
   page.on('pageerror', error => errors.push(error.message));
   await page.waitForFunction(() => document.querySelector('#resource-count')?.textContent.includes('张卡牌'), null, { timeout: 300000 });
+  await application.evaluate(({BrowserWindow})=>{const main=BrowserWindow.getAllWindows().find(w=>!w.getParentWindow());main.webContents.setZoomFactor(1);main.setContentSize(1280,900);});
+  await page.waitForFunction(()=>innerWidth===1280&&innerHeight===900);
   service = JSON.parse(fs.readFileSync(path.join(root, 'runtime', '_trainer', 'service.json'), 'utf8'));
   assert.equal(await page.evaluate(() => typeof require), 'undefined');
   return page;
@@ -71,12 +84,45 @@ function assertComposition(host) {
 async function close() {
   const pid = service.pid, url = service.url;
   const exited = once(application.process(), 'exit');
+  // Answer only this isolated app's own close warning; never use OS keyboard or mouse input.
+  await application.evaluate(({dialog}) => {dialog.showMessageBox = async (_window, options) => {
+    if (!options.message.includes('是否退出')) throw new Error('Unexpected confirmation');
+    return {response:1};
+  };});
   await application.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().find(w => !w.getParentWindow()).close());
   await Promise.race([exited, new Promise((_, reject) => { const t = setTimeout(() => reject(new Error('Desktop did not exit')), 25000); t.unref(); })]);
   assert.throws(() => process.kill(pid, 0));
   if (nativePid) assert.throws(() => process.kill(nativePid, 0));
   await assert.rejects(fetch(url, { signal: AbortSignal.timeout(1500) }));
   application = null;
+}
+
+async function designExpansion(name, ai = false) {
+  await page.locator('#start-training').click();
+  await page.waitForFunction(() => !!flow.design && !document.querySelector('#design').hidden);
+  assert.equal(await page.locator('[data-slot="0"]').isDisabled(), true);
+  await page.locator('#plan-name').fill(name);
+  await page.locator('#plan-notes').fill('隔离验收备注');
+  for (const [slot,code] of [[0,55144522],[1,1184620]]) {
+    await page.locator(`[data-slot="${slot}"]`).click();
+    await page.locator(`[data-choice="${code}"]`).click();
+  }
+  await page.locator('#opponent-ai').setChecked(ai);
+  await page.screenshot({path:path.join(evidence, ai?'design-ai.png':'design.png')});
+  await page.locator('#begin-expansion').click();
+  await page.waitForFunction(() => !!app.active && !flow.busy);
+}
+async function activatePot(sid) {
+  let state=await nativeWait(sid,s=>s.prompt===11&&s.targets.some(t=>t.location===2&&t.code===55144522));
+  const pot=state.targets.find(t=>t.location===2&&t.code===55144522);
+  await nativeState(sid,'click',{x:pot.x,y:pot.y});
+  state=await nativeWait(sid,s=>s.buttons.some(b=>b.text==='发动'));
+  const activate=state.buttons.find(b=>b.text==='发动');
+  await nativeState(sid,'click',{x:activate.x,y:activate.y});
+  state=await nativeWait(sid,s=>s.prompt===18);
+  const zone=state.targets.find(t=>t.location===8&&t.sequence===0);
+  await nativeState(sid,'click',{x:zone.x,y:zone.y});
+  await nativeWait(sid,s=>s.prompt===11);
 }
 
 (async () => {
@@ -123,15 +169,40 @@ async function close() {
   assert.deepEqual(await page.evaluate(() => app.deck), deck);
   await page.screenshot({ path: path.join(evidence, 'editor.png') });
   pass('YDK file import, all zones/order, image/effect, add/undo, save and reopen');
-  await page.locator('#start-training').click();
-  await page.waitForFunction(() => !!app.active);
-  const sessionId = await page.evaluate(() => app.active.id);
-  const sessionPath = path.join(root, 'runtime', '_trainer', 'sessions', sessionId);
+  await designExpansion('起手验收方案');
+  let sessionId = await page.evaluate(() => app.active.id);
+  let sessionPath = path.join(root, 'runtime', '_trainer', 'sessions', sessionId);
   await page.waitForTimeout(2500);
-  const metadata = JSON.parse(fs.readFileSync(path.join(sessionPath, 'session.json'), 'utf8'));
+  let metadata = JSON.parse(fs.readFileSync(path.join(sessionPath, 'session.json'), 'utf8'));
   nativePid = metadata.pid;
   assert.equal(metadata.status, 'running');
   assert.deepEqual(metadata.deck, deck);
+  const firstId=sessionId, firstOpening=metadata.expansion.actual_opening, firstConfig=metadata.expansion;
+  await nativeWait(sessionId,s=>s.prompt===11);
+  let firstReport=await (await fetch(`${service.url}/api/report/${sessionId}`)).json();
+  assert.deepEqual(firstReport.initial_hand.map(c=>c.code),firstOpening);
+  assert.equal(firstReport.final_state.cards.filter(c=>c.controller===0&&c.location===1).length,35);
+  const firstInitial=firstReport.final_state;
+  await activatePot(sessionId);
+  firstReport=await (await fetch(`${service.url}/api/report/${sessionId}`)).json();
+  assert.equal(firstReport.actions.length,1);
+  await page.locator('#restart-expansion').click();
+  await page.locator('#flow-confirm').click();
+  await page.waitForFunction(id=>!!app.active&&app.active.id!==id&&!flow.busy,firstId,{timeout:30000});
+  sessionId=await page.evaluate(()=>app.active.id);
+  sessionPath=path.join(root,'runtime','_trainer','sessions',sessionId);
+  metadata=JSON.parse(fs.readFileSync(path.join(sessionPath,'session.json'),'utf8'));
+  nativePid=metadata.pid;
+  assert.deepEqual(metadata.expansion,firstConfig);
+  await hostWait(sessionId,s=>s.frame_ready);
+  await nativeWait(sessionId,s=>s.prompt===11);
+  const retryReport=await (await fetch(`${service.url}/api/report/${sessionId}`)).json();
+  assert.deepEqual(retryReport.initial_hand.map(c=>c.code),firstOpening);
+  assert.deepEqual(retryReport.final_state,firstInitial);
+  assert.equal(retryReport.actions.length,0);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(root,'runtime','_trainer','sessions',firstId,'session.json'))).plan_stage,'discarded');
+  assert(!(await (await fetch(`${service.url}/api/history`)).json()).some(r=>r.id===firstId));
+  pass('Opening constraints reach the real engine; restart restores exact initial state with a fresh journal');
   console.log(JSON.stringify({ phase: 'embedded-training', label, sessionId, nativePid, service, sessionPath }));
   const host = await hostWait(sessionId, s => s.frame_ready && s.visible && s.owns_stage_hit_test && s.composition_compatible);
   assert.equal(host.ready, true); assert.equal(host.child_style, true); assert.equal(host.caption, false);
@@ -224,7 +295,7 @@ async function close() {
   await page.locator('#finish-training').click();
   await waitHistory('completed');
   await page.waitForFunction(id => app.reportId === id && !document.querySelector('#history').hidden, sessionId);
-  const report = await (await fetch(`${service.url}/api/report/${sessionId}`)).json();
+  let report = await (await fetch(`${service.url}/api/report/${sessionId}`)).json();
   assert.equal(report.status, 'completed');
   const journal = fs.readFileSync(path.join(sessionPath, 'native.jsonl'), 'utf8').trim().split('\n').map(JSON.parse);
   assert.equal(journal[0].test_control, true);
@@ -255,6 +326,20 @@ async function close() {
   await rawWindow.close();
   pass('Raw-event toggle and JSONL open in an isolated Electron child window');
   pass('Real embedded engine effect/summon, journal and completed report');
+  await page.locator('#draft-name').fill('正式展开方案');
+  await page.locator('#draft-notes').fill('正式方案的冻结备注');
+  await page.route('**/api/plans/save',route=>route.fulfill({status:500,contentType:'application/json',body:JSON.stringify({error:'隔离测试：模拟磁盘失败'})}),{times:1});
+  await page.locator('#save-plan').click();
+  await page.waitForFunction(()=>document.querySelector('#draft-message').textContent.includes('保存失败')&&!flow.busy);
+  assert.equal(await page.locator('#draft-name').inputValue(),'正式展开方案');
+  await page.locator('#save-plan').click();
+  await page.waitForFunction(id=>flow.selectedPlan===id&&!document.querySelector('#plans').hidden,sessionId);
+  report=await (await fetch(`${service.url}/api/plan/${sessionId}`)).json();
+  const duplicate=await page.evaluate(async id=>api('/api/plans/save',{id,name:'重复请求',notes:''}),sessionId);
+  assert.deepEqual(duplicate,report);
+  assert.equal((await (await fetch(`${service.url}/api/plans`)).json()).filter(p=>p.id===sessionId).length,1);
+  await page.screenshot({path:path.join(evidence,'saved-plan.png')});
+  pass('Draft text adjustment, visible save failure with retained content, retry and idempotent formal save');
   await close();
   pass('Window close releases service, native process and listening port');
   await launch(false, false);
@@ -268,8 +353,7 @@ async function close() {
   assert.deepEqual(await (await fetch(`${service.url}/api/report/${sessionId}`)).json(), report);
   pass('Restart retains complete deck and exact report');
   await page.locator('#nav-decks').click();
-  await page.locator('#start-training').click();
-  await page.waitForFunction(() => !!app.active);
+  await designExpansion('正常随机模式');
   const interrupted = await page.evaluate(() => app.active.id);
   await page.waitForTimeout(2000);
   const interruptedPath = path.join(root, 'runtime', '_trainer', 'sessions', interrupted);
@@ -291,6 +375,78 @@ async function close() {
   assert(fs.existsSync(path.join(interruptedPath, 'report.json')));
   pass('Closing the app during native training flushes an interrupted report and cleans up');
   await launch();
+  await page.locator('#compact-deck').selectOption(deckId);
+  await page.locator('#compact-open').click();
+  await page.waitForFunction(id=>app.id===id&&!app.busy,deckId);
+  await designExpansion('AI 干扰验收',true);
+  let aiId=await page.evaluate(()=>app.active.id);
+  await hostWait(aiId,s=>s.frame_ready);
+  await nativeWait(aiId,s=>s.prompt===11);
+  const aiInitial=await (await fetch(`${service.url}/api/report/${aiId}`)).json();
+  assert.equal(aiInitial.final_state.cards.filter(c=>c.controller===1&&c.location===2).length,5);
+  assert.equal(aiInitial.final_state.cards.filter(c=>c.controller===1&&c.location===2&&c.code===14558127).length,1);
+  await activatePot(aiId);
+  const aiReport=await (await fetch(`${service.url}/api/report/${aiId}`)).json();
+  assert(aiReport.events.some(e=>e.message===70&&e.cards.some(c=>c.code===14558127)), 'The opponent must actually activate Ash Blossom');
+  assert.equal(aiReport.statistics['效果抽卡'],0,'Ash Blossom must resolve and negate the Pot draw');
+  assert(aiReport.final_state.cards.some(c=>c.controller===1&&c.location===16&&c.code===14558127));
+  await page.locator('#restart-expansion').click();await page.locator('#flow-confirm').click();
+  await page.waitForFunction(id=>!!app.active&&app.active.id!==id&&!flow.busy,aiId,{timeout:30000});
+  aiId=await page.evaluate(()=>app.active.id);await hostWait(aiId,s=>s.frame_ready);await nativeWait(aiId,s=>s.prompt===11);
+  const aiRetry=await (await fetch(`${service.url}/api/report/${aiId}`)).json();
+  assert.deepEqual(aiRetry.final_state,aiInitial.final_state);
+  assert.equal(aiRetry.actions.length,0);
+  await activatePot(aiId);
+  const repeatedAI=await (await fetch(`${service.url}/api/report/${aiId}`)).json();
+  assert.equal(repeatedAI.statistics['效果抽卡'],0);
+  let aiState=await nativeWait(aiId,s=>s.prompt===11&&s.buttons.some(b=>b.text==='ＥＰ'));
+  const endPhase=aiState.buttons.find(b=>b.text==='ＥＰ');
+  await nativeState(aiId,'click',{x:endPhase.x,y:endPhase.y});
+  await nativeWait(aiId,s=>s.prompt===11&&s.buttons.some(b=>b.text==='ＢＰ'));
+  const afterAITurn=await (await fetch(`${service.url}/api/report/${aiId}`)).json();
+  assert(afterAITurn.final_state.cards.some(c=>c.controller===1&&c.location===4&&c.code===1184620),'Opponent must actually take its normal summon turn');
+  assert(afterAITurn.events.some(e=>e.actor==='opponent_ai'));
+  fs.copyFileSync(path.join(evidence,'native-latest.png'),path.join(evidence,'opponent-ai.png'));
+  await page.locator('#finish-training').click();await waitHistory('completed');
+  await page.waitForFunction(()=>!!flow.draft&&!document.querySelector('#draft-editor').hidden);
+  await page.locator('#save-plan').click();
+  await page.waitForFunction(id=>flow.selectedPlan===id&&!flow.busy,aiId);
+  await page.locator('#delete-plan').click();await page.locator('#flow-cancel').click();
+  assert((await (await fetch(`${service.url}/api/plans`)).json()).some(p=>p.id===aiId));
+  await page.locator('#delete-plan').click();
+  assert((await page.locator('#flow-message').innerText()).includes('AI 干扰验收'));
+  await page.locator('#flow-confirm').click();
+  await page.waitForFunction(()=>flow.selectedPlan===null);
+  assert(!(await (await fetch(`${service.url}/api/plans`)).json()).some(p=>p.id===aiId));
+  assert((await (await fetch(`${service.url}/api/plans`)).json()).some(p=>p.id===sessionId));
+  assert.deepEqual(await (await fetch(`${service.url}/api/plan/${sessionId}`)).json(),report);
+  assert((await (await fetch(`${service.url}/api/decks`)).json()).some(d=>d.id===deckId));
+  pass('Real opponent AI activates and resolves Ash Blossom; retry restores both players; named deletion preserves other plans and source');
+  await page.locator('#nav-decks').click();
+  const banDeck=await page.evaluate(async()=>api('/api/decks',{name:`起手禁用-${Date.now()}`,deck:{main:[...Array(5).fill(55144522),...Array(35).fill(1184620)],extra:[],side:[]}}));
+  await page.evaluate(()=>deckList());await page.locator('#compact-deck').selectOption(banDeck.id);await page.locator('#compact-open').click();
+  await page.waitForFunction(id=>app.id===id&&!app.busy,banDeck.id);
+  await page.locator('#start-training').click();await page.waitForFunction(()=>!!flow.design);
+  await page.locator('#plan-name').fill('禁用卡后续仍可抽取');
+  await page.locator('[data-slot="0"]').click();await page.locator('#choose-banned').click();await page.locator('[data-choice="1184620"]').click();
+  assert.deepEqual(await page.evaluate(()=>flow.design.conditions.slots),[null,null,null,null,null]);
+  assert.equal(await page.locator('[data-unban="1184620"]').count(),1);
+  await page.locator('#begin-expansion').click();await page.waitForFunction(()=>!!app.active&&!flow.busy);
+  const banId=await page.evaluate(()=>app.active.id);await hostWait(banId,s=>s.frame_ready);await nativeWait(banId,s=>s.prompt===11);
+  const banInitial=await (await fetch(`${service.url}/api/report/${banId}`)).json();
+  assert.deepEqual(banInitial.initial_hand.map(c=>c.code),Array(5).fill(55144522));
+  assert.equal(banInitial.final_state.cards.filter(c=>c.controller===0&&c.location===1&&c.code===1184620).length,35);
+  await activatePot(banId);
+  const banAfter=await (await fetch(`${service.url}/api/report/${banId}`)).json();
+  assert.equal(banAfter.final_state.cards.filter(c=>c.controller===0&&c.location===2&&c.code===1184620).length,2);
+  assert.equal(banAfter.statistics['效果抽卡'],2);
+  await page.locator('#finish-training').click();await waitHistory('completed');
+  pass('Whole-hand ban occupies no slot, leaves all banned copies in the deck, and real effect draws can draw them later');
+  await page.locator('#nav-decks').click();
+  await page.evaluate(async id=>{const current=await api(`/api/deck?id=${encodeURIComponent(id)}`);await api('/api/decks',{...current,deck:{...current.deck,side:[]}});},deckId);
+  assert.deepEqual(await (await fetch(`${service.url}/api/plan/${sessionId}`)).json(),report);
+  assert.equal((await (await fetch(`${service.url}/api/deck?id=${encodeURIComponent(deckId)}`)).json()).deck.side.length,0);
+  pass('Editing the source deck leaves the entire saved plan byte-for-byte equivalent at the API');
   await page.locator('#compact-deck').selectOption(deckId);
   await page.locator('#delete-deck').click();
   await page.locator('#delete-cancel').click();

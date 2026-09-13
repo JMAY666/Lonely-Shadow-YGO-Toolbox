@@ -136,7 +136,7 @@ def main():
     t = read("gframe/drawing.cpp")
     t = replace(t, '#include "game.h"', '#include "game.h"\n#include "training_support.h"')
     t = replace(t, 'void Game::WaitFrameSignal(int frame) {', 'void Game::WaitFrameSignal(int frame) {\n    if(TrainingEmbedded() && (TrainingOpening() || dInfo.curMsg == MSG_NEW_TURN || dInfo.curMsg == MSG_NEW_PHASE)) return; // Presentation only; core events are still processed and recorded.')
-    t = replace(t, '\tdriver->drawVertexPrimitiveList(matManager.vField, 4, matManager.iRectangle, 2);', '''    if(TrainingEmbedded()) {
+    t = replace(t, '\tdriver->drawVertexPrimitiveList(matManager.vField, 4, matManager.iRectangle, 2);', '''    if(TrainingEmbedded() && !TrainingOpponentAI()) {
         irr::video::S3DVertex ownField[4];
         std::copy(std::begin(matManager.vField), std::end(matManager.vField), ownField);
         ownField[0].Pos.Y = ownField[1].Pos.Y = -0.8f;
@@ -146,13 +146,13 @@ def main():
     # Keep own LP and card interactions; remove the empty opponent's status presentation.
     begin = t.index('\t\tif(dInfo.lp[1] > maxLP) {')
     end = t.index('\n\t}\n\tauto tLPFrameRect', begin)
-    t = t[:begin] + '\t\tif(!TrainingEmbedded()) {\n' + t[begin:end] + '\n\t\t}' + t[end:]
+    t = t[:begin] + '\t\tif(!TrainingEmbedded() || TrainingOpponentAI()) {\n' + t[begin:end] + '\n\t\t}' + t[end:]
     for line in t.splitlines():
         if ('draw2DImage(imageManager.tLPFrame, Resize(691' in line or
             'DrawShadowText(numFont, dInfo.strLP[1]' in line):
-            t = t.replace(line, '\tif(!TrainingEmbedded()) ' + line.lstrip())
-    t = replace(t, '\t\tdriver->draw2DRectangle(0xa0000000, Resize(689, 8, 992, 51));', '\t\tif(!TrainingEmbedded()) driver->draw2DRectangle(0xa0000000, Resize(689, 8, 992, 51));')
-    t = replace(t, '\t\tdriver->draw2DRectangleOutline(Resize(689, 8, 992, 51), 0xffff8080);', '\t\tif(!TrainingEmbedded()) driver->draw2DRectangleOutline(Resize(689, 8, 992, 51), 0xffff8080);')
+            t = t.replace(line, '\tif(!TrainingEmbedded() || TrainingOpponentAI()) ' + line.lstrip())
+    t = replace(t, '\t\tdriver->draw2DRectangle(0xa0000000, Resize(689, 8, 992, 51));', '\t\tif(!TrainingEmbedded() || TrainingOpponentAI()) driver->draw2DRectangle(0xa0000000, Resize(689, 8, 992, 51));')
+    t = replace(t, '\t\tdriver->draw2DRectangleOutline(Resize(689, 8, 992, 51), 0xffff8080);', '\t\tif(!TrainingEmbedded() || TrainingOpponentAI()) driver->draw2DRectangleOutline(Resize(689, 8, 992, 51), 0xffff8080);')
     save("gframe/drawing.cpp", t)
 
     # Create an actual native child from the start, so no standalone window flashes or steals focus.
@@ -239,7 +239,7 @@ def main():
 
     t = read("gframe/duelclient.cpp")
     t = replace(t, '#include "duelclient.h"', '#include "duelclient.h"\n#include "lite_support.h"\n#include "training_support.h"')
-    t = t.replace('mainGame->btnLeaveGame->setText(dataManager.GetSysString(1351))', 'mainGame->btnLeaveGame->setText(TrainingActive() ? L"结束训练" : dataManager.GetSysString(1351))')
+    t = t.replace('mainGame->btnLeaveGame->setText(dataManager.GetSysString(1351))', 'mainGame->btnLeaveGame->setText(TrainingActive() ? L"展开结束" : dataManager.GetSysString(1351))')
     signature='bool DuelClient::StartClient(unsigned int ip, unsigned short port, bool create_game) {'
     t=replace(t,signature,signature+'''
     if (!mainGame->bot_mode || ip != 0x7f000001 || !create_game) {
@@ -276,7 +276,7 @@ def main():
     save("gframe/replay.cpp",t)
 
     t=read("gframe/single_mode.cpp")
-    t=replace(t, '#include "single_mode.h"', '#include "single_mode.h"\n#include "training_support.h"\n#include "deck_manager.h"\n#include <fstream>\n#include <algorithm>')
+    t=replace(t, '#include "single_mode.h"', '#include "single_mode.h"\n#include "training_support.h"\n#include "deck_manager.h"\n#include <fstream>\n#include <algorithm>\n#include <set>')
     t=replace(t, 'bool SingleMode::StartPlay() {', '''static std::thread trainingThread;
 void SingleMode::WaitForExit() {
     if(trainingThread.joinable()) trainingThread.join();

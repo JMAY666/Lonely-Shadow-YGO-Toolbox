@@ -134,7 +134,7 @@ def build_report(meta, rows, issues):
             report['loaded_state_ref'] = row['seq']
             if not report['loaded_verified']: report['warnings'].append('引擎实际载入卡牌与构筑不一致')
         if kind == 'response':
-            e = append(row, '玩家选择' if row.get('actor') == 'user' else '占位方自动跳过', 0,
+            e = append(row, '玩家选择' if row.get('actor') == 'user' else '对手 AI 选择' if row.get('actor') == 'opponent_ai' else '占位方自动跳过', 0,
                        actor=row.get('actor'), raw=row['raw'], prompt_ref=last_prompt and last_prompt['id'], result='等待后续引擎事件确认')
             if last_prompt:
                 e['prompt'] = last_prompt.get('message')

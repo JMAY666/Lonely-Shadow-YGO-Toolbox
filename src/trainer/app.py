@@ -1,6 +1,7 @@
 """Loopback-only deck library and training reports. Python 3.12+, standard library."""
 import argparse
 from collections import Counter
+from copy import deepcopy
 from contextlib import closing
 import ctypes
 import hashlib
@@ -22,6 +23,7 @@ import uuid
 import webbrowser
 
 from report import REPORT_VERSION, build_report, read_journal
+from expansion import OPPONENT, draw_opening, plan_text, validate_conditions
 
 WORKSPACE = Path(__file__).resolve().parents[2]
 RUNTIME = WORKSPACE / '.local/YGOPro-Lite'
@@ -114,6 +116,8 @@ class Store:
         self.sessions.mkdir(parents=True, exist_ok=True)
         self.decks = self.root / 'decks'
         self.decks.mkdir(exist_ok=True)
+        self.plans = self.root / 'plans'
+        self.plans.mkdir(exist_ok=True)
         self.catalog = Catalog(self.runtime)
         self.lock = threading.RLock()
         self.processes = {}
@@ -236,6 +240,7 @@ class Store:
                         meta['status'] = 'completed' if end and end.get('reason') == 'manual' else 'interrupted'
                         meta['end_reason'] = end.get('reason') if end else 'native_exit_without_end'
                         meta['ended_ms'] = end['time_ms'] if end else (rows[-1]['time_ms'] if rows else now())
+                        if meta.get('plan_stage') == 'recording': meta['plan_stage'] = 'draft'
                         atomic_json(p, meta)
                         atomic_json(p.parent / 'report.json', build_report(meta, rows, issues))
                 except (ValueError, KeyError, OSError):
@@ -248,18 +253,42 @@ class Store:
         for p in self.sessions.glob('*/session.json'):
             try:
                 meta = read_json(p)
-                result.append({k: meta.get(k) for k in ('id', 'name', 'started_ms', 'ended_ms', 'status', 'end_reason')})
-            except (ValueError, OSError):
+                if meta.get('plan_stage') == 'discarded' and meta['status'] not in ('starting','running','stopping'): continue
+                if (self.plans / 'deleted' / (meta['id'] + '.json')).exists(): meta['plan_stage'] = 'deleted'
+                elif (self.plans / (meta['id'] + '.json')).exists(): meta['plan_stage'] = 'saved'
+                result.append({k: meta.get(k) for k in ('id', 'name', 'started_ms', 'ended_ms', 'status', 'end_reason', 'plan_stage', 'deck_name')})
+            except (ValueError, OSError, KeyError, TypeError):
                 result.append({'id': p.parent.name, 'name': '记录元数据损坏（原文件保留）', 'status': 'damaged', 'started_ms': 0})
         return sorted(result, key=lambda m: m['started_ms'], reverse=True)
 
-    def start(self, identifier):
+    def start(self, identifier, design=None, retry_meta=None):
         with self.lock:
             if self.closing: raise ValueError('应用正在保存并退出，请稍候')
             self.refresh()
-            if any(r['status'] in ('running', 'starting', 'stopping') for r in self.history()): raise ValueError('请先结束当前训练')
-            selected = self.get_deck(identifier)
+            if (any(proc.poll() is None for proc in self.processes.values()) or
+                    any(r['status'] in ('running','starting','stopping') for r in self.history())):
+                raise ValueError('请先结束当前展开，等待场地退出')
+            if retry_meta:
+                selected = {'id': identifier, 'name': retry_meta['deck_name'], 'deck': deepcopy(retry_meta['deck'])}
+            else:
+                selected = self.get_deck(identifier)
+                if design and design.get('revision') != selected['revision']:
+                    raise ValueError('源牌组已修改，请重新进入方案前置设计')
             deck = selected['deck']; self.validate(deck, training=True)
+            expansion = None
+            if retry_meta:
+                expansion = deepcopy(retry_meta['expansion'])
+            elif design is not None:
+                name, notes = plan_text(design)
+                conditions = validate_conditions(deck['main'], design.get('conditions'))
+                ai = design.get('opponent_ai', False)
+                if type(ai) is not bool: raise ValueError('对手 AI 设置无效')
+                if ai: self.validate(OPPONENT['deck'], training=True)
+                hand, remaining = draw_opening(deck['main'], conditions)
+                expansion = {'name': name, 'notes': notes, 'conditions': conditions, 'opponent_ai': ai,
+                             'opponent_config': deepcopy(OPPONENT) if ai else None,
+                             'actual_opening': hand, 'draw_order': hand + remaining,
+                             'engine_seed': 42 if self.host and self.host.test_control else secrets.randbits(32)}
             sid = str(uuid.uuid4()); path = self.session_path(sid); path.mkdir()
             data = self.ydk(deck)
             atomic_bytes(path / 'deck.ydk', data)
@@ -270,6 +299,19 @@ class Store:
                     'sources': self.catalog.sources, 'engine_sha256': hashlib.sha256((self.runtime / 'YGOPro.exe').read_bytes()).hexdigest(),
                     'rule': 'Master Rule 2020 / core 8ff3583', 'opponent': 'empty; no AI; passes optional windows',
                     'legality': '构筑数量和类型校验；自由练习不执行禁限卡表及同名三张限制'}
+            if expansion:
+                if retry_meta:
+                    for key in ('catalog', 'sources', 'engine_sha256', 'rule'):
+                        meta[key] = deepcopy(retry_meta[key])
+                meta.update(name=expansion['name'], deck_name=selected['name'], expansion=expansion, plan_stage='recording')
+                ai = expansion['opponent_ai']
+                if ai:
+                    for code in set(OPPONENT['deck']['main']):
+                        meta['catalog'].setdefault(str(code), self.catalog.cards[code])
+                    meta['opponent'] = OPPONENT['name'] + ' / ' + OPPONENT['id']
+                # Native adapter reads a numeric config; original YDK and JSONL formats stay intact.
+                values = [1, int(ai), expansion['engine_seed'], len(expansion['draw_order']), *expansion['draw_order']]
+                atomic_bytes(path / 'opening.cfg', (' '.join(map(str, values)) + '\n').encode('ascii'))
             atomic_json(path / 'session.json', meta)
             env = os.environ.copy(); env['YGO_TRAIN_SESSION'] = sid
             if self.host: env.update(self.host.environment())
@@ -284,6 +326,87 @@ class Store:
                 raise ValueError(f'模拟器启动失败：{exc}') from exc
             atomic_json(path / 'session.json', meta)
             return {'id': sid, 'status': meta['status']}
+
+    def restart(self, identifier):
+        with self.lock:
+            path = self.session_path(identifier)
+            meta = read_json(path / 'session.json')
+            if meta.get('retry_id'):
+                return {'id': meta['retry_id'], 'status': read_json(self.session_path(meta['retry_id']) / 'session.json')['status']}
+            if not meta.get('expansion') or meta.get('plan_stage') not in ('recording', 'draft', 'discarded'):
+                raise ValueError('此记录不能重新展开')
+            if meta['engine_sha256'] != hashlib.sha256((self.runtime / 'YGOPro.exe').read_bytes()).hexdigest():
+                raise ValueError('引擎版本已改变，无法保证恢复相同初始状态，请创建新展开')
+            meta['plan_stage'] = 'discarded'
+            atomic_json(path / 'session.json', meta)
+            self.stop(identifier)
+            deadline = time.monotonic() + 10
+            while self.alive(meta) and time.monotonic() < deadline: time.sleep(0.05)
+            if self.alive(meta):
+                current = read_json(path / 'session.json'); current['plan_stage'] = 'recording'
+                atomic_json(path / 'session.json', current)
+                raise ValueError('上一尝试仍在退出，请稍后重试；本次记录仍保留')
+            self.refresh()
+            result = self.start(meta['selected_deck'], retry_meta=meta)
+            meta = read_json(path / 'session.json')
+            meta['retry_id'] = result['id']
+            atomic_json(path / 'session.json', meta)
+            return result
+
+    def plan_path(self, identifier):
+        self.session_path(identifier)  # Validate UUID before forming a path.
+        return self.plans / (identifier + '.json')
+
+    def save_plan(self, body):
+        with self.lock:
+            identifier = body.get('id', '')
+            target = self.plan_path(identifier)
+            if (self.plans / 'deleted' / target.name).exists(): raise ValueError('此方案已删除，不能重复保存原草稿')
+            # One session is one plan, including requests retried after a lost response.
+            if target.exists(): return read_json(target)
+            self.refresh()
+            path = self.session_path(identifier)
+            meta = read_json(path / 'session.json')
+            if meta.get('plan_stage') != 'draft' or self.alive(meta): raise ValueError('请先结束展开，再保存待确认草稿')
+            name, notes = plan_text(body)
+            report = self.report(identifier)
+            if not report['initial_hand'] or not report['final_state']:
+                raise ValueError('未采集到完整起手和场面，请检查记录后重试')
+            if [c['code'] for c in report['initial_hand']] != meta['expansion']['actual_opening'] or not report['loaded_verified']:
+                raise ValueError('实际发牌与起手条件不一致，不能保存，请检查引擎版本')
+            snapshot = deepcopy(report)
+            snapshot['name'] = name
+            snapshot['expansion'].update(name=name, notes=notes)
+            snapshot['plan_stage'] = 'saved'
+            snapshot['saved_ms'] = now()
+            atomic_json(target, snapshot)
+            # The immutable plan file is the commit point. Repairable display metadata comes second.
+            meta.update(plan_stage='saved', name=name)
+            meta['expansion'].update(name=name, notes=notes)
+            try: atomic_json(path / 'session.json', meta)
+            except OSError: pass
+            return snapshot
+
+    def list_plans(self):
+        result = []
+        for path in self.plans.glob('*.json'):
+            try:
+                plan = read_json(path)
+                result.append({key: plan[key] for key in ('id', 'name', 'deck_name', 'saved_ms')})
+            except (ValueError, OSError, KeyError):
+                result.append({'id': path.stem, 'name': '方案文件损坏（原文件保留）', 'deck_name': '', 'saved_ms': 0})
+        return sorted(result, key=lambda p: p['saved_ms'], reverse=True)
+
+    def delete_plan(self, body):
+        with self.lock:
+            target = self.plan_path(body.get('id', ''))
+            plan = read_json(target)
+            if body.get('name') != plan['name']: raise ValueError('方案名称不匹配，请重新确认删除')
+            # Atomic removal from the formal list, with a local recovery copy / late-save tombstone.
+            deleted = self.plans / 'deleted' / target.name
+            deleted.parent.mkdir(exist_ok=True)
+            target.replace(deleted)
+            return {'id': plan['id'], 'deleted': True}
 
     def stop(self, identifier):
         with self.lock:
@@ -324,6 +447,10 @@ class Store:
 
     def report(self, identifier):
         self.refresh()
+        plan = self.plan_path(identifier)
+        if plan.exists(): return read_json(plan)
+        deleted = self.plans / 'deleted' / plan.name
+        if deleted.exists(): return read_json(deleted) | {'plan_stage': 'deleted'}
         p = self.session_path(identifier)
         meta = read_json(p / 'session.json')
         # Projection upgrades are separate files; never replace the old report, raw journal or deck snapshot.
@@ -365,8 +492,11 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/decks/delete': return self.send(store.delete_deck(body))
                 if path == '/api/desktop/layout' and store.host: return self.send(store.host.layout(body, store))
                 if path == '/api/native/test' and store.host: return self.send(store.host.test_event(store, body))
-                if path == '/api/start': return self.send(store.start(body['deck_id']))
+                if path == '/api/start': return self.send(store.start(body['deck_id'], body.get('design')))
                 if path == '/api/stop': return self.send(store.stop(body['id']))
+                if path == '/api/restart': return self.send(store.restart(body['id']))
+                if path == '/api/plans/save': return self.send(store.save_plan(body))
+                if path == '/api/plans/delete': return self.send(store.delete_plan(body))
                 if path == '/api/shutdown':
                     self.send({'ok': True}); threading.Thread(target=self.server.shutdown, daemon=True).start(); return
             else:
@@ -382,6 +512,9 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/decks': return self.send(store.list_decks())
                 if path == '/api/deck': return self.send(store.get_deck(query['id'][0]))
                 if path == '/api/history': return self.send(store.history())
+                if path == '/api/opponent': return self.send(OPPONENT)
+                if path == '/api/plans': return self.send(store.list_plans())
+                if path.startswith('/api/plan/'): return self.send(read_json(store.plan_path(path.rsplit('/', 1)[1])))
                 if path.startswith('/api/report/'): return self.send(store.report(path.rsplit('/', 1)[1]))
                 if path.startswith('/api/raw/'):
                     p = store.session_path(path.rsplit('/', 1)[1]) / 'native.jsonl'
@@ -396,7 +529,7 @@ class Handler(BaseHTTPRequestHandler):
                             p = root / f'{code}{ext}'
                             if p.is_file(): return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0])
                     p = WEB / 'card-back.svg'; return self.send(p.read_bytes(), 'image/svg+xml')
-                files = {'/': 'index.html', '/app.js': 'app.js', '/report-view.js': 'report-view.js', '/style.css': 'style.css', '/card-back.svg': 'card-back.svg'}
+                files = {'/': 'index.html', '/app.js': 'app.js', '/expansion.js': 'expansion.js', '/report-view.js': 'report-view.js', '/style.css': 'style.css', '/card-back.svg': 'card-back.svg'}
                 if path in files:
                     p = WEB / files[path]; return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0] + '; charset=utf-8')
             self.send({'error': '内容不存在'}, status=404)

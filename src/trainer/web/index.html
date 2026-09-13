@@ -11,8 +11,10 @@
   <a class="brand" href="/">YGO<span>展开练习室</span></a>
   <nav aria-label="主要导航">
     <button id="nav-decks" class="nav active" aria-current="page">卡组编辑</button>
-    <button id="nav-training" class="nav" hidden disabled>训练场地</button>
-    <button id="nav-history" class="nav">训练历史 <span id="history-count"></span></button>
+    <button id="nav-design" class="nav" disabled>展开前置设计</button>
+    <button id="nav-training" class="nav" disabled>展开场地</button>
+    <button id="nav-history" class="nav">展开方案调整与保存 <span id="history-count"></span></button>
+    <button id="nav-plans" class="nav">展开管理</button>
   </nav>
   <div class="local"><span class="status-dot"></span>本地工作副本 <small id="resource-count"></small></div>
 </div>
@@ -36,7 +38,7 @@
         <div class="save-actions">
           <button id="library-toggle" aria-controls="card-library" aria-expanded="false">卡片列表</button>
           <button id="save-deck" class="save-button">保存构筑</button>
-          <button id="start-training" class="primary" disabled>开始训练</button>
+          <button id="start-training" class="primary" disabled>方案前置设计</button>
         </div>
       </div>
     </header>
@@ -63,8 +65,8 @@
       </form>
     </dialog>
     <div id="active-training" class="training-banner" hidden>
-      <div><strong id="active-title">训练进行中</strong><p id="active-info">请在模拟器窗口操作；过程会自动保存。</p></div>
-      <button id="end-training" class="danger">结束训练</button><button id="view-live">查看当前记录</button>
+      <div><strong id="active-title">展开进行中</strong><p id="active-info">过程正在记录，尚未保存为方案。</p></div>
+      <button id="end-training" class="danger">展开结束</button><button id="view-live">查看当前记录</button>
     </div>
     <div class="workspace">
       <section class="panel detail" aria-label="卡片详情">
@@ -102,15 +104,41 @@
       </section>
     </div>
   </section>
-  <section id="training" hidden aria-label="训练场地">
-    <header class="training-toolbar"><div><h2 id="training-title">单人训练</h2><p>在下方场地中召唤、发动效果和选择对象，过程自动记录。</p></div><button id="training-report">查看记录</button><button id="finish-training" class="danger">结束训练</button></header>
-    <div id="native-stage"><p id="native-loading">正在准备训练场地……</p></div>
+  <section id="design" class="design-page" hidden aria-label="展开前置设计">
+    <header><div><div class="eyebrow">01 / PREPARATION</div><h1>展开前置设计</h1><p id="design-deck"></p></div><button id="design-back">返回卡组编辑</button></header>
+    <div class="design-content panel">
+      <label for="plan-name">方案名称 <small>必填 · 先命名，再设置起手</small></label>
+      <input id="plan-name" maxlength="80" placeholder="例如：同一起手的稳定展开">
+      <fieldset id="design-conditions" disabled>
+        <legend>起手条件</legend><p>指定卡牌保证包含对应副本；留空的位置从剩余主卡组中随机补齐。</p>
+        <div id="opening-slots" class="opening-slots"></div>
+        <h2>起手禁用卡牌</h2><p>对整副初始手牌生效，不占槽位；仍留在牌组中供后续抽取、检索和使用。</p><div id="banned-cards" class="banned-cards"></div>
+        <label class="ai-option"><input id="opponent-ai" type="checkbox"> 启用对手 AI</label><p id="opponent-description"></p>
+      </fieldset>
+      <label for="plan-notes">备注 <small>可选</small></label><textarea id="plan-notes" maxlength="4000" rows="3" placeholder="起手条件、展开目的或需要注意的事项"></textarea>
+      <p id="design-error" class="form-error" role="alert"></p>
+      <div class="design-footer"><p>开始后记录本次实际起手，重新展开将保留这副手牌。</p><button id="begin-expansion" class="primary" disabled>开始展开</button></div>
+    </div>
+  </section>
+  <dialog id="opening-dialog" class="opening-dialog" aria-labelledby="opening-title">
+    <header><div><h2 id="opening-title">编辑起手槽位</h2><p>只展示本次选定主卡组的卡牌。</p></div><button id="opening-close" aria-label="关闭卡牌选择">关闭</button></header>
+    <div class="opening-actions"><button id="choose-required">添加卡牌</button><button id="choose-banned">禁止卡牌</button><button id="clear-slot">移除本槽位指定</button></div>
+    <p id="opening-error" class="form-error" role="alert"></p><div id="opening-choices"></div>
+  </dialog>
+  <dialog id="flow-dialog" class="delete-dialog" aria-labelledby="flow-message"><form method="dialog"><h2 id="flow-message"></h2><p id="flow-warning"></p><div class="delete-actions"><button id="flow-cancel" value="cancel" autofocus>取消</button><button id="flow-confirm" value="confirm">确认</button></div></form></dialog>
+  <section id="training" hidden aria-label="展开场地">
+    <header class="training-toolbar"><div><h2 id="training-title">展开场地</h2><p id="training-description">过程正在记录，展开结束后检查草稿并保存方案。</p></div><button id="training-report">查看记录</button><button id="restart-expansion">重新展开</button><button id="finish-training" class="danger">展开结束</button></header>
+    <div id="native-stage"><p id="native-loading">正在准备展开场地……</p></div>
   </section>
   <section id="history" hidden>
-    <header><div><div class="eyebrow">PRACTICE JOURNAL</div><h1>每一次展开的轨迹</h1><p>起手、选择与最终场面，保存在这一份记录里。</p></div><button id="refresh-history">刷新记录</button></header>
-    <div class="history-layout"><div id="history-list" class="panel history-list"></div><article id="report" class="panel report"><div class="empty">选择一次训练，查看过程报告。</div></article></div>
+    <header><div><div class="eyebrow">03 / REVIEW & SAVE</div><h1>展开方案调整与保存</h1><p>检查待确认草稿，再保存为正式方案。原训练历史完整保留在下方记录列表中。</p></div><button id="refresh-history">刷新记录</button></header>
+    <div class="history-layout"><div id="history-list" class="panel history-list"></div><div><div id="draft-editor" class="panel draft-editor" hidden></div><article id="report" class="panel report"><div class="empty">选择草稿或原训练历史，查看过程报告。</div></article></div></div>
+  </section>
+  <section id="plans" hidden class="plans-page" aria-label="展开管理">
+    <header><div><div class="eyebrow">SAVED PLANS</div><h1>展开管理</h1><p>正式保存的方案，保留展开当时的牌组与记录。</p></div><button id="refresh-plans">刷新方案</button></header>
+    <div class="history-layout"><div id="plan-list" class="panel history-list"></div><article id="plan-report" class="panel report"><div class="empty">选择已保存方案查看。</div></article></div>
   </section>
 </main>
-<script src="/report-view.js"></script><script src="/app.js"></script>
+<script src="/report-view.js"></script><script src="/app.js"></script><script src="/expansion.js"></script>
 </body>
 </html>

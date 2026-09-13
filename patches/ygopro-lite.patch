@@ -13,7 +13,7 @@
  	matManager.mTexture.setTexture(0, drawField ? imageManager.tFieldTransparent[rule] : imageManager.tField[rule]);
  	driver->setMaterial(matManager.mTexture);
 -	driver->drawVertexPrimitiveList(matManager.vField, 4, matManager.iRectangle, 2);
-+    if(TrainingEmbedded()) {
++    if(TrainingEmbedded() && !TrainingOpponentAI()) {
 +        irr::video::S3DVertex ownField[4];
 +        std::copy(std::begin(matManager.vField), std::end(matManager.vField), ownField);
 +        ownField[0].Pos.Y = ownField[1].Pos.Y = -0.8f;
@@ -29,8 +29,8 @@
  	} else {
 -		driver->draw2DRectangle(0xa0000000, Resize(689, 8, 992, 51));
 -		driver->draw2DRectangleOutline(Resize(689, 8, 992, 51), 0xffff8080);
-+		if(!TrainingEmbedded()) driver->draw2DRectangle(0xa0000000, Resize(689, 8, 992, 51));
-+		if(!TrainingEmbedded()) driver->draw2DRectangleOutline(Resize(689, 8, 992, 51), 0xffff8080);
++		if(!TrainingEmbedded() || TrainingOpponentAI()) driver->draw2DRectangle(0xa0000000, Resize(689, 8, 992, 51));
++		if(!TrainingEmbedded() || TrainingOpponentAI()) driver->draw2DRectangleOutline(Resize(689, 8, 992, 51), 0xffff8080);
  	}
  	if(dInfo.start_lp > 0) {
  		constexpr float maxBarWidth = 292.0f;
@@ -38,7 +38,7 @@
  			int barWidth = maxBarWidth * dInfo.lp[0] / maxLP;
  			driver->draw2DImage(imageManager.tLPBar, Resize(333, 12, 333 + barWidth, 28), irr::core::recti(0, 0, 16, 16), 0, 0, true);
  		}
-+		if(!TrainingEmbedded()) {
++		if(!TrainingEmbedded() || TrainingOpponentAI()) {
  		if(dInfo.lp[1] > maxLP) {
  			auto layerCount = dInfo.lp[1] / maxLP;
  			auto partialLP = dInfo.lp[1] % maxLP;
@@ -51,7 +51,7 @@
  	auto tLPFrameRect = irr::core::recti(0, 0, imageManager.tLPFrame->getOriginalSize().Width, imageManager.tLPFrame->getOriginalSize().Height);
  	driver->draw2DImage(imageManager.tLPFrame, Resize(329, 10, 629, 30), tLPFrameRect, 0, 0, true);
 -	driver->draw2DImage(imageManager.tLPFrame, Resize(691, 10, 991, 30), tLPFrameRect, 0, 0, true);
-+	if(!TrainingEmbedded()) driver->draw2DImage(imageManager.tLPFrame, Resize(691, 10, 991, 30), tLPFrameRect, 0, 0, true);
++	if(!TrainingEmbedded() || TrainingOpponentAI()) driver->draw2DImage(imageManager.tLPFrame, Resize(691, 10, 991, 30), tLPFrameRect, 0, 0, true);
  	if(lpframe) {
  		dInfo.lp[lpplayer] -= lpd;
  		myswprintf(dInfo.strLP[lpplayer], L"%d", dInfo.lp[lpplayer]);
@@ -60,7 +60,7 @@
  	}
  	DrawShadowText(numFont, dInfo.strLP[0], Resize(330, 12, 631, 30), Resize(0, 1, 2, 0), 0xffffff00, 0xff000000, true, false, 0);
 -	DrawShadowText(numFont, dInfo.strLP[1], Resize(691, 12, 992, 30), Resize(0, 1, 2, 0), 0xffffff00, 0xff000000, true, false, 0);
-+	if(!TrainingEmbedded()) DrawShadowText(numFont, dInfo.strLP[1], Resize(691, 12, 992, 30), Resize(0, 1, 2, 0), 0xffffff00, 0xff000000, true, false, 0);
++	if(!TrainingEmbedded() || TrainingOpponentAI()) DrawShadowText(numFont, dInfo.strLP[1], Resize(691, 12, 992, 30), Resize(0, 1, 2, 0), 0xffffff00, 0xff000000, true, false, 0);
  
  	if(!gameConf.hide_player_name) {
  		irr::core::recti p1size = Resize(334, 31, 624, 50);
@@ -185,7 +185,7 @@
  			mainGame->dField.tag_surrender = false;
  			mainGame->dField.tag_teammate_surrender = false;
 -			mainGame->btnLeaveGame->setText(dataManager.GetSysString(1351));
-+			mainGame->btnLeaveGame->setText(TrainingActive() ? L"结束训练" : dataManager.GetSysString(1351));
++			mainGame->btnLeaveGame->setText(TrainingActive() ? L"展开结束" : dataManager.GetSysString(1351));
  			mainGame->btnLeaveGame->setVisible(true);
  		}
  		mainGame->HideElement(mainGame->wSurrender);
@@ -1369,7 +1369,7 @@
 +}
 --- a/gframe/single_mode.cpp
 +++ b/gframe/single_mode.cpp
-@@ -1,6 +1,10 @@
+@@ -1,6 +1,11 @@
  #include <random>
  #include <thread>
  #include "single_mode.h"
@@ -1377,10 +1377,11 @@
 +#include "deck_manager.h"
 +#include <fstream>
 +#include <algorithm>
++#include <set>
  #include "duelclient.h"
  #include "game.h"
  #include "data_manager.h"
-@@ -14,11 +18,17 @@
+@@ -14,11 +19,17 @@
  Replay SingleMode::last_replay;
  size_t SingleMode::last_replay_response_size = 0;
  
@@ -1399,7 +1400,7 @@
  	is_closing = is_exiting;
  	is_continuing = false;
  	mainGame->actionSignal.Set();
-@@ -27,160 +37,93 @@
+@@ -27,160 +38,118 @@
  void SingleMode::SetResponse(unsigned char* resp, unsigned int len) {
  	if(!pduel)
  		return;
@@ -1583,21 +1584,46 @@
 +    std::seed_seq shuffleSeed(seeds, seeds + SEED_COUNT);
 +    std::mt19937 shuffle(shuffleSeed);
 +    std::shuffle(deck.main.begin(), deck.main.end(), shuffle);
++    std::vector<uint32_t> drawOrder;
++    std::ifstream openingConfig(TrainingPath("opening.cfg"));
++    if(openingConfig) {
++        uint32_t version, ai, seed, count, code;
++        if(!(openingConfig >> version >> ai >> seed >> count) || version != 1 || count != deck.main.size()) {
++            TrainingFinish(0, "opening_invalid"); mainGame->device->closeDevice(); return;
++        }
++        std::multiset<uint32_t> expected, actual;
++        for(auto c : deck.main) expected.insert(c->code);
++        for(uint32_t i = 0; i < count && openingConfig >> code; ++i) { drawOrder.push_back(code); actual.insert(code); }
++        if(expected != actual) { TrainingFinish(0, "opening_invalid"); mainGame->device->closeDevice(); return; }
++        std::fill(std::begin(seeds), std::end(seeds), seed); // Random per expansion, reused only for its retries.
++    }
 +    set_script_reader(DataManager::ScriptReaderEx);
 +    set_card_reader(DataManager::CardReader);
 +    set_message_handler(SingleMode::MessageHandler);
 +    pduel = create_duel_v2(seeds);
 +    set_player_info(pduel, 0, 8000, 5, 1);
-+    set_player_info(pduel, 1, 8000, 0, 0);
-+    for(auto c : deck.main) new_card(pduel, c->code, 0, 0, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
++    const bool opponentAI = TrainingOpponentAI();
++    set_player_info(pduel, 1, 8000, opponentAI ? 5 : 0, opponentAI ? 1 : 0);
++    if(drawOrder.empty()) {
++        for(auto c : deck.main) new_card(pduel, c->code, 0, 0, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
++    } else {
++        for(auto it = drawOrder.rbegin(); it != drawOrder.rend(); ++it)
++            new_card(pduel, *it, 0, 0, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
++    }
 +    for(auto c : deck.extra) new_card(pduel, c->code, 0, 0, LOCATION_EXTRA, 0, POS_FACEDOWN_DEFENSE);
++    if(opponentAI) {
++        // basic-ash-v1: 3 Ash Blossom + 37 normal monsters; Ash + 4 normals in the initial hand.
++        for(int i = 0; i < 2; ++i) new_card(pduel, 14558127, 1, 1, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
++        for(int i = 0; i < 37; ++i) new_card(pduel, 1184620, 1, 1, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
++        new_card(pduel, 14558127, 1, 1, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
++    }
 +    TrainingCapture(pduel, "loaded");
 +    mainGame->gMutex.lock();
 +    mainGame->dInfo.Clear();
 +    mainGame->dInfo.lp[0] = mainGame->dInfo.lp[1] = mainGame->dInfo.start_lp = 8000;
 +    for(auto& lp : mainGame->dInfo.strLP) myswprintf(lp, L"8000");
-+    BufferIO::CopyWideString(L"手动训练", mainGame->dInfo.hostname);
-+    BufferIO::CopyWideString(L"", mainGame->dInfo.clientname);
++    BufferIO::CopyWideString(L"展开场地", mainGame->dInfo.hostname);
++    BufferIO::CopyWideString(opponentAI ? L"基础干扰对手" : L"", mainGame->dInfo.clientname);
 +    mainGame->dInfo.player_type = 0;
 +    mainGame->dInfo.isFirst = true;
 +    mainGame->dInfo.isStarted = true;
@@ -1607,7 +1633,7 @@
 +    mainGame->wCardImg->setVisible(true);
 +    mainGame->wInfos->setVisible(true);
 +    mainGame->wPhase->setVisible(true);
-+    mainGame->btnLeaveGame->setText(L"结束训练");
++    mainGame->btnLeaveGame->setText(L"展开结束");
 +    mainGame->btnLeaveGame->setVisible(!TrainingEmbedded());
 +    mainGame->device->setEventReceiver(&mainGame->dField);
 +    mainGame->gMutex.unlock();
@@ -1615,7 +1641,7 @@
 +    auto len = query_field_info(pduel, buffer.data());
 +    TrainingCapture(pduel, "batch", buffer.data(), len);
 +    SinglePlayAnalyze(buffer.data(), len);
-+    start_duel(pduel, MASTER_RULE_2020 << 16); // No DUEL_SIMPLE_AI and no network connection.
++    start_duel(pduel, (MASTER_RULE_2020 << 16) | (opponentAI ? DUEL_SIMPLE_AI : 0));
 +    while(is_continuing && !TrainingStopping()) {
 +        const auto result = process(pduel);
 +        len = result & PROCESSOR_BUFFER_LEN;
@@ -1644,7 +1670,7 @@
  }
  bool SingleMode::SinglePlayAnalyze(unsigned char* msg, unsigned int len) {
  	unsigned char* offset, * pbuf = msg;
-@@ -196,7 +139,7 @@
+@@ -196,7 +165,7 @@
  				last_replay.RemoveData(last_replay_response_size);
  				last_replay_response_size = 0;
  			}
@@ -1653,7 +1679,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -207,12 +150,12 @@
+@@ -207,12 +176,12 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			/*int data = */BufferIO::Read<int32_t>(pbuf);
  			if(player == 0)
@@ -1668,7 +1694,7 @@
  			return false;
  		}
  		case MSG_SELECT_BATTLECMD: {
-@@ -222,7 +165,7 @@
+@@ -222,7 +191,7 @@
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 8 + 2;
  			SinglePlayRefresh();
@@ -1677,7 +1703,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -243,7 +186,7 @@
+@@ -243,7 +212,7 @@
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 11 + 3;
  			SinglePlayRefresh();
@@ -1686,7 +1712,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -252,7 +195,7 @@
+@@ -252,7 +221,7 @@
  		case MSG_SELECT_EFFECTYN: {
  			player = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 12;
@@ -1695,7 +1721,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -261,7 +204,7 @@
+@@ -261,7 +230,7 @@
  		case MSG_SELECT_YESNO: {
  			player = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 4;
@@ -1704,7 +1730,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -271,7 +214,7 @@
+@@ -271,7 +240,7 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 4;
@@ -1713,7 +1739,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -283,7 +226,7 @@
+@@ -283,7 +252,7 @@
  			pbuf += 3;
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 8;
@@ -1722,7 +1748,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -296,7 +239,7 @@
+@@ -296,7 +265,7 @@
  			pbuf += count * 8;
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 8;
@@ -1731,7 +1757,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -306,7 +249,7 @@
+@@ -306,7 +275,7 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 9 + count * 14;
@@ -1740,7 +1766,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -316,7 +259,7 @@
+@@ -316,7 +285,7 @@
  		case MSG_SELECT_DISFIELD: {
  			player = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 5;
@@ -1749,7 +1775,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -325,7 +268,7 @@
+@@ -325,7 +294,7 @@
  		case MSG_SELECT_POSITION: {
  			player = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 5;
@@ -1758,7 +1784,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -336,7 +279,7 @@
+@@ -336,7 +305,7 @@
  			pbuf += 4;
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 9;
@@ -1767,7 +1793,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -350,7 +293,7 @@
+@@ -350,7 +319,7 @@
  			pbuf += count * 11;
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 11;
@@ -1776,7 +1802,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -360,7 +303,7 @@
+@@ -360,7 +329,7 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 7;
@@ -1785,7 +1811,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -370,14 +313,14 @@
+@@ -370,14 +339,14 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 7;
@@ -1802,7 +1828,7 @@
  			break;
  		}
  		case MSG_CONFIRM_CARDS: {
-@@ -385,12 +328,12 @@
+@@ -385,12 +354,12 @@
  			pbuf += 1;
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 7;
@@ -1817,7 +1843,7 @@
  			SinglePlayRefreshDeck(player);
  			break;
  		}
-@@ -398,53 +341,53 @@
+@@ -398,53 +367,53 @@
  			/*int oplayer = */BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 4;
@@ -1880,7 +1906,7 @@
  			SinglePlayRefresh();
  			break;
  		}
-@@ -458,85 +401,85 @@
+@@ -458,85 +427,85 @@
  			int cs = pbuf[10];
  			/*int cp = pbuf[11];*/
  			pbuf += 16;
@@ -1982,7 +2008,7 @@
  			SinglePlayRefresh();
  			SinglePlayRefreshDeck(0);
  			SinglePlayRefreshDeck(1);
-@@ -544,12 +487,12 @@
+@@ -544,12 +513,12 @@
  		}
  		case MSG_CHAIN_NEGATED: {
  			pbuf++;
@@ -1997,7 +2023,7 @@
  			break;
  		}
  		case MSG_CARD_SELECTED:
-@@ -557,118 +500,118 @@
+@@ -557,118 +526,118 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 4;
@@ -2138,7 +2164,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -676,13 +619,13 @@
+@@ -676,13 +645,13 @@
  		}
  		case MSG_HAND_RES: {
  			pbuf += 1;
@@ -2154,7 +2180,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -691,7 +634,7 @@
+@@ -691,7 +660,7 @@
  		case MSG_ANNOUNCE_ATTRIB: {
  			player = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 5;
@@ -2163,7 +2189,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -702,7 +645,7 @@
+@@ -702,7 +671,7 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 4 * count;
@@ -2172,7 +2198,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -710,18 +653,18 @@
+@@ -710,18 +679,18 @@
  		}
  		case MSG_CARD_HINT: {
  			pbuf += 9;
@@ -2194,7 +2220,7 @@
  			SinglePlayRefreshDeck(player);
  			SinglePlayRefreshExtra(player);
  			break;
-@@ -748,7 +691,7 @@
+@@ -748,7 +717,7 @@
  			}
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 15;
@@ -2203,7 +2229,7 @@
  			SinglePlayReload();
  			mainGame->gMutex.lock();
  			mainGame->dField.RefreshAllCards();
-@@ -849,7 +792,8 @@
+@@ -849,7 +818,8 @@
  uint32_t SingleMode::MessageHandler(intptr_t fduel, uint32_t type) {
  	char msgbuf[1024];
  	get_log_message(fduel, msgbuf);
@@ -2225,7 +2251,7 @@
  	static void SinglePlayThread();
 --- a/gframe/training_support.cpp
 +++ b/gframe/training_support.cpp
-@@ -0,0 +1,280 @@
+@@ -0,0 +1,307 @@
 +// Local recorder for the pinned YGOPro core. No rule decisions are inferred from text.
 +#include "training_support.h"
 +#include "game.h"
@@ -2256,6 +2282,15 @@
 +static std::string captureToken;
 +static std::atomic<bool> opening{true};
 +bool TrainingOpening() { return TrainingEmbedded() && opening; }
++bool TrainingOpponentAI() {
++    if(!TrainingActive()) return false;
++    static const bool enabled = [] {
++        std::ifstream config(TrainingPath("opening.cfg"));
++        int version = 0, ai = 0;
++        return (config >> version >> ai) && version == 1 && ai == 1;
++    }();
++    return enabled;
++}
 +static std::string quote(const wchar_t* value);
 +static void TestButtons(irr::gui::IGUIElement* element, std::ostringstream& out, bool& first) {
 +    if(!element->isVisible()) return;
@@ -2429,8 +2464,8 @@
 +    out << "]}";
 +    TrainingWrite(out.str());
 +}
-+void TrainingResponse(const unsigned char* bytes, size_t len, const char* actor) {
-+    TrainingWrite("\"kind\":\"response\",\"actor\":\"" + std::string(actor) + "\",\"prompt\":" + std::to_string(mainGame->dInfo.curMsg) + ",\"raw\":\"" + hex(bytes, len) + "\"");
++void TrainingResponse(const unsigned char* bytes, size_t len, const char* actor, int prompt) {
++    TrainingWrite("\"kind\":\"response\",\"actor\":\"" + std::string(actor) + "\",\"prompt\":" + std::to_string(prompt >= 0 ? prompt : mainGame->dInfo.curMsg) + ",\"raw\":\"" + hex(bytes, len) + "\"");
 +}
 +bool TrainingAnalyze(intptr_t engine, unsigned char* bytes, size_t len) {
 +    if(TrainingOpening() && len && bytes[0] == MSG_SELECT_IDLECMD) {
@@ -2439,15 +2474,33 @@
 +        mainGame->dField.RefreshAllCards();
 +        mainGame->showcard = 0;
 +    }
-+    // Empty opponent only passes optional windows and ends its turn. No AI is loaded.
-+    if(TrainingActive() && len > 1 && bytes[1] == 1) {
++    // The pinned core's simple AI handles legal chain/target choices. Supply its idle turn policy.
++    if(TrainingActive() && TrainingOpponentAI() && len > 1 && bytes[1] == 1) {
++        const auto f = reinterpret_cast<duel*>(engine)->game_field;
++        int32_t answer = -1;
++        if(bytes[0] == MSG_SELECT_IDLECMD) {
++            if(!f->core.summonable_cards.empty()) {
++                size_t choice = 0;
++                for(size_t i = 0; i < f->core.summonable_cards.size(); ++i)
++                    if(f->core.summonable_cards[i]->data.code == 1184620) { choice = i; break; }
++                answer = static_cast<int32_t>(choice << 16);
++            } else if(f->core.to_ep) answer = 7;
++        } else if(bytes[0] == MSG_SELECT_BATTLECMD && f->core.to_ep) answer = 3;
++        if(answer >= 0) {
++            TrainingResponse(reinterpret_cast<unsigned char*>(&answer), sizeof answer, "opponent_ai", bytes[0]);
++            set_responsei(engine, answer);
++            return true;
++        }
++    }
++    // Disabled AI preserves the existing empty, optional-window-passing opponent.
++    if(TrainingActive() && !TrainingOpponentAI() && len > 1 && bytes[1] == 1) {
 +        int32_t answer = 0;
 +        bool pass = false;
 +        if(bytes[0] == MSG_SELECT_IDLECMD && len >= 3 && bytes[len - 2]) { answer = 7; pass = true; }
 +        if(bytes[0] == MSG_SELECT_CHAIN && len > 4 && !bytes[4]) { answer = -1; pass = true; }
 +        if(bytes[0] == MSG_SELECT_EFFECTYN) { answer = 0; pass = true; }
 +        if(pass) {
-+            TrainingResponse(reinterpret_cast<unsigned char*>(&answer), sizeof answer, "wall_pass");
++            TrainingResponse(reinterpret_cast<unsigned char*>(&answer), sizeof answer, "wall_pass", bytes[0]);
 +            set_responsei(engine, answer);
 +            return true;
 +        }
@@ -2480,7 +2533,7 @@
 +    if(GetFileAttributesA(TrainingPath("native.jsonl").c_str()) != INVALID_FILE_ATTRIBUTES) { session.clear(); mainGame->device->closeDevice(); return; }
 +    journal.open(TrainingPath("native.jsonl"), std::ios::binary);
 +    if(!journal) { session.clear(); mainGame->device->closeDevice(); return; }
-+    TrainingWrite("\"kind\":\"begin\",\"source\":\"ygopro-core/8ff3583\",\"ai\":false,\"rule\":5,\"test_control\":" + std::string(TrainingTestControlled() ? "true" : "false"));
++    TrainingWrite("\"kind\":\"begin\",\"source\":\"ygopro-core/8ff3583\",\"ai\":" + std::string(TrainingOpponentAI() ? "true" : "false") + ",\"rule\":5,\"test_control\":" + std::string(TrainingTestControlled() ? "true" : "false"));
 +    mainGame->wMainMenu->setVisible(false);
 +    if(TrainingEmbedded()) {
 +        mainGame->wInfos->setActiveTab(0);
@@ -2508,7 +2561,7 @@
 +}
 --- a/gframe/training_support.h
 +++ b/gframe/training_support.h
-@@ -0,0 +1,22 @@
+@@ -0,0 +1,23 @@
 +#pragma once
 +#include <cstddef>
 +#include <cstdint>
@@ -2519,6 +2572,7 @@
 +bool TrainingEmbedded();
 +bool TrainingOpening();
 +bool TrainingTestControlled();
++bool TrainingOpponentAI();
 +void TrainingCaptureFrame();
 +void TrainingBoot();
 +void TrainingPoll();
@@ -2526,7 +2580,7 @@
 +void TrainingStop(bool closing);
 +void TrainingWrite(const std::string& body);
 +void TrainingCapture(intptr_t engine, const char* kind, const unsigned char* bytes = nullptr, size_t len = 0);
-+void TrainingResponse(const unsigned char* bytes, size_t len, const char* actor = "user");
++void TrainingResponse(const unsigned char* bytes, size_t len, const char* actor = "user", int prompt = -1);
 +bool TrainingAnalyze(intptr_t engine, unsigned char* bytes, size_t len);
 +void TrainingFinish(intptr_t engine, const char* reason);
 +std::string TrainingPath(const char* name);

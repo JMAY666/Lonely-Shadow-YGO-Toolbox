@@ -28,6 +28,15 @@ static std::ofstream journal;
 static std::string captureToken;
 static std::atomic<bool> opening{true};
 bool TrainingOpening() { return TrainingEmbedded() && opening; }
+bool TrainingOpponentAI() {
+    if(!TrainingActive()) return false;
+    static const bool enabled = [] {
+        std::ifstream config(TrainingPath("opening.cfg"));
+        int version = 0, ai = 0;
+        return (config >> version >> ai) && version == 1 && ai == 1;
+    }();
+    return enabled;
+}
 static std::string quote(const wchar_t* value);
 static void TestButtons(irr::gui::IGUIElement* element, std::ostringstream& out, bool& first) {
     if(!element->isVisible()) return;
@@ -201,8 +210,8 @@ void TrainingCapture(intptr_t engine, const char* kind, const unsigned char* byt
     out << "]}";
     TrainingWrite(out.str());
 }
-void TrainingResponse(const unsigned char* bytes, size_t len, const char* actor) {
-    TrainingWrite("\"kind\":\"response\",\"actor\":\"" + std::string(actor) + "\",\"prompt\":" + std::to_string(mainGame->dInfo.curMsg) + ",\"raw\":\"" + hex(bytes, len) + "\"");
+void TrainingResponse(const unsigned char* bytes, size_t len, const char* actor, int prompt) {
+    TrainingWrite("\"kind\":\"response\",\"actor\":\"" + std::string(actor) + "\",\"prompt\":" + std::to_string(prompt >= 0 ? prompt : mainGame->dInfo.curMsg) + ",\"raw\":\"" + hex(bytes, len) + "\"");
 }
 bool TrainingAnalyze(intptr_t engine, unsigned char* bytes, size_t len) {
     if(TrainingOpening() && len && bytes[0] == MSG_SELECT_IDLECMD) {
@@ -211,15 +220,33 @@ bool TrainingAnalyze(intptr_t engine, unsigned char* bytes, size_t len) {
         mainGame->dField.RefreshAllCards();
         mainGame->showcard = 0;
     }
-    // Empty opponent only passes optional windows and ends its turn. No AI is loaded.
-    if(TrainingActive() && len > 1 && bytes[1] == 1) {
+    // The pinned core's simple AI handles legal chain/target choices. Supply its idle turn policy.
+    if(TrainingActive() && TrainingOpponentAI() && len > 1 && bytes[1] == 1) {
+        const auto f = reinterpret_cast<duel*>(engine)->game_field;
+        int32_t answer = -1;
+        if(bytes[0] == MSG_SELECT_IDLECMD) {
+            if(!f->core.summonable_cards.empty()) {
+                size_t choice = 0;
+                for(size_t i = 0; i < f->core.summonable_cards.size(); ++i)
+                    if(f->core.summonable_cards[i]->data.code == 1184620) { choice = i; break; }
+                answer = static_cast<int32_t>(choice << 16);
+            } else if(f->core.to_ep) answer = 7;
+        } else if(bytes[0] == MSG_SELECT_BATTLECMD && f->core.to_ep) answer = 3;
+        if(answer >= 0) {
+            TrainingResponse(reinterpret_cast<unsigned char*>(&answer), sizeof answer, "opponent_ai", bytes[0]);
+            set_responsei(engine, answer);
+            return true;
+        }
+    }
+    // Disabled AI preserves the existing empty, optional-window-passing opponent.
+    if(TrainingActive() && !TrainingOpponentAI() && len > 1 && bytes[1] == 1) {
         int32_t answer = 0;
         bool pass = false;
         if(bytes[0] == MSG_SELECT_IDLECMD && len >= 3 && bytes[len - 2]) { answer = 7; pass = true; }
         if(bytes[0] == MSG_SELECT_CHAIN && len > 4 && !bytes[4]) { answer = -1; pass = true; }
         if(bytes[0] == MSG_SELECT_EFFECTYN) { answer = 0; pass = true; }
         if(pass) {
-            TrainingResponse(reinterpret_cast<unsigned char*>(&answer), sizeof answer, "wall_pass");
+            TrainingResponse(reinterpret_cast<unsigned char*>(&answer), sizeof answer, "wall_pass", bytes[0]);
             set_responsei(engine, answer);
             return true;
         }
@@ -252,7 +279,7 @@ void TrainingBoot() {
     if(GetFileAttributesA(TrainingPath("native.jsonl").c_str()) != INVALID_FILE_ATTRIBUTES) { session.clear(); mainGame->device->closeDevice(); return; }
     journal.open(TrainingPath("native.jsonl"), std::ios::binary);
     if(!journal) { session.clear(); mainGame->device->closeDevice(); return; }
-    TrainingWrite("\"kind\":\"begin\",\"source\":\"ygopro-core/8ff3583\",\"ai\":false,\"rule\":5,\"test_control\":" + std::string(TrainingTestControlled() ? "true" : "false"));
+    TrainingWrite("\"kind\":\"begin\",\"source\":\"ygopro-core/8ff3583\",\"ai\":" + std::string(TrainingOpponentAI() ? "true" : "false") + ",\"rule\":5,\"test_control\":" + std::string(TrainingTestControlled() ? "true" : "false"));
     mainGame->wMainMenu->setVisible(false);
     if(TrainingEmbedded()) {
         mainGame->wInfos->setActiveTab(0);

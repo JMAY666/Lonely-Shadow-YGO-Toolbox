@@ -161,8 +161,8 @@ if (!app.requestSingleInstanceLock()) {
       });
     });
     mainWindow.webContents.on('will-prevent-unload', event => {
-      const response = dialog.showMessageBoxSync(mainWindow, { type: 'question', title: '构筑尚未保存',
-        message: '当前构筑有未保存修改。是否放弃这些修改并继续？', buttons: ['继续编辑', '放弃修改'], defaultId: 0, cancelId: 0 });
+      const response = dialog.showMessageBoxSync(mainWindow, { type: 'question', title: '内容尚未保存',
+        message: '构筑、前置设计或草稿文字可能尚未保存，展开中的记录尚未成为正式方案。是否离开？已落盘的草稿和历史会保留。', buttons: ['继续编辑', '离开页面'], defaultId: 0, cancelId: 0 });
       if (response === 1) event.preventDefault();
     });
     mainWindow.on('close', event => {
@@ -173,10 +173,10 @@ if (!app.requestSingleInstanceLock()) {
       catch (error) { writeLog(`Window settings: ${error.message}`); }
       void (async () => {
         // Keep the parent HWND alive until the native child has flushed and exited.
-        const dirty = ready && await mainWindow.webContents.executeJavaScript('typeof app !== "undefined" && app.dirty').catch(() => true);
+        const dirty = ready && await mainWindow.webContents.executeJavaScript('typeof unsavedSummary === "function" ? unsavedSummary() : (typeof app !== "undefined" && app.dirty ? "构筑有未保存修改。" : "")').catch(() => '未能确认保存状态。');
         if (dirty) {
-          const { response } = await dialog.showMessageBox(mainWindow, { type: 'question', title: '构筑尚未保存',
-            message: '当前构筑有未保存修改。是否放弃这些修改并退出？', buttons: ['继续编辑', '放弃修改并退出'], defaultId: 0, cancelId: 0 });
+          const { response } = await dialog.showMessageBox(mainWindow, { type: 'question', title: '内容尚未保存',
+            message: `${dirty}\n是否退出？已落盘的草稿和历史会保留。`, buttons: ['继续编辑', '退出应用'], defaultId: 0, cancelId: 0 });
           if (response === 0) { closeRequested = false; return; }
         }
         await stop();
