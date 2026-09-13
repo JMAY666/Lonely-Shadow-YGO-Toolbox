@@ -1,0 +1,100 @@
+# 基础规则：当前尚未确定技术栈，加入源码后应按实际目录复核。
+# 忽略只影响版本管理，不删除本地文件；锁定文件和配置模板应保留。
+
+# 依赖与本地虚拟环境
+node_modules/
+.venv/
+venv/
+.npm/
+.pnpm-store/
+
+# 缓存、测试报告和可重新生成的构建产物
+.cache/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+/coverage/
+/dist/
+/build/
+/out/
+/release/
+/target/
+.next/
+.nuxt/
+.svelte-kit/
+.vite/
+.turbo/
+.parcel-cache/
+*.tsbuildinfo
+
+# 日志和临时文件
+*.log
+/logs/
+/tmp/
+/temp/
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# 环境变量与凭据；模板只能包含占位内容，不得存放真实秘密
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+!.env.*.example
+!.env.*.sample
+!.env.*.template
+.secrets/
+.credentials/
+secrets.json
+secrets.*.json
+!secrets.example.json
+!secrets.sample.json
+!secrets.template.json
+credentials.json
+credentials.*.json
+!credentials.example.json
+!credentials.sample.json
+!credentials.template.json
+*.key
+*.pem
+*.p12
+*.pfx
+*.keystore
+id_rsa
+id_ed25519
+
+# 本地个人数据、账号状态及备份使用这些专用目录
+# 公开卡牌资源、脱敏样例、迁移脚本和运行必需的数据仍需逐项审核保留
+/.local/
+/private/
+/local-data/
+/user-data/
+/backups/
+/data/local/
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite3-wal
+*.sqlite3-shm
+*.db-wal
+*.db-shm
+
+# 本机系统及 IDE 状态；共享的编辑器配置不作整目录排除
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vs/
+*.suo
+*.user
