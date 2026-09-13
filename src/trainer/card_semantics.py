@@ -20,6 +20,10 @@ MATERIAL_REASONS = {0x40000: '融合召唤', 0x80000: '同调召唤', 0x100000: 
 # Audited against the working-copy scripts. Frozen-text digests fail closed on
 # changed wording; predicates identify an activation, never invent its outcome.
 AUDITED_EFFECTS = {
+    42741437: ('9af896d3091b95cfb9be47f9a6b4f3ca89e688f1a3e727b934272d67eaaeaff4', [
+        {'number': 1, 'description': 42741437 * 16, 'location': 4, 'script': 'c42741437.rmop'},
+        {'number': 3, 'description': 42741437 * 16 + 1, 'location': 4, 'script': 'c42741437.thop'},
+    ]),
     8240199: ('6b1821b44d4c4c4313752ef133f6f96ad08c65111c7874d56e4f51c08ba5d291', [
         {'number': 1, 'location': 4, 'description': 0, 'script': 'c8240199.thop'},
         {'number': 2, 'location': 2, 'description': 0, 'script': 'c8240199.gvop'},

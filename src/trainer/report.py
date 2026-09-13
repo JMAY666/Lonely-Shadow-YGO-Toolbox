@@ -7,7 +7,7 @@ from protocol import NAMES, PROMPTS, packets, u32, location
 from actions import project_actions
 from card_semantics import material_method, summon_method
 
-REPORT_VERSION = 4
+REPORT_VERSION = 5
 
 LIMITS = [
     '事件时间为引擎批次采集时间；同批事件用字节偏移确定先后。',
@@ -47,6 +47,8 @@ def build_report(meta, rows, issues):
     state, chains, summoning = {'cards': []}, {}, {}
     turn_started = False
     last_prompt = None
+    building_links = {}
+    previous_seq = None
 
     def ref(loc, code=None):
         if loc.get('location', 0) & 0x80:
@@ -119,6 +121,9 @@ def build_report(meta, rows, issues):
         own.update(dest)
 
     for row in rows:
+        if previous_seq is not None and row['seq'] != previous_seq + 1:
+            building_links.clear()  # Missing messages could include the end of a cost window.
+        previous_seq = row['seq']
         kind = row.get('kind')
         if kind == 'loaded':
             state = deepcopy(row['state'])
@@ -207,12 +212,14 @@ def build_report(meta, rows, issues):
                     elif msg == 70:
                         n = b[15]
                         e.update(cards=[ref(location(b, 4), u32(b))], chain=n,
+                                 triggering_controller=b[8],
                                  effect={'description_id': u32(b, 11), 'semantic_result': '未知'})
                         for native_chain in row['state'].get('chains', []):
                             if native_chain.get('link') == n:
                                 e['engine_effect'] = native_chain.get('effect')
                                 break
                         chains[n] = {'activation_ref': e['id'], 'cards': e['cards'], 'negated': False, 'disabled': False}
+                        building_links[n] = e
                     elif msg in (71, 72, 73, 75, 76):
                         n = b[0]; ch = chains.get(n, {})
                         e.update(chain=n, activation_ref=ch.get('activation_ref'), cards=ch.get('cards', []))
@@ -222,15 +229,31 @@ def build_report(meta, rows, issues):
                                 break
                         if msg == 75: ch['negated'] = True
                         if msg == 76: ch['disabled'] = True
+                        if msg in (71, 75, 76): building_links.pop(n, None)
+                        if msg == 72: building_links.clear()
                         if msg == 73:
                             e['result'] = '发动已无效' if ch.get('negated') else '效果已无效' if ch.get('disabled') else '处理完成；实际结果请核对后续事件与场面'
-                    elif msg == 74: chains.clear()
+                    elif msg == 74:
+                        chains.clear(); building_links.clear()
                     elif msg == 83:
                         e['targets'] = [ref(location(b, 1 + i * 4)) for i in range(b[0])]
                         e['cards'] = e['targets']
                     elif msg in (91, 92, 94, 100):
                         e.update(player=b[0], amount=u32(b, 1))
-                        if msg == 100: e['cost'] = {'lp': e['amount']}
+                        if msg == 100:
+                            e['cost'] = {'lp': e['amount']}
+                            # PAY_LPCOST has no card reference. In the pinned core, a link's
+                            # cost executes between CHAINING and CHAINED. Require one open
+                            # window, the matching payer and a corroborating native effect.
+                            if len(building_links) == 1:
+                                activation = next(iter(building_links.values()))
+                                native = activation.get('engine_effect') or {}
+                                candidates = [c for c in row['state'].get('chains', []) if c.get('link') == activation['chain']]
+                                if len(candidates) == 1 and activation.get('triggering_controller') == e['player']:
+                                    source = candidates[0].get('effect') or {}
+                                    key = 'effect_handle' if native.get('effect_handle') and source.get('effect_handle') else 'effect_id'
+                                    if native.get(key) is not None and native.get(key) == source.get(key) and native.get('handler_instance') is not None and native.get('handler_instance') == source.get('handler_instance'):
+                                        e.update(cause=deepcopy(source), cost_activation_ref=activation['id'], cost_source='chain_construction_window_and_snapshot')
                     elif msg in (15, 20):
                         e['choices'] = [ref(location(b, 9 + i * 8), u32(b, 5 + i * 8)) for i in range(b[4])]
                     elif msg in (25, 30, 42):
@@ -242,6 +265,7 @@ def build_report(meta, rows, issues):
                         e.update(cards=[ref(location(b, 5), u32(b, 1))], effect={'description_id': u32(b, 9)})
                     elif msg in (40, 41):
                         e['value'] = int.from_bytes(b, 'little')
+                        building_links.clear()
                         if msg == 40: turn_started = True
                     elif msg in (32, 33, 35, 36, 37, 39, 55):
                         # These break simple event-to-location correspondence; wait for the authoritative batch snapshot.

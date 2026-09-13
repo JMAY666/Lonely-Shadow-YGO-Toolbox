@@ -254,6 +254,8 @@ def project_actions(report):
             continue
         if e.get('cost') and e.get('cause'):
             matches = [a for a in links.values() if a['status'] == 'pending' and cause_matches(a, e)]
+            if e.get('cost_activation_ref'):
+                matches = [a for a in matches if a['activation_ref'] == e['cost_activation_ref']]
             if len(matches) == 1:
                 attach(matches[0], e, 'costs'); continue
         if msg in (30, 42) and resolving and resolving['status'] == 'pending':

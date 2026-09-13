@@ -22,6 +22,17 @@ STONE_TEXT = ('这个卡名的②的效果1回合只能使用1次。\n'
 
 
 class TextTests(unittest.TestCase):
+    def test_mikailis_search_description_maps_to_effect_three_not_two(self):
+        code = 42741437
+        text = ('4星怪兽×2\n这个卡名的①③的效果1回合各能使用1次。\n'
+                '①：这张卡用「救祓少女」怪兽为素材作超量召唤的自己·对方回合，以对方的场上·墓地1张卡为对象才能发动。那张卡除外。\n'
+                '②：这张卡不会被和从墓地特殊召唤的怪兽的战斗破坏。\n'
+                '③：把这张卡1个超量素材取除才能发动。从卡组把1张「救祓少女」魔法·陷阱卡加入手卡。')
+        catalog = {str(code): {'desc': text}}
+        for index, expected in ((0, 1), (1, 3), (2, None)):
+            e = event(1, 70, cards=[card(code, 1, 4, 5)], effect={'description_id': code * 16 + index})
+            self.assertEqual(effect_clause(e, catalog)['number'], expected)
+
     def test_clause_headings_do_not_include_restriction_references(self):
         parts = clauses(SAGE_TEXT)
         self.assertEqual(set(parts), {1, 2})
