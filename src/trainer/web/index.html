@@ -11,6 +11,7 @@
   <a class="brand" href="/">YGO<span>展开练习室</span></a>
   <nav aria-label="主要导航">
     <button id="nav-decks" class="nav active" aria-current="page">卡组编辑</button>
+    <button id="nav-training" class="nav" hidden disabled>训练场地</button>
     <button id="nav-history" class="nav">训练历史 <span id="history-count"></span></button>
   </nav>
   <div class="local"><span class="status-dot"></span>本地工作副本 <small id="resource-count"></small></div>
@@ -28,12 +29,14 @@
         <div class="deck-picker">
           <select id="compact-deck" aria-label="选择已有构筑"><option value="">选择已有构筑</option></select>
           <button id="compact-open">打开</button>
+          <button id="delete-deck" class="danger" disabled>删除构筑</button>
           <button id="new-deck">新建</button>
           <button id="import-deck" class="import-button">导入卡组</button>
         </div>
         <div class="save-actions">
+          <button id="library-toggle" aria-controls="card-library" aria-expanded="false">卡片列表</button>
           <button id="save-deck" class="save-button">保存构筑</button>
-          <button id="start-training" class="primary" disabled>开始训练 ↗</button>
+          <button id="start-training" class="primary" disabled>开始训练</button>
         </div>
       </div>
     </header>
@@ -81,8 +84,8 @@
         </div>
         <div class="deck-footer"><span>单击查看卡片 · 右键卡组卡片移除</span><details><summary>构筑规则</summary><p>训练需要主卡组 40–60 张，额外与副卡组各最多 15 张。自由练习不限制禁限卡及同名张数。副卡组会保存，但不参加训练。</p></details></div>
       </section>
-      <section class="panel library" aria-label="卡牌搜索">
-        <div class="panel-title"><h2>卡片列表</h2><span id="search-count"></span></div>
+      <section id="card-library" class="panel library" aria-label="卡牌搜索抽屉" hidden>
+        <div class="panel-title"><h2>卡片列表</h2><span id="search-count"></span><button id="library-close" aria-label="收起卡片列表">收起 ›</button></div>
         <div class="search-tools">
           <div class="search-row"><input id="search" type="search" placeholder="卡名、编号或效果文本" aria-label="搜索卡牌"><button id="search-button">搜索</button></div>
           <div class="filter-row"><label for="filter">类型</label><select id="filter" aria-label="卡牌类型"><option value="">全部卡牌</option><option value="monster">怪兽</option><option value="spell">魔法</option><option value="trap">陷阱</option><option value="extra">额外卡组</option></select><span>双击加入构筑</span></div>
@@ -91,6 +94,10 @@
         <div class="pager"><button id="prev-page" aria-label="上一页">←</button><span id="page-number" aria-live="polite"></span><button id="next-page" aria-label="下一页">→</button></div>
       </section>
     </div>
+  </section>
+  <section id="training" hidden aria-label="训练场地">
+    <header class="training-toolbar"><div><h2 id="training-title">单人训练</h2><p>在下方场地中召唤、发动效果和选择对象，过程自动记录。</p></div><button id="training-report">查看记录</button><button id="finish-training" class="danger">结束训练</button></header>
+    <div id="native-stage"><p>正在准备训练场地……</p></div>
   </section>
   <section id="history" hidden>
     <header><div><div class="eyebrow">PRACTICE JOURNAL</div><h1>每一次展开的轨迹</h1><p>起手、选择与最终场面，保存在这一份记录里。</p></div><button id="refresh-history">刷新记录</button></header>

@@ -327,15 +327,19 @@
  	irr::SIrrlichtCreationParameters params{};
  	params.AntiAlias = gameConf.antialias;
  	if(gameConf.use_d3d)
-@@ -200,7 +208,7 @@
+@@ -200,9 +208,9 @@
  	lpcFont = irr::gui::CGUITTFont::createTTFont(env, gameConf.numfont, 48);
  	guiFont = irr::gui::CGUITTFont::createTTFont(env, gameConf.textfont, gameConf.textfontsize);
  	smgr = device->getSceneManager();
 -	device->setWindowCaption(L"YGOPro");
+-	device->setResizable(true);
+-	if(gameConf.window_maximized)
 +	device->setWindowCaption(L"YGOPro Lite");
- 	device->setResizable(true);
- 	if(gameConf.window_maximized)
++	if(!TrainingEmbedded()) device->setResizable(true);
++	if(!TrainingEmbedded() && gameConf.window_maximized)
  		device->maximizeWindow();
+ #ifdef _WIN32
+ 	irr::video::SExposedVideoData exposedData = driver->getExposedVideoData();
 @@ -214,15 +222,13 @@
  	SetWindowsIcon();
  	//main menu
@@ -387,7 +391,15 @@
  		auto size = driver->getScreenSize();
  		if(window_size != size) {
  			window_size = size;
-@@ -1139,7 +1152,7 @@
+@@ -1099,6 +1112,7 @@
+ 				stHintMsg->setText(dataManager.GetSysString(1392));
+ 			}
+ 		}
++		TrainingCaptureFrame();
+ 		driver->endScene();
+ 		if(closeSignal.TryWait())
+ 			CloseDuelWindow();
+@@ -1139,7 +1153,7 @@
  		if(now - targetTime > targetFrameDuration)
  			lastFrameTime = now;
  		if(now - lastFpsTime >= std::chrono::milliseconds(1000)) {
@@ -396,7 +408,27 @@
  			device->setWindowCaption(cap);
  			fps = 0;
  			lastFpsTime += std::chrono::milliseconds(1000);
-@@ -1359,11 +1372,7 @@
+@@ -1157,8 +1171,17 @@
+ 		timeEndPeriod(1);
+ #endif
+ 	DuelClient::StopClient(CLIENT_CLOSE_REASON_EXIT);
+-	if(dInfo.isSingleMode)
+-		SingleMode::StopPlay(true);
++    if(TrainingActive()) {
++        // The renderer has stopped ticking. Release animation/choice waits before joining.
++        frameSignal.SetNoWait(true);
++        frameSignal.Set(); // SetNoWait alone does not wake an already waiting animation thread.
++        actionSignal.SetNoWait(true);
++        singleSignal.SetNoWait(true);
++        SingleMode::StopPlay(true);
++        SingleMode::WaitForExit(); // Journal + final state must finish before device teardown.
++    } else if(dInfo.isSingleMode) {
++        SingleMode::StopPlay(true);
++    }
+ 	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+ 	SaveConfig();
+ 	device->drop();
+@@ -1359,11 +1382,7 @@
  	});
  }
  void Game::RefreshReplay() {
@@ -409,7 +441,7 @@
  }
  void Game::RefreshSingleplay() {
  	lstSinglePlayList->clear();
-@@ -2029,7 +2038,7 @@
+@@ -2029,7 +2048,7 @@
  			button->setImage(imageManager.tButtonFacedown[imgInfo.first]);
  	}
  
@@ -1274,7 +1306,18 @@
  #include "duelclient.h"
  #include "game.h"
  #include "data_manager.h"
-@@ -19,6 +23,7 @@
+@@ -14,11 +18,17 @@
+ Replay SingleMode::last_replay;
+ size_t SingleMode::last_replay_response_size = 0;
+ 
++static std::thread trainingThread;
++void SingleMode::WaitForExit() {
++    if(trainingThread.joinable()) trainingThread.join();
++}
+ bool SingleMode::StartPlay() {
+-	std::thread(SinglePlayThread).detach();
++	WaitForExit();
++	trainingThread = std::thread(SinglePlayThread);
  	return true;
  }
  void SingleMode::StopPlay(bool is_exiting) {
@@ -1282,7 +1325,7 @@
  	is_closing = is_exiting;
  	is_continuing = false;
  	mainGame->actionSignal.Set();
-@@ -27,160 +32,91 @@
+@@ -27,160 +37,93 @@
  void SingleMode::SetResponse(unsigned char* resp, unsigned int len) {
  	if(!pduel)
  		return;
@@ -1461,6 +1504,8 @@
 +    std::random_device rd;
 +    uint32_t seeds[SEED_COUNT];
 +    for(auto& seed : seeds) seed = rd();
++    if(TrainingTestControlled())
++        std::fill(std::begin(seeds), std::end(seeds), 42u); // Reproducible internal acceptance only.
 +    std::seed_seq shuffleSeed(seeds, seeds + SEED_COUNT);
 +    std::mt19937 shuffle(shuffleSeed);
 +    std::shuffle(deck.main.begin(), deck.main.end(), shuffle);
@@ -1525,7 +1570,7 @@
  }
  bool SingleMode::SinglePlayAnalyze(unsigned char* msg, unsigned int len) {
  	unsigned char* offset, * pbuf = msg;
-@@ -196,7 +132,7 @@
+@@ -196,7 +139,7 @@
  				last_replay.RemoveData(last_replay_response_size);
  				last_replay_response_size = 0;
  			}
@@ -1534,7 +1579,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -207,12 +143,12 @@
+@@ -207,12 +150,12 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			/*int data = */BufferIO::Read<int32_t>(pbuf);
  			if(player == 0)
@@ -1549,7 +1594,7 @@
  			return false;
  		}
  		case MSG_SELECT_BATTLECMD: {
-@@ -222,7 +158,7 @@
+@@ -222,7 +165,7 @@
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 8 + 2;
  			SinglePlayRefresh();
@@ -1558,7 +1603,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -243,7 +179,7 @@
+@@ -243,7 +186,7 @@
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 11 + 3;
  			SinglePlayRefresh();
@@ -1567,7 +1612,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -252,7 +188,7 @@
+@@ -252,7 +195,7 @@
  		case MSG_SELECT_EFFECTYN: {
  			player = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 12;
@@ -1576,7 +1621,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -261,7 +197,7 @@
+@@ -261,7 +204,7 @@
  		case MSG_SELECT_YESNO: {
  			player = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 4;
@@ -1585,7 +1630,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -271,7 +207,7 @@
+@@ -271,7 +214,7 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 4;
@@ -1594,7 +1639,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -283,7 +219,7 @@
+@@ -283,7 +226,7 @@
  			pbuf += 3;
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 8;
@@ -1603,7 +1648,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -296,7 +232,7 @@
+@@ -296,7 +239,7 @@
  			pbuf += count * 8;
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 8;
@@ -1612,7 +1657,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -306,7 +242,7 @@
+@@ -306,7 +249,7 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 9 + count * 14;
@@ -1621,7 +1666,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -316,7 +252,7 @@
+@@ -316,7 +259,7 @@
  		case MSG_SELECT_DISFIELD: {
  			player = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 5;
@@ -1630,7 +1675,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -325,7 +261,7 @@
+@@ -325,7 +268,7 @@
  		case MSG_SELECT_POSITION: {
  			player = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 5;
@@ -1639,7 +1684,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -336,7 +272,7 @@
+@@ -336,7 +279,7 @@
  			pbuf += 4;
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 9;
@@ -1648,7 +1693,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -350,7 +286,7 @@
+@@ -350,7 +293,7 @@
  			pbuf += count * 11;
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 11;
@@ -1657,7 +1702,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -360,7 +296,7 @@
+@@ -360,7 +303,7 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 7;
@@ -1666,7 +1711,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -370,14 +306,14 @@
+@@ -370,14 +313,14 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 7;
@@ -1683,7 +1728,7 @@
  			break;
  		}
  		case MSG_CONFIRM_CARDS: {
-@@ -385,12 +321,12 @@
+@@ -385,12 +328,12 @@
  			pbuf += 1;
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 7;
@@ -1698,7 +1743,7 @@
  			SinglePlayRefreshDeck(player);
  			break;
  		}
-@@ -398,53 +334,53 @@
+@@ -398,53 +341,53 @@
  			/*int oplayer = */BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 4;
@@ -1761,7 +1806,7 @@
  			SinglePlayRefresh();
  			break;
  		}
-@@ -458,85 +394,85 @@
+@@ -458,85 +401,85 @@
  			int cs = pbuf[10];
  			/*int cp = pbuf[11];*/
  			pbuf += 16;
@@ -1863,7 +1908,7 @@
  			SinglePlayRefresh();
  			SinglePlayRefreshDeck(0);
  			SinglePlayRefreshDeck(1);
-@@ -544,12 +480,12 @@
+@@ -544,12 +487,12 @@
  		}
  		case MSG_CHAIN_NEGATED: {
  			pbuf++;
@@ -1878,7 +1923,7 @@
  			break;
  		}
  		case MSG_CARD_SELECTED:
-@@ -557,118 +493,118 @@
+@@ -557,118 +500,118 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 4;
@@ -2019,7 +2064,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -676,13 +612,13 @@
+@@ -676,13 +619,13 @@
  		}
  		case MSG_HAND_RES: {
  			pbuf += 1;
@@ -2035,7 +2080,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -691,7 +627,7 @@
+@@ -691,7 +634,7 @@
  		case MSG_ANNOUNCE_ATTRIB: {
  			player = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 5;
@@ -2044,7 +2089,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -702,7 +638,7 @@
+@@ -702,7 +645,7 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 4 * count;
@@ -2053,7 +2098,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -710,18 +646,18 @@
+@@ -710,18 +653,18 @@
  		}
  		case MSG_CARD_HINT: {
  			pbuf += 9;
@@ -2075,7 +2120,7 @@
  			SinglePlayRefreshDeck(player);
  			SinglePlayRefreshExtra(player);
  			break;
-@@ -748,7 +684,7 @@
+@@ -748,7 +691,7 @@
  			}
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 15;
@@ -2084,7 +2129,7 @@
  			SinglePlayReload();
  			mainGame->gMutex.lock();
  			mainGame->dField.RefreshAllCards();
-@@ -849,7 +785,8 @@
+@@ -849,7 +792,8 @@
  uint32_t SingleMode::MessageHandler(intptr_t fduel, uint32_t type) {
  	char msgbuf[1024];
  	get_log_message(fduel, msgbuf);
@@ -2094,15 +2139,26 @@
  	return 0;
  }
  
+--- a/gframe/single_mode.h
++++ b/gframe/single_mode.h
+@@ -16,6 +16,7 @@
+ 
+ public:
+ 	static bool StartPlay();
++	static void WaitForExit();
+ 	static void StopPlay(bool is_exiting = false);
+ 	static void SetResponse(unsigned char* resp, unsigned int len);
+ 	static void SinglePlayThread();
 --- a/gframe/training_support.cpp
 +++ b/gframe/training_support.cpp
-@@ -0,0 +1,157 @@
+@@ -0,0 +1,254 @@
 +// Local recorder for the pinned YGOPro core. No rule decisions are inferred from text.
 +#include "training_support.h"
 +#include "game.h"
 +#include "single_mode.h"
 +#include "duelclient.h"
 +#include "data_manager.h"
++#include "client_card.h"
 +#include "../ocgcore/duel.h"
 +#include "../ocgcore/field.h"
 +#include "../ocgcore/card.h"
@@ -2115,6 +2171,7 @@
 +#include <mutex>
 +#include <sstream>
 +#include <algorithm>
++#include <map>
 +
 +namespace ygo {
 +static std::string session;
@@ -2122,6 +2179,95 @@
 +static uint64_t sequence = 0;
 +static std::atomic<bool> stopping{false}, closing{false}, finished{false};
 +static std::ofstream journal;
++static std::string captureToken;
++static std::string quote(const wchar_t* value);
++static void TestButtons(irr::gui::IGUIElement* element, std::ostringstream& out, bool& first) {
++    if(!element->isVisible()) return;
++    if(element->getType() == irr::gui::EGUIET_BUTTON && element->isEnabled()) {
++        const auto rect = element->getAbsoluteClippingRect();
++        if(rect.getWidth() > 0 && rect.getHeight() > 0) {
++            if(!first) out << ','; first = false;
++            out << "{\"text\":" << quote(element->getText()) << ",\"x\":" << rect.getCenter().X << ",\"y\":" << rect.getCenter().Y << '}';
++        }
++    }
++    for(auto child : element->getChildren()) TestButtons(child, out, first);
++}
++static std::string TestUIState() {
++    std::lock_guard<std::mutex> lock(mainGame->gMutex);
++    auto& field = mainGame->dField;
++    auto oldController = field.hovered_controler, oldLocation = field.hovered_location;
++    auto oldSequence = field.hovered_sequence;
++    std::map<int, std::vector<int>> hits;
++    // Use the engine's own hit test in its reference coordinate system.
++    for(int y = 280; y < 600; y += 8) for(int x = 330; x < 930; x += 8) {
++        field.GetHoverField(x, y);
++        if(field.hovered_controler != 0 || (field.hovered_location != 2 && field.hovered_location != 4 && field.hovered_location != 8)) continue;
++        const int key = field.hovered_location * 100 + int(field.hovered_sequence);
++        auto& hit = hits[key];
++        if(hit.empty()) hit = {0, 0, 0};
++        hit[0] += x; hit[1] += y; ++hit[2];
++    }
++    field.hovered_controler = oldController; field.hovered_location = oldLocation; field.hovered_sequence = oldSequence;
++    std::ostringstream out;
++    out << ",\"prompt\":" << unsigned(mainGame->dInfo.curMsg) << ",\"targets\":[";
++    bool first = true;
++    for(const auto& pair : hits) {
++        if(!first) out << ','; first = false;
++        const auto point = mainGame->Resize(pair.second[0] / pair.second[2], pair.second[1] / pair.second[2]);
++        auto card = field.GetCard(0, pair.first / 100, pair.first % 100);
++        out << "{\"location\":" << pair.first / 100 << ",\"sequence\":" << pair.first % 100 << ",\"code\":" << (card ? card->code : 0)
++            << ",\"x\":" << point.X << ",\"y\":" << point.Y << '}';
++    }
++    out << "],\"buttons\":[";
++    first = true; TestButtons(mainGame->env->getRootGUIElement(), out, first);
++    out << ']';
++    return out.str();
++}
++bool TrainingEmbedded() { return GetEnvironmentVariableA("YGO_EMBED_PARENT", nullptr, 0) > 0; }
++bool TrainingTestControlled() {
++    char enabled[4]{};
++    return GetEnvironmentVariableA("YGO_TRAIN_TEST_CONTROL", enabled, sizeof enabled) && enabled[0] == '1';
++}
++static void TrainingTestInput() {
++    if(!TrainingTestControlled()) return;
++    std::ifstream command(TrainingPath("test-command.txt"));
++    std::string kind, token;
++    int x = 0, y = 0;
++    if(!(command >> kind >> token >> x >> y)) return;
++    command.close();
++    DeleteFileA(TrainingPath("test-command.txt").c_str());
++    if(token.size() != 32 || token.find_first_not_of("0123456789abcdef") != std::string::npos) return;
++    const auto size = mainGame->driver->getScreenSize();
++    if(x < 0 || y < 0 || x >= int(size.Width) || y >= int(size.Height)) return;
++    if(kind == "click") {
++        // Deliver Irrlicht events to this engine only. No SendInput, cursor warp or global keys.
++        irr::SEvent event{};
++        event.EventType = irr::EET_MOUSE_INPUT_EVENT;
++        event.MouseInput.X = x; event.MouseInput.Y = y;
++        event.MouseInput.Event = irr::EMIE_MOUSE_MOVED;
++        mainGame->device->postEventFromUser(event);
++        event.MouseInput.Event = irr::EMIE_LMOUSE_PRESSED_DOWN;
++        event.MouseInput.ButtonStates = irr::EMBSM_LEFT;
++        mainGame->device->postEventFromUser(event);
++        event.MouseInput.Event = irr::EMIE_LMOUSE_LEFT_UP;
++        event.MouseInput.ButtonStates = 0;
++        mainGame->device->postEventFromUser(event);
++    } else if(kind != "capture") return;
++    captureToken = token;
++}
++void TrainingCaptureFrame() {
++    if(captureToken.empty()) return;
++    const std::string name = "native-" + captureToken;
++    auto screenshot = mainGame->driver->createScreenShot();
++    bool ok = screenshot && mainGame->driver->writeImageToFile(screenshot, TrainingPath((name + ".png").c_str()).c_str());
++    if(screenshot) screenshot->drop();
++    const auto size = mainGame->driver->getScreenSize();
++    std::ofstream response(TrainingPath((name + ".json").c_str()));
++    if(ok) response << "{\"width\":" << size.Width << ",\"height\":" << size.Height << TestUIState() << '}';
++    else response << "{\"error\":\"Engine frame capture failed\"}";
++    response.close();
++    captureToken.clear();
++}
 +static std::string hex(const unsigned char* bytes, size_t len) {
 +    static const char digits[] = "0123456789abcdef";
 +    std::string result;
@@ -2236,17 +2382,23 @@
 +    std::string candidate(id);
 +    if(candidate.size() != 36 || candidate.find_first_not_of("0123456789abcdef-") != std::string::npos) return;
 +    session = candidate;
++    if(TrainingEmbedded()) {
++        auto hwnd = mainGame->driver->getExposedVideoData().OpenGLWin32.HWnd;
++        std::ofstream windowInfo(TrainingPath("native-window.json"));
++        windowInfo << "{\"hwnd\":\"" << reinterpret_cast<uintptr_t>(hwnd) << "\",\"pid\":" << GetCurrentProcessId() << '}';
++    }
 +    // A journal is exclusive to one new native process; never append to an old session.
 +    if(GetFileAttributesA(TrainingPath("native.jsonl").c_str()) != INVALID_FILE_ATTRIBUTES) { session.clear(); mainGame->device->closeDevice(); return; }
 +    journal.open(TrainingPath("native.jsonl"), std::ios::binary);
 +    if(!journal) { session.clear(); mainGame->device->closeDevice(); return; }
-+    TrainingWrite("\"kind\":\"begin\",\"source\":\"ygopro-core/8ff3583\",\"ai\":false,\"rule\":5");
++    TrainingWrite("\"kind\":\"begin\",\"source\":\"ygopro-core/8ff3583\",\"ai\":false,\"rule\":5,\"test_control\":" + std::string(TrainingTestControlled() ? "true" : "false"));
 +    mainGame->wMainMenu->setVisible(false);
 +    mainGame->exit_on_return = true;
 +    SingleMode::StartPlay();
 +}
 +void TrainingPoll() {
 +    TrainingBoot();
++    if(TrainingActive()) TrainingTestInput();
 +    if(!TrainingActive() || finished || stopping) return;
 +    if(GetFileAttributesA(TrainingPath("stop.request").c_str()) != INVALID_FILE_ATTRIBUTES && mainGame->dInfo.isSingleMode) {
 +        mainGame->singleSignal.SetNoWait(true);
@@ -2256,7 +2408,7 @@
 +}
 --- a/gframe/training_support.h
 +++ b/gframe/training_support.h
-@@ -0,0 +1,18 @@
+@@ -0,0 +1,21 @@
 +#pragma once
 +#include <cstddef>
 +#include <cstdint>
@@ -2264,6 +2416,9 @@
 +
 +namespace ygo {
 +bool TrainingActive();
++bool TrainingEmbedded();
++bool TrainingTestControlled();
++void TrainingCaptureFrame();
 +void TrainingBoot();
 +void TrainingPoll();
 +bool TrainingStopping();
@@ -2275,3 +2430,88 @@
 +void TrainingFinish(intptr_t engine, const char* reason);
 +std::string TrainingPath(const char* name);
 +}
+--- a/irrlicht/source/Irrlicht/CIrrDeviceWin32.cpp
++++ b/irrlicht/source/Irrlicht/CIrrDeviceWin32.cpp
+@@ -614,6 +614,14 @@
+ 	if (GetCapture() != hWnd && ClickCount > 0)
+ 		ClickCount = 0;
+ 
++    if(GetParent(hWnd) && GetEnvironmentVariableA("YGO_EMBED_PARENT", nullptr, 0)) {
++        // A real click gives this child keyboard focus without activating another application.
++        if(message == WM_LBUTTONDOWN || message == WM_RBUTTONDOWN) SetFocus(hWnd);
++        if(message == WM_SYSKEYDOWN && wParam == VK_F4) {
++            PostMessageW(GetAncestor(hWnd, GA_ROOT), WM_CLOSE, 0, 0);
++            return 0;
++        }
++    }
+ 	// IME enable/disable: only re-check when messages that can change GUI focus state arrive.
+ 	// Skipping WM_PAINT, WM_MOUSEMOVE etc. avoids calling getFocus() on every message.
+ 	const bool couldChangeFocus = (message == WM_SETFOCUS || message == WM_KILLFOCUS ||
+@@ -1084,7 +1092,35 @@
+ 		clientSize.right = CreationParams.WindowSize.Width;
+ 		clientSize.bottom = CreationParams.WindowSize.Height;
+ 
+-		DWORD style = getWindowStyle(CreationParams.Fullscreen, CreationParams.WindowResizable > 0 ? true : false);
++        HWND embeddedParent = nullptr;
++        wchar_t parentValue[64]{}, parentPidValue[32]{};
++        int embeddedX = 0, embeddedY = 0, embeddedW = 1024, embeddedH = 640;
++        if(GetEnvironmentVariableW(L"YGO_EMBED_PARENT", parentValue, 64)) {
++            embeddedParent = reinterpret_cast<HWND>(_wcstoui64(parentValue, nullptr, 10));
++            GetEnvironmentVariableW(L"YGO_EMBED_PARENT_PID", parentPidValue, 32);
++            DWORD actualPid = 0;
++            GetWindowThreadProcessId(embeddedParent, &actualPid);
++            if(!IsWindow(embeddedParent) || actualPid != wcstoul(parentPidValue, nullptr, 10)) {
++                Close = true;
++                return;
++            }
++            using GetContext = HANDLE(WINAPI*)(HWND);
++            using SetContext = HANDLE(WINAPI*)(HANDLE);
++            auto user32 = GetModuleHandleW(L"user32.dll");
++            auto getContext = reinterpret_cast<GetContext>(GetProcAddress(user32, "GetWindowDpiAwarenessContext"));
++            auto setContext = reinterpret_cast<SetContext>(GetProcAddress(user32, "SetThreadDpiAwarenessContext"));
++            if(getContext && setContext) setContext(getContext(embeddedParent));
++            char layout[128]{};
++            GetEnvironmentVariableA("YGO_EMBED_RECT", layout, sizeof layout);
++            if(sscanf(layout, "%d,%d,%d,%d", &embeddedX, &embeddedY, &embeddedW, &embeddedH) != 4 || embeddedW < 200 || embeddedH < 200) {
++                Close = true;
++                return;
++            }
++            CreationParams.Fullscreen = false;
++            clientSize.right = embeddedW;
++            clientSize.bottom = embeddedH;
++        }
++        DWORD style = embeddedParent ? (WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN) : getWindowStyle(CreationParams.Fullscreen, CreationParams.WindowResizable > 0 ? true : false);
+ 		AdjustWindowRect(&clientSize, style, FALSE);
+ 
+ 		const s32 realWidth = clientSize.right - clientSize.left;
+@@ -1108,15 +1144,16 @@
+ 			windowTop = 0;
+ 		}
+ 
+-		// create window
++        if(embeddedParent) { windowLeft = embeddedX; windowTop = embeddedY; }
++        // create window
+ 
+ 		HWnd = CreateWindow( ClassName, __TEXT(""), style, windowLeft, windowTop,
+-					realWidth, realHeight, NULL, NULL, hInstance, NULL);
++					realWidth, realHeight, embeddedParent, NULL, hInstance, NULL);
+ 		CreationParams.WindowId = HWnd;
+ //		CreationParams.WindowSize.Width = realWidth;
+ //		CreationParams.WindowSize.Height = realHeight;
+ 
+-		ShowWindow(HWnd, SW_SHOWNORMAL);
++		ShowWindow(HWnd, embeddedParent ? SW_SHOWNOACTIVATE : SW_SHOWNORMAL);
+ 		UpdateWindow(HWnd);
+ 
+ 		// fix ugly ATI driver bugs. Thanks to ariaci
+@@ -1166,8 +1203,8 @@
+ 	if (HWnd)
+ 		ImmAssociateContextEx(HWnd, NULL, 0);
+ 
+-	// set this as active window
+-	if (!ExternalWindow)
++	// Embedded training never changes the foreground application.
++	if (!ExternalWindow && !GetParent(HWnd))
+ 	{
+ 		SetActiveWindow(HWnd);
+ 		SetForegroundWindow(HWnd);

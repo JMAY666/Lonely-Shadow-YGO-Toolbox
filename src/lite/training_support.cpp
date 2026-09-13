@@ -4,6 +4,7 @@
 #include "single_mode.h"
 #include "duelclient.h"
 #include "data_manager.h"
+#include "client_card.h"
 #include "../ocgcore/duel.h"
 #include "../ocgcore/field.h"
 #include "../ocgcore/card.h"
@@ -16,6 +17,7 @@
 #include <mutex>
 #include <sstream>
 #include <algorithm>
+#include <map>
 
 namespace ygo {
 static std::string session;
@@ -23,6 +25,95 @@ static std::mutex logMutex;
 static uint64_t sequence = 0;
 static std::atomic<bool> stopping{false}, closing{false}, finished{false};
 static std::ofstream journal;
+static std::string captureToken;
+static std::string quote(const wchar_t* value);
+static void TestButtons(irr::gui::IGUIElement* element, std::ostringstream& out, bool& first) {
+    if(!element->isVisible()) return;
+    if(element->getType() == irr::gui::EGUIET_BUTTON && element->isEnabled()) {
+        const auto rect = element->getAbsoluteClippingRect();
+        if(rect.getWidth() > 0 && rect.getHeight() > 0) {
+            if(!first) out << ','; first = false;
+            out << "{\"text\":" << quote(element->getText()) << ",\"x\":" << rect.getCenter().X << ",\"y\":" << rect.getCenter().Y << '}';
+        }
+    }
+    for(auto child : element->getChildren()) TestButtons(child, out, first);
+}
+static std::string TestUIState() {
+    std::lock_guard<std::mutex> lock(mainGame->gMutex);
+    auto& field = mainGame->dField;
+    auto oldController = field.hovered_controler, oldLocation = field.hovered_location;
+    auto oldSequence = field.hovered_sequence;
+    std::map<int, std::vector<int>> hits;
+    // Use the engine's own hit test in its reference coordinate system.
+    for(int y = 280; y < 600; y += 8) for(int x = 330; x < 930; x += 8) {
+        field.GetHoverField(x, y);
+        if(field.hovered_controler != 0 || (field.hovered_location != 2 && field.hovered_location != 4 && field.hovered_location != 8)) continue;
+        const int key = field.hovered_location * 100 + int(field.hovered_sequence);
+        auto& hit = hits[key];
+        if(hit.empty()) hit = {0, 0, 0};
+        hit[0] += x; hit[1] += y; ++hit[2];
+    }
+    field.hovered_controler = oldController; field.hovered_location = oldLocation; field.hovered_sequence = oldSequence;
+    std::ostringstream out;
+    out << ",\"prompt\":" << unsigned(mainGame->dInfo.curMsg) << ",\"targets\":[";
+    bool first = true;
+    for(const auto& pair : hits) {
+        if(!first) out << ','; first = false;
+        const auto point = mainGame->Resize(pair.second[0] / pair.second[2], pair.second[1] / pair.second[2]);
+        auto card = field.GetCard(0, pair.first / 100, pair.first % 100);
+        out << "{\"location\":" << pair.first / 100 << ",\"sequence\":" << pair.first % 100 << ",\"code\":" << (card ? card->code : 0)
+            << ",\"x\":" << point.X << ",\"y\":" << point.Y << '}';
+    }
+    out << "],\"buttons\":[";
+    first = true; TestButtons(mainGame->env->getRootGUIElement(), out, first);
+    out << ']';
+    return out.str();
+}
+bool TrainingEmbedded() { return GetEnvironmentVariableA("YGO_EMBED_PARENT", nullptr, 0) > 0; }
+bool TrainingTestControlled() {
+    char enabled[4]{};
+    return GetEnvironmentVariableA("YGO_TRAIN_TEST_CONTROL", enabled, sizeof enabled) && enabled[0] == '1';
+}
+static void TrainingTestInput() {
+    if(!TrainingTestControlled()) return;
+    std::ifstream command(TrainingPath("test-command.txt"));
+    std::string kind, token;
+    int x = 0, y = 0;
+    if(!(command >> kind >> token >> x >> y)) return;
+    command.close();
+    DeleteFileA(TrainingPath("test-command.txt").c_str());
+    if(token.size() != 32 || token.find_first_not_of("0123456789abcdef") != std::string::npos) return;
+    const auto size = mainGame->driver->getScreenSize();
+    if(x < 0 || y < 0 || x >= int(size.Width) || y >= int(size.Height)) return;
+    if(kind == "click") {
+        // Deliver Irrlicht events to this engine only. No SendInput, cursor warp or global keys.
+        irr::SEvent event{};
+        event.EventType = irr::EET_MOUSE_INPUT_EVENT;
+        event.MouseInput.X = x; event.MouseInput.Y = y;
+        event.MouseInput.Event = irr::EMIE_MOUSE_MOVED;
+        mainGame->device->postEventFromUser(event);
+        event.MouseInput.Event = irr::EMIE_LMOUSE_PRESSED_DOWN;
+        event.MouseInput.ButtonStates = irr::EMBSM_LEFT;
+        mainGame->device->postEventFromUser(event);
+        event.MouseInput.Event = irr::EMIE_LMOUSE_LEFT_UP;
+        event.MouseInput.ButtonStates = 0;
+        mainGame->device->postEventFromUser(event);
+    } else if(kind != "capture") return;
+    captureToken = token;
+}
+void TrainingCaptureFrame() {
+    if(captureToken.empty()) return;
+    const std::string name = "native-" + captureToken;
+    auto screenshot = mainGame->driver->createScreenShot();
+    bool ok = screenshot && mainGame->driver->writeImageToFile(screenshot, TrainingPath((name + ".png").c_str()).c_str());
+    if(screenshot) screenshot->drop();
+    const auto size = mainGame->driver->getScreenSize();
+    std::ofstream response(TrainingPath((name + ".json").c_str()));
+    if(ok) response << "{\"width\":" << size.Width << ",\"height\":" << size.Height << TestUIState() << '}';
+    else response << "{\"error\":\"Engine frame capture failed\"}";
+    response.close();
+    captureToken.clear();
+}
 static std::string hex(const unsigned char* bytes, size_t len) {
     static const char digits[] = "0123456789abcdef";
     std::string result;
@@ -137,17 +228,23 @@ void TrainingBoot() {
     std::string candidate(id);
     if(candidate.size() != 36 || candidate.find_first_not_of("0123456789abcdef-") != std::string::npos) return;
     session = candidate;
+    if(TrainingEmbedded()) {
+        auto hwnd = mainGame->driver->getExposedVideoData().OpenGLWin32.HWnd;
+        std::ofstream windowInfo(TrainingPath("native-window.json"));
+        windowInfo << "{\"hwnd\":\"" << reinterpret_cast<uintptr_t>(hwnd) << "\",\"pid\":" << GetCurrentProcessId() << '}';
+    }
     // A journal is exclusive to one new native process; never append to an old session.
     if(GetFileAttributesA(TrainingPath("native.jsonl").c_str()) != INVALID_FILE_ATTRIBUTES) { session.clear(); mainGame->device->closeDevice(); return; }
     journal.open(TrainingPath("native.jsonl"), std::ios::binary);
     if(!journal) { session.clear(); mainGame->device->closeDevice(); return; }
-    TrainingWrite("\"kind\":\"begin\",\"source\":\"ygopro-core/8ff3583\",\"ai\":false,\"rule\":5");
+    TrainingWrite("\"kind\":\"begin\",\"source\":\"ygopro-core/8ff3583\",\"ai\":false,\"rule\":5,\"test_control\":" + std::string(TrainingTestControlled() ? "true" : "false"));
     mainGame->wMainMenu->setVisible(false);
     mainGame->exit_on_return = true;
     SingleMode::StartPlay();
 }
 void TrainingPoll() {
     TrainingBoot();
+    if(TrainingActive()) TrainingTestInput();
     if(!TrainingActive() || finished || stopping) return;
     if(GetFileAttributesA(TrainingPath("stop.request").c_str()) != INVALID_FILE_ATTRIBUTES && mainGame->dInfo.isSingleMode) {
         mainGame->singleSignal.SetNoWait(true);

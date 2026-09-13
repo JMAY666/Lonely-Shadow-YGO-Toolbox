@@ -13,6 +13,7 @@ import secrets
 import shutil
 import sqlite3
 import subprocess
+import sys
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -106,7 +107,7 @@ class Catalog:
 
 
 class Store:
-    def __init__(self, runtime=RUNTIME):
+    def __init__(self, runtime=RUNTIME, desktop=False, host=None):
         self.runtime = runtime.resolve()
         self.root = self.runtime / '_trainer'
         self.sessions = self.root / 'sessions'
@@ -116,6 +117,12 @@ class Store:
         self.catalog = Catalog(self.runtime)
         self.lock = threading.RLock()
         self.processes = {}
+        self.closing = False
+        self.job = None
+        self.host = host
+        if desktop:
+            from desktop_runtime import OwnedJob
+            self.job = OwnedJob()
         self.refresh()
 
     def parse_deck(self, data):
@@ -187,6 +194,31 @@ class Store:
         if str(uuid.UUID(identifier)) != identifier: raise ValueError('训练标识无效')
         return self.sessions / identifier
 
+    def delete_deck(self, body):
+        with self.lock:
+            selected = self.get_deck(body.get('id', ''))
+            if body.get('revision') != selected['revision']:
+                raise ValueError('构筑已被修改，请重新选择后再删除')
+            for meta_path in self.sessions.glob('*/session.json'):
+                try: meta = read_json(meta_path)
+                except (ValueError, OSError): continue
+                if meta.get('selected_deck') == selected['id'] and meta.get('status') in ('starting', 'running', 'stopping') and self.alive(meta):
+                    raise ValueError('此构筑正在训练，请先结束训练再删除')
+            source, _, relative = selected['id'].partition('/')
+            path = safe_child(self.decks if source == 'library' else self.runtime / 'deck', relative)
+            data = path.read_bytes()
+            if hashlib.sha256(data).hexdigest() != selected['revision']:
+                raise ValueError('构筑已被修改，请重新选择后再删除')
+            backup = self.root / 'backups/deleted' / uuid.uuid4().hex
+            atomic_bytes(backup / 'deck.ydk', data)
+            atomic_json(backup / 'metadata.json', {k: selected[k] for k in ('id', 'name', 'revision', 'source')} | {'deleted_ms': now()})
+            if hashlib.sha256((backup / 'deck.ydk').read_bytes()).hexdigest() != selected['revision']:
+                raise ValueError('删除备份校验失败，原构筑已保留')
+            if hashlib.sha256(path.read_bytes()).hexdigest() != selected['revision']:
+                raise ValueError('备份期间构筑已被修改，已保留原构筑，请重新选择')
+            path.unlink()
+            return {'id': selected['id'], 'backup': backup.relative_to(self.root).as_posix()}
+
     def alive(self, meta):
         proc = self.processes.get(meta['id'])
         if proc is not None: return proc.poll() is None
@@ -223,6 +255,7 @@ class Store:
 
     def start(self, identifier):
         with self.lock:
+            if self.closing: raise ValueError('应用正在保存并退出，请稍候')
             self.refresh()
             if any(r['status'] in ('running', 'starting', 'stopping') for r in self.history()): raise ValueError('请先结束当前训练')
             selected = self.get_deck(identifier)
@@ -239,8 +272,10 @@ class Store:
                     'legality': '构筑数量和类型校验；自由练习不执行禁限卡表及同名三张限制'}
             atomic_json(path / 'session.json', meta)
             env = os.environ.copy(); env['YGO_TRAIN_SESSION'] = sid
+            if self.host: env.update(self.host.environment())
             try:
                 proc = subprocess.Popen([str(self.runtime / 'YGOPro.exe')], cwd=self.runtime, env=env)
+                if self.job: self.job.assign(proc)
                 self.processes[sid] = proc
                 meta.update(pid=proc.pid, process_identity=process_identity(proc.pid), status='running')
             except OSError as exc:
@@ -257,6 +292,35 @@ class Store:
             atomic_bytes(p / 'stop.request', b'manual\n')
             meta['status'] = 'stopping'; atomic_json(p / 'session.json', meta)
             return {'id': identifier, 'status': 'stopping'}
+
+    def shutdown(self, timeout=8):
+        """Close only native processes launched here; preserve interrupted journals and reports."""
+        with self.lock:
+            self.closing = True
+            owned = [p for p in self.processes.values() if p.poll() is None]
+        if self.host: self.host.close_children(self)
+        if os.name == 'nt':
+            from ctypes import wintypes
+            user = ctypes.WinDLL('user32', use_last_error=True)
+            callback_type = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+            user.EnumWindows.argtypes = [callback_type, wintypes.LPARAM]
+            user.GetWindowThreadProcessId.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.DWORD)]
+            user.PostMessageW.argtypes = [wintypes.HWND, wintypes.UINT, wintypes.WPARAM, wintypes.LPARAM]
+            pids = {p.pid for p in owned}
+            def close_window(hwnd, _):
+                pid = wintypes.DWORD()
+                user.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
+                if pid.value in pids: user.PostMessageW(hwnd, 0x0010, 0, 0)  # WM_CLOSE
+                return True
+            user.EnumWindows(callback_type(close_window), 0)
+        deadline = time.monotonic() + timeout
+        for process in owned:
+            try: process.wait(timeout=max(0.1, deadline - time.monotonic()))
+            except subprocess.TimeoutExpired:
+                process.terminate()  # Popen retains the owned process handle, not an unverified PID.
+                process.wait(timeout=5)
+        if self.job: self.job.close()
+        self.refresh()
 
     def report(self, identifier):
         self.refresh()
@@ -298,12 +362,20 @@ class Handler(BaseHTTPRequestHandler):
                 if not 0 < length < 100_000: raise ValueError('请求长度无效')
                 body = json.loads(self.rfile.read(length))
                 if path == '/api/decks': return self.send(store.save_deck(body))
+                if path == '/api/decks/delete': return self.send(store.delete_deck(body))
+                if path == '/api/desktop/layout' and store.host: return self.send(store.host.layout(body, store))
+                if path == '/api/native/test' and store.host: return self.send(store.host.test_event(store, body))
                 if path == '/api/start': return self.send(store.start(body['deck_id']))
                 if path == '/api/stop': return self.send(store.stop(body['id']))
                 if path == '/api/shutdown':
                     self.send({'ok': True}); threading.Thread(target=self.server.shutdown, daemon=True).start(); return
             else:
-                if path == '/api/bootstrap': return self.send({'token': self.server.token, 'cards': len(store.catalog.cards), 'sources': store.catalog.sources, 'runtime': str(store.runtime)})
+                if path == '/api/bootstrap': return self.send({'token': self.server.token, 'cards': len(store.catalog.cards), 'sources': store.catalog.sources, 'runtime': str(store.runtime), 'embedded': bool(store.host)})
+                if path == '/api/native/status' and store.host: return self.send(store.host.status(store, query['id'][0]))
+                if path.startswith('/api/native/frame/') and store.host and store.host.test_control:
+                    sid, frame = path.removeprefix('/api/native/frame/').split('/')
+                    if not re.fullmatch(r'[0-9a-f]{32}\.png', frame): raise ValueError('场地截图标识无效')
+                    return self.send((store.session_path(sid) / ('native-' + frame)).read_bytes(), 'image/png')
                 if path == '/api/cards': return self.send(store.catalog.search(query.get('q', [''])[0], query.get('kind', [''])[0], max(0, int(query.get('offset', ['0'])[0]))))
                 if path.startswith('/api/card/'):
                     code = int(path.rsplit('/', 1)[1]); return self.send(store.catalog.cards[code])
@@ -341,28 +413,61 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--port', type=int, default=18765)
     parser.add_argument('--no-browser', action='store_true')
+    parser.add_argument('--runtime', type=Path, default=RUNTIME)
+    parser.add_argument('--desktop', action='store_true')
+    parser.add_argument('--bundle', type=Path)
+    parser.add_argument('--import-from', type=Path)
+    parser.add_argument('--parent-pid', type=int)
+    parser.add_argument('--embedded', action='store_true')
+    parser.add_argument('--enable-native-test', action='store_true')
     args = parser.parse_args()
-    lock_path = RUNTIME / '_trainer/service.lock'; lock_path.parent.mkdir(parents=True, exist_ok=True)
-    lock = lock_path.open('a+b')
-    if os.name == 'nt':
-        import msvcrt
-        try:
-            lock.seek(0); msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
-        except OSError:
-            if not args.no_browser: webbrowser.open(f'http://127.0.0.1:{args.port}')
-            return
-    server = ThreadingHTTPServer(('127.0.0.1', args.port), Handler)
-    server.store, server.token = Store(), secrets.token_urlsafe(32)
-    url = f'http://127.0.0.1:{server.server_port}'
-    atomic_json(server.store.root / 'service.json', {'pid': os.getpid(), 'url': url})
-    def monitor():
-        while not stop_monitor.wait(0.5): server.store.refresh()
-    stop_monitor = threading.Event()
-    threading.Thread(target=monitor, daemon=True).start()
-    if not args.no_browser: webbrowser.open(url)
-    try: server.serve_forever(poll_interval=0.3)
-    finally:
-        stop_monitor.set(); server.server_close(); lock.close()
+    from desktop_runtime import ServiceLock, migrate_data, prepare_resources
+    runtime = args.runtime.resolve()
+    # Acquire the target lock before migration or resource updates. No existing server is adopted.
+    try: lock = ServiceLock(runtime / '_trainer/service.lock')
+    except RuntimeError:
+        if args.desktop or args.no_browser: raise
+        webbrowser.open(f'http://127.0.0.1:{args.port}')
+        return
+    with lock:
+        if args.import_from: migrate_data(args.import_from, runtime)
+        if args.bundle: prepare_resources(args.bundle, runtime)
+        server = ThreadingHTTPServer(('127.0.0.1', args.port), Handler)
+        from desktop_host import NativeHost
+        host = NativeHost(args.parent_pid, args.enable_native_test) if args.embedded else None
+        try: server.store, server.token = Store(runtime, desktop=args.desktop, host=host), secrets.token_urlsafe(32)
+        except Exception:
+            server.server_close()
+            raise
+        url = f'http://127.0.0.1:{server.server_port}'
+        atomic_json(server.store.root / 'service.json', {'pid': os.getpid(), 'url': url})
+        parent = process_identity(args.parent_pid) if args.parent_pid else None
+        stop_monitor = threading.Event()
+        def monitor():
+            while not stop_monitor.wait(0.5):
+                server.store.refresh()
+                if host:
+                    try: host.sync(server.store)
+                    except OSError: pass  # A native child can close between validation and placement.
+                if args.desktop and args.parent_pid and (not parent or process_identity(args.parent_pid) != parent):
+                    server.shutdown()
+                    return
+        threading.Thread(target=monitor, daemon=True).start()
+        if args.desktop:
+            # Pipe lifetime also covers an Electron crash before HTTP shutdown can be sent.
+            def watch_parent_pipe():
+                # A daemon blocked on BufferedReader.read can abort CPython during finalization.
+                while os.read(sys.stdin.fileno(), 4096): pass
+                server.shutdown()
+            threading.Thread(target=watch_parent_pipe, daemon=True).start()
+            print(json.dumps({'event': 'ready', 'pid': os.getpid(), 'url': url, 'token': server.token}), flush=True)
+        elif not args.no_browser: webbrowser.open(url)
+        try: server.serve_forever(poll_interval=0.3)
+        finally:
+            stop_monitor.set()
+            server.server_close()
+            if args.desktop: server.store.shutdown()
+            (server.store.root / 'service.json').unlink(missing_ok=True)
 
 
 if __name__ == '__main__': main()

@@ -20,13 +20,12 @@ function renderTrainingReport(r, options) {
       ? `<p class="chain-order">第 ${a.chain_group} 组连锁 · 连锁 ${a.chain_link} · ${a.resolution_order ? `第 ${[...r.actions].filter(x => x.chain_group === a.chain_group && x.resolution_order && x.resolution_order < a.resolution_order).length + 1} 个结算` : '尚未结算'}</p>` : '';
     const execution = a.execution || [];
     return `<li id="action-${a.id}"><span class="ref">${String(index + 1).padStart(2, '0')} · +${Math.max(0, Math.floor((a.time_ms - r.started_ms) / 1000))}s</span>
-      ${a.kind === 'effect' ? `<span class="action-title">${escape(a.heading)}</span><span class="effect-quote">${escape(a.effect_quote || '效果编号或对应文本未确认；可展开完整卡片文本。')}</span>` : `<span class="action-title">${escape(a.summary)}</span>`}${chain}
-      ${a.trigger_summary ? `<p class="trigger-context">${escape(a.trigger_summary)}</p>` : ''}
+      ${a.kind === 'effect' ? `<span class="action-title">发动${escape(a.cards?.map(c => c.name).filter(Boolean).join('、') || '卡片')}的效果</span><div class="effect-description"><small>效果文本</small><p class="effect-quote">${escape(a.effect_text || '本次记录未保存效果文本。')}</p></div>` : `<span class="action-title">${escape(a.summary)}</span>`}${chain}
       ${a.status_label ? `<p class="action-status">${escape(a.status_label)}</p>` : ''}
-      ${execution.length ? `<div class="actual-execution"><small>实际过程</small><ol>${execution.map(step => `<li><span class="execution-role">${step.role === 'cost' ? '费用' : '处理'}</span>${highlightCardNames(step.text.replace(/^支付费用：/, ''), step.cards)}${step.message === 90 ? `<p>抽到：${highlightCardNames(step.cards.map(c => c.name).join('、'), step.cards)}</p>` : ''}</li>`).join('')}</ol></div>` : ''}
+      ${execution.length ? `<div class="actual-execution"><small>实际结果</small><ol>${execution.map(step => `<li><span class="execution-role">${step.role === 'cost' ? '费用' : '处理'}</span>${highlightCardNames(step.text.replace(/^支付费用：/, ''), step.cards)}${step.message === 90 ? `<p>抽到：${highlightCardNames(step.cards.map(c => c.name).join('、'), step.cards)}</p>` : ''}</li>`).join('')}</ol></div>` : ''}
       ${a.observed_targets ? `<p>${escape(a.observed_targets)}</p>` : ''}
       <details><summary>查看依据 · ${events.length} 条原始事件</summary>
-        ${a.effect_text ? `<div class="effect-reference"><b>本次卡牌效果文本</b><p>${escape(a.effect_text)}</p></div>` : ''}
+        ${a.trigger_summary ? `<p>${escape(a.trigger_summary)}</p>` : ''}
         ${a.association ? `<p>${escape(a.association)}。摘要只描述记录中已发生的结果。</p>` : ''}
         ${events.map(e => `<div class="evidence-event"><b>${e.id} · ${escape(e.type)}</b><p>${escape(eventSummary(e))}</p>
           <details><summary>事件字段</summary><pre>${escape(JSON.stringify(e, null, 2))}</pre></details></div>`).join('')}
@@ -55,7 +54,7 @@ function renderTrainingReport(r, options) {
     <small>${escape(r.statistics_note)}</small>
     <h3>初始手牌</h3>${r.initial_hand ? cardsHtml(r.initial_hand) : '<p>尚未采集到初始手牌。</p>'}
     <h3>展开步骤 <small>${r.actions.length} 步</small></h3>
-    <p class="summary-hint">效果原文与实际过程分别展示；费用、素材和排序归入对应操作。</p>
+    <p class="summary-hint">上方保留卡片完整效果文本，下方展示本次实际结果。</p>
     <div class="report-toolbar"><label><input type="checkbox" id="all-events" ${options.raw ? 'checked' : ''}>查看原始事件</label>
       <a href="/api/raw/${id}" target="_blank">原始记录 JSONL</a><a href="/api/ydk/${id}" target="_blank">构筑快照 YDK</a></div>
     <ol class="timeline">${timeline || '<li><p>暂无需要复盘的展开动作。</p></li>'}</ol>

@@ -61,6 +61,39 @@ class StoreTests(unittest.TestCase):
         with self.assertRaises(ValueError): self.store.validate({**self.deck,'main':[55144522]},True)
         self.store.validate(self.deck,True)
 
+    def test_delete_deck_verifies_revision_and_retains_backup_and_history(self):
+        saved = self.store.save_deck({'name': '可删除构筑', 'deck': self.deck})
+        sid, session = self.session('manual')
+        journal = (session / 'native.jsonl').read_bytes()
+        before = (self.store.decks / '可删除构筑.ydk').read_bytes()
+        with self.assertRaises(ValueError):
+            self.store.delete_deck({'id': saved['id'], 'revision': 'stale'})
+        self.assertTrue((self.store.decks / '可删除构筑.ydk').exists())
+        result = self.store.delete_deck(saved)
+        self.assertFalse((self.store.decks / '可删除构筑.ydk').exists())
+        self.assertEqual((self.store.root / result['backup'] / 'deck.ydk').read_bytes(), before)
+        self.assertEqual((session / 'native.jsonl').read_bytes(), journal)
+        self.assertNotIn(saved['id'], [d['id'] for d in self.store.list_decks()])
+
+    def test_delete_existing_copy_is_scoped_and_active_training_is_protected(self):
+        (self.root / 'deck').mkdir()
+        original = self.root / 'deck/原有构筑.ydk'
+        original.write_bytes(self.store.ydk(self.deck))
+        selected = self.store.get_deck('existing/原有构筑.ydk')
+        sid, session = self.session()
+        meta = json.loads((session / 'session.json').read_text('utf8'))
+        meta['selected_deck'] = selected['id']
+        atomic_json(session / 'session.json', meta)
+        with patch('app.process_identity', return_value={'created': 5}):
+            with self.assertRaisesRegex(ValueError, '正在训练'):
+                self.store.delete_deck(selected)
+        self.assertTrue(original.exists())
+        with patch('app.process_identity', return_value=None):
+            result = self.store.delete_deck(selected)
+        self.assertEqual((self.store.root / result['backup'] / 'deck.ydk').read_bytes(), self.store.ydk(self.deck))
+        with self.assertRaises(ValueError):
+            self.store.delete_deck({'id': 'existing/../../outside.ydk', 'revision': ''})
+
     def session(self, end=None, pid=123):
         sid=str(uuid.uuid4()); p=self.store.session_path(sid); p.mkdir()
         meta={'id':sid,'name':'测试','started_ms':1,'status':'running','pid':pid,'process_identity':{'created':5},'deck':self.deck,'catalog':{}}

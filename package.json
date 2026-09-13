@@ -1,0 +1,40 @@
+{
+  "name": "ygo-trainer-desktop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "游戏王工具箱：本地卡组编辑、单人训练与展开报告",
+  "main": "desktop/main.cjs",
+  "author": "YGO Trainer contributors",
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "electron .",
+    "desktop:prepare": "python scripts/prepare_desktop.py && node node_modules/electron/install.js",
+    "build:dir": "npm run desktop:prepare && electron-builder --win --x64 --dir",
+    "build": "npm run desktop:prepare && electron-builder --win zip --x64",
+    "test": "python -m unittest discover -s tests -q && node --test tests/*.test.cjs",
+    "test:desktop": "node desktop/smoke.cjs",
+    "test:packaged": "node desktop/smoke.cjs --packaged"
+  },
+  "devDependencies": {
+    "electron": "44.3.0",
+    "electron-builder": "26.15.3",
+    "playwright": "1.63.0"
+  },
+  "build": {
+    "appId": "local.ygotrainer.desktop",
+    "productName": "YGOTrainer",
+    "asar": true,
+    "directories": { "output": "release" },
+    "files": ["desktop/main.cjs", "desktop/preload.cjs", "desktop/loading.html", "package.json"],
+    "extraResources": [
+      { "from": ".local/desktop-bundle/python", "to": "python" },
+      { "from": "src/trainer", "to": "trainer", "filter": ["**/*", "!**/__pycache__/**", "!**/*.pyc", "!single_thread.inc"] },
+      { "from": ".local/desktop-bundle/runtime.zip", "to": "runtime.zip" },
+      { "from": ".local/desktop-bundle/notices", "to": "notices" }
+    ],
+    "win": { "target": "zip", "signAndEditExecutable": false, "executableName": "YGOTrainer" },
+    "artifactName": "YGOTrainer-${version}-windows-${arch}.${ext}",
+    "compression": "normal",
+    "publish": null
+  }
+}

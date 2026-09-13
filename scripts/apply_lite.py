@@ -117,7 +117,69 @@ def main():
     t = block(t, 'void Game::RefreshReplay()', '    // No replay browser in this build.')
     t = replace(t, '#include "game.h"', '#include "game.h"\n#include "training_support.h"')
     t = replace(t, '\twhile(device->run()) {', '\twhile(device->run()) {\n        TrainingPoll();')
+    t = replace(t, '\t\tdriver->endScene();', '\t\tTrainingCaptureFrame();\n\t\tdriver->endScene();')
+    t = replace(t, '\tdevice->setResizable(true);', '\tif(!TrainingEmbedded()) device->setResizable(true);')
+    t = replace(t, '\tif(gameConf.window_maximized)\n\t\tdevice->maximizeWindow();', '\tif(!TrainingEmbedded() && gameConf.window_maximized)\n\t\tdevice->maximizeWindow();')
+    t = replace(t, '\tif(dInfo.isSingleMode)\n\t\tSingleMode::StopPlay(true);', '''    if(TrainingActive()) {
+        // The renderer has stopped ticking. Release animation/choice waits before joining.
+        frameSignal.SetNoWait(true);
+        frameSignal.Set(); // SetNoWait alone does not wake an already waiting animation thread.
+        actionSignal.SetNoWait(true);
+        singleSignal.SetNoWait(true);
+        SingleMode::StopPlay(true);
+        SingleMode::WaitForExit(); // Journal + final state must finish before device teardown.
+    } else if(dInfo.isSingleMode) {
+        SingleMode::StopPlay(true);
+    }''')
     save("gframe/game.cpp", t)
+
+    # Create an actual native child from the start, so no standalone window flashes or steals focus.
+    t = read("irrlicht/source/Irrlicht/CIrrDeviceWin32.cpp")
+    t = replace(t, '\t// IME enable/disable: only re-check when messages that can change GUI focus state arrive.', '''    if(GetParent(hWnd) && GetEnvironmentVariableA("YGO_EMBED_PARENT", nullptr, 0)) {
+        // A real click gives this child keyboard focus without activating another application.
+        if(message == WM_LBUTTONDOWN || message == WM_RBUTTONDOWN) SetFocus(hWnd);
+        if(message == WM_SYSKEYDOWN && wParam == VK_F4) {
+            PostMessageW(GetAncestor(hWnd, GA_ROOT), WM_CLOSE, 0, 0);
+            return 0;
+        }
+    }
+\t// IME enable/disable: only re-check when messages that can change GUI focus state arrive.''')
+    t = replace(t, '\t\tDWORD style = getWindowStyle(CreationParams.Fullscreen, CreationParams.WindowResizable > 0 ? true : false);', '''        HWND embeddedParent = nullptr;
+        wchar_t parentValue[64]{}, parentPidValue[32]{};
+        int embeddedX = 0, embeddedY = 0, embeddedW = 1024, embeddedH = 640;
+        if(GetEnvironmentVariableW(L"YGO_EMBED_PARENT", parentValue, 64)) {
+            embeddedParent = reinterpret_cast<HWND>(_wcstoui64(parentValue, nullptr, 10));
+            GetEnvironmentVariableW(L"YGO_EMBED_PARENT_PID", parentPidValue, 32);
+            DWORD actualPid = 0;
+            GetWindowThreadProcessId(embeddedParent, &actualPid);
+            if(!IsWindow(embeddedParent) || actualPid != wcstoul(parentPidValue, nullptr, 10)) {
+                Close = true;
+                return;
+            }
+            using GetContext = HANDLE(WINAPI*)(HWND);
+            using SetContext = HANDLE(WINAPI*)(HANDLE);
+            auto user32 = GetModuleHandleW(L"user32.dll");
+            auto getContext = reinterpret_cast<GetContext>(GetProcAddress(user32, "GetWindowDpiAwarenessContext"));
+            auto setContext = reinterpret_cast<SetContext>(GetProcAddress(user32, "SetThreadDpiAwarenessContext"));
+            if(getContext && setContext) setContext(getContext(embeddedParent));
+            char layout[128]{};
+            GetEnvironmentVariableA("YGO_EMBED_RECT", layout, sizeof layout);
+            if(sscanf(layout, "%d,%d,%d,%d", &embeddedX, &embeddedY, &embeddedW, &embeddedH) != 4 || embeddedW < 200 || embeddedH < 200) {
+                Close = true;
+                return;
+            }
+            CreationParams.Fullscreen = false;
+            clientSize.right = embeddedW;
+            clientSize.bottom = embeddedH;
+        }
+        DWORD style = embeddedParent ? (WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN) : getWindowStyle(CreationParams.Fullscreen, CreationParams.WindowResizable > 0 ? true : false);''')
+    t = replace(t, '\t\t// create window\n', '''        if(embeddedParent) { windowLeft = embeddedX; windowTop = embeddedY; }
+        // create window
+''')
+    t = replace(t, 'realWidth, realHeight, NULL, NULL, hInstance, NULL);', 'realWidth, realHeight, embeddedParent, NULL, hInstance, NULL);')
+    t = replace(t, '\t\tShowWindow(HWnd, SW_SHOWNORMAL);', '\t\tShowWindow(HWnd, embeddedParent ? SW_SHOWNOACTIVATE : SW_SHOWNORMAL);')
+    t = replace(t, '\t// set this as active window\n\tif (!ExternalWindow)', '\t// Embedded training never changes the foreground application.\n\tif (!ExternalWindow && !GetParent(HWnd))')
+    save("irrlicht/source/Irrlicht/CIrrDeviceWin32.cpp", t)
 
     t = read("gframe/menu_handler.cpp")
     t = block(t, 'case BUTTON_SINGLE_MODE:', '''
@@ -193,12 +255,22 @@ def main():
 
     t=read("gframe/single_mode.cpp")
     t=replace(t, '#include "single_mode.h"', '#include "single_mode.h"\n#include "training_support.h"\n#include "deck_manager.h"\n#include <fstream>\n#include <algorithm>')
+    t=replace(t, 'bool SingleMode::StartPlay() {', '''static std::thread trainingThread;
+void SingleMode::WaitForExit() {
+    if(trainingThread.joinable()) trainingThread.join();
+}
+bool SingleMode::StartPlay() {''')
+    t=replace(t, '\tstd::thread(SinglePlayThread).detach();', '\tWaitForExit();\n\ttrainingThread = std::thread(SinglePlayThread);')
     t=block(t, 'void SingleMode::SinglePlayThread()', (WORKSPACE/'src/trainer/single_thread.inc').read_text(encoding='utf-8'))
     t=replace(t, 'void SingleMode::StopPlay(bool is_exiting) {', 'void SingleMode::StopPlay(bool is_exiting) {\n    TrainingStop(is_exiting);')
     t=replace(t, '\tlast_replay_response_size = last_replay.WriteResponse(resp, len);', '\tTrainingResponse(resp, len);\n    last_replay_response_size = last_replay.WriteResponse(resp, len);')
     t=t.replace('DuelClient::ClientAnalyze(offset, pbuf - offset)', 'TrainingAnalyze(pduel, offset, pbuf - offset)')
     t=replace(t, '\tmainGame->AddDebugMsg(msgbuf);', '\tTrainingWrite("\\\"kind\\\":\\\"script_error\\\",\\\"message_type\\\":" + std::to_string(type));\n    mainGame->AddDebugMsg(msgbuf);')
     save("gframe/single_mode.cpp",t)
+
+    t=read("gframe/single_mode.h")
+    t=replace(t, '\tstatic bool StartPlay();', '\tstatic bool StartPlay();\n\tstatic void WaitForExit();')
+    save("gframe/single_mode.h",t)
 
     t=read("gframe/premake5.lua")
     t=replace(t,'    files { "*.cpp", "*.h" }','    files { "*.cpp", "*.h" }\n    removefiles { "replay_mode.cpp" }')

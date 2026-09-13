@@ -26,7 +26,7 @@ function setup() {
       disabled:false, hidden:false, clientHeight:0, scrollHeight:0,
       classList:{toggle() {}, add() {}, remove() {}}, style:{setProperty() {}},
       open:false, showModal() { this.open = true; }, close() { this.open = false; },
-      setAttribute() {}, removeAttribute() {},
+      setAttribute(name, value) { this[name] = value; }, removeAttribute() {}, focus() { this.focused = true; },
     });
     return elements.get(selector);
   }
@@ -35,13 +35,57 @@ function setup() {
     window:{innerWidth:1280}, structuredClone, TextEncoder, setTimeout:() => 1, clearTimeout() {}, confirm:() => true,
     fetch:async () => { throw new Error('Unexpected network request'); },
   });
-  vm.runInContext(editorSource + '\nglobalThis.editor = {app, card, addCard, removeCard, undoDeck, sortDeck, renderDeck, showCard, search, saveDeck, openDeck, newDeck, deckState, dirty, importState, invalidateImport, previewImport, previewYdk, loadYdkFile, applyImportedDeck, availableImportName};', context);
+  vm.runInContext(editorSource + '\nglobalThis.editor = {app, card, addCard, removeCard, undoDeck, sortDeck, renderDeck, showCard, search, saveDeck, openDeck, newDeck, deleteDeck, setLibraryOpen, deckState, dirty, importState, invalidateImport, previewImport, previewYdk, loadYdkFile, applyImportedDeck, availableImportName};', context);
   const editor = context.editor;
   for (const c of cards) editor.app.cache.set(c.id, {...c,script_available:true});
   editor.app.savedState = editor.deckState();
   return {...editor, node, context};
 }
 const plain = value => JSON.parse(JSON.stringify(value));
+
+test('deleting a selected deck preserves a different unsaved construct and sends its revision', async () => {
+  const e = setup();
+  e.app.id = 'library/current.ydk'; e.app.deck.main = [101]; e.dirty();
+  e.node('#compact-deck').value = 'library/delete.ydk';
+  const requests = [];
+  e.context.api = async (url, body) => {
+    requests.push([url, body]);
+    if (url.startsWith('/api/deck?')) return {id:'library/delete.ydk',name:'删除测试',revision:'revision-a'};
+    if (url === '/api/decks/delete') return {id:body.id,backup:'backups/deleted/test'};
+    if (url === '/api/decks') return [];
+    throw new Error(url);
+  };
+  await e.deleteDeck();
+  assert.deepEqual(plain(requests[1][1]), {id:'library/delete.ydk',revision:'revision-a'});
+  assert.deepEqual(plain(e.app.deck.main), [101]);
+  assert.equal(e.app.id, 'library/current.ydk');
+  assert.equal(e.app.dirty, true);
+});
+
+test('canceling deck deletion keeps current edits and does not send a mutation', async () => {
+  const e = setup();
+  e.app.id = 'library/test.ydk'; e.app.deck.main = [101]; e.dirty();
+  e.node('#compact-deck').value = e.app.id;
+  e.context.confirm = () => false;
+  let requests = 0;
+  e.context.api = async (_url, body) => { requests++; assert.equal(body, undefined); return {id:e.app.id,name:'测试',revision:'r'}; };
+  await e.deleteDeck();
+  assert.equal(requests, 1); assert.equal(e.app.busy, false);
+  assert.deepEqual(plain(e.app.deck.main), [101]); assert.equal(e.app.dirty, true);
+});
+
+test('drawer open and close preserve edits and return keyboard focus', () => {
+  const e = setup(); e.app.deck.main = [101]; e.dirty();
+  e.setLibraryOpen(true);
+  assert.equal(e.node('#card-library').hidden, false);
+  assert.equal(e.node('#library-toggle')['aria-expanded'], 'true');
+  assert.equal(e.node('#search').focused, true);
+  e.setLibraryOpen(false);
+  assert.equal(e.node('#card-library').hidden, true);
+  assert.equal(e.node('#library-toggle')['aria-expanded'], 'false');
+  assert.equal(e.node('#library-toggle').focused, true);
+  assert.deepEqual(plain(e.app.deck.main), [101]); assert.equal(e.app.dirty, true);
+});
 function deferred() {
   let resolve, reject;
   const promise = new Promise((yes,no) => { resolve = yes; reject = no; });
