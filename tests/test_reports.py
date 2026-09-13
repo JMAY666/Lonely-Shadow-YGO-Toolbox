@@ -50,7 +50,8 @@ class ActionTests(unittest.TestCase):
         events = [initial, event(2, 40), event(3, 41), *pot_sequence()]
         actions = project_actions(report(events, initial['id']))
         self.assertEqual(len(actions), 1)
-        self.assertEqual(actions[0]['summary'], '在我方魔法陷阱区 1发动强欲之壶的效果，抽 2 张卡')
+        self.assertEqual(actions[0]['summary'], '在我方魔法陷阱区 1发动强欲之壶的效果：①：自己抽2张。')
+        self.assertEqual(actions[0]['observed_summary'], '自己抽 2 张卡')
         self.assertTrue({'10:0', '11:0', '16:0', '17:0', '18:0'}.issubset(actions[0]['evidence_refs']))
         self.assertEqual(len(events), 13)  # Projection never removes raw evidence.
 
@@ -64,15 +65,15 @@ class ActionTests(unittest.TestCase):
         self.assertEqual(len(actions), 2)
         self.assertEqual([a['resolution_order'] for a in actions], [2, 1])
         self.assertEqual([a['results'][0]['event_ref'] for a in actions], ['7:0', '4:0'])
-        self.assertIn('抽 2 张卡', actions[0]['summary'])
-        self.assertIn('抽 1 张卡', actions[1]['summary'])  # Never infer two from text.
+        self.assertIn('抽 2 张卡', actions[0]['observed_summary'])
+        self.assertIn('抽 1 张卡', actions[1]['observed_summary'])  # Never infer two from text.
 
     def test_chain_one_reuse_and_same_name_copies_remain_distinct(self):
         actions = project_actions(report(pot_sequence(1, 1) + pot_sequence(2, 20, 1)))
         self.assertEqual(len(actions), 2)
         self.assertEqual([a['chain_group'] for a in actions], [1, 2])
         self.assertNotEqual(actions[0]['cards'][0]['instance_id'], actions[1]['cards'][0]['instance_id'])
-        self.assertIn('抽 1 张卡', actions[1]['summary'])
+        self.assertIn('抽 1 张卡', actions[1]['observed_summary'])
 
     def test_rule_draw_hidden_but_draw_phase_effect_and_unknown_draw_preserved(self):
         events = [event(1, 41, value=1), event(2, 90, actor='self', cards=[card()], draw_kind='rule'),
@@ -89,7 +90,7 @@ class ActionTests(unittest.TestCase):
                   move(6, card(instance=8), 2, 16, 0x80)]
         actions = project_actions(report(events))
         self.assertEqual(len(actions), 2)
-        self.assertIn('破坏并将强欲之壶', actions[0]['summary'])
+        self.assertIn('破坏并将强欲之壶', actions[0]['observed_summary'])
         self.assertIn('费用', actions[1]['summary'])
 
     def test_unrelated_rule_movement_is_preserved(self):
@@ -101,9 +102,10 @@ class ActionTests(unittest.TestCase):
         for state_msg, label in ((75, '发动被无效'), (76, '效果被无效')):
             events = [event(1, 70, cards=[card()], chain=1), event(2, state_msg, chain=1), event(3, 73, chain=1)]
             a = project_actions(report(events))[0]
-            self.assertIn(label, a['summary']); self.assertNotIn('抽', a['summary'])
+            self.assertIn(label, a['status_label']); self.assertNotIn('抽', a['observed_summary'])
+            self.assertEqual(a['selected_effect_text'], '①：自己抽2张。')
         a = project_actions(report([event(1, 70, cards=[card()], chain=1)]))[0]
-        self.assertIn('尚未确认', a['summary']); self.assertNotIn('抽', a['summary'])
+        self.assertIn('尚未确认', a['status_label']); self.assertNotIn('抽', a['observed_summary'])
 
     def test_different_native_cause_vetoes_resolution_interval(self):
         source = {'effect_id': 1, 'handler_instance': 1}
@@ -125,7 +127,7 @@ class ActionTests(unittest.TestCase):
                     event(3,90,actor='self',cards=[card(MONSTER)],draw_kind='effect',cause=resolved),event(4,73,chain=1)]
             a=project_actions(report(events))
             self.assertEqual(len(a),1)
-            self.assertIn('抽 1 张卡',a[0]['summary'])
+            self.assertIn('抽 1 张卡',a[0]['observed_summary'])
 
     def test_legacy_id_changes_during_operation_reconciled_at_solved(self):
         initial={'effect_id':67,'handler_instance':1}
@@ -134,7 +136,7 @@ class ActionTests(unittest.TestCase):
                 event(3,90,actor='self',cards=[card(MONSTER)],draw_kind='effect',cause=final),
                 event(4,73,chain=1,engine_effect=final)]
         a=project_actions(report(events))
-        self.assertEqual(len(a),1); self.assertIn('抽 1 张卡',a[0]['summary'])
+        self.assertEqual(len(a),1); self.assertIn('抽 1 张卡',a[0]['observed_summary'])
 
     def test_no_instance_identity_does_not_merge_two_same_name_cards(self):
         events = pot_sequence(instance=None)
@@ -146,7 +148,7 @@ class ActionTests(unittest.TestCase):
         payment = event(1, 100, amount=1000, cost={'lp':1000}, cause=source)
         events = [payment, event(2, 70, cards=[card()], chain=1, engine_effect=source), event(3, 73, chain=1)]
         a = project_actions(report(events))
-        self.assertEqual(len(a), 1); self.assertIn('支付 1000 LP', a[0]['summary'])
+        self.assertEqual(len(a), 1); self.assertIn('支付 1000 LP', a[0]['observed_summary'])
 
     def test_normal_summon_combines_placement_start_and_success(self):
         c = card(MONSTER, 4, 4)

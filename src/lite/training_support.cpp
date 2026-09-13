@@ -46,6 +46,8 @@ static std::string describeEffect(effect* e) {
     const auto handler = e->get_handler();
     std::ostringstream out;
     out << "{\"effect_id\":" << e->id << ",\"effect_handle\":" << e->ref_handle << ",\"description\":" << e->description
+        << ",\"effect_type\":" << e->type << ",\"event_code\":" << e->code << ",\"range\":" << e->range
+        << ",\"owner_code\":" << (e->owner ? std::to_string(e->owner->data.code) : "null")
         << ",\"handler_instance\":" << (handler ? std::to_string(handler->cardid) : "null")
         << ",\"handler_code\":" << (handler ? std::to_string(handler->data.code) : "null") << '}';
     return out.str();
@@ -81,7 +83,13 @@ void TrainingCapture(intptr_t engine, const char* kind, const unsigned char* byt
             << ",\"sequence\":" << unsigned(c->current.sequence) << ",\"position\":" << unsigned(c->current.position)
             << ",\"overlay_target\":" << (c->overlay_target ? std::to_string(c->overlay_target->cardid) : "null")
             << ",\"reason\":" << c->current.reason
-            << ",\"reason_effect\":" << describeEffect(c->current.reason_effect) << '}';
+            << ",\"reason_card_instance\":" << (c->current.reason_card ? std::to_string(c->current.reason_card->cardid) : "null")
+            << ",\"summon_info\":" << c->summon_info << ",\"material_instance_ids\":[";
+        std::vector<uint64_t> materials;
+        for(const auto material : c->material_cards) materials.push_back(material->cardid);
+        std::sort(materials.begin(), materials.end());
+        for(size_t i = 0; i < materials.size(); ++i) { if(i) out << ','; out << materials[i]; }
+        out << "],\"reason_effect\":" << describeEffect(c->current.reason_effect) << '}';
     }
     out << "],\"chain_depth\":" << f->core.current_chain.size() << ",\"chains\":[";
     bool firstChain = true;

@@ -23,7 +23,14 @@ async function search(){const generation=++app.searchGeneration;const q=$('#sear
 async function saveDeck(){let name=$('#deck-name').value.trim();if(app.id?.startsWith('existing/')&&name===app.id.split('/').at(-1).replace(/\.ydk$/,'')){name+=' - 练习';$('#deck-name').value=name;}const saved=await api('/api/decks',{name,deck:app.deck,id:app.id,revision:app.revision});app.id=saved.id;app.revision=saved.revision;app.dirty=false;$('#deck-status').textContent='已保存 · YDK 格式';await deckList();updateStart();notice('构筑已保存，可重新打开核对或开始训练。');}
 async function refreshHistory(){const previous=app.active;app.history=await api('/api/history');app.active=app.history.find(h=>['running','starting','stopping'].includes(h.status))||null;$('#history-count').textContent=app.history.length||'';$('#active-training').hidden=!app.active;$('#end-training').disabled=app.active?.status==='stopping';if(app.active){$('#active-title').textContent=`${app.active.name} · ${statusNames[app.active.status]}`;$('#active-info').textContent=`${dt(app.active.started_ms)} 开始 · 请在模拟器窗口手动操作，过程自动记录。`;}updateStart();const historyKey=JSON.stringify(app.history);if(app.historyKey!==historyKey){app.historyKey=historyKey;$('#history-list').innerHTML=app.history.map(h=>`<button class="history-item ${h.id===app.reportId?'current':''}" data-report="${h.id}"><strong>${escape(h.name)}</strong><small>${dt(h.started_ms)}</small><span class="badge ${h.status==='interrupted'?'warning':''}">${statusNames[h.status]||h.status}</span></button>`).join('')||'<div class="empty">还没有训练记录<br><small>保存构筑后，开始第一次训练。</small></div>';};if(previous&&!app.active){await showReport(previous.id);notice('训练记录已保存。');}else if(app.reportId && !$('#history').hidden && app.reportId===app.active?.id){await showReport(app.reportId,false);}}
 function cardsHtml(cards){return `<div class="report-cards">${cards.map(c=>`<div class="mini-card"><img src="/pics/${c.code}.jpg" alt="${escape(c.name)}"><small>${escape(c.name)}<br>#${c.instance_id??'未知'}</small></div>`).join('')}</div>`;}
-function loc(l){if(!l)return '未知';return `${l.controller===0?'我方':l.controller===1?'占位方':'未知'} ${zoneNames[l.location]||`区域 ${l.location}`} ${Number.isInteger(l.sequence)&&l.sequence>=0?l.sequence+1:''}`;}
+function loc(l) {
+  if (!l) return '未知区域';
+  const side = l.controller === 0 ? '我方' : l.controller === 1 ? '占位方' : '未知方';
+  if (l.location & 128) return side + '叠放素材';
+  if (l.location === 4) return side + (l.sequence >= 5 ? `额外怪兽区 ${l.sequence - 4}` : `主怪兽区 ${l.sequence + 1}`);
+  return side + (zoneNames[l.location] || '未知区域') + (l.location === 8 ? ` ${l.sequence + 1}` : '');
+}
+
 function positions(v){return ({1:'攻击表示',2:'里侧攻击表示',4:'守备表示',8:'里侧守备表示'})[v]||'表示未知';}
 function eventSummary(e){const names=e.cards.map(c=>c.name||String(c.code||'未知')).join('、');let text=names;if(e.origin)text+=`　${loc(e.origin)} → ${loc(e.destination)}`;if(e.cost)text+=`　费用：${e.cost.lp!==undefined?`${e.cost.lp} LP`:'引擎标记 COST'}`;if(e.chain)text+=`　连锁 ${e.chain}`;if(e.message===41)text+=`　${({1:'抽卡阶段',2:'准备阶段',4:'主要阶段 1',8:'战斗开始',128:'战斗结束',256:'主要阶段 2',512:'结束阶段'})[e.value]||e.value}`;if(e.amount!==undefined)text+=`　${e.player===0?'我方':'占位方'} ${e.amount} LP`;if(e.result)text+=`　${e.result}`;return text||'具体内容见原始事件；未提供的语义为未知。';}
 async function showReport(id, navigate = true) {
@@ -31,7 +38,7 @@ async function showReport(id, navigate = true) {
   const r = await api(`/api/report/${id}`);
   if (app.reportId !== id) return;
   if (navigate) switchView('history');
-  const renderKey = `${id}:${r.record_count}:${r.status}:${app.allEvents}`;
+  const renderKey = `${id}:${r.report_version}:${r.record_count}:${r.status}:${app.allEvents}`;
   if (app.reportKey !== renderKey) {
     app.reportKey = renderKey;
     $('#report').innerHTML = renderTrainingReport(r, {raw: app.allEvents});

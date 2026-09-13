@@ -18,10 +18,13 @@ function renderTrainingReport(r, options) {
       .sort((x, y) => x.native_seq - y.native_seq || x.byte_offset - y.byte_offset);
     const chain = groups.get(a.chain_group) > 1
       ? `<p class="chain-order">第 ${a.chain_group} 组连锁 · 连锁 ${a.chain_link} · ${a.resolution_order ? `第 ${[...r.actions].filter(x => x.chain_group === a.chain_group && x.resolution_order && x.resolution_order < a.resolution_order).length + 1} 个结算` : '尚未结算'}</p>` : '';
-    const draws = a.results.filter(result => result.message === 90).flatMap(result => result.cards);
+    const execution = a.execution || [];
     return `<li id="action-${a.id}"><span class="ref">${String(index + 1).padStart(2, '0')} · +${Math.max(0, Math.floor((a.time_ms - r.started_ms) / 1000))}s</span>
-      <span class="action-title">${escape(a.summary)}</span>${chain}
-      ${draws.length ? `<p>抽到：${escape(draws.map(c => c.name).join('、'))}</p>` : ''}
+      ${a.kind === 'effect' ? `<span class="action-title">${escape(a.heading)}</span><span class="effect-quote">${escape(a.effect_quote || '效果编号或对应文本未确认；可展开完整卡片文本。')}</span>` : `<span class="action-title">${escape(a.summary)}</span>`}${chain}
+      ${a.trigger_summary ? `<p class="trigger-context">${escape(a.trigger_summary)}</p>` : ''}
+      ${a.status_label ? `<p class="action-status">${escape(a.status_label)}</p>` : ''}
+      ${execution.length ? `<div class="actual-execution"><small>实际过程</small><ol>${execution.map(step => `<li><span class="execution-role">${step.role === 'cost' ? '费用' : '处理'}</span>${highlightCardNames(step.text.replace(/^支付费用：/, ''), step.cards)}${step.message === 90 ? `<p>抽到：${highlightCardNames(step.cards.map(c => c.name).join('、'), step.cards)}</p>` : ''}</li>`).join('')}</ol></div>` : ''}
+      ${a.observed_targets ? `<p>${escape(a.observed_targets)}</p>` : ''}
       <details><summary>查看依据 · ${events.length} 条原始事件</summary>
         ${a.effect_text ? `<div class="effect-reference"><b>本次卡牌效果文本</b><p>${escape(a.effect_text)}</p></div>` : ''}
         ${a.association ? `<p>${escape(a.association)}。摘要只描述记录中已发生的结果。</p>` : ''}
@@ -30,12 +33,14 @@ function renderTrainingReport(r, options) {
       </details></li>`;
   }).join('');
   const own = r.final_state?.cards.filter(c => c.controller === 0) || [];
-  const board = [4, 8, 2, 16, 32, 64, 1, 128].map(zone => {
-    const cards = own.filter(c => c.location === zone).sort((a, b) => a.sequence - b.sequence);
-    const images = [4, 8, 2].includes(zone);
-    return `<div class="zone-row"><b>${zoneNames[zone]} <small>${cards.length}</small></b><div>
+  const board = ['main_monster', 'extra_monster', 8, 2, 16, 32, 64, 1, 128].map(zone => {
+    const cards = own.filter(c => zone === 'main_monster' ? c.location === 4 && c.sequence < 5 : zone === 'extra_monster' ? c.location === 4 && c.sequence >= 5 : c.location === zone).sort((a, b) => a.sequence - b.sequence);
+    const monster = ['main_monster','extra_monster'].includes(zone);
+    const label = zone === 'main_monster' ? '主怪兽区' : zone === 'extra_monster' ? '额外怪兽区' : zoneNames[zone];
+    const images = monster || [8, 2].includes(zone);
+    return `<div class="zone-row"><b>${label} <small>${cards.length}</small></b><div>
       ${images ? cardsHtml(cards) : `<p>${cards.length ? cards.map(c => `${escape(c.name)} #${c.instance_id}`).join('、') : '空'}</p>`}
-      ${[4, 8].includes(zone) && cards.length ? `<p>${cards.map(c => `${c.sequence + 1} 号位 ${escape(c.name)} · ${positions(c.position)}`).join('<br>')}</p>` : ''}
+      ${(monster || zone === 8) && cards.length ? `<p>${cards.map(c => `${escape(loc(c))} ${escape(c.name)} · ${positions(c.position)}`).join('<br>')}</p>` : ''}
       </div></div>`;
   }).join('');
   const deck = ['main', 'extra', 'side'].map(zone => `<b>${zoneNames[zone]}（${r.deck[zone].length}）</b><div class="report-deck">
@@ -50,7 +55,7 @@ function renderTrainingReport(r, options) {
     <small>${escape(r.statistics_note)}</small>
     <h3>初始手牌</h3>${r.initial_hand ? cardsHtml(r.initial_hand) : '<p>尚未采集到初始手牌。</p>'}
     <h3>展开步骤 <small>${r.actions.length} 步</small></h3>
-    <p class="summary-hint">将效果发动与实际结果合并，省略起手、规则抽卡和常规流程提示。</p>
+    <p class="summary-hint">效果原文与实际过程分别展示；费用、素材和排序归入对应操作。</p>
     <div class="report-toolbar"><label><input type="checkbox" id="all-events" ${options.raw ? 'checked' : ''}>查看原始事件</label>
       <a href="/api/raw/${id}" target="_blank">原始记录 JSONL</a><a href="/api/ydk/${id}" target="_blank">构筑快照 YDK</a></div>
     <ol class="timeline">${timeline || '<li><p>暂无需要复盘的展开动作。</p></li>'}</ol>
@@ -61,4 +66,11 @@ function renderTrainingReport(r, options) {
     <div class="sources">训练标识：${id}<br>构筑 SHA-256：${r.deck_sha256}<br>
       来源：核心原始消息、cardid 与区域状态；效果文本来自本次构筑快照。<br>${escape(r.legality)}
       <details><summary>记录边界与数据来源</summary>${r.limitations.map(l => escape(l) + '<br>').join('')}${escape(JSON.stringify(r.sources))}</details></div>`;
+}
+
+function highlightCardNames(text, cards) {
+  const names = [...new Set(cards.map(c => c.name).filter(Boolean))].sort((a,b) => b.length - a.length);
+  if (!names.length) return escape(text);
+  const regex = new RegExp('(' + names.map(name => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')', 'g');
+  return String(text).split(regex).map(part => names.includes(part) ? `<strong>${escape(part)}</strong>` : escape(part)).join('');
 }

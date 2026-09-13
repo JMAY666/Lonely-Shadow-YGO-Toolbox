@@ -5,8 +5,9 @@ import json
 
 from protocol import NAMES, PROMPTS, packets, u32, location
 from actions import project_actions
+from card_semantics import material_method, summon_method
 
-REPORT_VERSION = 3
+REPORT_VERSION = 4
 
 LIMITS = [
     '事件时间为引擎批次采集时间；同批事件用字节偏移确定先后。',
@@ -48,8 +49,14 @@ def build_report(meta, rows, issues):
     last_prompt = None
 
     def ref(loc, code=None):
-        matches = [c for c in state['cards'] if all(c.get(k) == loc.get(k) for k in ('controller', 'location', 'sequence'))
-                   and (not code or c['code'] == code)]
+        if loc.get('location', 0) & 0x80:
+            hosts = {c['instance_id'] for c in state['cards'] if c['controller'] == loc.get('controller')
+                     and c['location'] == (loc['location'] & 0x7f) and c['sequence'] == loc.get('sequence')}
+            matches = [c for c in state['cards'] if c.get('overlay_target') in hosts and c['sequence'] == loc.get('position')
+                       and (not code or c['code'] == code)]
+        else:
+            matches = [c for c in state['cards'] if all(c.get(k) == loc.get(k) for k in ('controller', 'location', 'sequence'))
+                       and (not code or c['code'] == code)]
         c = matches[0] if len(matches) == 1 else None
         number = code or (c and c['code'])
         return {'code': number, 'name': names.get(number, c.get('name') if c else '未知'),
@@ -76,6 +83,40 @@ def build_report(meta, rows, issues):
         if len(reasons) == 1: event['observed_reason'] = next(iter(reasons))
         causes = [x.get('reason_effect') for x in observed]
         if causes[0] is not None and all(x == causes[0] for x in causes): event['cause'] = deepcopy(causes[0])
+
+    def snapshot_card(c, snapshot):
+        if c.get('instance_id') is None: return None
+        matches = [item for item in snapshot['cards'] if item['instance_id'] == c['instance_id'] and item['code'] == c['code']]
+        return matches[0] if len(matches) == 1 else None
+
+    def annotate_summon(event, snapshot):
+        for c in event['cards']:
+            item = snapshot_card(c, snapshot)
+            if not item or any(item.get(k) != c.get(k) for k in ('controller', 'location', 'sequence')): continue
+            if 'summon_info' in item:
+                c.update(summon_info=item['summon_info'], summon_method=summon_method(item['summon_info']),
+                         material_instance_ids=item.get('material_instance_ids', []), summon_method_source='core_summon_info')
+                c['native_material_cards'] = [{k: m.get(k) for k in ('instance_id','code','name','controller','location','sequence')}
+                                              for m in snapshot['cards'] if m['instance_id'] in item.get('material_instance_ids', [])]
+
+    def move_state(c, origin, dest):
+        """Maintain instance identity through removals, insertions and same-deck reorders."""
+        if c.get('instance_id') is None: return
+        own = next((x for x in state['cards'] if x['instance_id'] == c['instance_id']), None)
+        if own is None: return
+        same_zone = origin['controller'] == dest['controller'] and origin['location'] == dest['location']
+        linear = (1, 2, 16, 32, 64)
+        for item in state['cards']:
+            if item['instance_id'] == c['instance_id']: continue
+            at_origin = item['controller'] == origin['controller'] and item['location'] == origin['location']
+            at_dest = item['controller'] == dest['controller'] and item['location'] == dest['location']
+            if same_zone and origin['location'] in linear:
+                if at_origin and dest['sequence'] <= item['sequence'] < origin['sequence']: item['sequence'] += 1
+                elif at_origin and origin['sequence'] < item['sequence'] <= dest['sequence']: item['sequence'] -= 1
+            elif not same_zone:
+                if at_origin and origin['location'] in linear and item['sequence'] > origin['sequence']: item['sequence'] -= 1
+                if at_dest and dest['location'] in linear and item['sequence'] >= dest['sequence']: item['sequence'] += 1
+        own.update(dest)
 
     for row in rows:
         kind = row.get('kind')
@@ -114,15 +155,28 @@ def build_report(meta, rows, issues):
                         code, origin, dest, reason = u32(b), location(b, 4), location(b, 8), u32(b, 12)
                         c = ref(origin, code); e.update(cards=[c], origin=origin, destination=dest, reason=reason)
                         e['cost'] = {'reason_cost': True} if reason & 0x80 else None
+                        if origin['location'] == dest['location'] == 1 and origin['controller'] == dest['controller']:
+                            size = sum(item['controller'] == dest['controller'] and item['location'] == 1 for item in state['cards'])
+                            e['deck_operation'] = ('position_refresh' if origin['sequence'] == dest['sequence'] else
+                                                   'move_to_bottom' if dest['sequence'] == 0 else
+                                                   'move_to_top' if dest['sequence'] == size - 1 else 'reorder')
                         annotate_cause(e, row['state'], {k: dest[k] for k in ('controller', 'location', 'sequence')})
+                        if reason & 8:
+                            e['material_method'] = material_method(reason)
+                            item = snapshot_card(c, row['state'])
+                            if item and item.get('reason') == reason:
+                                target = item.get('reason_card_instance') or item.get('overlay_target')
+                                if target: e['material_target'] = target
+                                if dest['location'] & 0x80:
+                                    # Overlay addresses encode the host's location, not the material's location.
+                                    if item.get('overlay_target'): e['material_target'] = item['overlay_target']
+                                    if item.get('reason_effect'): e['cause'] = deepcopy(item['reason_effect'])
+                            if not e.get('material_target') and e['material_method'] in ('连接召唤','同调召唤','超量召唤'):
+                                cause = e.get('cause') or {}
+                                if cause.get('handler_instance'): e['material_target'] = cause['handler_instance']
                         # Some placement messages retain the card's previous draw reason. This metadata is only corroboration.
                         if e.get('observed_reason') != reason: e.pop('cause', None)
-                        if c['instance_id'] is not None:
-                            for item in state['cards']:
-                                if item['instance_id'] == c['instance_id']: item.update(dest)
-                            if origin['location'] in (1, 2, 16, 32, 64):
-                                for item in state['cards']:
-                                    if item['instance_id'] != c['instance_id'] and item['controller'] == origin['controller'] and item['location'] == origin['location'] and item['sequence'] > origin['sequence']: item['sequence'] -= 1
+                        move_state(c, origin, dest)
                     elif msg == 90:
                         player, count = b[:2]; e['actor'] = 'self' if player == 0 else 'wall'
                         e['cards'] = []
@@ -142,9 +196,12 @@ def build_report(meta, rows, issues):
                     elif msg in (60, 62, 64, 54):
                         e['cards'] = [ref(location(b, 4), u32(b))]
                         annotate_cause(e, row['state'])
+                        if msg != 54: annotate_summon(e, row['state'])
                         if msg != 54: summoning.setdefault(msg + 1, []).extend(e['cards'])
                     elif msg in (61, 63, 65):
                         e['cards'] = summoning.pop(msg, []); e['result'] = '引擎确认召唤成功'
+                        annotate_summon(e, row['state'])
+                        annotate_cause(e, row['state'])
                     elif msg == 53:
                         e['cards'] = [ref(location(b, 4), u32(b))]; e['position_from'], e['position_to'] = b[7:9]
                     elif msg == 70:
@@ -176,6 +233,11 @@ def build_report(meta, rows, issues):
                         if msg == 100: e['cost'] = {'lp': e['amount']}
                     elif msg in (15, 20):
                         e['choices'] = [ref(location(b, 9 + i * 8), u32(b, 5 + i * 8)) for i in range(b[4])]
+                    elif msg in (25, 30, 42):
+                        e['player'] = b[0]
+                        e['cards'] = [ref(dict(zip(('controller','location','sequence'), b[6+i*7:9+i*7])), u32(b, 2+i*7)) for i in range(b[1])]
+                    elif msg == 31:
+                        e['cards'] = [ref(dict(zip(('controller','location','sequence'), b[7+i*7:10+i*7])), u32(b, 3+i*7)) for i in range(b[2])]
                     elif msg == 12:
                         e.update(cards=[ref(location(b, 5), u32(b, 1))], effect={'description_id': u32(b, 9)})
                     elif msg in (40, 41):
