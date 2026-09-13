@@ -4,23 +4,286 @@ const escape = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<'
 const zoneNames = {main:'主卡组',extra:'额外卡组',side:'副卡组',1:'卡组',2:'手牌',4:'怪兽区',8:'魔法陷阱区',16:'墓地',32:'除外',64:'额外卡组',128:'叠放素材'};
 const statusNames = {starting:'正在启动',running:'训练中',stopping:'正在保存报告',completed:'手动结束',interrupted:'中断',damaged:'记录损坏'};
 const reasons = {manual:'手动结束',client_closed:'关闭了模拟器窗口',engine_ended:'引擎提前结束',native_exit_without_end:'模拟器异常退出或记录未完成',deck_load_failed:'构筑载入失败',launch_failed:'启动失败'};
-const app = {token:'',deck:{main:[],extra:[],side:[]},id:null,revision:null,dirty:false,zone:'main',cache:new Map(),offset:0,total:0,history:[],active:null,reportId:null,allEvents:false,searchGeneration:0};
+const zones = ['main', 'extra', 'side'];
+const zoneLimits = {main:60, extra:15, side:15};
+const app = {token:'',deck:{main:[],extra:[],side:[]},id:null,revision:null,dirty:false,cache:new Map(),pendingCards:new Map(),offset:0,total:0,history:[],active:null,reportId:null,allEvents:false,searchGeneration:0,renderGeneration:0,detailGeneration:0,deckEpoch:0,selected:null,undo:[],savedState:null,busy:false};
 const dt = (v) => v ? new Date(v).toLocaleString('zh-CN',{hour12:false}) : '未知';
 const duration = (v) => `${Math.floor(v/60000)} 分 ${Math.floor(v/1000)%60} 秒`;
 let noticeTimer;
 function notice(text){$('#notice').textContent=text;$('#notice').hidden=false;clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>$('#notice').hidden=true,6000);}
 async function api(url, body){const result=await fetch(url,body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json','X-Trainer-Token':app.token},body:JSON.stringify(body)});const data=await result.json();if(!result.ok)throw new Error(data.error||'请求失败');return data;}
 function run(fn){return async(...args)=>{try{await fn(...args);}catch(e){notice(e.message);}};}
-async function card(code){if(!app.cache.has(code))app.cache.set(code,await api(`/api/card/${code}`));return app.cache.get(code);}
-function switchView(view){$('#editor').hidden=view!=='decks';$('#history').hidden=view!=='history';$('#nav-decks').classList.toggle('active',view==='decks');$('#nav-history').classList.toggle('active',view==='history');}
-function dirty(){app.dirty=true;$('#deck-status').textContent='有未保存的修改 · 保存后可开始训练';$('#start-training').disabled=true;}
-async function deckList(){const decks=await api('/api/decks');$('#compact-deck').innerHTML='<option value="">选择已有构筑</option>'+decks.map(d=>`<option value="${escape(d.id)}" ${d.id===app.id?'selected':''}>${escape(d.name)}</option>`).join('');$('#deck-list').innerHTML=decks.map(d=>`<button data-deck="${escape(d.id)}" class="${app.id===d.id?'current':''}">${escape(d.name)}<small>${d.source==='existing'?'副本中已有构筑':'练习室构筑'}</small></button>`).join('')||'<p class="muted">还没有构筑，点击 ＋ 新建。</p>';}
-async function openDeck(id){if(app.dirty && !confirm('当前修改尚未保存。打开另一构筑会放弃这些修改，是否继续？'))return;const d=await api(`/api/deck?id=${encodeURIComponent(id)}`);app.deck=d.deck;app.id=d.id;app.revision=d.revision;app.dirty=false;$('#deck-name').value=d.name;$('#deck-status').textContent=d.source==='existing'?'已有构筑 · 保存时创建练习室副本':'已保存 · YDK 格式';switchView('decks');await renderDeck();await deckList();updateStart();}
-function updateStart(){$('#start-training').disabled=!app.id||app.dirty||!!app.active;}
-async function renderDeck(){for(const zone of ['main','extra','side'])$(`#count-${zone}`).textContent=app.deck[zone].length;const items=[...new Set(app.deck[app.zone])];await Promise.all(items.map(code=>card(code).catch(()=>{app.cache.set(code,{id:code,name:`未知卡牌 ${code}`,type:0});})));$('#deck-cards').innerHTML=items.map(code=>{const c=app.cache.get(code);const qty=app.deck[app.zone].filter(x=>x===code).length;return `<div class="deck-row"><img src="/pics/${code}.jpg" alt=""><button class="card-name" data-detail="${code}">${escape(c.name)}<small>${String(code).padStart(8,'0')}</small></button><span class="qty">×${qty}</span><button class="minus" data-remove="${code}" aria-label="移除一张${escape(c.name)}">−</button></div>`;}).join('')||'<div class="empty">这一分区还是空的<br><small>选择左侧卡牌，加入构筑。</small></div>';}
-async function showCard(code){const c=await card(code);$('#card-detail').innerHTML=`<img class="hero" src="/pics/${code}.jpg" alt="${escape(c.name)}卡图"><h2>${escape(c.name)}</h2><div class="card-meta">${String(code).padStart(8,'0')} · ${c.type&1?'怪兽':c.type&2?'魔法':'陷阱'}${c.extra?' · 额外卡组':''}<br>${c.type&1?`等级／阶级／LINK ${c.level&255}　ATK ${c.atk} ${c.type&0x4000000?'':`/ DEF ${c.def}`}`:''}</div><div class="add-actions"><button class="primary" data-add="${code}" data-to="${c.extra?'extra':'main'}">加入${c.extra?'额外':'主卡组'}</button><button data-add="${code}" data-to="side">加入副卡组</button></div><div class="effect">${escape(c.desc||'无效果说明')}</div><small>资料来源：${escape(c.source||'未知')}<br>卡牌定义与效果脚本保持原样。</small>`;}
-async function search(){const generation=++app.searchGeneration;const q=$('#search').value;const result=await api(`/api/cards?q=${encodeURIComponent(q)}&kind=${$('#filter').value}&offset=${app.offset}`);if(generation!==app.searchGeneration)return;app.total=result.total;result.cards.forEach(c=>app.cache.set(c.id,c));$('#search-count').textContent=`${result.total.toLocaleString()} 张`;$('#search-results').innerHTML=result.cards.map(c=>`<button class="card-tile" data-detail="${c.id}" title="${escape(c.name)}" aria-label="查看${escape(c.name)}"><img loading="lazy" src="/pics/${c.id}.jpg" alt=""><span>${escape(c.name)}</span></button>`).join('')||'<p class="muted">未找到匹配卡牌。</p>';$('#prev-page').disabled=app.offset===0;$('#next-page').disabled=app.offset+60>=app.total;$('#page-number').textContent=`${Math.floor(app.offset/60)+1} / ${Math.max(1,Math.ceil(app.total/60))}`;}
-async function saveDeck(){let name=$('#deck-name').value.trim();if(app.id?.startsWith('existing/')&&name===app.id.split('/').at(-1).replace(/\.ydk$/,'')){name+=' - 练习';$('#deck-name').value=name;}const saved=await api('/api/decks',{name,deck:app.deck,id:app.id,revision:app.revision});app.id=saved.id;app.revision=saved.revision;app.dirty=false;$('#deck-status').textContent='已保存 · YDK 格式';await deckList();updateStart();notice('构筑已保存，可重新打开核对或开始训练。');}
+async function card(code) {
+  if (app.cache.has(code)) return app.cache.get(code);
+  if (!app.pendingCards.has(code)) {
+    app.pendingCards.set(code, api(`/api/card/${code}`).then(c => {
+      app.cache.set(code, c);
+      return c;
+    }).finally(() => app.pendingCards.delete(code)));
+  }
+  return app.pendingCards.get(code);
+}
+function switchView(view) {
+  $('#editor').hidden = view !== 'decks';
+  $('#history').hidden = view !== 'history';
+  document.body.classList.toggle('history-view', view === 'history');
+  for (const name of ['decks', 'history']) {
+    const button = $(`#nav-${name}`);
+    button.classList.toggle('active', view === name);
+    if (view === name) button.setAttribute('aria-current', 'page');
+    else button.removeAttribute('aria-current');
+  }
+}
+function deckState() { return JSON.stringify({name:$('#deck-name').value.trim(), deck:app.deck}); }
+function dirty() {
+  app.dirty = deckState() !== app.savedState;
+  $('#deck-status').textContent = app.dirty ? '● 有未保存的修改' : !app.id ? '新构筑 · 尚未保存' : app.id.startsWith('existing/') ? '已有构筑 · 保存时创建练习室副本' : '已保存 · 本地构筑';
+  $('#deck-status').classList.toggle('is-dirty', app.dirty);
+  updateStart();
+}
+function updateStart() {
+  $('#start-training').disabled = !app.id || app.dirty || !!app.active || app.busy;
+  for (const id of ['save-deck', 'compact-open', 'compact-deck', 'new-deck', 'deck-name']) $(`#${id}`).disabled = app.busy;
+  $('#undo-deck').disabled = app.busy || !app.undo.length;
+  $('#sort-deck').disabled = app.busy || !zones.some(zone => app.deck[zone].length);
+}
+async function deckList() {
+  const decks = await api('/api/decks');
+  $('#compact-deck').innerHTML = '<option value="">选择已有构筑</option>' + ['library', 'existing'].map(source => {
+    const items = decks.filter(d => d.source === source);
+    return items.length ? `<optgroup label="${source === 'library' ? '我的构筑' : '副本中已有构筑'}">${items.map(d => `<option value="${escape(d.id)}" ${d.id === app.id ? 'selected' : ''}>${escape(d.name)}</option>`).join('')}</optgroup>` : '';
+  }).join('');
+}
+async function openDeck(id) {
+  if (app.busy) return;
+  if (app.dirty && !confirm('当前修改尚未保存。打开另一构筑会放弃这些修改，是否继续？')) return;
+  ++app.deckEpoch;
+  app.busy = true;
+  updateStart();
+  try {
+    const d = await api(`/api/deck?id=${encodeURIComponent(id)}`);
+    app.deck = d.deck;
+    app.id = d.id;
+    app.revision = d.revision;
+    app.undo = [];
+    $('#deck-name').value = d.name;
+    app.savedState = deckState();
+    dirty();
+    switchView('decks');
+    await renderDeck();
+    $('#deck-cards').scrollTop = 0;
+    await deckList();
+    const first = zones.flatMap(zone => app.deck[zone])[0];
+    if (first) await showCard(first);
+  } finally { app.busy = false; updateStart(); updateDetailCounts(); }
+}
+function rememberDeck() {
+  app.undo.push(structuredClone(app.deck));
+  if (app.undo.length > 50) app.undo.shift();
+}
+async function newDeck() {
+  if (app.busy || (app.dirty && !confirm('当前修改尚未保存。是否放弃并新建？'))) return;
+  ++app.deckEpoch;
+  app.busy = true;
+  try {
+    app.deck = {main:[], extra:[], side:[]};
+    app.id = null;
+    app.revision = null;
+    app.undo = [];
+    $('#deck-name').value = '新构筑';
+    app.savedState = deckState();
+    dirty();
+    switchView('decks');
+    await renderDeck();
+    await deckList();
+  } finally { app.busy = false; updateStart(); updateDetailCounts(); }
+}
+async function addCard(code, zone) {
+  if (app.busy) return;
+  const epoch = app.deckEpoch;
+  const c = await card(code);
+  // An open/save may have started while the card request was in flight.
+  if (app.busy || epoch !== app.deckEpoch) return;
+  zone ??= c.extra ? 'extra' : 'main';
+  if (!zones.includes(zone)) return;
+  if (c.type & 0x4000) return notice('衍生物不能加入构筑。');
+  if (zone !== 'side' && !!c.extra !== (zone === 'extra')) return notice('卡牌类型与主卡组／额外卡组分区不一致。');
+  if (app.deck[zone].length >= zoneLimits[zone]) return notice(`${zoneNames[zone]}已达到 ${zoneLimits[zone]} 张上限。`);
+  rememberDeck();
+  app.deck[zone].push(code);
+  dirty();
+  await renderDeck();
+}
+async function removeCard(code, zone, index) {
+  if (app.busy || !zones.includes(zone)) return;
+  index = index === undefined ? app.deck[zone].lastIndexOf(code) : index;
+  if (index < 0 || app.deck[zone][index] !== code) return;
+  rememberDeck();
+  app.deck[zone].splice(index, 1);
+  dirty();
+  await renderDeck();
+}
+async function undoDeck() {
+  if (app.busy || !app.undo.length) return;
+  app.deck = app.undo.pop();
+  dirty();
+  await renderDeck();
+}
+function sortKey(code) {
+  const c = app.cache.get(code) || {type:0};
+  const kind = c.type & 0x40 ? 1 : c.type & 0x2000 ? 2 : c.type & 0x800000 ? 3 : c.type & 0x4000000 ? 4 : c.type & 1 ? 0 : c.type & 2 ? 5 : c.type & 4 ? 6 : 7;
+  return [kind, -(c.level & 255), code];
+}
+async function sortDeck() {
+  if (app.busy) return;
+  const sorted = Object.fromEntries(zones.map(zone => [zone, [...app.deck[zone]].sort((a,b) => {
+    const ka = sortKey(a), kb = sortKey(b);
+    return ka[0] - kb[0] || ka[1] - kb[1] || ka[2] - kb[2];
+  })]));
+  if (JSON.stringify(sorted) === JSON.stringify(app.deck)) return notice('当前构筑已按类型、等级和卡号排列。');
+  rememberDeck();
+  app.deck = sorted;
+  dirty();
+  await renderDeck();
+}
+function zoneStats(zone) {
+  const kinds = zone === 'extra' ? [['融合',0x40,'fusion'],['同调',0x2000,'synchro'],['超量',0x800000,'xyz'],['连接',0x4000000,'link']] : [['怪兽',1,'monster'],['魔法',2,'spell'],['陷阱',4,'trap']];
+  return kinds.map(([label,mask,kind]) => {
+    const count = app.deck[zone].filter(code => (app.cache.get(code)?.type || 0) & mask).length;
+    return `<span class="type-count ${kind}" title="${label} ${count} 张"><i></i><span>${label}</span> ${count}</span>`;
+  }).join('');
+}
+async function renderDeck() {
+  const generation = ++app.renderGeneration;
+  const items = [...new Set(zones.flatMap(zone => app.deck[zone]))];
+  await Promise.all(items.map(code => card(code).catch(() => {})));
+  if (generation !== app.renderGeneration) return;
+  const focused = document.activeElement?.closest('.deck-grid [data-detail]');
+  const focusZone = focused?.dataset.from, focusIndex = Number(focused?.dataset.index);
+  for (const zone of zones) {
+    const codes = app.deck[zone], grid = $(`#cards-${zone}`);
+    $(`#count-${zone}`).textContent = codes.length;
+    $(`#stats-${zone}`).innerHTML = zoneStats(zone);
+    grid.style.setProperty('--columns', zone === 'main' ? Math.max(10, Math.ceil(codes.length / 4)) : Math.max(10, codes.length));
+    grid.innerHTML = codes.map((code,index) => {
+      const c = app.cache.get(code) || {name:`未知卡牌 ${code}`};
+      return `<button class="card-tile deck-card" data-detail="${code}" data-from="${zone}" data-index="${index}" aria-label="${escape(zoneNames[zone])}第 ${index+1} 张：${escape(c.name)}" title="${escape(c.name)} · 右键移除一张"><img src="/pics/${code}.jpg" alt="" draggable="false"></button>`;
+    }).join('') || `<div class="zone-empty"><span>＋</span>${zone === 'main' ? '从右侧搜索卡牌，开始构筑' : `尚未加入${zoneNames[zone]}`}</div>`;
+  }
+  $('#deck-total').textContent = `${zones.reduce((sum,zone) => sum + app.deck[zone].length, 0)} 张`;
+  fitDeckGrid();
+  updateSelection();
+  updateDetailCounts();
+  updateStart();
+  if (focused && app.deck[focusZone]?.length) $(`#cards-${focusZone} [data-index="${Math.min(focusIndex, app.deck[focusZone].length-1)}"]`)?.focus({preventScroll:true});
+}
+function fitDeckGrid() {
+  const grid = $('#cards-main'), board = $('#deck-cards');
+  if (!board.clientHeight) return;
+  if (window.innerWidth <= 1060) {
+    grid.style.setProperty('--columns', Math.max(10, Math.ceil(app.deck.main.length / 4)));
+    return;
+  }
+  // Use the available workbench height, including the other two zones.
+  // Images keep their aspect ratio; smaller windows can fit more cards per row.
+  for (let columns = 10; columns <= 20; columns++) {
+    grid.style.setProperty('--columns', columns);
+    if (board.scrollHeight <= board.clientHeight) break;
+  }
+}
+function updateSelection() {
+  document.querySelectorAll('.card-tile[data-detail]').forEach(tile => {
+    const selected = Number(tile.dataset.detail) === app.selected;
+    tile.classList.toggle('is-selected', selected);
+    tile.setAttribute('aria-pressed', String(selected));
+  });
+}
+function cardType(c) {
+  if (!(c.type & 1)) return c.type & 2 ? '魔法卡' : c.type & 4 ? '陷阱卡' : '未知类型';
+  const flags = [[0x40,'融合'],[0x2000,'同调'],[0x800000,'超量'],[0x4000000,'连接'],[0x1000000,'灵摆'],[0x80,'仪式'],[0x1000,'调整'],[0x20,'效果'],[0x10,'通常'],[0x4000,'衍生物']];
+  return [...flags.filter(([flag]) => c.type & flag).map(([,label]) => label), '怪兽'].join(' / ');
+}
+function updateDetailCounts() {
+  if (!app.selected) return;
+  const c = app.cache.get(app.selected);
+  for (const zone of zones) {
+    const count = app.deck[zone].filter(code => code === app.selected).length;
+    const label = $(`#detail-count-${zone}`);
+    if (label) label.textContent = count;
+    const add = $(`#card-detail [data-to="${zone}"]`), remove = $(`#card-detail [data-from="${zone}"]`);
+    if (add) add.disabled = app.busy || !!(c?.type & 0x4000) || app.deck[zone].length >= zoneLimits[zone];
+    if (remove) remove.disabled = app.busy || count === 0;
+  }
+}
+async function showCard(code) {
+  const generation = ++app.detailGeneration;
+  const c = await card(code);
+  if (generation !== app.detailGeneration) return;
+  app.selected = code;
+  const monster = c.type & 1;
+  const stat = value => value === undefined || value < 0 ? '?' : value;
+  const attribute = ({1:'地',2:'水',4:'炎',8:'风',16:'光',32:'暗',64:'神'})[c.attribute] || '';
+  const defaultZone = c.extra ? 'extra' : 'main';
+  $('#card-detail').innerHTML = `
+    <h3 class="detail-name">${escape(c.name)}</h3>
+    <div class="detail-top"><img class="hero" src="/pics/${code}.jpg" alt="${escape(c.name)}卡图"><div class="card-meta">
+      <span class="attribute">${escape(attribute || (c.type & 2 ? '魔法' : c.type & 4 ? '陷阱' : '卡牌'))}</span>
+      ${monster ? `<dl><dt>${c.type & 0x4000000 ? 'LINK' : c.type & 0x800000 ? '阶级' : '等级'}</dt><dd>${c.level & 255}</dd><dt>ATK</dt><dd>${stat(c.atk)}</dd>${c.type & 0x4000000 ? '' : `<dt>DEF</dt><dd>${stat(c.def)}</dd>`}</dl>` : ''}
+      <small>${String(code).padStart(8,'0')}</small></div></div>
+    <div class="card-type">${escape(cardType(c))}</div>
+    <div class="effect" tabindex="0" aria-label="卡片效果">${escape(c.desc || '无效果说明')}</div>
+    <div class="detail-actions">${c.type & 0x4000 ? '<p class="token-hint">衍生物仅供查看，不能加入构筑。</p>' : ''}${[defaultZone,'side'].map(zone => `<div class="quantity-control"><span>${zoneNames[zone]} <b id="detail-count-${zone}">0</b></span><button data-remove="${code}" data-from="${zone}" aria-label="从${zoneNames[zone]}移除一张${escape(c.name)}">−1</button><button data-add="${code}" data-to="${zone}" aria-label="加入一张${escape(c.name)}到${zoneNames[zone]}">＋1</button></div>`).join('')}</div>`;
+  updateSelection();
+  updateDetailCounts();
+}
+async function search() {
+  const generation = ++app.searchGeneration;
+  const offset = app.offset;
+  $('#search-results').setAttribute('aria-busy', 'true');
+  $('#search-count').textContent = '搜索中…';
+  $('#prev-page').disabled = $('#next-page').disabled = true;
+  try {
+    const result = await api(`/api/cards?q=${encodeURIComponent($('#search').value)}&kind=${$('#filter').value}&offset=${offset}`);
+    if (generation !== app.searchGeneration) return;
+    app.total = result.total;
+    result.cards.forEach(c => app.cache.set(c.id, c));
+    $('#search-count').textContent = `${result.total.toLocaleString()} 张`;
+    $('#search-results').innerHTML = result.cards.map(c => `<button class="card-tile" data-detail="${c.id}" data-library="true" title="${escape(c.name)} · 双击加入${c.extra ? '额外卡组' : '主卡组'}" aria-label="查看${escape(c.name)}"><img loading="lazy" src="/pics/${c.id}.jpg" alt="" draggable="false"><span>${escape(c.name)}</span></button>`).join('') || '<div class="search-empty"><strong>未找到符合条件的卡牌</strong><p>试试更短的关键词，或切换卡牌类型。</p></div>';
+    $('#search-results').scrollTop = 0;
+    $('#prev-page').disabled = offset === 0;
+    $('#next-page').disabled = offset + 60 >= app.total;
+    $('#page-number').textContent = `${Math.floor(offset/60)+1} / ${Math.max(1,Math.ceil(app.total/60))}`;
+    updateSelection();
+  } catch (e) {
+    if (generation !== app.searchGeneration) return;
+    $('#search-count').textContent = '搜索失败';
+    $('#search-results').innerHTML = '<div class="search-empty"><strong>暂时无法读取卡牌</strong><p>请点击“搜索”重试。</p></div>';
+    $('#page-number').textContent = '—';
+    throw e;
+  } finally {
+    if (generation === app.searchGeneration) $('#search-results').setAttribute('aria-busy', 'false');
+  }
+}
+async function saveDeck() {
+  if (app.busy) return;
+  let name = $('#deck-name').value.trim();
+  if (app.id?.startsWith('existing/') && name === app.id.split('/').at(-1).replace(/\.ydk$/,'')) name += ' - 练习';
+  $('#deck-name').value = name;
+  const savedState = deckState();
+  const body = {name, deck:structuredClone(app.deck), id:app.id, revision:app.revision};
+  app.busy = true;
+  updateStart();
+  updateDetailCounts();
+  try {
+    const saved = await api('/api/decks', body);
+    app.id = saved.id;
+    app.revision = saved.revision;
+    app.savedState = savedState;
+    dirty();
+    await deckList();
+    notice('构筑已保存。');
+  } finally { app.busy = false; dirty(); updateDetailCounts(); }
+}
 async function refreshHistory(){const previous=app.active;app.history=await api('/api/history');app.active=app.history.find(h=>['running','starting','stopping'].includes(h.status))||null;$('#history-count').textContent=app.history.length||'';$('#active-training').hidden=!app.active;$('#end-training').disabled=app.active?.status==='stopping';if(app.active){$('#active-title').textContent=`${app.active.name} · ${statusNames[app.active.status]}`;$('#active-info').textContent=`${dt(app.active.started_ms)} 开始 · 请在模拟器窗口手动操作，过程自动记录。`;}updateStart();const historyKey=JSON.stringify(app.history);if(app.historyKey!==historyKey){app.historyKey=historyKey;$('#history-list').innerHTML=app.history.map(h=>`<button class="history-item ${h.id===app.reportId?'current':''}" data-report="${h.id}"><strong>${escape(h.name)}</strong><small>${dt(h.started_ms)}</small><span class="badge ${h.status==='interrupted'?'warning':''}">${statusNames[h.status]||h.status}</span></button>`).join('')||'<div class="empty">还没有训练记录<br><small>保存构筑后，开始第一次训练。</small></div>';};if(previous&&!app.active){await showReport(previous.id);notice('训练记录已保存。');}else if(app.reportId && !$('#history').hidden && app.reportId===app.active?.id){await showReport(app.reportId,false);}}
 function cardsHtml(cards){return `<div class="report-cards">${cards.map(c=>`<div class="mini-card"><img src="/pics/${c.code}.jpg" alt="${escape(c.name)}"><small>${escape(c.name)}<br>#${c.instance_id??'未知'}</small></div>`).join('')}</div>`;}
 function loc(l) {
@@ -50,15 +313,56 @@ async function showReport(id, navigate = true) {
   document.querySelectorAll('[data-report]').forEach(b => b.classList.toggle('current', b.dataset.report === id));
 }
 
-document.addEventListener('click',run(async e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.deck)return openDeck(b.dataset.deck);if(b.dataset.detail)return showCard(Number(b.dataset.detail));if(b.dataset.add){const code=Number(b.dataset.add),zone=b.dataset.to;const limit=zone==='main'?60:15;if(app.deck[zone].length>=limit)return notice('该分区已达到数量上限。');app.deck[zone].push(code);dirty();return renderDeck();}if(b.dataset.remove){const index=app.deck[app.zone].indexOf(Number(b.dataset.remove));if(index>=0)app.deck[app.zone].splice(index,1);dirty();return renderDeck();}if(b.dataset.zone){app.zone=b.dataset.zone;document.querySelectorAll('[data-zone]').forEach(t=>t.classList.toggle('selected',t===b));return renderDeck();}if(b.dataset.report)return showReport(b.dataset.report);}));
+document.addEventListener('click', run(async e => {
+  const b = e.target.closest('button');
+  if (!b || b.disabled) return;
+  if (b.dataset.detail) return showCard(Number(b.dataset.detail));
+  if (b.dataset.add) return addCard(Number(b.dataset.add), b.dataset.to);
+  if (b.dataset.remove) return removeCard(Number(b.dataset.remove), b.dataset.from);
+  if (b.dataset.report) return showReport(b.dataset.report);
+}));
+document.addEventListener('dblclick', run(async e => {
+  const tile = e.target.closest('[data-library][data-detail]');
+  if (tile) await addCard(Number(tile.dataset.detail));
+}));
+document.addEventListener('contextmenu', run(async e => {
+  const tile = e.target.closest('.deck-card[data-detail]');
+  if (!tile) return;
+  e.preventDefault();
+  await removeCard(Number(tile.dataset.detail), tile.dataset.from, Number(tile.dataset.index));
+}));
+document.addEventListener('keydown', run(async e => {
+  if ($('#editor').hidden || e.target.closest('input,select,textarea,[contenteditable="true"]')) return;
+  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
+    e.preventDefault();
+    await undoDeck();
+  }
+}));
 $('#nav-decks').onclick=()=>switchView('decks');$('#nav-history').onclick=run(async()=>{switchView('history');await refreshHistory();});
 $('#save-deck').onclick=run(saveDeck);$('#deck-name').oninput=dirty;
-$('#new-deck').onclick=run(async()=>{if(app.dirty&&!confirm('当前修改尚未保存。是否放弃并新建？'))return;app.deck={main:[],extra:[],side:[]};app.id=null;app.revision=null;$('#deck-name').value='新构筑';dirty();switchView('decks');await renderDeck();await deckList();});
-let searchTimer;$('#search').oninput=()=>{clearTimeout(searchTimer);app.offset=0;searchTimer=setTimeout(run(search),200);};$('#filter').onchange=run(async()=>{app.offset=0;await search();});$('#prev-page').onclick=run(async()=>{app.offset=Math.max(0,app.offset-60);await search();});$('#next-page').onclick=run(async()=>{app.offset+=60;await search();});
+$('#undo-deck').onclick = run(undoDeck);
+$('#sort-deck').onclick = run(sortDeck);
+$('#new-deck').onclick = run(newDeck);
+let searchTimer;
+function submitSearch() { clearTimeout(searchTimer); app.offset = 0; return search(); }
+$('#search').oninput = () => {
+  clearTimeout(searchTimer);
+  ++app.searchGeneration;
+  app.offset = 0;
+  $('#search-results').setAttribute('aria-busy', 'true');
+  $('#search-count').textContent = '搜索中…';
+  $('#prev-page').disabled = $('#next-page').disabled = true;
+  searchTimer = setTimeout(run(search), 200);
+};
+$('#search').onkeydown = run(async e => { if (e.key === 'Enter') { e.preventDefault(); await submitSearch(); } });
+$('#search-button').onclick = run(submitSearch);
+$('#filter').onchange = run(submitSearch);
+$('#prev-page').onclick = run(async () => { app.offset = Math.max(0, app.offset-60); await search(); });
+$('#next-page').onclick = run(async () => { app.offset += 60; await search(); });
 $('#start-training').onclick=run(async()=>{if(app.dirty||!app.id)return notice('请先保存构筑。');$('#start-training').disabled=true;try{const session=await api('/api/start',{deck_id:app.id});app.reportId=session.id;await refreshHistory();notice('已启动模拟器。请在训练窗口手动展开，完成后点击“结束训练”。');}finally{updateStart();}});
 $('#end-training').onclick=run(async()=>{if(!app.active)return;await api('/api/stop',{id:app.active.id});await refreshHistory();});$('#view-live').onclick=run(()=>showReport(app.active.id));$('#refresh-history').onclick=run(refreshHistory);
 window.addEventListener('beforeunload',e=>{if(app.dirty){e.preventDefault();e.returnValue='';}});
-run(async()=>{const data=await api('/api/bootstrap');app.token=data.token;$('#resource-count').textContent=`${data.cards.toLocaleString()} 张本地卡牌`;await Promise.all([deckList(),search(),refreshHistory(),renderDeck()]);updateStart();setInterval(()=>refreshHistory().catch(()=>{}),1500);})();
+new ResizeObserver(fitDeckGrid).observe($('#deck-cards'));
+run(async()=>{app.savedState=deckState();const data=await api('/api/bootstrap');app.token=data.token;$('#resource-count').textContent=`${data.cards.toLocaleString()} 张卡牌`;await Promise.all([deckList(),search(),refreshHistory(),renderDeck()]);updateStart();setInterval(()=>refreshHistory().catch(()=>{}),1500);})();
 
 $('#compact-open').onclick=run(()=>{const id=$('#compact-deck').value;if(id)return openDeck(id);notice('请先选择构筑。');});
-$('#compact-new').onclick=()=>$('#new-deck').click();

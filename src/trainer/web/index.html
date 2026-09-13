@@ -1,21 +1,86 @@
 <!doctype html>
 <html lang="zh-CN">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>YGO 展开练习室</title><link rel="stylesheet" href="/style.css"></head>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YGO 展开练习室</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
 <body>
-<aside class="sidebar"><a class="brand" href="/">YGO<span>展开练习室</span></a><div class="local">● 本地工作副本</div>
-<nav><button id="nav-decks" class="nav active">▦　卡组编辑</button><button id="nav-history" class="nav">◷　训练历史 <span id="history-count"></span></button></nav>
-<div class="side-label">我的构筑 <button id="new-deck" title="新建构筑">＋</button></div><div id="deck-list" class="deck-list"></div>
-<div class="side-foot">手动操作 · 引擎结算<br>每一次展开，都有迹可循。<small id="resource-count"></small></div></aside>
+<div class="app-bar">
+  <a class="brand" href="/">YGO<span>展开练习室</span></a>
+  <nav aria-label="主要导航">
+    <button id="nav-decks" class="nav active" aria-current="page">卡组编辑</button>
+    <button id="nav-history" class="nav">训练历史 <span id="history-count"></span></button>
+  </nav>
+  <div class="local"><span class="status-dot"></span>本地工作副本 <small id="resource-count"></small></div>
+</div>
 <main>
-<div id="notice" role="status" aria-live="polite" hidden></div>
-<section id="editor">
-<header><div><div class="eyebrow">DECK WORKSPACE</div><h1>从一副构筑开始</h1><p>挑选卡牌，保存构筑，然后在真实场地中练习展开。</p></div><button id="start-training" class="primary">开始训练 ↗</button></header>
-<div class="compact-decks"><select id="compact-deck" aria-label="选择已有构筑"><option value="">选择已有构筑</option></select><button id="compact-open">打开构筑</button><button id="compact-new">新建构筑</button></div>
-<div id="active-training" class="training-banner" hidden><div><strong id="active-title">训练进行中</strong><p id="active-info">请在模拟器窗口操作；过程会自动保存。</p></div><button id="end-training" class="danger">结束训练</button><button id="view-live">查看当前记录</button></div>
-<div class="workspace">
-<section class="panel library"><div class="panel-title"><h2>卡牌资料</h2><span id="search-count"></span></div><div class="search-row"><input id="search" type="search" placeholder="搜索卡名、编号或效果文本" aria-label="搜索卡牌"><select id="filter" aria-label="卡牌类型"><option value="">全部</option><option value="monster">怪兽</option><option value="spell">魔法</option><option value="trap">陷阱</option><option value="extra">额外</option></select></div><div id="search-results" class="card-grid"></div><div class="pager"><button id="prev-page">上一页</button><span id="page-number"></span><button id="next-page">下一页</button></div></section>
-<section class="panel construction"><div class="deck-heading"><input id="deck-name" value="新构筑" aria-label="构筑名称"><button id="save-deck">保存构筑</button></div><p id="deck-status" class="muted">新构筑 · 尚未保存</p><div class="tabs" role="tablist" aria-label="构筑分区"><button class="selected" data-zone="main" role="tab">主卡组 <b id="count-main">0</b></button><button data-zone="extra" role="tab">额外 <b id="count-extra">0</b></button><button data-zone="side" role="tab">副卡组 <b id="count-side">0</b></button></div><div id="deck-cards" class="deck-cards"></div><div class="deck-note">训练主卡组 40–60 张，额外与副卡组各最多 15 张。自由练习不限制禁限卡及同名张数。副卡组保存在构筑快照中。</div></section>
-<section class="panel detail" id="card-detail"><div class="empty">← 选择卡牌<br><small>查看卡图与效果说明</small></div></section>
-</div></section>
-<section id="history" hidden><header><div><div class="eyebrow">PRACTICE JOURNAL</div><h1>每一次展开的轨迹</h1><p>起手、选择与最终场面，保存在这一份记录里。</p></div><button id="refresh-history">刷新记录</button></header><div class="history-layout"><div id="history-list" class="panel history-list"></div><article id="report" class="panel report"><div class="empty">选择一次训练，查看过程报告。</div></article></div></section>
-</main><script src="/report-view.js"></script><script src="/app.js"></script></body></html>
+  <div id="notice" role="status" aria-live="polite" hidden></div>
+  <section id="editor" aria-label="卡组编辑工作区">
+    <header class="editor-toolbar">
+      <div class="deck-identity">
+        <label for="deck-name">构筑名称</label>
+        <input id="deck-name" value="新构筑" maxlength="80" aria-label="构筑名称">
+        <span id="deck-status">新构筑 · 尚未保存</span>
+      </div>
+      <div class="toolbar-actions">
+        <div class="deck-picker">
+          <select id="compact-deck" aria-label="选择已有构筑"><option value="">选择已有构筑</option></select>
+          <button id="compact-open">打开</button>
+          <button id="new-deck">新建</button>
+        </div>
+        <div class="save-actions">
+          <button id="save-deck" class="save-button">保存构筑</button>
+          <button id="start-training" class="primary" disabled>开始训练 ↗</button>
+        </div>
+      </div>
+    </header>
+    <div id="active-training" class="training-banner" hidden>
+      <div><strong id="active-title">训练进行中</strong><p id="active-info">请在模拟器窗口操作；过程会自动保存。</p></div>
+      <button id="end-training" class="danger">结束训练</button><button id="view-live">查看当前记录</button>
+    </div>
+    <div class="workspace">
+      <section class="panel detail" aria-label="卡片详情">
+        <div class="panel-title"><h2>卡片详情</h2><span>DETAIL</span></div>
+        <div id="card-detail" class="detail-content">
+          <div class="detail-placeholder"><img src="/card-back.svg" alt=""><strong>选择一张卡牌</strong><p>点击卡组或搜索结果中的卡片<br>在这里查看卡图与效果</p></div>
+        </div>
+      </section>
+      <section class="panel construction" aria-label="当前构筑">
+        <div class="panel-title construction-title"><h2>当前构筑 <span id="deck-total">0 张</span></h2><div><button id="undo-deck" disabled title="撤销最近一次加卡、移除或排序（Ctrl+Z）">撤销</button><button id="sort-deck" title="各分区按卡牌类型、等级和卡号排序">排序</button></div></div>
+        <div id="deck-cards" class="deck-cards">
+          <section class="deck-zone" aria-labelledby="title-main">
+            <div class="zone-heading"><h3 id="title-main"><i class="zone-mark main-mark"></i>主卡组 <b id="count-main">0</b><small>/ 60</small></h3><div id="stats-main" class="zone-stats"></div></div>
+            <div id="cards-main" class="deck-grid" aria-label="主卡组卡牌"></div>
+          </section>
+          <section class="deck-zone" aria-labelledby="title-extra">
+            <div class="zone-heading"><h3 id="title-extra"><i class="zone-mark extra-mark"></i>额外卡组 <b id="count-extra">0</b><small>/ 15</small></h3><div id="stats-extra" class="zone-stats"></div></div>
+            <div id="cards-extra" class="deck-grid" aria-label="额外卡组卡牌"></div>
+          </section>
+          <section class="deck-zone" aria-labelledby="title-side">
+            <div class="zone-heading"><h3 id="title-side"><i class="zone-mark side-mark"></i>副卡组 <b id="count-side">0</b><small>/ 15</small></h3><div id="stats-side" class="zone-stats"></div></div>
+            <div id="cards-side" class="deck-grid" aria-label="副卡组卡牌"></div>
+          </section>
+        </div>
+        <div class="deck-footer"><span>单击查看卡片 · 右键卡组卡片移除</span><details><summary>构筑规则</summary><p>训练需要主卡组 40–60 张，额外与副卡组各最多 15 张。自由练习不限制禁限卡及同名张数。副卡组会保存，但不参加训练。</p></details></div>
+      </section>
+      <section class="panel library" aria-label="卡牌搜索">
+        <div class="panel-title"><h2>卡片列表</h2><span id="search-count"></span></div>
+        <div class="search-tools">
+          <div class="search-row"><input id="search" type="search" placeholder="卡名、编号或效果文本" aria-label="搜索卡牌"><button id="search-button">搜索</button></div>
+          <div class="filter-row"><label for="filter">类型</label><select id="filter" aria-label="卡牌类型"><option value="">全部卡牌</option><option value="monster">怪兽</option><option value="spell">魔法</option><option value="trap">陷阱</option><option value="extra">额外卡组</option></select><span>双击加入构筑</span></div>
+        </div>
+        <div id="search-results" class="card-grid" aria-label="搜索结果" aria-busy="false"></div>
+        <div class="pager"><button id="prev-page" aria-label="上一页">←</button><span id="page-number" aria-live="polite"></span><button id="next-page" aria-label="下一页">→</button></div>
+      </section>
+    </div>
+  </section>
+  <section id="history" hidden>
+    <header><div><div class="eyebrow">PRACTICE JOURNAL</div><h1>每一次展开的轨迹</h1><p>起手、选择与最终场面，保存在这一份记录里。</p></div><button id="refresh-history">刷新记录</button></header>
+    <div class="history-layout"><div id="history-list" class="panel history-list"></div><article id="report" class="panel report"><div class="empty">选择一次训练，查看过程报告。</div></article></div>
+  </section>
+</main>
+<script src="/report-view.js"></script><script src="/app.js"></script>
+</body>
+</html>
