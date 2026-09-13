@@ -1,0 +1,99 @@
+import hashlib
+from contextlib import closing
+import json
+from pathlib import Path
+import sqlite3
+import sys
+import tempfile
+import unittest
+from unittest.mock import patch
+import uuid
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src/trainer'))
+from app import Store, atomic_json, safe_child
+from report import REPORT_VERSION
+
+
+class StoreTests(unittest.TestCase):
+    def setUp(self):
+        test_root = Path(__file__).resolve().parents[1] / '.local/test-runs'
+        test_root.mkdir(parents=True, exist_ok=True)
+        self.temp = tempfile.TemporaryDirectory(dir=test_root)
+        self.root = Path(self.temp.name)
+        (self.root/'script').mkdir()
+        (self.root/'script/c55144522.lua').write_text('-- synthetic test')
+        (self.root/'script/c23995346.lua').write_text('-- synthetic test')
+        with closing(sqlite3.connect(self.root/'cards.cdb')) as db:
+            db.execute('CREATE TABLE datas(id INTEGER PRIMARY KEY, type INTEGER, level INTEGER, atk INTEGER, def INTEGER)')
+            db.execute('CREATE TABLE texts(id INTEGER PRIMARY KEY, name TEXT, desc TEXT,'+','.join(f'str{i} TEXT' for i in range(1,17))+')')
+            for code, name, flags in [(55144522,'强欲之壶',2),(1184620,'魔物狩人',17),(23995346,'青眼究极龙',0x41)]:
+                db.execute('INSERT INTO datas VALUES(?,?,4,0,0)',(code,flags))
+                db.execute('INSERT INTO texts(id,name,desc) VALUES(?,?,?)',(code,name,'测试资料'))
+            db.commit()
+        self.store=Store(self.root)
+        self.deck={'main':[55144522]*20+[1184620]*20,'extra':[23995346],'side':[55144522]}
+
+    def tearDown(self):
+        assert self.root.resolve().is_relative_to(Path(__file__).resolve().parents[1] / '.local/test-runs')
+        self.temp.cleanup()
+
+    def test_save_reopen_and_overwrite_backup(self):
+        first=self.store.save_deck({'name':'验收','deck':self.deck})
+        self.assertEqual(self.store.get_deck(first['id'])['deck'],self.deck)
+        original=(self.store.decks/'验收.ydk').read_bytes()
+        edited={**self.deck,'side':[]}
+        self.store.save_deck({**first,'name':'验收','deck':edited})
+        self.assertEqual(next((self.store.root/'backups').glob('*.ydk')).read_bytes(),original)
+        with self.assertRaises(ValueError): self.store.save_deck({**first,'name':'验收','deck':self.deck})
+
+    def test_existing_deck_is_not_overwritten(self):
+        (self.root/'deck').mkdir()
+        path=self.root/'deck/original.ydk'; path.write_bytes(self.store.ydk(self.deck))
+        before=path.read_bytes()
+        self.store.save_deck({'name':'original','deck':{**self.deck,'side':[]}})
+        self.assertEqual(path.read_bytes(),before)
+
+    def test_path_unknown_id_and_extra_zone_validation(self):
+        with self.assertRaises(ValueError): safe_child(self.root,'../outside')
+        with self.assertRaises(ValueError): self.store.save_deck({'name':'../escape','deck':self.deck})
+        with self.assertRaises(ValueError): self.store.validate({**self.deck,'main':[99999999]})
+        with self.assertRaises(ValueError): self.store.validate({**self.deck,'main':[23995346]*40},True)
+        with self.assertRaises(ValueError): self.store.validate({**self.deck,'main':[55144522]},True)
+        self.store.validate(self.deck,True)
+
+    def session(self, end=None, pid=123):
+        sid=str(uuid.uuid4()); p=self.store.session_path(sid); p.mkdir()
+        meta={'id':sid,'name':'测试','started_ms':1,'status':'running','pid':pid,'process_identity':{'created':5},'deck':self.deck,'catalog':{}}
+        atomic_json(p/'session.json',meta)
+        rows=[{'session':sid,'seq':1,'time_ms':2,'kind':'begin'}]
+        if end: rows.append({'session':sid,'seq':2,'time_ms':3,'kind':'end','reason':end})
+        (p/'native.jsonl').write_text(''.join(json.dumps(r)+'\n' for r in rows),encoding='utf8')
+        return sid,p
+
+    def test_manual_end_and_crash_are_distinct(self):
+        manual,p=self.session('manual'); crashed,q=self.session()
+        with patch('app.process_identity',return_value=None): self.store.refresh()
+        self.assertEqual(json.loads((p/'session.json').read_text())['status'],'completed')
+        self.assertEqual(json.loads((q/'session.json').read_text())['status'],'interrupted')
+        self.assertEqual(self.store.report(crashed)['end_reason'],'native_exit_without_end')
+
+    def test_restart_reattaches_and_reused_pid_is_not_alive(self):
+        sid,p=self.session()
+        with patch('app.process_identity',return_value={'created':5}):
+            reopened=Store(self.root)
+            self.assertEqual(reopened.history()[0]['status'],'running')
+            with self.assertRaises(ValueError): reopened.start('library/unused.ydk')
+        with patch('app.process_identity',return_value={'created':6}): reopened.refresh()
+        self.assertEqual(json.loads((p/'session.json').read_text())['status'],'interrupted')
+
+    def test_report_upgrade_preserves_source_and_original_report(self):
+        sid,p=self.session('manual')
+        with patch('app.process_identity',return_value=None): self.store.refresh()
+        originals={f:hashlib.sha256((p/f).read_bytes()).hexdigest() for f in ['native.jsonl','session.json','report.json']}
+        new=self.store.report(sid)
+        self.assertIn('actions',new)
+        self.assertTrue((p/f'report-v{REPORT_VERSION}.json').exists())
+        for f,digest in originals.items(): self.assertEqual(hashlib.sha256((p/f).read_bytes()).hexdigest(),digest)
+
+
+if __name__=='__main__': unittest.main()

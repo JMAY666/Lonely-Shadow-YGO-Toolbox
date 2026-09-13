@@ -1,0 +1,18 @@
+#pragma once
+#include <cstddef>
+#include <cstdint>
+#include <string>
+
+namespace ygo {
+bool TrainingActive();
+void TrainingBoot();
+void TrainingPoll();
+bool TrainingStopping();
+void TrainingStop(bool closing);
+void TrainingWrite(const std::string& body);
+void TrainingCapture(intptr_t engine, const char* kind, const unsigned char* bytes = nullptr, size_t len = 0);
+void TrainingResponse(const unsigned char* bytes, size_t len, const char* actor = "user");
+bool TrainingAnalyze(intptr_t engine, unsigned char* bytes, size_t len);
+void TrainingFinish(intptr_t engine, const char* reason);
+std::string TrainingPath(const char* name);
+}

@@ -1,0 +1,2269 @@
+--- a/gframe/duelclient.cpp
++++ b/gframe/duelclient.cpp
+@@ -4,6 +4,8 @@
+ #include <random>
+ #include "config.h"
+ #include "duelclient.h"
++#include "lite_support.h"
++#include "training_support.h"
+ #include "data_manager.h"
+ #include "client_card.h"
+ #include "materials.h"
+@@ -70,6 +72,10 @@
+ }
+ 
+ bool DuelClient::StartClient(unsigned int ip, unsigned short port, bool create_game) {
++    if (!mainGame->bot_mode || ip != 0x7f000001 || !create_game) {
++        LiteTrace("blocked non-local client connection");
++        return false;
++    }
+ 	if(connect_state != CONNECT_STATE_NONE)
+ 		return false;
+ 	sockaddr_in sin;
+@@ -556,7 +562,7 @@
+ 		mainGame->ShowElement(mainGame->wHostPrepare);
+ 		mainGame->ResizeChatInputWindow();
+ 		if(!mainGame->chkIgnore1->isChecked())
+-			mainGame->wChat->setVisible(true);
++			mainGame->wChat->setVisible(false);
+ 		mainGame->gMutex.unlock();
+ 		mainGame->dInfo.duel_rule = pkt->info.duel_rule;
+ 		mainGame->dInfo.start_lp = pkt->info.start_lp;
+@@ -696,7 +702,7 @@
+ 		mainGame->btnShuffle->setVisible(false);
+ 		mainGame->ResizeChatInputWindow();
+ 		if(!mainGame->chkIgnore1->isChecked())
+-			mainGame->wChat->setVisible(true);
++			mainGame->wChat->setVisible(false);
+ 		if(mainGame->chkDefaultShowChain->isChecked()) {
+ 			mainGame->always_chain = true;
+ 			mainGame->ignore_chain = false;
+@@ -780,57 +786,8 @@
+ 		break;
+ 	}
+ 	case STOC_REPLAY: {
+-		if (len < 1 + sizeof(ExtendedReplayHeader))
+-			return;
+-		mainGame->gMutex.lock();
+-		mainGame->wPhase->setVisible(false);
+-		if(mainGame->dInfo.player_type < 7)
+-			mainGame->btnLeaveGame->setVisible(false);
+-		mainGame->CloseGameButtons();
+-		auto prep = pdata;
+-		Replay new_replay;
+-		std::memcpy(&new_replay.pheader, prep, sizeof new_replay.pheader);
+-		prep += sizeof new_replay.pheader;
+-		size_t data_size = len - (1 + sizeof new_replay.pheader);
+-		if (data_size > MAX_COMP_SIZE)
+-			data_size = MAX_COMP_SIZE;
+-		time_t starttime;
+-		if (new_replay.pheader.base.flag & REPLAY_UNIFORM)
+-			starttime = new_replay.pheader.base.start_time;
+-		else
+-			starttime = new_replay.pheader.base.seed;
+-		wchar_t timetext[40];
+-		std::wcsftime(timetext, sizeof timetext / sizeof timetext[0], L"%Y-%m-%d %H-%M-%S", std::localtime(&starttime));
+-		mainGame->ebRSName->setText(timetext);
+-		if(!mainGame->chkAutoSaveReplay->isChecked()) {
+-			mainGame->wReplaySave->setText(dataManager.GetSysString(1340));
+-			mainGame->PopupElement(mainGame->wReplaySave);
+-			mainGame->gMutex.unlock();
+-			mainGame->replaySignal.Reset();
+-			mainGame->replaySignal.Wait();
+-		}
+-		else {
+-			mainGame->actionParam = 1;
+-			wchar_t msgbuf[256];
+-			myswprintf(msgbuf, dataManager.GetSysString(1367), timetext);
+-			mainGame->SetStaticText(mainGame->stACMessage, 310, mainGame->guiFont, msgbuf);
+-			mainGame->PopupElement(mainGame->wACMessage, 20);
+-			mainGame->gMutex.unlock();
+-			mainGame->WaitFrameSignal(30);
+-		}
+-		if(mainGame->actionParam || !is_host) {
+-			std::memcpy(new_replay.comp_data, prep, data_size);
+-			new_replay.comp_size = data_size;
+-			if (mainGame->actionParam) {
+-				bool save_result = new_replay.SaveReplay(mainGame->ebRSName->getText());
+-				if (!save_result)
+-					new_replay.SaveReplay(L"_LastReplay");
+-			}
+-			else
+-				new_replay.SaveReplay(L"_LastReplay");
+-		}
+-		break;
+-	}
++        break; // No replay dialog or file writes after training.
++}
+ 	case STOC_TIME_LIMIT: {
+ 		if (len < 1 + sizeof(STOC_TimeLimit))
+ 			return;
+@@ -1012,6 +969,7 @@
+ }
+ // Analyze STOC_GAME_MSG packet
+ bool DuelClient::ClientAnalyze(unsigned char* msg, size_t len) {
++    LiteTracePacket(msg, len);
+ 	unsigned char* pbuf = msg;
+ 	wchar_t textBuffer[256]{};
+ 	mainGame->dInfo.curMsg = BufferIO::Read<uint8_t>(pbuf);
+@@ -2554,7 +2512,7 @@
+ 		if(!mainGame->dInfo.isReplay && mainGame->dInfo.player_type < 7) {
+ 			mainGame->dField.tag_surrender = false;
+ 			mainGame->dField.tag_teammate_surrender = false;
+-			mainGame->btnLeaveGame->setText(dataManager.GetSysString(1351));
++			mainGame->btnLeaveGame->setText(TrainingActive() ? L"结束训练" : dataManager.GetSysString(1351));
+ 			mainGame->btnLeaveGame->setVisible(true);
+ 		}
+ 		mainGame->HideElement(mainGame->wSurrender);
+@@ -4106,6 +4064,9 @@
+ 	}
+ }
+ void DuelClient::SendUpdateDeck(const Deck& deck) {
++    LiteTrace("training deck main=%zu extra=%zu side=%zu", deck.main.size(), deck.extra.size(), deck.side.size());
++    for (const auto* card : deck.main) LiteTrace("training main id=%u", card->code);
++    for (const auto* card : deck.extra) LiteTrace("training extra id=%u", card->code);
+ 	std::vector<unsigned char> deckbuf;
+ 	deckbuf.reserve(1024);
+ 	BufferIO::VectorWrite<uint32_t>(deckbuf, static_cast<uint32_t>(deck.main.size() + deck.extra.size()));
+@@ -4119,174 +4080,16 @@
+ 	SendBufferToServer(CTOS_UPDATE_DECK, deckbuf.data(), deckbuf.size());
+ }
+ void DuelClient::BeginRefreshHost() {
+-	if(is_refreshing)
+-		return;
+-	is_refreshing = true;
+-	mainGame->btnLanRefresh->setEnabled(false);
+-	mainGame->lstHostList->clear();
+-	remotes.clear();
+-	hosts.clear();
+-	std::vector<unsigned int> local_addresses;
+-	char hname[256]{};
+-	if(gethostname(hname, sizeof(hname) - 1) != SOCKET_RESULT_ERROR) {
+-		evutil_addrinfo hints{};
+-		hints.ai_family = AF_INET;
+-		hints.ai_socktype = SOCK_DGRAM;
+-		hints.ai_protocol = IPPROTO_UDP;
+-		hints.ai_flags = EVUTIL_AI_ADDRCONFIG;
+-		evutil_addrinfo* answer = nullptr;
+-		if(evutil_getaddrinfo(hname, nullptr, &hints, &answer) == 0 && answer) {
+-			for(auto addr = answer; addr; addr = addr->ai_next) {
+-				if(!addr->ai_addr || addr->ai_addrlen < sizeof(sockaddr_in))
+-					continue;
+-				auto* sin = reinterpret_cast<sockaddr_in*>(addr->ai_addr);
+-				if(std::find(local_addresses.begin(), local_addresses.end(), sin->sin_addr.s_addr) == local_addresses.end())
+-					local_addresses.push_back(sin->sin_addr.s_addr);
+-			}
+-		}
+-		if(answer)
+-			evutil_freeaddrinfo(answer);
+-	}
+-	if(local_addresses.empty())
+-		local_addresses.push_back(INADDR_ANY);
+-	event_base* broadev = event_base_new();
+-	if(!broadev) {
+-		EndRefreshHost();
+-		return;
+-	}
+-	Socket reply = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+-	if(reply == INVALID_SOCKET_HANDLE) {
+-		event_base_free(broadev);
+-		EndRefreshHost();
+-		return;
+-	}
+-	sockaddr_in reply_addr;
+-	std::memset(&reply_addr, 0, sizeof reply_addr);
+-	reply_addr.sin_family = AF_INET;
+-	reply_addr.sin_port = htons(7921);
+-	reply_addr.sin_addr.s_addr = 0;
+-	if(bind(reply, (sockaddr*)&reply_addr, sizeof(reply_addr)) == SOCKET_RESULT_ERROR) {
+-		CloseSocket(reply);
+-		event_base_free(broadev);
+-		EndRefreshHost();
+-		return;
+-	}
+-	timeval timeout = {3, 0};
+-	resp_event = event_new(broadev, reply, EV_TIMEOUT | EV_READ | EV_PERSIST, BroadcastReply, broadev);
+-	if(!resp_event || event_add(resp_event, &timeout) != 0) {
+-		if(resp_event) {
+-			event_free(resp_event);
+-			resp_event = nullptr;
+-		}
+-		CloseSocket(reply);
+-		event_base_free(broadev);
+-		EndRefreshHost();
+-		return;
+-	}
+-	std::thread(RefreshThread, broadev).detach();
+-	//send request
+-	sockaddr_in local;
+-	local.sin_family = AF_INET;
+-	local.sin_port = htons(7922);
+-	sockaddr_in sockTo;
+-	sockTo.sin_addr.s_addr = htonl(INADDR_BROADCAST);
+-	sockTo.sin_family = AF_INET;
+-	sockTo.sin_port = htons(7920);
+-	HostRequest hReq;
+-	hReq.identifier = NETWORK_CLIENT_ID;
+-	for(auto local_addr : local_addresses) {
+-		local.sin_addr.s_addr = local_addr;
+-		Socket sSend = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+-		if(sSend == INVALID_SOCKET_HANDLE)
+-			continue;
+-		int opt = 1;
+-		setsockopt(sSend, SOL_SOCKET, SO_BROADCAST, (const char*)&opt, sizeof opt);
+-		if(bind(sSend, (sockaddr*)&local, sizeof(sockaddr)) == SOCKET_RESULT_ERROR) {
+-			CloseSocket(sSend);
+-			continue;
+-		}
+-		sendto(sSend, (const char*)&hReq, sizeof(HostRequest), 0, (sockaddr*)&sockTo, sizeof(sockaddr));
+-		CloseSocket(sSend);
+-	}
++    // LAN discovery has been removed.
+ }
+ int DuelClient::RefreshThread(event_base* broadev) {
+-	event_base_dispatch(broadev);
+-	EventSocket fd;
+-	event_get_assignment(resp_event, 0, &fd, 0, 0, 0);
+-	evutil_closesocket(fd);
+-	event_free(resp_event);
+-	resp_event = nullptr;
+-	event_base_free(broadev);
+-	EndRefreshHost();
+-	return 0;
++    return 0;
+ }
+ void DuelClient::BroadcastReply(EventSocket fd, short events, void * arg) {
+-	if(events & EV_TIMEOUT) {
+-		event_base_loopbreak((event_base*)arg);
+-	} else if(events & EV_READ) {
+-		sockaddr_in bc_addr;
+-		socklen_t sz = sizeof(sockaddr_in);
+-		char buf[256];
+-		int ret = recvfrom(fd, buf, 256, 0, (sockaddr*)&bc_addr, &sz);
+-		if(ret < (int)sizeof(HostPacket))
+-			return;
+-		HostPacket packet;
+-		std::memcpy(&packet, buf, sizeof packet);
+-		HostPacket* pHP = &packet;
+-		if(close_reason == CLIENT_CLOSE_REASON_EXIT || pHP->identifier != NETWORK_SERVER_ID)
+-			return;
+-		if(pHP->version != PRO_VERSION)
+-			return;
+-		unsigned int ipaddr = bc_addr.sin_addr.s_addr;
+-		const auto remote = std::make_pair(ipaddr, pHP->port);
+-		if(remotes.find(remote) == remotes.end()) {
+-			mainGame->gMutex.lock();
+-			remotes.insert(remote);
+-			pHP->ipaddr = ipaddr;
+-			hosts.push_back(*pHP);
+-			std::wstring hoststr;
+-			hoststr.append(L"[");
+-			hoststr.append(deckManager.GetLFListName(pHP->host.lflist));
+-			hoststr.append(L"][");
+-			hoststr.append(dataManager.GetSysString(pHP->host.rule + 1481));
+-			hoststr.append(L"][");
+-			hoststr.append(dataManager.GetSysString(pHP->host.mode + 1244));
+-			hoststr.append(L"][");
+-			if(pHP->host.draw_count == 1 && pHP->host.start_hand == 5 && pHP->host.start_lp == 8000
+-			        && !pHP->host.no_check_deck && !pHP->host.no_shuffle_deck
+-			        && pHP->host.duel_rule == DEFAULT_DUEL_RULE)
+-				hoststr.append(dataManager.GetSysString(1247));
+-			else hoststr.append(dataManager.GetSysString(1248));
+-			hoststr.append(L"]");
+-			wchar_t gamename[20];
+-			BufferIO::CopyCharArray(pHP->name, gamename);
+-			hoststr.append(gamename);
+-			mainGame->lstHostList->addItem(hoststr.c_str());
+-			mainGame->gMutex.unlock();
+-		}
+-	}
++    // No discovery replies are accepted.
+ }
+ 
+ unsigned int DuelClient::ResolveHostName(const char* hostname, const char* port) {
+-	in_addr addr{};
+-	if(inet_pton(AF_INET, hostname, &addr) == 1)
+-		return ntohl(addr.s_addr);
+-	evutil_addrinfo hints{};
+-	hints.ai_family = AF_INET;
+-	hints.ai_socktype = SOCK_STREAM;
+-	hints.ai_protocol = IPPROTO_TCP;
+-	hints.ai_flags = EVUTIL_AI_ADDRCONFIG;
+-	evutil_addrinfo* answer = nullptr;
+-	if(evutil_getaddrinfo(hostname, port, &hints, &answer) != 0 || answer == nullptr) {
+-		return 0;
+-	}
+-	if(!answer->ai_addr || answer->ai_addrlen < sizeof(sockaddr_in) || answer->ai_family != AF_INET) {
+-		evutil_freeaddrinfo(answer);
+-		return 0;
+-	}
+-	auto* sin = reinterpret_cast<sockaddr_in*>(answer->ai_addr);
+-	unsigned int remote_addr = ntohl(sin->sin_addr.s_addr);
+-	evutil_freeaddrinfo(answer);
+-	return remote_addr;
++    return 0; // External host resolution is removed.
+ }
+ }
+--- a/gframe/game.cpp
++++ b/gframe/game.cpp
+@@ -1,5 +1,6 @@
+ #include "config.h"
+ #include "game.h"
++#include "training_support.h"
+ #include "CGUITTFont.h"
+ #include "file_system.h"
+ #include "image_manager.h"
+@@ -83,6 +84,13 @@
+ bool Game::Initialize() {
+ 	LoadConfig("system.conf");
+ 	LoadConfig("load-once.conf");
++    gameConf.enable_sound = false;
++    gameConf.enable_music = false;
++    gameConf.enable_bot_mode = true;
++    gameConf.bot_room_public = false;
++    gameConf.auto_save_replay = 0;
++    gameConf.use_d3d = 0; // This portable build uses OpenGL, without the legacy DirectX SDK.
++
+ 	irr::SIrrlichtCreationParameters params{};
+ 	params.AntiAlias = gameConf.antialias;
+ 	if(gameConf.use_d3d)
+@@ -200,7 +208,7 @@
+ 	lpcFont = irr::gui::CGUITTFont::createTTFont(env, gameConf.numfont, 48);
+ 	guiFont = irr::gui::CGUITTFont::createTTFont(env, gameConf.textfont, gameConf.textfontsize);
+ 	smgr = device->getSceneManager();
+-	device->setWindowCaption(L"YGOPro");
++	device->setWindowCaption(L"YGOPro Lite");
+ 	device->setResizable(true);
+ 	if(gameConf.window_maximized)
+ 		device->maximizeWindow();
+@@ -214,15 +222,13 @@
+ 	SetWindowsIcon();
+ 	//main menu
+ 	wchar_t strbuf[256];
+-	myswprintf(strbuf, L"YGOPro Version:%X.0%X.%X", (PRO_VERSION & 0xf000U) >> 12, (PRO_VERSION & 0x0ff0U) >> 4, PRO_VERSION & 0x000fU);
+-	wMainMenu = env->addWindow(irr::core::rect<irr::s32>(370, 200, 650, 415), false, strbuf);
++	myswprintf(strbuf, L"YGOPro Lite %X.0%X.%X", (PRO_VERSION & 0xf000U) >> 12, (PRO_VERSION & 0x0ff0U) >> 4, PRO_VERSION & 0x000fU);
++	wMainMenu = env->addWindow(irr::core::rect<irr::s32>(370, 200, 650, 345), false, strbuf);
+ 	wMainMenu->getCloseButton()->setVisible(false);
+-	btnLanMode = env->addButton(irr::core::rect<irr::s32>(10, 30, 270, 60), wMainMenu, BUTTON_LAN_MODE, dataManager.GetSysString(1200));
+-	btnSingleMode = env->addButton(irr::core::rect<irr::s32>(10, 65, 270, 95), wMainMenu, BUTTON_SINGLE_MODE, dataManager.GetSysString(1201));
+-	btnReplayMode = env->addButton(irr::core::rect<irr::s32>(10, 100, 270, 130), wMainMenu, BUTTON_REPLAY_MODE, dataManager.GetSysString(1202));
++	btnSingleMode = env->addButton(irr::core::rect<irr::s32>(10, 65, 270, 95), wMainMenu, BUTTON_SINGLE_MODE, L"单人训练");
+ //	btnTestMode = env->addButton(irr::core::rect<irr::s32>(10, 135, 270, 165), wMainMenu, BUTTON_TEST_MODE, dataManager.GetSysString(1203));
+-	btnDeckEdit = env->addButton(irr::core::rect<irr::s32>(10, 135, 270, 165), wMainMenu, BUTTON_DECK_EDIT, dataManager.GetSysString(1204));
+-	btnModeExit = env->addButton(irr::core::rect<irr::s32>(10, 170, 270, 200), wMainMenu, BUTTON_MODE_EXIT, dataManager.GetSysString(1210));
++	btnDeckEdit = env->addButton(irr::core::rect<irr::s32>(10, 30, 270, 60), wMainMenu, BUTTON_DECK_EDIT, dataManager.GetSysString(1204));
++	btnModeExit = env->addButton(irr::core::rect<irr::s32>(10, 100, 270, 130), wMainMenu, BUTTON_MODE_EXIT, dataManager.GetSysString(1210));
+ 	//lan mode
+ 	wLanWindow = env->addWindow(irr::core::rect<irr::s32>(220, 100, 800, 520), false, dataManager.GetSysString(1200));
+ 	wLanWindow->getCloseButton()->setVisible(false);
+@@ -320,7 +326,7 @@
+ 	btnHostConfirm = env->addButton(irr::core::rect<irr::s32>(260, 355, 370, 380), wCreateHost, BUTTON_HOST_CONFIRM, dataManager.GetSysString(1211));
+ 	btnHostCancel = env->addButton(irr::core::rect<irr::s32>(260, 385, 370, 410), wCreateHost, BUTTON_HOST_CANCEL, dataManager.GetSysString(1212));
+ 	//host(single)
+-	wHostPrepare = env->addWindow(irr::core::rect<irr::s32>(270, 120, 750, 440), false, dataManager.GetSysString(1250));
++	wHostPrepare = env->addWindow(irr::core::rect<irr::s32>(270, 120, 750, 440), false, L"本地训练：选择你的卡组");
+ 	wHostPrepare->getCloseButton()->setVisible(false);
+ 	wHostPrepare->setVisible(false);
+ 	btnHostPrepDuelist = env->addButton(irr::core::rect<irr::s32>(10, 30, 110, 55), wHostPrepare, BUTTON_HP_DUELIST, dataManager.GetSysString(1251));
+@@ -1000,6 +1006,12 @@
+ 		chkMusicMode->setEnabled(false);
+ 		chkMusicMode->setVisible(false);
+ 	}
++    chkAutoSaveReplay->setChecked(false);
++    chkAutoSaveReplay->setVisible(false);
++    btnHostPrepOB->setVisible(false);
++    stHostPrepOB->setVisible(false);
++    btnHostPrepDuelist->setVisible(false);
++    wChat->setVisible(false);
+ 	SwapYesNoButtons(gameConf.swap_yes_no_button);
+ 	env->getSkin()->setFont(guiFont);
+ 	env->setFocus(wMainMenu);
+@@ -1038,6 +1050,7 @@
+ 	auto lastFrameTime = std::chrono::steady_clock::now();
+ 	constexpr auto targetFrameDuration = std::chrono::microseconds(16667);
+ 	while(device->run()) {
++        TrainingPoll();
+ 		auto size = driver->getScreenSize();
+ 		if(window_size != size) {
+ 			window_size = size;
+@@ -1139,7 +1152,7 @@
+ 		if(now - targetTime > targetFrameDuration)
+ 			lastFrameTime = now;
+ 		if(now - lastFpsTime >= std::chrono::milliseconds(1000)) {
+-			myswprintf(cap, L"YGOPro FPS: %d", fps);
++			myswprintf(cap, L"YGOPro Lite FPS: %d", fps);
+ 			device->setWindowCaption(cap);
+ 			fps = 0;
+ 			lastFpsTime += std::chrono::milliseconds(1000);
+@@ -1359,11 +1372,7 @@
+ 	});
+ }
+ void Game::RefreshReplay() {
+-	lstReplayList->clear();
+-	FileSystem::TraversalDir(L"./replay", [this](const wchar_t* name, bool isdir) {
+-		if (!isdir && IsExtension(name, L".yrp"))
+-			lstReplayList->addItem(name);
+-	});
++    // No replay browser in this build.
+ }
+ void Game::RefreshSingleplay() {
+ 	lstSinglePlayList->clear();
+@@ -2029,7 +2038,7 @@
+ 			button->setImage(imageManager.tButtonFacedown[imgInfo.first]);
+ 	}
+ 
+-	wMainMenu->setRelativePosition(ResizeWin(370, 200, 650, 415));
++	wMainMenu->setRelativePosition(ResizeWin(370, 200, 650, 345));
+ 	wDeckEdit->setRelativePosition(Resize(309, 5, 605, 130));
+ 	cbDBDecks->setRelativePosition(Resize(80, 35, 220, 60));
+ 	btnClearDeck->setRelativePosition(Resize(115, 99, 165, 120));
+--- a/gframe/gframe.cpp
++++ b/gframe/gframe.cpp
+@@ -1,5 +1,6 @@
+ #include "config.h"
+ #include "game.h"
++#include "lite_support.h"
+ #include "data_manager.h"
+ #include <event2/thread.h>
+ #include <clocale>
+@@ -26,164 +27,30 @@
+ 	ygo::mainGame->device->postEventFromUser(event);
+ }
+ 
+-static int mymain(int wargc, const wchar_t* const wargv[]) {
+-#ifdef __APPLE__
+-	ygo::Game::FixMacOSBundleWorkingDirectory();
+-#endif //__APPLE__
+-#ifdef _WIN32
+-	if (wargc == 2 && (ygo::IsExtension(wargv[1], L".ydk") || ygo::IsExtension(wargv[1], L".yrp"))) { // open file from explorer
+-		wchar_t exepath[MAX_PATH];
+-		GetModuleFileNameW(nullptr, exepath, MAX_PATH);
+-		wchar_t* p = std::wcsrchr(exepath, L'\\');
+-		if (p) {
+-			*p = 0;
+-			SetCurrentDirectoryW(exepath);
+-		}
+-	}
+-#endif //_WIN32
+-#ifdef _WIN32
+-	WORD wVersionRequested;
+-	WSADATA wsaData;
+-	wVersionRequested = MAKEWORD(2, 2);
+-	WSAStartup(wVersionRequested, &wsaData);
+-	evthread_use_windows_threads();
+-#else
+-	evthread_use_pthreads();
+-	signal(SIGCHLD, SIG_IGN);
+-#endif //_WIN32
+-	ygo::Game _game;
+-	ygo::mainGame = &_game;
+-	if(!ygo::mainGame->Initialize())
+-		return EXIT_FAILURE;
+-
+-	bool keep_on_return = false;
+-	bool deckCategorySpecified = false;
+-	for(int i = 1; i < wargc; ++i) {
+-		if (wargc == 2) {
+-			if (ygo::IsExtension(wargv[1], L".ydk")) {
+-				ygo::mainGame->open_file = true;
+-				BufferIO::CopyWideString(wargv[1], ygo::mainGame->open_file_name);
+-				ygo::mainGame->exit_on_return = true;
+-				ClickButton(ygo::mainGame->btnDeckEdit);
+-				break;
+-			}
+-			if (ygo::IsExtension(wargv[1], L".yrp")) {
+-				ygo::mainGame->open_file = true;
+-				BufferIO::CopyWideString(wargv[1], ygo::mainGame->open_file_name);
+-				ygo::mainGame->exit_on_return = true;
+-				ClickButton(ygo::mainGame->btnReplayMode);
+-				ClickButton(ygo::mainGame->btnLoadReplay);
+-				break;
+-			}
+-		}
+-		if(wargv[i][0] == L'-' && wargv[i][1] == L'e' && wargv[i][2] != L'\0') {
+-			char file[1024];
+-			BufferIO::EncodeUTF8(wargv[i] + 2, file);
+-			ygo::dataManager.LoadDB(file);
+-			continue;
+-		}
+-		if(!std::wcscmp(wargv[i], L"-e")) { // extra database
+-			++i;
+-			if(i < wargc) {
+-				char file[1024];
+-				BufferIO::EncodeUTF8(wargv[i], file);
+-				ygo::dataManager.LoadDB(file);
+-			}
+-			continue;
+-		} else if(!std::wcscmp(wargv[i], L"-n")) { // nickName
+-			++i;
+-			if(i < wargc)
+-				ygo::mainGame->ebNickName->setText(wargv[i]);
+-			continue;
+-		} else if(!std::wcscmp(wargv[i], L"-h")) { // Host address
+-			++i;
+-			if(i < wargc)
+-				ygo::mainGame->ebJoinHost->setText(wargv[i]);
+-			continue;
+-		} else if(!std::wcscmp(wargv[i], L"-p")) { // host Port
+-			++i;
+-			if(i < wargc)
+-				ygo::mainGame->ebJoinPort->setText(wargv[i]);
+-			continue;
+-		} else if(!std::wcscmp(wargv[i], L"-w")) { // host passWord
+-			++i;
+-			if(i < wargc)
+-				ygo::mainGame->ebJoinPass->setText(wargv[i]);
+-			continue;
+-		} else if(!std::wcscmp(wargv[i], L"-k")) { // Keep on return
+-			ygo::mainGame->exit_on_return = false;
+-			keep_on_return = true;
+-		} else if(!std::wcscmp(wargv[i], L"--deck-category")) {
+-			++i;
+-			if(i < wargc) {
+-				deckCategorySpecified = true;
+-				BufferIO::CopyWideString(wargv[i], ygo::mainGame->gameConf.lastcategory);
+-			}
+-		} else if(!std::wcscmp(wargv[i], L"-d")) { // Deck
+-			++i;
+-			if(!deckCategorySpecified)
+-				ygo::mainGame->gameConf.lastcategory[0] = 0;
+-			if(i + 1 < wargc) { // select deck
+-				BufferIO::CopyWideString(wargv[i], ygo::mainGame->gameConf.lastdeck);
+-				continue;
+-			} else { // open deck
+-				ygo::mainGame->exit_on_return = !keep_on_return;
+-				if(i < wargc) {
+-					ygo::mainGame->open_file = true;
+-					if(deckCategorySpecified) {
+-#ifdef _WIN32
+-						myswprintf(ygo::mainGame->open_file_name, L"%ls\\%ls", ygo::mainGame->gameConf.lastcategory, wargv[i]);
+-#else
+-						myswprintf(ygo::mainGame->open_file_name, L"%ls/%ls", ygo::mainGame->gameConf.lastcategory, wargv[i]);
+-#endif
+-					} else {
+-						BufferIO::CopyWideString(wargv[i], ygo::mainGame->open_file_name);
+-					}
+-				}
+-				ClickButton(ygo::mainGame->btnDeckEdit);
+-				break;
+-			}
+-		} else if(!std::wcscmp(wargv[i], L"-c")) { // Create host
+-			ygo::mainGame->exit_on_return = !keep_on_return;
+-			ygo::mainGame->HideElement(ygo::mainGame->wMainMenu);
+-			ClickButton(ygo::mainGame->btnHostConfirm);
+-			break;
+-		} else if(!std::wcscmp(wargv[i], L"-j")) { // Join host
+-			ygo::mainGame->exit_on_return = !keep_on_return;
+-			ygo::mainGame->HideElement(ygo::mainGame->wMainMenu);
+-			ClickButton(ygo::mainGame->btnJoinHost);
+-			break;
+-		} else if(!std::wcscmp(wargv[i], L"-r")) { // Replay
+-			ygo::mainGame->exit_on_return = !keep_on_return;
+-			++i;
+-			if(i < wargc) {
+-				ygo::mainGame->open_file = true;
+-				BufferIO::CopyWideString(wargv[i], ygo::mainGame->open_file_name);
+-			}
+-			ClickButton(ygo::mainGame->btnReplayMode);
+-			if(ygo::mainGame->open_file)
+-				ClickButton(ygo::mainGame->btnLoadReplay);
+-			break;
+-		} else if(!std::wcscmp(wargv[i], L"-s")) { // Single
+-			ygo::mainGame->exit_on_return = !keep_on_return;
+-			++i;
+-			if(i < wargc) {
+-				ygo::mainGame->open_file = true;
+-				BufferIO::CopyWideString(wargv[i], ygo::mainGame->open_file_name);
+-			}
+-			ClickButton(ygo::mainGame->btnSingleMode);
+-			if(ygo::mainGame->open_file)
+-				ClickButton(ygo::mainGame->btnLoadSinglePlay);
+-			break;
+-		}
+-	}
+-	ygo::mainGame->MainLoop();
+-#ifdef _WIN32
+-	WSACleanup();
+-#else
+-
+-#endif //_WIN32
+-	return EXIT_SUCCESS;
++static int mymain(int wargc, const wchar_t* const[]) {
++    if (!ygo::InitializeLitePaths())
++        return EXIT_FAILURE;
++    if (wargc != 1) {
++        ygo::LiteTrace("blocked command line: Lite accepts no external mode or file arguments");
++        return 2;
++    }
++    WORD version = MAKEWORD(2, 2);
++    WSADATA data;
++    if (WSAStartup(version, &data))
++        return EXIT_FAILURE;
++    evthread_use_windows_threads();
++    ygo::Game game;
++    ygo::mainGame = &game;
++    if (!game.Initialize()) {
++        ygo::LiteTrace("startup failed");
++        WSACleanup();
++        return EXIT_FAILURE;
++    }
++    ygo::LiteTrace("startup ok: YGOPro Lite 1.036.2; audio=excluded playback=excluded network=loopback-only");
++    game.MainLoop();
++    ygo::LiteTrace("shutdown clean");
++    WSACleanup();
++    return EXIT_SUCCESS;
+ }
+ 
+ #ifdef _WIN32
+--- a/gframe/lite_support.cpp
++++ b/gframe/lite_support.cpp
+@@ -0,0 +1,72 @@
++#include "lite_support.h"
++#include "config.h"
++#include "network.h"
++#include <cstdarg>
++#include <cstdio>
++#include <mutex>
++#include <string>
++#include <windows.h>
++
++namespace ygo {
++bool InitializeLitePaths() {
++    wchar_t path[32768]{};
++    const auto length = GetModuleFileNameW(nullptr, path, 32768);
++    if (!length || length >= 32768)
++        return false;
++    std::wstring root(path);
++    const auto slash = root.find_last_of(L"\\/");
++    if (slash == std::wstring::npos)
++        return false;
++    root.resize(slash);
++    if (!SetCurrentDirectoryW(root.c_str()))
++        return false;
++    for (const auto* sub : {L"_profile", L"_profile\\AppData", L"_profile\\AppData\\Roaming",
++                            L"_profile\\AppData\\Local", L"_profile\\Temp", L"_profile\\logs"}) {
++        if (!CreateDirectoryW((root + L"\\" + sub).c_str(), nullptr) && GetLastError() != ERROR_ALREADY_EXISTS)
++            return false;
++    }
++    SetEnvironmentVariableW(L"USERPROFILE", (root + L"\\_profile").c_str());
++    SetEnvironmentVariableW(L"APPDATA", (root + L"\\_profile\\AppData\\Roaming").c_str());
++    SetEnvironmentVariableW(L"LOCALAPPDATA", (root + L"\\_profile\\AppData\\Local").c_str());
++    SetEnvironmentVariableW(L"TEMP", (root + L"\\_profile\\Temp").c_str());
++    SetEnvironmentVariableW(L"TMP", (root + L"\\_profile\\Temp").c_str());
++    FILE* stream{};
++    freopen_s(&stream, "_profile/logs/stdout.log", "a", stdout);
++    freopen_s(&stream, "_profile/logs/stderr.log", "a", stderr);
++    return true;
++}
++
++void LiteTrace(const char* format, ...) {
++    static std::mutex mutex;
++    std::lock_guard<std::mutex> lock(mutex);
++    FILE* output = std::fopen("_profile/logs/training.log", "a");
++    if (!output)
++        return;
++    va_list args;
++    va_start(args, format);
++    std::vfprintf(output, format, args);
++    va_end(args);
++    std::fputc('\n', output);
++    std::fclose(output);
++}
++
++void LiteTracePacket(const unsigned char* message, size_t length) {
++    if (!length)
++        return;
++    switch (message[0]) {
++    case MSG_START: case MSG_WIN: case MSG_DRAW: case MSG_SUMMONING:
++    case MSG_SUMMONED: case MSG_CHAINING: case MSG_CHAIN_SOLVED:
++    case MSG_NEW_TURN: case MSG_NEW_PHASE: {
++        static const char digits[] = "0123456789abcdef";
++        std::string bytes;
++        for (size_t i = 1; i < length && i < 81; ++i) {
++            bytes += digits[message[i] >> 4];
++            bytes += digits[message[i] & 15];
++        }
++        LiteTrace("event message=%u bytes=%s", static_cast<unsigned>(message[0]), bytes.c_str());
++        break;
++    }
++    default: break;
++    }
++}
++}
+--- a/gframe/lite_support.h
++++ b/gframe/lite_support.h
+@@ -0,0 +1,9 @@
++#pragma once
++
++#include <cstddef>
++
++namespace ygo {
++bool InitializeLitePaths();
++void LiteTrace(const char* format, ...);
++void LiteTracePacket(const unsigned char* message, size_t length);
++}
+--- a/gframe/menu_handler.cpp
++++ b/gframe/menu_handler.cpp
+@@ -44,43 +44,11 @@
+ 				break;
+ 			}
+ 			case BUTTON_LAN_MODE: {
+-				mainGame->btnCreateHost->setEnabled(true);
+-				mainGame->btnJoinHost->setEnabled(true);
+-				mainGame->btnJoinCancel->setEnabled(true);
+-				mainGame->HideElement(mainGame->wMainMenu);
+-				mainGame->ShowElement(mainGame->wLanWindow);
+-				break;
+-			}
++                break; // Feature excluded from Lite.
++}
+ 			case BUTTON_JOIN_HOST: {
+-				mainGame->bot_mode = false;
+-				mainGame->TrimText(mainGame->ebJoinHost);
+-				mainGame->TrimText(mainGame->ebJoinPort);
+-				wchar_t hoststr[100];
+-				wchar_t portstr[6];
+-				BufferIO::CopyWideString(mainGame->ebJoinHost->getText(), hoststr);
+-				BufferIO::CopyWideString(mainGame->ebJoinPort->getText(), portstr);
+-				char hostname[100];
+-				char port[6];
+-				BufferIO::EncodeUTF8(hoststr, hostname);
+-				BufferIO::EncodeUTF8(portstr, port);
+-				unsigned int remote_addr = DuelClient::ResolveHostName(hostname, port);
+-				if(remote_addr == 0) {
+-					mainGame->gMutex.lock();
+-					soundManager.PlaySoundEffect(SOUND_INFO);
+-					mainGame->env->addMessageBox(L"", dataManager.GetSysString(1412));
+-					mainGame->gMutex.unlock();
+-					break;
+-				}
+-				unsigned int remote_port = std::wcstol(portstr, nullptr, 10);
+-				BufferIO::CopyWideString(hoststr, mainGame->gameConf.lasthost);
+-				BufferIO::CopyWideString(portstr, mainGame->gameConf.lastport);
+-				if(DuelClient::StartClient(remote_addr, remote_port, false)) {
+-					mainGame->btnCreateHost->setEnabled(false);
+-					mainGame->btnJoinHost->setEnabled(false);
+-					mainGame->btnJoinCancel->setEnabled(false);
+-				}
+-				break;
+-			}
++                break; // Feature excluded from Lite.
++}
+ 			case BUTTON_JOIN_CANCEL: {
+ 				mainGame->HideElement(mainGame->wLanWindow);
+ 				mainGame->ShowElement(mainGame->wMainMenu);
+@@ -89,42 +57,17 @@
+ 				break;
+ 			}
+ 			case BUTTON_LAN_REFRESH: {
+-				DuelClient::BeginRefreshHost();
+-				break;
+-			}
++                break; // Feature excluded from Lite.
++}
+ 			case BUTTON_CREATE_HOST: {
+-				mainGame->btnHostConfirm->setEnabled(true);
+-				mainGame->btnHostCancel->setEnabled(true);
+-				mainGame->HideElement(mainGame->wLanWindow);
+-				mainGame->ShowElement(mainGame->wCreateHost);
+-				break;
+-			}
++                break; // Feature excluded from Lite.
++}
+ 			case BUTTON_HOST_CONFIRM: {
+-				mainGame->bot_mode = false;
+-				BufferIO::CopyWideString(mainGame->ebServerName->getText(), mainGame->gameConf.gamename);
+-				if(!NetServer::StartServer(mainGame->gameConf.serverport)) {
+-					soundManager.PlaySoundEffect(SOUND_INFO);
+-					mainGame->env->addMessageBox(L"", dataManager.GetSysString(1402));
+-					break;
+-				}
+-				if(!DuelClient::StartClient(0x7f000001, mainGame->gameConf.serverport)) {
+-					NetServer::StopServer();
+-					soundManager.PlaySoundEffect(SOUND_INFO);
+-					mainGame->env->addMessageBox(L"", dataManager.GetSysString(1402));
+-					break;
+-				}
+-				mainGame->btnHostConfirm->setEnabled(false);
+-				mainGame->btnHostCancel->setEnabled(false);
+-				break;
+-			}
++                break; // Feature excluded from Lite.
++}
+ 			case BUTTON_HOST_CANCEL: {
+-				mainGame->btnCreateHost->setEnabled(true);
+-				mainGame->btnJoinHost->setEnabled(true);
+-				mainGame->btnJoinCancel->setEnabled(true);
+-				mainGame->HideElement(mainGame->wCreateHost);
+-				mainGame->ShowElement(mainGame->wLanWindow);
+-				break;
+-			}
++                break; // Feature excluded from Lite.
++}
+ 			case BUTTON_HP_DUELIST: {
+ 				mainGame->cbCategorySelect->setEnabled(true);
+ 				mainGame->cbDeckSelect->setEnabled(true);
+@@ -132,21 +75,11 @@
+ 				break;
+ 			}
+ 			case BUTTON_HP_OBSERVER: {
+-				DuelClient::SendPacketToServer(CTOS_HS_TOOBSERVER);
+-				break;
+-			}
++                break; // Feature excluded from Lite.
++}
+ 			case BUTTON_HP_KICK: {
+-				int index = 0;
+-				while(index < 4) {
+-					if(mainGame->btnHostPrepKick[index] == caller)
+-						break;
+-					++index;
+-				}
+-				CTOS_Kick csk;
+-				csk.pos = index;
+-				DuelClient::SendPacketToServer(CTOS_HS_KICK, csk);
+-				break;
+-			}
++                break; // Feature excluded from Lite.
++}
+ 			case BUTTON_HP_READY: {
+ 				if(mainGame->cbCategorySelect->getSelected() == -1 || mainGame->cbDeckSelect->getSelected() == -1 ||
+ 					!deckManager.LoadCurrentDeck(mainGame->cbCategorySelect->getSelected(), mainGame->cbCategorySelect->getText(), mainGame->cbDeckSelect->getText())) {
+@@ -190,116 +123,28 @@
+ 				break;
+ 			}
+ 			case BUTTON_REPLAY_MODE: {
+-				mainGame->HideElement(mainGame->wMainMenu);
+-				mainGame->ShowElement(mainGame->wReplay);
+-				mainGame->ebRepStartTurn->setText(L"1");
+-				mainGame->stReplayInfo->setText(L"");
+-				mainGame->RefreshReplay();
+-				break;
+-			}
++                break; // Feature excluded from Lite.
++}
+ 			case BUTTON_SINGLE_MODE: {
+-				mainGame->HideElement(mainGame->wMainMenu);
+-				mainGame->ShowElement(mainGame->wSinglePlay);
+-				mainGame->RefreshSingleplay();
+-				mainGame->RefreshBot();
+-				break;
+-			}
++
++                mainGame->env->addMessageBox(L"训练工具箱", L"请使用 Start-Trainer.ps1 选择构筑并开始训练；本入口不启动机器人。");
++                break;
++}
+ 			case BUTTON_LOAD_REPLAY: {
+-				int start_turn = 1;
+-				if(mainGame->open_file) {
+-					mainGame->open_file = false;
+-					if (!ReplayMode::cur_replay.OpenReplay(mainGame->open_file_name)) {
+-						if (mainGame->exit_on_return)
+-							mainGame->device->closeDevice();
+-						break;
+-					}
+-				} else {
+-					auto selected = mainGame->lstReplayList->getSelected();
+-					if(selected == -1)
+-						break;
+-					wchar_t replay_path[256]{};
+-					myswprintf(replay_path, L"./replay/%ls", mainGame->lstReplayList->getListItem(selected));
+-					if (!ReplayMode::cur_replay.OpenReplay(replay_path))
+-						break;
+-					start_turn = std::wcstol(mainGame->ebRepStartTurn->getText(), nullptr, 10);
+-				}
+-				mainGame->ClearCardInfo();
+-				mainGame->wCardImg->setVisible(true);
+-				mainGame->wInfos->setVisible(true);
+-				mainGame->wReplay->setVisible(true);
+-				mainGame->wReplayControl->setVisible(true);
+-				mainGame->btnReplayStart->setVisible(false);
+-				mainGame->btnReplayPause->setVisible(true);
+-				mainGame->btnReplayStep->setVisible(false);
+-				mainGame->btnReplayUndo->setVisible(false);
+-				mainGame->wPhase->setVisible(true);
+-				mainGame->dField.Clear();
+-				mainGame->HideElement(mainGame->wReplay);
+-				mainGame->device->setEventReceiver(&mainGame->dField);
+-				if(start_turn == 1)
+-					start_turn = 0;
+-				ReplayMode::StartReplay(start_turn);
+-				break;
+-			}
++                break; // Feature excluded from Lite.
++}
+ 			case BUTTON_DELETE_REPLAY: {
+-				int sel = mainGame->lstReplayList->getSelected();
+-				if(sel == -1)
+-					break;
+-				mainGame->gMutex.lock();
+-				wchar_t textBuffer[256];
+-				myswprintf(textBuffer, L"%ls\n%ls", mainGame->lstReplayList->getListItem(sel), dataManager.GetSysString(1363));
+-				mainGame->SetStaticText(mainGame->stQMessage, 310, mainGame->guiFont, textBuffer);
+-				mainGame->PopupElement(mainGame->wQuery);
+-				mainGame->gMutex.unlock();
+-				prev_operation = id;
+-				prev_sel = sel;
+-				break;
+-			}
++                break; // Feature excluded from Lite.
++}
+ 			case BUTTON_RENAME_REPLAY: {
+-				int sel = mainGame->lstReplayList->getSelected();
+-				if(sel == -1)
+-					break;
+-				mainGame->gMutex.lock();
+-				mainGame->wReplaySave->setText(dataManager.GetSysString(1364));
+-				mainGame->ebRSName->setText(mainGame->lstReplayList->getListItem(sel));
+-				mainGame->PopupElement(mainGame->wReplaySave);
+-				mainGame->gMutex.unlock();
+-				prev_operation = id;
+-				prev_sel = sel;
+-				break;
+-			}
++                break; // Feature excluded from Lite.
++}
+ 			case BUTTON_CANCEL_REPLAY: {
+-				mainGame->HideElement(mainGame->wReplay);
+-				mainGame->ShowElement(mainGame->wMainMenu);
+-				break;
+-			}
++                break; // Feature excluded from Lite.
++}
+ 			case BUTTON_EXPORT_DECK: {
+-				auto selected = mainGame->lstReplayList->getSelected();
+-				if(selected == -1)
+-					break;
+-				Replay replay;
+-				wchar_t replay_filename[256]{};
+-				wchar_t namebuf[4][20]{};
+-				wchar_t filename[256]{};
+-				wchar_t replay_path[256]{};
+-				BufferIO::CopyWideString(mainGame->lstReplayList->getListItem(selected), replay_filename);
+-				myswprintf(replay_path, L"./replay/%ls", replay_filename);
+-				if (!replay.OpenReplay(replay_path))
+-					break;
+-				if (replay.pheader.base.flag & REPLAY_SINGLE_MODE)
+-					break;
+-				for (size_t i = 0; i < replay.decks.size(); ++i) {
+-					BufferIO::CopyWideString(replay.players[Replay::GetDeckPlayer(i)].c_str(), namebuf[i]);
+-					FileSystem::SafeFileName(namebuf[i]);
+-				}
+-				for (size_t i = 0; i < replay.decks.size(); ++i) {
+-					myswprintf(filename, L"./deck/%ls-%d %ls.ydk", replay_filename, i + 1, namebuf[i]);
+-					replay.SaveDeck(i, filename);
+-				}
+-				mainGame->stACMessage->setText(dataManager.GetSysString(1335));
+-				mainGame->PopupElement(mainGame->wACMessage, 20);
+-				break;
+-			}
++                break; // Feature excluded from Lite.
++}
+ 			case BUTTON_BOT_START: {
+ 				int sel = mainGame->lstBotList->getSelected();
+ 				if(sel == -1)
+@@ -308,11 +153,7 @@
+ 				constexpr unsigned int localhost = 0x7f000001;
+ 				unsigned short bot_server_port = 0;
+ 				unsigned int bot_server_listen = localhost;
+-				bool bot_server_public = mainGame->gameConf.bot_room_public;
+-				if(bot_server_public) {
+-					bot_server_port = mainGame->gameConf.serverport;
+-					bot_server_listen = 0; // INADDR_ANY
+-				}
++				constexpr bool bot_server_public = false;
+ 				if(!NetServer::StartServer(bot_server_port, bot_server_listen, &bot_server_port, bot_server_public)) {
+ 					soundManager.PlaySoundEffect(SOUND_INFO);
+ 					mainGame->env->addMessageBox(L"", dataManager.GetSysString(1402));
+--- a/gframe/netserver.cpp
++++ b/gframe/netserver.cpp
+@@ -1,5 +1,7 @@
+ #include "config.h"
+ #include "netserver.h"
++#include "game.h"
++#include "lite_support.h"
+ #include "single_duel.h"
+ #include "tag_duel.h"
+ #include "deck_manager.h"
+@@ -38,6 +40,10 @@
+ }
+ 
+ bool NetServer::StartServer(unsigned short port, unsigned int ip, unsigned short* out_actual_port, bool enable_broadcast) {
++    if (!mainGame->bot_mode || ip != 0x7f000001 || enable_broadcast) {
++        LiteTrace("blocked non-local server request");
++        return false;
++    }
+ 	if(net_evbase)
+ 		return false;
+ 	net_evbase = event_base_new();
+@@ -66,6 +72,7 @@
+ 		return false;
+ 	}
+ 	server_port = ntohs(bound_addr.sin_port);
++    LiteTrace("local training listener 127.0.0.1:%u", server_port);
+ 	if(out_actual_port)
+ 		*out_actual_port = server_port;
+ 	broadcast_enabled = enable_broadcast;
+@@ -74,24 +81,7 @@
+ 	return true;
+ }
+ bool NetServer::StartBroadcast() {
+-	if(!net_evbase || !broadcast_enabled)
+-		return false;
+-	Socket udp = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+-	int opt = 1;
+-	setsockopt(udp, SOL_SOCKET, SO_BROADCAST, (const char*)&opt, sizeof opt);
+-	setsockopt(udp, SOL_SOCKET, SO_REUSEADDR, (const char*)&opt, sizeof opt);
+-	sockaddr_in addr;
+-	std::memset(&addr, 0, sizeof addr);
+-	addr.sin_family = AF_INET;
+-	addr.sin_port = htons(7920);
+-	addr.sin_addr.s_addr = 0;
+-	if(bind(udp, (sockaddr*)&addr, sizeof(addr)) == SOCKET_RESULT_ERROR) {
+-		CloseSocket(udp);
+-		return false;
+-	}
+-	broadcast_ev = event_new(net_evbase, udp, EV_READ | EV_PERSIST, BroadcastEvent, nullptr);
+-	event_add(broadcast_ev, nullptr);
+-	return true;
++    return false; // No LAN discovery or public rooms.
+ }
+ void NetServer::StopServer() {
+ 	if(!net_evbase)
+@@ -125,30 +115,14 @@
+ 		event_del(duel_etimer);
+ }
+ void NetServer::BroadcastEvent(EventSocket fd, short events, void* arg) {
+-	sockaddr_in bc_addr;
+-	socklen_t sz = sizeof(sockaddr_in);
+-	char buf[256];
+-	int ret = recvfrom(fd, buf, 256, 0, (sockaddr*)&bc_addr, &sz);
+-	if(ret == -1)
+-		return;
+-	HostRequest packet;
+-	std::memcpy(&packet, buf, sizeof packet);
+-	const HostRequest* pHR = &packet;
+-	if(pHR->identifier == NETWORK_CLIENT_ID) {
+-		sockaddr_in sockTo;
+-		sockTo.sin_addr.s_addr = bc_addr.sin_addr.s_addr;
+-		sockTo.sin_family = AF_INET;
+-		sockTo.sin_port = htons(7921);
+-		HostPacket hp;
+-		hp.identifier = NETWORK_SERVER_ID;
+-		hp.port = server_port;
+-		hp.version = PRO_VERSION;
+-		hp.host = duel_mode->host_info;
+-		BufferIO::CopyCharArray(duel_mode->name, hp.name);
+-		sendto(fd, (const char*)&hp, sizeof(HostPacket), 0, (sockaddr*)&sockTo, sizeof(sockTo));
+-	}
++    // Broadcast handling is excluded.
+ }
+ void NetServer::ServerAccept(evconnlistener* listener, EventSocket fd, sockaddr* address, int socklen, void* ctx) {
++    if (socklen < sizeof(sockaddr_in) || address->sa_family != AF_INET ||
++        ntohl(reinterpret_cast<sockaddr_in*>(address)->sin_addr.s_addr) != 0x7f000001 || users.size() >= 2) {
++        evutil_closesocket(fd);
++        return;
++    }
+ 	bufferevent* bev = bufferevent_socket_new(net_evbase, fd, BEV_OPT_CLOSE_ON_FREE);
+ 	DuelPlayer dp;
+ 	dp.name[0] = 0;
+--- a/gframe/premake5.lua
++++ b/gframe/premake5.lua
+@@ -7,6 +7,7 @@
+ 
+     dofile("../irrlicht/defines.lua")
+     files { "*.cpp", "*.h" }
++    removefiles { "replay_mode.cpp" }
+ 
+     includedirs { "../ocgcore" }
+     links { "ocgcore" }
+--- a/gframe/replay.cpp
++++ b/gframe/replay.cpp
+@@ -18,31 +18,16 @@
+ 	delete[] comp_data;
+ }
+ void Replay::BeginRecord() {
+-	if(!FileSystem::IsDirExists(L"./replay") && !FileSystem::MakeDir(L"./replay"))
+-		return;
+-	if(is_recording)
+-		std::fclose(fp);
+-	fp = myfopen("./replay/_LastReplay.yrp", "wb");
+-	if(!fp)
+-		return;
+-	Reset();
+-	is_recording = true;
++    Reset();
++    is_recording = true; // Internal buffer only; never open a replay file.
+ }
+ void Replay::WriteHeader(ExtendedReplayHeader& header) {
+-	pheader = header;
+-	std::fwrite(&header, sizeof header, 1, fp);
+-	std::fflush(fp);
++    pheader = header;
+ }
+ void Replay::WriteData(const void* data, size_t length, bool flush) {
+-	if(!is_recording)
+-		return;
+-	if (length > MAX_REPLAY_SIZE - replay_size)
+-		return;
+-	std::memcpy(replay_data + replay_size, data, length);
+-	replay_size += length;
+-	std::fwrite(data, length, 1, fp);
+-	if(flush)
+-		std::fflush(fp);
++    if (!is_recording || length > MAX_REPLAY_SIZE - replay_size) return;
++    std::memcpy(replay_data + replay_size, data, length);
++    replay_size += length;
+ }
+ void Replay::WriteInt32(int32_t data, bool flush) {
+ 	Write<int32_t>(data, flush);
+@@ -73,14 +58,11 @@
+ 	return true;
+ }
+ void Replay::Flush() {
+-	if(!is_recording)
+-		return;
+-	std::fflush(fp);
++    // Replay recording is memory-only.
+ }
+ void Replay::EndRecord() {
+ 	if(!is_recording)
+ 		return;
+-	std::fclose(fp);
+ 	pheader.base.datasize = replay_size;
+ 	pheader.base.flag |= REPLAY_COMPRESSED;
+ 	lzma_options_lzma opt;
+@@ -109,109 +91,16 @@
+ 	is_recording = false;
+ }
+ bool Replay::SaveReplay(const wchar_t* base_name) {
+-	if(!FileSystem::IsDirExists(L"./replay") && !FileSystem::MakeDir(L"./replay"))
+-		return false;
+-	wchar_t filename[256]{};
+-	wchar_t path[256]{};
+-	BufferIO::CopyWideString(base_name, filename);
+-	FileSystem::SafeFileName(filename);
+-	if (myswprintf(path, L"./replay/%ls.yrp", filename) <= 0)
+-		return false;
+-	FILE* rfp = mywfopen(path, "wb");
+-	if(!rfp)
+-		return false;
+-	std::fwrite(&pheader, sizeof pheader, 1, rfp);
+-	std::fwrite(comp_data, comp_size, 1, rfp);
+-	std::fclose(rfp);
+-	return true;
++    return false; // Replay file operations are excluded from Lite.
+ }
+ bool Replay::OpenReplay(const wchar_t* name) {
+-	FILE* rfp = mywfopen(name, "rb");
+-	if(!rfp) {
+-		wchar_t fname[256];
+-		if (myswprintf(fname, L"./replay/%ls", name) <= 0)
+-			return false;
+-		rfp = mywfopen(fname, "rb");
+-	}
+-	if(!rfp)
+-		return false;
+-
+-	Reset();
+-	bool correct_header = true;
+-	if (std::fread(&pheader, sizeof pheader.base, 1, rfp) < 1)
+-		correct_header = false;
+-	else if (pheader.base.id != REPLAY_ID_YRP1 && pheader.base.id != REPLAY_ID_YRP2)
+-		correct_header = false;
+-	else if (pheader.base.version < 0x12d0u)
+-		correct_header = false;
+-	else if (pheader.base.version >= 0x1353u && !(pheader.base.flag & REPLAY_UNIFORM))
+-		correct_header = false;
+-	if (!correct_header) {
+-		std::fclose(rfp);
+-		return false;
+-	}
+-	if (pheader.base.id == REPLAY_ID_YRP2 && std::fread(reinterpret_cast<unsigned char*>(&pheader) + sizeof pheader.base, sizeof pheader - sizeof pheader.base, 1, rfp) < 1) {
+-		std::fclose(rfp);
+-		return false;
+-	}
+-	if(pheader.base.flag & REPLAY_COMPRESSED) {
+-		comp_size = std::fread(comp_data, 1, MAX_COMP_SIZE, rfp);
+-		std::fclose(rfp);
+-		if (pheader.base.datasize > MAX_REPLAY_SIZE)
+-			return false;
+-		replay_size = pheader.base.datasize;
+-		lzma_filter filter;
+-		filter.id = LZMA_FILTER_LZMA1;
+-		filter.options = nullptr;
+-		if (lzma_properties_decode(&filter, nullptr, pheader.base.props, 5) != LZMA_OK)
+-			return false;
+-		lzma_options_lzma *lzma_opt = static_cast<lzma_options_lzma *>(filter.options);
+-		lzma_set_ext_size(*lzma_opt, replay_size);
+-		lzma_opt->ext_flags = LZMA_LZMA1EXT_ALLOW_EOPM;
+-		filter.id = LZMA_FILTER_LZMA1EXT;
+-		lzma_filter filters[2] = { filter, { LZMA_VLI_UNKNOWN, nullptr } };
+-		size_t in_pos = 0, out_pos = 0;
+-		lzma_ret lret = lzma_raw_buffer_decode(filters, nullptr, comp_data, &in_pos, comp_size, replay_data, &out_pos, replay_size);
+-		lzma_filters_free(filters, nullptr);
+-		if (lret != LZMA_OK || out_pos != replay_size) {
+-			replay_size = 0;
+-			return false;
+-		}
+-	} else {
+-		replay_size = std::fread(replay_data, 1, MAX_REPLAY_SIZE, rfp);
+-		std::fclose(rfp);
+-		comp_size = 0;
+-	}
+-	is_replaying = true;
+-	can_read = true;
+-	if (!ReadInfo()) {
+-		Reset();
+-		return false;
+-	}
+-	info_offset = data_position;
+-	data_position = 0;
+-	return true;
++    return false; // Replay file operations are excluded from Lite.
+ }
+ bool Replay::DeleteReplay(const wchar_t* name) {
+-	if (std::wcschr(name, L'/') || std::wcschr(name, L'\\'))
+-		return false;
+-	wchar_t fname[256];
+-	if(myswprintf(fname, L"./replay/%ls", name) <= 0)
+-		return false;
+-	return FileSystem::RemoveFile(fname);
++    return false; // Replay file operations are excluded from Lite.
+ }
+ bool Replay::RenameReplay(const wchar_t* oldname, const wchar_t* newname) {
+-	wchar_t old_path[256];
+-	wchar_t new_path[256];
+-	if (std::wcschr(oldname, L'/') || std::wcschr(oldname, L'\\'))
+-		return false;
+-	if (std::wcschr(newname, L'/') || std::wcschr(newname, L'\\'))
+-		return false;
+-	if (myswprintf(old_path, L"./replay/%ls", oldname) <= 0)
+-		return false;
+-	if (myswprintf(new_path, L"./replay/%ls", newname) <= 0)
+-		return false;
+-	return FileSystem::Rename(old_path, new_path);
++    return false; // Replay file operations are excluded from Lite.
+ }
+ bool Replay::ReadNextResponse(unsigned char resp[]) {
+ 	uint8_t len{};
+--- a/gframe/replay_disabled.cpp
++++ b/gframe/replay_disabled.cpp
+@@ -0,0 +1,10 @@
++// Playback is excluded from the Lite build. These inert adapters satisfy shared UI references.
++#include "replay_mode.h"
++namespace ygo {
++Replay ReplayMode::cur_replay;
++bool ReplayMode::StartReplay(int) { return false; }
++void ReplayMode::StopReplay(bool) {}
++void ReplayMode::SwapField() {}
++void ReplayMode::Pause(bool, bool) {}
++void ReplayMode::Undo() {}
++}
+--- a/gframe/single_mode.cpp
++++ b/gframe/single_mode.cpp
+@@ -1,6 +1,10 @@
+ #include <random>
+ #include <thread>
+ #include "single_mode.h"
++#include "training_support.h"
++#include "deck_manager.h"
++#include <fstream>
++#include <algorithm>
+ #include "duelclient.h"
+ #include "game.h"
+ #include "data_manager.h"
+@@ -19,6 +23,7 @@
+ 	return true;
+ }
+ void SingleMode::StopPlay(bool is_exiting) {
++    TrainingStop(is_exiting);
+ 	is_closing = is_exiting;
+ 	is_continuing = false;
+ 	mainGame->actionSignal.Set();
+@@ -27,160 +32,91 @@
+ void SingleMode::SetResponse(unsigned char* resp, unsigned int len) {
+ 	if(!pduel)
+ 		return;
+-	last_replay_response_size = last_replay.WriteResponse(resp, len);
++	TrainingResponse(resp, len);
++    last_replay_response_size = last_replay.WriteResponse(resp, len);
+ 	set_responseb(pduel, resp);
+ }
+ void SingleMode::SinglePlayThread() {
+-	const int start_lp = 8000;
+-	const int start_hand = 5;
+-	const int draw_count = 1;
+-	mainGame->dInfo.Clear();
+-	int opt = 0;
+-	std::random_device rd;
+-	ExtendedReplayHeader rh;
+-	rh.base.id = REPLAY_ID_YRP2;
+-	rh.base.version = PRO_VERSION;
+-	rh.base.flag = REPLAY_UNIFORM | REPLAY_SINGLE_MODE;
+-	rh.base.start_time = (uint32_t)std::time(nullptr);
+-	for (auto& x : rh.seed_sequence)
+-		x = rd();
+-	std::seed_seq seed(rh.seed_sequence, rh.seed_sequence + SEED_COUNT);
+-	std::mt19937 rnd(seed);
+-	uint32_t duel_seed[SEED_COUNT]{};
+-	for (auto& x : duel_seed)
+-		x = rnd();
+-	set_script_reader(DataManager::ScriptReaderEx);
+-	set_card_reader(DataManager::CardReader);
+-	set_message_handler(SingleMode::MessageHandler);
+-	pduel = create_duel_v2(duel_seed);
+-	set_player_info(pduel, 0, start_lp, start_hand, draw_count);
+-	set_player_info(pduel, 1, start_lp, start_hand, draw_count);
+-	mainGame->dInfo.lp[0] = start_lp;
+-	mainGame->dInfo.lp[1] = start_lp;
+-	mainGame->dInfo.start_lp = start_lp;
+-	myswprintf(mainGame->dInfo.strLP[0], L"%d", mainGame->dInfo.lp[0]);
+-	myswprintf(mainGame->dInfo.strLP[1], L"%d", mainGame->dInfo.lp[1]);
+-	BufferIO::CopyWideString(mainGame->ebNickName->getText(), mainGame->dInfo.hostname);
+-	mainGame->dInfo.clientname[0] = 0;
+-	mainGame->dInfo.player_type = 0;
+-	mainGame->dInfo.turn = 0;
+-	if(mainGame->chkSinglePlayReturnDeckTop->isChecked())
+-		opt |= DUEL_RETURN_DECK_TOP;
+-	char filename[256]{};
+-	int slen = 0;
+-	if(mainGame->open_file) {
+-		mainGame->open_file = false;
+-		slen = BufferIO::EncodeUTF8(mainGame->open_file_name, filename);
+-		if(!preload_script(pduel, filename)) {
+-			wchar_t fname[256]{};
+-			myswprintf(fname, L"./single/%ls", mainGame->open_file_name);
+-			slen = BufferIO::EncodeUTF8(fname, filename);
+-			if(!preload_script(pduel, filename))
+-				slen = 0;
+-		}
+-	} else {
+-		const wchar_t* name = mainGame->lstSinglePlayList->getListItem(mainGame->lstSinglePlayList->getSelected());
+-		wchar_t fname[256]{};
+-		myswprintf(fname, L"./single/%ls", name);
+-		slen = BufferIO::EncodeUTF8(fname, filename);
+-		if(!preload_script(pduel, filename))
+-			slen = 0;
+-	}
+-	if(slen == 0) {
+-		end_duel(pduel);
+-		return;
+-	}
+-	mainGame->gMutex.lock();
+-	mainGame->HideElement(mainGame->wSinglePlay);
+-	mainGame->ClearCardInfo();
+-	mainGame->wCardImg->setVisible(true);
+-	mainGame->wInfos->setVisible(true);
+-	mainGame->btnLeaveGame->setVisible(true);
+-	mainGame->btnLeaveGame->setText(dataManager.GetSysString(1210));
+-	mainGame->wPhase->setVisible(true);
+-	mainGame->dField.Clear();
+-	mainGame->dInfo.isFirst = true;
+-	mainGame->dInfo.isStarted = true;
+-	mainGame->dInfo.isFinished = false;
+-	mainGame->dInfo.isSingleMode = true;
+-	mainGame->device->setEventReceiver(&mainGame->dField);
+-	mainGame->gMutex.unlock();
+-	std::vector<unsigned char> engineBuffer;
+-	engineBuffer.resize(SIZE_MESSAGE_BUFFER);
+-	is_closing = false;
+-	is_continuing = true;
+-	int len = get_message(pduel, engineBuffer.data());
+-	if (len > 0)
+-		is_continuing = SinglePlayAnalyze(engineBuffer.data(), len);
+-	last_replay.BeginRecord();
+-	last_replay_response_size = 0;
+-	last_replay.WriteHeader(rh);
+-	uint16_t host_name[20]{};
+-	BufferIO::CopyCharArray(mainGame->dInfo.hostname, host_name);
+-	last_replay.WriteData(host_name, sizeof host_name, false);
+-	uint16_t client_name[20]{};
+-	BufferIO::CopyCharArray(mainGame->dInfo.clientname, client_name);
+-	last_replay.WriteData(client_name, sizeof client_name, false);
+-	last_replay.WriteInt32(start_lp, false);
+-	last_replay.WriteInt32(start_hand, false);
+-	last_replay.WriteInt32(draw_count, false);
+-	last_replay.WriteInt32(opt, false);
+-	last_replay.Write<uint16_t>(slen, false);
+-	last_replay.WriteData(filename, slen, false);
+-	last_replay.Flush();
+-	start_duel(pduel, opt);
+-	while (is_continuing) {
+-		unsigned int result = process(pduel);
+-		len = result & PROCESSOR_BUFFER_LEN;
+-		if (len > 0) {
+-			if (len > (int)engineBuffer.size())
+-				engineBuffer.resize(len);
+-			get_message(pduel, engineBuffer.data());
+-			is_continuing = SinglePlayAnalyze(engineBuffer.data(), len);
+-		}
+-	}
+-	last_replay.EndRecord();
+-	mainGame->gMutex.lock();
+-	time_t nowtime = std::time(nullptr);
+-	wchar_t timetext[40];
+-	std::wcsftime(timetext, sizeof timetext / sizeof timetext[0], L"%Y-%m-%d %H-%M-%S", std::localtime(&nowtime));
+-	mainGame->ebRSName->setText(timetext);
+-	if(!mainGame->chkAutoSaveReplay->isChecked()) {
+-		mainGame->wReplaySave->setText(dataManager.GetSysString(1340));
+-		mainGame->PopupElement(mainGame->wReplaySave);
+-		mainGame->gMutex.unlock();
+-		mainGame->replaySignal.Reset();
+-		mainGame->replaySignal.Wait();
+-	} else {
+-		mainGame->actionParam = 1;
+-		wchar_t msgbuf[256];
+-		myswprintf(msgbuf, dataManager.GetSysString(1367), timetext);
+-		mainGame->SetStaticText(mainGame->stACMessage, 310, mainGame->guiFont, msgbuf);
+-		mainGame->PopupElement(mainGame->wACMessage, 20);
+-		mainGame->gMutex.unlock();
+-		mainGame->WaitFrameSignal(30);
+-	}
+-	if(mainGame->actionParam)
+-		last_replay.SaveReplay(mainGame->ebRSName->getText());
+-	end_duel(pduel);
+-	if(!is_closing) {
+-		mainGame->gMutex.lock();
+-		mainGame->dInfo.isStarted = false;
+-		mainGame->dInfo.isInDuel = false;
+-		mainGame->dInfo.isFinished = true;
+-		mainGame->dInfo.isSingleMode = false;
+-		mainGame->gMutex.unlock();
+-		mainGame->closeDoneSignal.Reset();
+-		mainGame->closeSignal.Set();
+-		mainGame->closeDoneSignal.Wait();
+-		mainGame->gMutex.lock();
+-		mainGame->ShowElement(mainGame->wSinglePlay);
+-		mainGame->stTip->setVisible(false);
+-		mainGame->device->setEventReceiver(&mainGame->menuHandler);
+-		mainGame->gMutex.unlock();
+-		if(mainGame->exit_on_return)
+-			mainGame->device->closeDevice();
+-	}
++    if(!TrainingActive()) {
++        mainGame->env->addMessageBox(L"训练", L"请从 Start-Trainer.ps1 打开的工具箱选择构筑并开始训练。");
++        return;
++    }
++    is_closing = false;
++    is_continuing = true;
++    std::ifstream input(TrainingPath("deck.ydk"), std::ios::binary);
++    std::stringstream text;
++    text << input.rdbuf();
++    std::istringstream deckStream(text.str());
++    Deck deck;
++    if(!input || DeckManager::LoadDeckFromStream(deck, deckStream) || deck.main.empty()) {
++        TrainingFinish(0, "deck_load_failed");
++        mainGame->device->closeDevice();
++        return;
++    }
++    std::random_device rd;
++    uint32_t seeds[SEED_COUNT];
++    for(auto& seed : seeds) seed = rd();
++    std::seed_seq shuffleSeed(seeds, seeds + SEED_COUNT);
++    std::mt19937 shuffle(shuffleSeed);
++    std::shuffle(deck.main.begin(), deck.main.end(), shuffle);
++    set_script_reader(DataManager::ScriptReaderEx);
++    set_card_reader(DataManager::CardReader);
++    set_message_handler(SingleMode::MessageHandler);
++    pduel = create_duel_v2(seeds);
++    set_player_info(pduel, 0, 8000, 5, 1);
++    set_player_info(pduel, 1, 8000, 0, 0);
++    for(auto c : deck.main) new_card(pduel, c->code, 0, 0, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
++    for(auto c : deck.extra) new_card(pduel, c->code, 0, 0, LOCATION_EXTRA, 0, POS_FACEDOWN_DEFENSE);
++    TrainingCapture(pduel, "loaded");
++    mainGame->gMutex.lock();
++    mainGame->dInfo.Clear();
++    mainGame->dInfo.lp[0] = mainGame->dInfo.lp[1] = mainGame->dInfo.start_lp = 8000;
++    for(auto& lp : mainGame->dInfo.strLP) myswprintf(lp, L"8000");
++    BufferIO::CopyWideString(L"手动训练", mainGame->dInfo.hostname);
++    BufferIO::CopyWideString(L"空场占位（自动跳过）", mainGame->dInfo.clientname);
++    mainGame->dInfo.player_type = 0;
++    mainGame->dInfo.isFirst = true;
++    mainGame->dInfo.isStarted = true;
++    mainGame->dInfo.isSingleMode = true;
++    mainGame->dField.Clear();
++    mainGame->ClearCardInfo();
++    mainGame->wCardImg->setVisible(true);
++    mainGame->wInfos->setVisible(true);
++    mainGame->wPhase->setVisible(true);
++    mainGame->btnLeaveGame->setText(L"结束训练");
++    mainGame->btnLeaveGame->setVisible(true);
++    mainGame->device->setEventReceiver(&mainGame->dField);
++    mainGame->gMutex.unlock();
++    std::vector<unsigned char> buffer(SIZE_MESSAGE_BUFFER);
++    auto len = query_field_info(pduel, buffer.data());
++    TrainingCapture(pduel, "batch", buffer.data(), len);
++    SinglePlayAnalyze(buffer.data(), len);
++    start_duel(pduel, MASTER_RULE_2020 << 16); // No DUEL_SIMPLE_AI and no network connection.
++    while(is_continuing && !TrainingStopping()) {
++        const auto result = process(pduel);
++        len = result & PROCESSOR_BUFFER_LEN;
++        if(len) {
++            if(size_t(len) > buffer.size()) buffer.resize(len);
++            get_message(pduel, buffer.data());
++            // Persist the entire actual engine batch BEFORE UI animations or choice dialogs.
++            TrainingCapture(pduel, "batch", buffer.data(), len);
++            is_continuing = SinglePlayAnalyze(buffer.data(), len);
++        }
++        if(result & PROCESSOR_END) break;
++    }
++    TrainingFinish(pduel, "engine_ended");
++    end_duel(pduel);
++    pduel = 0;
++    if(!is_closing) {
++        mainGame->gMutex.lock();
++        mainGame->dInfo.isStarted = false;
++        mainGame->dInfo.isInDuel = false;
++        mainGame->dInfo.isFinished = true;
++        mainGame->dInfo.isSingleMode = false;
++        mainGame->gMutex.unlock();
++        mainGame->device->closeDevice();
++    }
++
+ }
+ bool SingleMode::SinglePlayAnalyze(unsigned char* msg, unsigned int len) {
+ 	unsigned char* offset, * pbuf = msg;
+@@ -196,7 +132,7 @@
+ 				last_replay.RemoveData(last_replay_response_size);
+ 				last_replay_response_size = 0;
+ 			}
+-			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
++			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
+ 				mainGame->singleSignal.Reset();
+ 				mainGame->singleSignal.Wait();
+ 			}
+@@ -207,12 +143,12 @@
+ 			player = BufferIO::Read<uint8_t>(pbuf);
+ 			/*int data = */BufferIO::Read<int32_t>(pbuf);
+ 			if(player == 0)
+-				DuelClient::ClientAnalyze(offset, pbuf - offset);
++				TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_WIN: {
+ 			pbuf += 2;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			return false;
+ 		}
+ 		case MSG_SELECT_BATTLECMD: {
+@@ -222,7 +158,7 @@
+ 			count = BufferIO::Read<uint8_t>(pbuf);
+ 			pbuf += count * 8 + 2;
+ 			SinglePlayRefresh();
+-			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
++			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
+ 				mainGame->singleSignal.Reset();
+ 				mainGame->singleSignal.Wait();
+ 			}
+@@ -243,7 +179,7 @@
+ 			count = BufferIO::Read<uint8_t>(pbuf);
+ 			pbuf += count * 11 + 3;
+ 			SinglePlayRefresh();
+-			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
++			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
+ 				mainGame->singleSignal.Reset();
+ 				mainGame->singleSignal.Wait();
+ 			}
+@@ -252,7 +188,7 @@
+ 		case MSG_SELECT_EFFECTYN: {
+ 			player = BufferIO::Read<uint8_t>(pbuf);
+ 			pbuf += 12;
+-			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
++			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
+ 				mainGame->singleSignal.Reset();
+ 				mainGame->singleSignal.Wait();
+ 			}
+@@ -261,7 +197,7 @@
+ 		case MSG_SELECT_YESNO: {
+ 			player = BufferIO::Read<uint8_t>(pbuf);
+ 			pbuf += 4;
+-			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
++			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
+ 				mainGame->singleSignal.Reset();
+ 				mainGame->singleSignal.Wait();
+ 			}
+@@ -271,7 +207,7 @@
+ 			player = BufferIO::Read<uint8_t>(pbuf);
+ 			count = BufferIO::Read<uint8_t>(pbuf);
+ 			pbuf += count * 4;
+-			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
++			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
+ 				mainGame->singleSignal.Reset();
+ 				mainGame->singleSignal.Wait();
+ 			}
+@@ -283,7 +219,7 @@
+ 			pbuf += 3;
+ 			count = BufferIO::Read<uint8_t>(pbuf);
+ 			pbuf += count * 8;
+-			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
++			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
+ 				mainGame->singleSignal.Reset();
+ 				mainGame->singleSignal.Wait();
+ 			}
+@@ -296,7 +232,7 @@
+ 			pbuf += count * 8;
+ 			count = BufferIO::Read<uint8_t>(pbuf);
+ 			pbuf += count * 8;
+-			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
++			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
+ 				mainGame->singleSignal.Reset();
+ 				mainGame->singleSignal.Wait();
+ 			}
+@@ -306,7 +242,7 @@
+ 			player = BufferIO::Read<uint8_t>(pbuf);
+ 			count = BufferIO::Read<uint8_t>(pbuf);
+ 			pbuf += 9 + count * 14;
+-			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
++			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
+ 				mainGame->singleSignal.Reset();
+ 				mainGame->singleSignal.Wait();
+ 			}
+@@ -316,7 +252,7 @@
+ 		case MSG_SELECT_DISFIELD: {
+ 			player = BufferIO::Read<uint8_t>(pbuf);
+ 			pbuf += 5;
+-			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
++			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
+ 				mainGame->singleSignal.Reset();
+ 				mainGame->singleSignal.Wait();
+ 			}
+@@ -325,7 +261,7 @@
+ 		case MSG_SELECT_POSITION: {
+ 			player = BufferIO::Read<uint8_t>(pbuf);
+ 			pbuf += 5;
+-			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
++			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
+ 				mainGame->singleSignal.Reset();
+ 				mainGame->singleSignal.Wait();
+ 			}
+@@ -336,7 +272,7 @@
+ 			pbuf += 4;
+ 			count = BufferIO::Read<uint8_t>(pbuf);
+ 			pbuf += count * 9;
+-			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
++			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
+ 				mainGame->singleSignal.Reset();
+ 				mainGame->singleSignal.Wait();
+ 			}
+@@ -350,7 +286,7 @@
+ 			pbuf += count * 11;
+ 			count = BufferIO::Read<uint8_t>(pbuf);
+ 			pbuf += count * 11;
+-			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
++			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
+ 				mainGame->singleSignal.Reset();
+ 				mainGame->singleSignal.Wait();
+ 			}
+@@ -360,7 +296,7 @@
+ 			player = BufferIO::Read<uint8_t>(pbuf);
+ 			count = BufferIO::Read<uint8_t>(pbuf);
+ 			pbuf += count * 7;
+-			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
++			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
+ 				mainGame->singleSignal.Reset();
+ 				mainGame->singleSignal.Wait();
+ 			}
+@@ -370,14 +306,14 @@
+ 			player = BufferIO::Read<uint8_t>(pbuf);
+ 			count = BufferIO::Read<uint8_t>(pbuf);
+ 			pbuf += count * 7;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_CONFIRM_EXTRATOP: {
+ 			player = BufferIO::Read<uint8_t>(pbuf);
+ 			count = BufferIO::Read<uint8_t>(pbuf);
+ 			pbuf += count * 7;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_CONFIRM_CARDS: {
+@@ -385,12 +321,12 @@
+ 			pbuf += 1;
+ 			count = BufferIO::Read<uint8_t>(pbuf);
+ 			pbuf += count * 7;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_SHUFFLE_DECK: {
+ 			player = BufferIO::Read<uint8_t>(pbuf);
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			SinglePlayRefreshDeck(player);
+ 			break;
+ 		}
+@@ -398,53 +334,53 @@
+ 			/*int oplayer = */BufferIO::Read<uint8_t>(pbuf);
+ 			count = BufferIO::Read<uint8_t>(pbuf);
+ 			pbuf += count * 4;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_SHUFFLE_EXTRA: {
+ 			player = BufferIO::Read<uint8_t>(pbuf);
+ 			count = BufferIO::Read<uint8_t>(pbuf);
+ 			pbuf += count * 4;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_REFRESH_DECK: {
+ 			pbuf++;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_SWAP_GRAVE_DECK: {
+ 			player = BufferIO::Read<uint8_t>(pbuf);
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			SinglePlayRefreshGrave(player);
+ 			break;
+ 		}
+ 		case MSG_REVERSE_DECK: {
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			SinglePlayRefreshDeck(0);
+ 			SinglePlayRefreshDeck(1);
+ 			break;
+ 		}
+ 		case MSG_DECK_TOP: {
+ 			pbuf += 6;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_SHUFFLE_SET_CARD: {
+ 			pbuf++;
+ 			count = BufferIO::Read<uint8_t>(pbuf);
+ 			pbuf += count * 8;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_NEW_TURN: {
+ 			player = BufferIO::Read<uint8_t>(pbuf);
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_NEW_PHASE: {
+ 			pbuf += 2;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			SinglePlayRefresh();
+ 			break;
+ 		}
+@@ -458,85 +394,85 @@
+ 			int cs = pbuf[10];
+ 			/*int cp = pbuf[11];*/
+ 			pbuf += 16;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			if(cl && !(cl & LOCATION_OVERLAY) && (pl != cl || pc != cc))
+ 				SinglePlayRefreshSingle(cc, cl, cs);
+ 			break;
+ 		}
+ 		case MSG_POS_CHANGE: {
+ 			pbuf += 9;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_SET: {
+ 			pbuf += 8;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_SWAP: {
+ 			pbuf += 16;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_FIELD_DISABLED: {
+ 			pbuf += 4;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_SUMMONING: {
+ 			pbuf += 8;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_SUMMONED: {
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			SinglePlayRefresh();
+ 			break;
+ 		}
+ 		case MSG_SPSUMMONING: {
+ 			pbuf += 8;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_SPSUMMONED: {
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			SinglePlayRefresh();
+ 			break;
+ 		}
+ 		case MSG_FLIPSUMMONING: {
+ 			pbuf += 8;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_FLIPSUMMONED: {
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			SinglePlayRefresh();
+ 			break;
+ 		}
+ 		case MSG_CHAINING: {
+ 			pbuf += 16;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_CHAINED: {
+ 			pbuf++;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			SinglePlayRefresh();
+ 			break;
+ 		}
+ 		case MSG_CHAIN_SOLVING: {
+ 			pbuf++;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_CHAIN_SOLVED: {
+ 			pbuf++;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			SinglePlayRefresh();
+ 			break;
+ 		}
+ 		case MSG_CHAIN_END: {
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			SinglePlayRefresh();
+ 			SinglePlayRefreshDeck(0);
+ 			SinglePlayRefreshDeck(1);
+@@ -544,12 +480,12 @@
+ 		}
+ 		case MSG_CHAIN_NEGATED: {
+ 			pbuf++;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_CHAIN_DISABLED: {
+ 			pbuf++;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_CARD_SELECTED:
+@@ -557,118 +493,118 @@
+ 			player = BufferIO::Read<uint8_t>(pbuf);
+ 			count = BufferIO::Read<uint8_t>(pbuf);
+ 			pbuf += count * 4;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_BECOME_TARGET: {
+ 			count = BufferIO::Read<uint8_t>(pbuf);
+ 			pbuf += count * 4;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_DRAW: {
+ 			player = BufferIO::Read<uint8_t>(pbuf);
+ 			count = BufferIO::Read<uint8_t>(pbuf);
+ 			pbuf += count * 4;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_DAMAGE: {
+ 			pbuf += 5;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_RECOVER: {
+ 			pbuf += 5;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_EQUIP: {
+ 			pbuf += 8;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_LPUPDATE: {
+ 			pbuf += 5;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_UNEQUIP: {
+ 			pbuf += 4;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_CARD_TARGET: {
+ 			pbuf += 8;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_CANCEL_TARGET: {
+ 			pbuf += 8;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_PAY_LPCOST: {
+ 			pbuf += 5;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_ADD_COUNTER: {
+ 			pbuf += 7;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_REMOVE_COUNTER: {
+ 			pbuf += 7;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_ATTACK: {
+ 			pbuf += 8;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_BATTLE: {
+ 			pbuf += 26;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_ATTACK_DISABLED: {
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_DAMAGE_STEP_START: {
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			SinglePlayRefresh();
+ 			break;
+ 		}
+ 		case MSG_DAMAGE_STEP_END: {
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			SinglePlayRefresh();
+ 			break;
+ 		}
+ 		case MSG_MISSED_EFFECT: {
+ 			pbuf += 8;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_TOSS_COIN: {
+ 			player = BufferIO::Read<uint8_t>(pbuf);
+ 			count = BufferIO::Read<uint8_t>(pbuf);
+ 			pbuf += count;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_TOSS_DICE: {
+ 			player = BufferIO::Read<uint8_t>(pbuf);
+ 			count = BufferIO::Read<uint8_t>(pbuf);
+ 			pbuf += count;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_ROCK_PAPER_SCISSORS: {
+ 			player = BufferIO::Read<uint8_t>(pbuf);
+-			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
++			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
+ 				mainGame->singleSignal.Reset();
+ 				mainGame->singleSignal.Wait();
+ 			}
+@@ -676,13 +612,13 @@
+ 		}
+ 		case MSG_HAND_RES: {
+ 			pbuf += 1;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_ANNOUNCE_RACE: {
+ 			player = BufferIO::Read<uint8_t>(pbuf);
+ 			pbuf += 5;
+-			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
++			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
+ 				mainGame->singleSignal.Reset();
+ 				mainGame->singleSignal.Wait();
+ 			}
+@@ -691,7 +627,7 @@
+ 		case MSG_ANNOUNCE_ATTRIB: {
+ 			player = BufferIO::Read<uint8_t>(pbuf);
+ 			pbuf += 5;
+-			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
++			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
+ 				mainGame->singleSignal.Reset();
+ 				mainGame->singleSignal.Wait();
+ 			}
+@@ -702,7 +638,7 @@
+ 			player = BufferIO::Read<uint8_t>(pbuf);
+ 			count = BufferIO::Read<uint8_t>(pbuf);
+ 			pbuf += 4 * count;
+-			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
++			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
+ 				mainGame->singleSignal.Reset();
+ 				mainGame->singleSignal.Wait();
+ 			}
+@@ -710,18 +646,18 @@
+ 		}
+ 		case MSG_CARD_HINT: {
+ 			pbuf += 9;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_PLAYER_HINT: {
+ 			pbuf += 6;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			break;
+ 		}
+ 		case MSG_TAG_SWAP: {
+ 			player = pbuf[0];
+ 			pbuf += pbuf[2] * 4 + pbuf[4] * 4 + 9;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			SinglePlayRefreshDeck(player);
+ 			SinglePlayRefreshExtra(player);
+ 			break;
+@@ -748,7 +684,7 @@
+ 			}
+ 			count = BufferIO::Read<uint8_t>(pbuf);
+ 			pbuf += count * 15;
+-			DuelClient::ClientAnalyze(offset, pbuf - offset);
++			TrainingAnalyze(pduel, offset, pbuf - offset);
+ 			SinglePlayReload();
+ 			mainGame->gMutex.lock();
+ 			mainGame->dField.RefreshAllCards();
+@@ -849,7 +785,8 @@
+ uint32_t SingleMode::MessageHandler(intptr_t fduel, uint32_t type) {
+ 	char msgbuf[1024];
+ 	get_log_message(fduel, msgbuf);
+-	mainGame->AddDebugMsg(msgbuf);
++	TrainingWrite("\"kind\":\"script_error\",\"message_type\":" + std::to_string(type));
++    mainGame->AddDebugMsg(msgbuf);
+ 	return 0;
+ }
+ 
+--- a/gframe/training_support.cpp
++++ b/gframe/training_support.cpp
+@@ -0,0 +1,149 @@
++// Local recorder for the pinned YGOPro core. No rule decisions are inferred from text.
++#include "training_support.h"
++#include "game.h"
++#include "single_mode.h"
++#include "duelclient.h"
++#include "data_manager.h"
++#include "../ocgcore/duel.h"
++#include "../ocgcore/field.h"
++#include "../ocgcore/card.h"
++#include "../ocgcore/effect.h"
++#include "../ocgcore/ocgapi.h"
++#include <windows.h>
++#include <atomic>
++#include <chrono>
++#include <fstream>
++#include <mutex>
++#include <sstream>
++#include <algorithm>
++
++namespace ygo {
++static std::string session;
++static std::mutex logMutex;
++static uint64_t sequence = 0;
++static std::atomic<bool> stopping{false}, closing{false}, finished{false};
++static std::ofstream journal;
++static std::string hex(const unsigned char* bytes, size_t len) {
++    static const char digits[] = "0123456789abcdef";
++    std::string result;
++    for(size_t i = 0; i < len; ++i) { result += digits[bytes[i] >> 4]; result += digits[bytes[i] & 15]; }
++    return result;
++}
++static std::string quote(const wchar_t* value) {
++    const int size = WideCharToMultiByte(CP_UTF8, 0, value, -1, nullptr, 0, nullptr, nullptr);
++    std::string utf8(size, 0), result = "\"";
++    WideCharToMultiByte(CP_UTF8, 0, value, -1, &utf8[0], size, nullptr, nullptr);
++    for(int i = 0; i + 1 < size; ++i) {
++        const unsigned char c = utf8[i];
++        if(c == '"' || c == '\\') { result += '\\'; result += c; }
++        else if(c < 32) { char escape[7]; std::snprintf(escape, 7, "\\u%04x", c); result += escape; }
++        else result += c;
++    }
++    return result + '"';
++}
++static std::string describeEffect(effect* e) {
++    if(!e) return "null";
++    const auto handler = e->get_handler();
++    std::ostringstream out;
++    out << "{\"effect_id\":" << e->id << ",\"effect_handle\":" << e->ref_handle << ",\"description\":" << e->description
++        << ",\"handler_instance\":" << (handler ? std::to_string(handler->cardid) : "null")
++        << ",\"handler_code\":" << (handler ? std::to_string(handler->data.code) : "null") << '}';
++    return out.str();
++}
++bool TrainingActive() { return !session.empty(); }
++std::string TrainingPath(const char* name) { return "_trainer/sessions/" + session + "/" + name; }
++void TrainingWrite(const std::string& body) {
++    if(!TrainingActive()) return;
++    std::lock_guard<std::mutex> lock(logMutex);
++    const auto now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
++    journal << "{\"session\":\"" << session << "\",\"seq\":" << ++sequence << ",\"time_ms\":" << now << ',' << body << "}\n";
++    journal.flush();
++    if(!journal) { stopping = true; closing = true; }
++}
++void TrainingCapture(intptr_t engine, const char* kind, const unsigned char* bytes, size_t len) {
++    if(!TrainingActive() || !engine) return;
++    const auto d = reinterpret_cast<duel*>(engine);
++    const auto f = d->game_field;
++    std::ostringstream out;
++    out << "\"kind\":\"" << kind << "\",\"raw\":\"" << hex(bytes, len) << "\",\"state\":{\"turn\":" << f->infos.turn_id
++        << ",\"turn_player\":" << unsigned(f->infos.turn_player) << ",\"phase\":" << f->infos.phase
++        << ",\"lp\":[" << f->player[0].lp << ',' << f->player[1].lp << "],\"cards\":[";
++    std::vector<card*> cards(d->cards.begin(), d->cards.end());
++    std::sort(cards.begin(), cards.end(), [](card* a, card* b){ return a->cardid < b->cardid; });
++    bool first = true;
++    for(const auto c : cards) {
++        if(!c->data.code || (!c->current.location && !c->overlay_target)) continue;
++        if(!first) out << ',';
++        first = false;
++        out << "{\"instance_id\":" << c->cardid << ",\"code\":" << c->data.code << ",\"name\":" << quote(dataManager.GetName(c->data.code))
++            << ",\"owner\":" << unsigned(c->owner) << ",\"controller\":" << unsigned(c->overlay_target ? c->overlay_target->current.controler : c->current.controler)
++            << ",\"location\":" << unsigned(c->overlay_target ? LOCATION_OVERLAY : c->current.location)
++            << ",\"sequence\":" << unsigned(c->current.sequence) << ",\"position\":" << unsigned(c->current.position)
++            << ",\"overlay_target\":" << (c->overlay_target ? std::to_string(c->overlay_target->cardid) : "null")
++            << ",\"reason\":" << c->current.reason
++            << ",\"reason_effect\":" << describeEffect(c->current.reason_effect) << '}';
++    }
++    out << "],\"chain_depth\":" << f->core.current_chain.size() << ",\"chains\":[";
++    bool firstChain = true;
++    for(const auto& chain : f->core.current_chain) {
++        if(!firstChain) out << ',';
++        firstChain = false;
++        out << "{\"link\":" << unsigned(chain.chain_count) << ",\"effect\":" << describeEffect(chain.triggering_effect) << '}';
++    }
++    out << "]}";
++    TrainingWrite(out.str());
++}
++void TrainingResponse(const unsigned char* bytes, size_t len, const char* actor) {
++    TrainingWrite("\"kind\":\"response\",\"actor\":\"" + std::string(actor) + "\",\"prompt\":" + std::to_string(mainGame->dInfo.curMsg) + ",\"raw\":\"" + hex(bytes, len) + "\"");
++}
++bool TrainingAnalyze(intptr_t engine, unsigned char* bytes, size_t len) {
++    // Empty opponent only passes optional windows and ends its turn. No AI is loaded.
++    if(TrainingActive() && len > 1 && bytes[1] == 1) {
++        int32_t answer = 0;
++        bool pass = false;
++        if(bytes[0] == MSG_SELECT_IDLECMD && len >= 3 && bytes[len - 2]) { answer = 7; pass = true; }
++        if(bytes[0] == MSG_SELECT_CHAIN && len > 4 && !bytes[4]) { answer = -1; pass = true; }
++        if(bytes[0] == MSG_SELECT_EFFECTYN) { answer = 0; pass = true; }
++        if(pass) {
++            TrainingResponse(reinterpret_cast<unsigned char*>(&answer), sizeof answer, "wall_pass");
++            set_responsei(engine, answer);
++            return true;
++        }
++    }
++    if(TrainingActive() && bytes[0] == MSG_WIN) return true; // Finish with a report, without a win dialog.
++    return DuelClient::ClientAnalyze(bytes, len);
++}
++bool TrainingStopping() { return stopping; }
++void TrainingStop(bool isClosing) { if(TrainingActive()) { closing = isClosing; stopping = true; } }
++void TrainingFinish(intptr_t engine, const char* reason) {
++    TrainingCapture(engine, "final_state");
++    TrainingWrite("\"kind\":\"end\",\"reason\":\"" + std::string(stopping ? (closing ? "client_closed" : "manual") : reason) + "\"");
++    finished = true;
++}
++void TrainingBoot() {
++    static bool booted = false;
++    if(booted) return;
++    booted = true;
++    char id[64]{};
++    if(!GetEnvironmentVariableA("YGO_TRAIN_SESSION", id, sizeof id)) return;
++    std::string candidate(id);
++    if(candidate.size() != 36 || candidate.find_first_not_of("0123456789abcdef-") != std::string::npos) return;
++    session = candidate;
++    // A journal is exclusive to one new native process; never append to an old session.
++    if(GetFileAttributesA(TrainingPath("native.jsonl").c_str()) != INVALID_FILE_ATTRIBUTES) { session.clear(); mainGame->device->closeDevice(); return; }
++    journal.open(TrainingPath("native.jsonl"), std::ios::binary);
++    if(!journal) { session.clear(); mainGame->device->closeDevice(); return; }
++    TrainingWrite("\"kind\":\"begin\",\"source\":\"ygopro-core/8ff3583\",\"ai\":false,\"rule\":5");
++    mainGame->wMainMenu->setVisible(false);
++    mainGame->exit_on_return = true;
++    SingleMode::StartPlay();
++}
++void TrainingPoll() {
++    TrainingBoot();
++    if(!TrainingActive() || finished || stopping) return;
++    if(GetFileAttributesA(TrainingPath("stop.request").c_str()) != INVALID_FILE_ATTRIBUTES && mainGame->dInfo.isSingleMode) {
++        mainGame->singleSignal.SetNoWait(true);
++        SingleMode::StopPlay(false);
++    }
++}
++}
+--- a/gframe/training_support.h
++++ b/gframe/training_support.h
+@@ -0,0 +1,18 @@
++#pragma once
++#include <cstddef>
++#include <cstdint>
++#include <string>
++
++namespace ygo {
++bool TrainingActive();
++void TrainingBoot();
++void TrainingPoll();
++bool TrainingStopping();
++void TrainingStop(bool closing);
++void TrainingWrite(const std::string& body);
++void TrainingCapture(intptr_t engine, const char* kind, const unsigned char* bytes = nullptr, size_t len = 0);
++void TrainingResponse(const unsigned char* bytes, size_t len, const char* actor = "user");
++bool TrainingAnalyze(intptr_t engine, unsigned char* bytes, size_t len);
++void TrainingFinish(intptr_t engine, const char* reason);
++std::string TrainingPath(const char* name);
++}
