@@ -9,10 +9,10 @@ from copy import deepcopy
 import re
 from card_semantics import CIRCLED, effect_clause, material_method, zone_name
 
-REASON_EFFECT, REASON_COST, REASON_RULE = 0x40, 0x80, 0x400
+REASON_BATTLE, REASON_EFFECT, REASON_COST, REASON_RULE = 0x20, 0x40, 0x80, 0x400
 ZONES = {1: '卡组', 2: '手牌', 4: '怪兽区', 8: '魔法陷阱区', 16: '墓地', 32: '除外区', 64: '额外卡组', 128: '叠放素材'}
 NOISE = {2, *range(10, 27), 30, 31, 32, 33, 34, 36, 38, 39, 40, 41, 42,
-         71, 72, 73, 74, 80, 81, 83, 94, 132, 133, 140, 141, 142, 143, 160, 161, 162, 163, 164, 165, 170,
+         71, 72, 73, 74, 80, 81, 83, 94, 110, 111, 113, 114, 132, 133, 140, 141, 142, 143, 160, 161, 162, 163, 164, 165, 170,
          '玩家选择', '占位方自动跳过'}
 
 
@@ -93,6 +93,8 @@ def project_actions(report):
     deferred_results = {}
     chain_group, resolution_order = 1, 0
     pending_summons = {}
+    battle_result = False
+    previous_seq = None
 
     def make(e, kind='action', text=None):
         a = {'id': e['id'], 'time_ms': e['time_ms'], 'kind': kind,
@@ -189,6 +191,17 @@ def project_actions(report):
 
     for index, e in enumerate(events):
         msg = e['message']
+        # DAMAGE carries no reason field. Only omit standalone damage immediately
+        # following BATTLE, allowing LP updates and display hints between packets.
+        # Any other action, effect or missing batch ends this narrow window.
+        seq = e['native_seq']
+        if previous_seq is not None and seq > previous_seq + 1:
+            battle_result = False
+        previous_seq = seq
+        if msg == 111:
+            battle_result = True
+        elif msg not in (2, 91, 94, 160, 165):
+            battle_result = False
         if msg in (11, 40, 41): preparation_start = index
         if msg == 70:
             c = e['cards'][0] if e.get('cards') else {}
@@ -268,6 +281,9 @@ def project_actions(report):
             suppressed[e['id']] = 'initial_or_rule_draw'; continue
         if msg == 50:
             origin, dest, reason = e.get('origin', {}), e.get('destination', {}), e.get('reason')
+            if (reason in (REASON_BATTLE, REASON_BATTLE | 1) and origin.get('location') == 4
+                    and dest.get('location') == 16 and not e.get('cost') and not e.get('cause')):
+                suppressed[e['id']] = 'routine_battle_move'; continue
             if e.get('deck_operation') == 'position_refresh':
                 if resolving: attach(resolving, e, 'deck_order_evidence')
                 else: suppressed[e['id']] = 'deck_order_evidence'
@@ -307,12 +323,14 @@ def project_actions(report):
                 for source in a['evidence_refs']:
                     if source not in resolving['evidence_refs']: resolving['evidence_refs'].append(source)
             continue
-        if resolving and resolving['status'] == 'pending' and msg in (50, 90, 91, 92, 100, 53, 54, 93, 95, 101, 102):
+        if resolving and resolving['status'] == 'pending' and msg in (50, 90, 91, 92, 100, 53, 54, 93, 95, 101, 102, 112):
             # Rule handling is not attributed to an effect just because it occurs in its resolution interval.
             if not (msg == 50 and (e.get('reason') or 0) & REASON_RULE and not (e.get('reason') or 0) & (REASON_EFFECT | REASON_COST)):
                 if cause_matches(resolving, e):
                     attach(resolving, e, 'costs' if e.get('cost') else 'results'); continue
                 deferred_results.setdefault(resolving['id'], []).append(e)
+        if msg == 91 and battle_result and not resolving and not e.get('cause') and not e.get('cost'):
+            suppressed[e['id']] = 'routine_battle_damage'; continue
         a = make(e, 'cost' if e.get('cost') else 'action')
         if msg == 54: consume_preparation(a, e)
         if msg == 90 and e.get('draw_kind') == 'unknown': a['summary'] += '（原因未知）'

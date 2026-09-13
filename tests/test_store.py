@@ -128,5 +128,24 @@ class StoreTests(unittest.TestCase):
         self.assertTrue((p/f'report-v{REPORT_VERSION}.json').exists())
         for f,digest in originals.items(): self.assertEqual(hashlib.sha256((p/f).read_bytes()).hexdigest(),digest)
 
+    def test_v5_battle_report_reopens_with_filtered_steps_and_preserves_old_files(self):
+        sid, p = self.session('manual')
+        with patch('app.process_identity', return_value=None): self.store.refresh()
+        payload = bytes([110]) + bytes(8) + bytes([113, 111]) + bytes(26) + bytes([91, 1, 58, 7, 0, 0, 114])
+        state = {'cards': [], 'turn': 3, 'phase': 8, 'lp': [8000, 6150]}
+        row = {'session': sid, 'seq': 1, 'time_ms': 2, 'kind': 'batch', 'raw': payload.hex(), 'state': state}
+        (p / 'native.jsonl').write_text(json.dumps(row) + '\n', encoding='utf8')
+        (p / 'deck.ydk').write_bytes(self.store.ydk(self.deck))
+        atomic_json(p / 'report-v5.json', {'report_version': 5, 'actions': [{'summary': '攻击宣言'}]})
+        files = ['native.jsonl', 'session.json', 'deck.ydk', 'report.json', 'report-v5.json']
+        originals = {name: (p / name).read_bytes() for name in files}
+        upgraded = self.store.report(sid)
+        self.assertEqual(upgraded['report_version'], 6)
+        self.assertEqual(upgraded['actions'], [])
+        self.assertEqual(upgraded['statistics']['展开步骤'], 0)
+        self.assertEqual(len(upgraded['events']), 5)
+        self.assertEqual(upgraded, Store(self.root).report(sid))
+        for name, content in originals.items(): self.assertEqual((p / name).read_bytes(), content)
+
 
 if __name__=='__main__': unittest.main()

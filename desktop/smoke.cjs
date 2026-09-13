@@ -194,6 +194,33 @@ async function close() {
   assertComposition(await hostWait(sessionId, s => s.visible && s.composition_compatible && s.owns_stage_hit_test));
   pass('HWND composition has no layered surface covering the native field, including after resize/zoom and page switching');
   pass('Native child parent/bounds, resize/125% zoom, internal effect/summon, frame capture and page switching without global input');
+  state = await nativeWait(sessionId, s => s.prompt === 11 && s.buttons.some(b => b.text === 'ＥＰ'));
+  button = state.buttons.find(b => b.text === 'ＥＰ');
+  await nativeState(sessionId, 'click', {x: button.x, y: button.y});
+  state = await nativeWait(sessionId, s => s.prompt === 11 && s.buttons.some(b => b.text === 'ＢＰ'));
+  button = state.buttons.find(b => b.text === 'ＢＰ');
+  await nativeState(sessionId, 'click', {x: button.x, y: button.y});
+  state = await nativeWait(sessionId, s => s.prompt === 10);
+  const attacker = state.targets.find(t => t.location === 4 && t.code === 1184620);
+  assert(attacker, 'The normally summoned monster must still be on the field');
+  await nativeState(sessionId, 'click', {x: attacker.x, y: attacker.y});
+  state = await nativeWait(sessionId, s => s.buttons.some(b => b.text === '攻击'));
+  button = state.buttons.find(b => b.text === '攻击');
+  await nativeState(sessionId, 'click', {x: button.x, y: button.y});
+  let battleReport;
+  for (let attempt = 0; attempt < 200; attempt++) {
+    battleReport = await (await fetch(`${service.url}/api/report/${sessionId}`)).json();
+    if (battleReport.events.some(e => e.message === 114)) break;
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  assert(battleReport.events.some(e => e.message === 114), 'Wait for the native damage step to finish');
+  assert.equal(battleReport.actions.length, 2, 'A normal attack must not add expansion steps');
+  for (const msg of [110, 113, 111, 91, 114]) assert(battleReport.events.some(e => e.message === msg), `Missing battle message ${msg}`);
+  const battleDamage = battleReport.events.find(e => e.message === 91);
+  assert.equal(battleDamage.player, 1);
+  assert(battleDamage.amount > 0);
+  assert.equal(battleReport.final_state.lp[1], 8000 - battleDamage.amount);
+  pass('Real direct attack keeps battle evidence and final LP without adding expansion steps');
   await page.locator('#finish-training').click();
   await waitHistory('completed');
   await page.waitForFunction(id => app.reportId === id && !document.querySelector('#history').hidden, sessionId);
@@ -205,6 +232,8 @@ async function close() {
   assert.equal(report.statistics['效果抽卡'],2);
   assert.equal(report.statistics['通常召唤成功'],1);
   assert.equal(report.actions.length,2);
+  assert.equal(await page.locator('.timeline > li').count(), 2);
+  assert.equal(await page.locator('.action-title').filter({hasText: /攻击宣言|伤害步骤|战斗结果|受到.*伤害/}).count(), 0);
   await page.screenshot({ path: path.join(evidence, 'report.png') });
   assert.equal(await page.locator('.action-title').filter({ hasText: '编号未知' }).count(), 0);
   if (report.actions.some(a => a.kind === 'effect')) {
@@ -213,7 +242,10 @@ async function close() {
   }
   await page.locator('#all-events').check();
   assert(await page.locator('#all-events').isChecked());
+  await page.waitForFunction(() => [...document.querySelectorAll('.action-title')].some(e => e.textContent === '战斗结果'));
+  assert.equal(await page.locator('.action-title').filter({hasText: '战斗结果'}).count(), 1);
   await page.locator('#all-events').uncheck();
+  await page.waitForFunction(() => document.querySelectorAll('.timeline > li').length === 2);
   const popupPromise = page.waitForEvent('popup');
   await page.locator('a[href^="/api/raw/"]').click();
   const rawWindow = await popupPromise;
