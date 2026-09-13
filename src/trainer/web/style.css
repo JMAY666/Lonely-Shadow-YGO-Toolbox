@@ -156,6 +156,11 @@ header { display: flex; justify-content: space-between; align-items: center; mar
 .import-dialog { width: min(760px, calc(100vw - 28px)); max-height: calc(100dvh - 40px); border: 1px solid #526575; border-radius: 9px; padding: 0; color: #dce5e9; background: #17262f; box-shadow: 0 20px 70px #0008; }
 .import-dialog[open] { display: flex; flex-direction: column; }
 .import-dialog::backdrop { background: #071015c9; }
+.delete-dialog { width: min(460px, calc(100vw - 28px)); padding: 24px; border: 1px solid #526575; border-radius: 9px; color: #dce5e9; background: #17262f; box-shadow: 0 20px 70px #0008; }
+.delete-dialog::backdrop { background: #071015b3; }
+.delete-dialog h2 { font-size: 17px; overflow-wrap: anywhere; }
+.delete-dialog p { margin: 15px 0 24px; color: #a6bac5; line-height: 1.8; font-size: 13px; }
+.delete-actions { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
 .import-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 20px 23px; border-bottom: 1px solid #354650; flex-shrink: 0; }
 .import-heading h2 { font-size: 18px; }
 .import-heading p { font-size: 12px; color: #95a9b5; margin-top: 7px; }

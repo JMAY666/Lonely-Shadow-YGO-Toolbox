@@ -1,6 +1,6 @@
 {
   "name": "ygo-trainer-desktop",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "游戏王工具箱：本地卡组编辑、单人训练与展开报告",
   "main": "desktop/main.cjs",
@@ -13,7 +13,8 @@
     "build": "npm run desktop:prepare && electron-builder --win zip --x64",
     "test": "python -m unittest discover -s tests -q && node --test tests/*.test.cjs",
     "test:desktop": "node desktop/smoke.cjs",
-    "test:packaged": "node desktop/smoke.cjs --packaged"
+    "test:packaged": "node desktop/smoke.cjs --packaged",
+    "test:deletion": "node desktop/deletion-smoke.cjs"
   },
   "devDependencies": {
     "electron": "44.3.0",
@@ -24,7 +25,7 @@
     "appId": "local.ygotrainer.desktop",
     "productName": "YGOTrainer",
     "asar": true,
-    "directories": { "output": "release" },
+    "directories": { "output": "release/1.0.1" },
     "files": ["desktop/main.cjs", "desktop/preload.cjs", "desktop/loading.html", "package.json"],
     "extraResources": [
       { "from": ".local/desktop-bundle/python", "to": "python" },

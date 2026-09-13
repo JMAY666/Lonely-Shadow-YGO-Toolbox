@@ -55,6 +55,13 @@
       </div>
       <div class="import-footer"><small>载入后点击“保存构筑”保存为新构筑。</small><button id="import-cancel">取消</button><button id="import-apply" class="primary" disabled>导入为新构筑</button></div>
     </dialog>
+    <dialog id="delete-dialog" class="delete-dialog" aria-labelledby="delete-message" aria-describedby="delete-warning">
+      <form method="dialog">
+        <h2 id="delete-message">删除构筑？</h2>
+        <p id="delete-warning"></p>
+        <div class="delete-actions"><button id="delete-cancel" value="cancel" autofocus>取消</button><button id="delete-confirm" class="danger" value="delete">删除并保留备份</button></div>
+      </form>
+    </dialog>
     <div id="active-training" class="training-banner" hidden>
       <div><strong id="active-title">训练进行中</strong><p id="active-info">请在模拟器窗口操作；过程会自动保存。</p></div>
       <button id="end-training" class="danger">结束训练</button><button id="view-live">查看当前记录</button>
@@ -97,7 +104,7 @@
   </section>
   <section id="training" hidden aria-label="训练场地">
     <header class="training-toolbar"><div><h2 id="training-title">单人训练</h2><p>在下方场地中召唤、发动效果和选择对象，过程自动记录。</p></div><button id="training-report">查看记录</button><button id="finish-training" class="danger">结束训练</button></header>
-    <div id="native-stage"><p>正在准备训练场地……</p></div>
+    <div id="native-stage"><p id="native-loading">正在准备训练场地……</p></div>
   </section>
   <section id="history" hidden>
     <header><div><div class="eyebrow">PRACTICE JOURNAL</div><h1>每一次展开的轨迹</h1><p>起手、选择与最终场面，保存在这一份记录里。</p></div><button id="refresh-history">刷新记录</button></header>

@@ -36,7 +36,7 @@
     mainGame->dInfo.lp[0] = mainGame->dInfo.lp[1] = mainGame->dInfo.start_lp = 8000;
     for(auto& lp : mainGame->dInfo.strLP) myswprintf(lp, L"8000");
     BufferIO::CopyWideString(L"手动训练", mainGame->dInfo.hostname);
-    BufferIO::CopyWideString(L"空场占位（自动跳过）", mainGame->dInfo.clientname);
+    BufferIO::CopyWideString(L"", mainGame->dInfo.clientname);
     mainGame->dInfo.player_type = 0;
     mainGame->dInfo.isFirst = true;
     mainGame->dInfo.isStarted = true;
@@ -47,7 +47,7 @@
     mainGame->wInfos->setVisible(true);
     mainGame->wPhase->setVisible(true);
     mainGame->btnLeaveGame->setText(L"结束训练");
-    mainGame->btnLeaveGame->setVisible(true);
+    mainGame->btnLeaveGame->setVisible(!TrainingEmbedded());
     mainGame->device->setEventReceiver(&mainGame->dField);
     mainGame->gMutex.unlock();
     std::vector<unsigned char> buffer(SIZE_MESSAGE_BUFFER);

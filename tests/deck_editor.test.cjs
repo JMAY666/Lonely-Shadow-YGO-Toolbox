@@ -35,13 +35,30 @@ function setup() {
     window:{innerWidth:1280}, structuredClone, TextEncoder, setTimeout:() => 1, clearTimeout() {}, confirm:() => true,
     fetch:async () => { throw new Error('Unexpected network request'); },
   });
-  vm.runInContext(editorSource + '\nglobalThis.editor = {app, card, addCard, removeCard, undoDeck, sortDeck, renderDeck, showCard, search, saveDeck, openDeck, newDeck, deleteDeck, setLibraryOpen, deckState, dirty, importState, invalidateImport, previewImport, previewYdk, loadYdkFile, applyImportedDeck, availableImportName};', context);
+  vm.runInContext(editorSource + '\nglobalThis.editor = {app, card, addCard, removeCard, undoDeck, sortDeck, renderDeck, showCard, search, saveDeck, openDeck, newDeck, deleteDeck, confirmDeckDeletion, setLibraryOpen, deckState, dirty, importState, invalidateImport, previewImport, previewYdk, loadYdkFile, applyImportedDeck, availableImportName};', context);
   const editor = context.editor;
+  context.confirmDeckDeletion = async () => true;
   for (const c of cards) editor.app.cache.set(c.id, {...c,script_available:true});
   editor.app.savedState = editor.deckState();
   return {...editor, node, context};
 }
 const plain = value => JSON.parse(JSON.stringify(value));
+
+test('delete confirmation settles on submit/cancel without waiting for a rendering-frame close event', async () => {
+  for(const action of ['delete','cancel']) {
+    const e=setup(), dialog=e.node('#delete-dialog'), listeners=new Map(), formListeners=new Map();
+    dialog.addEventListener=(type,fn)=>listeners.set(type,fn);
+    dialog.removeEventListener=type=>listeners.delete(type);
+    dialog.querySelector=()=>({addEventListener:(type,fn)=>formListeners.set(type,fn),removeEventListener:type=>formListeners.delete(type)});
+    dialog.close=value=>{dialog.open=false;dialog.returnValue=value;}; // Deliberately no close event.
+    const answer=e.confirmDeckDeletion({name:'删除测试'},true);
+    assert.equal(dialog.open,true);
+    if(action==='delete') formListeners.get('submit')({preventDefault(){},submitter:{value:'delete'}});
+    else listeners.get('cancel')({preventDefault(){}});
+    assert.equal(await answer,action==='delete');
+    assert.equal(dialog.open,false);assert.equal(listeners.size,0);assert.equal(formListeners.size,0);
+  }
+});
 
 test('deleting a selected deck preserves a different unsaved construct and sends its revision', async () => {
   const e = setup();
@@ -66,7 +83,7 @@ test('canceling deck deletion keeps current edits and does not send a mutation',
   const e = setup();
   e.app.id = 'library/test.ydk'; e.app.deck.main = [101]; e.dirty();
   e.node('#compact-deck').value = e.app.id;
-  e.context.confirm = () => false;
+  e.context.confirmDeckDeletion = async () => false;
   let requests = 0;
   e.context.api = async (_url, body) => { requests++; assert.equal(body, undefined); return {id:e.app.id,name:'测试',revision:'r'}; };
   await e.deleteDeck();

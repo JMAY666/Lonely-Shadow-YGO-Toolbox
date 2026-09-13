@@ -6,6 +6,7 @@
 namespace ygo {
 bool TrainingActive();
 bool TrainingEmbedded();
+bool TrainingOpening();
 bool TrainingTestControlled();
 void TrainingCaptureFrame();
 void TrainingBoot();

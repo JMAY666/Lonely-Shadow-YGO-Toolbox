@@ -92,7 +92,8 @@ def prepare_resources(bundle, runtime):
                 raise ValueError('资源文件不允许使用重新解析点')
             if name == 'system.conf' and attributes:
                 continue
-            if same_version and attributes and attributes.st_size == expected['size']:
+            unchanged_resource = previous.get('files', {}).get(name) == expected
+            if (same_version or unchanged_resource) and attributes and attributes.st_size == expected['size']:
                 continue
             if attributes and digest(target) == expected['sha256']:
                 continue

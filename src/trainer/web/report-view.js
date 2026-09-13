@@ -48,7 +48,7 @@ function renderTrainingReport(r, options) {
     <p>${dt(r.started_ms)} · ${duration(r.duration_ms)}</p>
     <span class="badge ${r.status === 'interrupted' ? 'warning' : ''}">${statusNames[r.status]}</span>
     <span class="badge ${!r.loaded_verified ? 'warning' : ''}">${r.loaded_verified ? '选定构筑与引擎载入一致' : '尚未确认构筑载入'}</span>
-    <p>${escape(reasons[r.end_reason] || r.end_reason || '训练仍在进行')} · 空场占位，无 AI</p>
+    <p>${escape(reasons[r.end_reason] || r.end_reason || '训练仍在进行')}</p>
     ${r.warnings.length ? `<ul class="warnings">${[...new Set(r.warnings)].map(w => `<li>${escape(w)}</li>`).join('')}</ul>` : ''}
     <div class="stats">${Object.entries(r.statistics).map(([key, value]) => `<div class="stat"><strong>${value}</strong><span>${escape(key)}</span></div>`).join('')}</div>
     <small>${escape(r.statistics_note)}</small>
@@ -59,8 +59,8 @@ function renderTrainingReport(r, options) {
       <a href="/api/raw/${id}" target="_blank">原始记录 JSONL</a><a href="/api/ydk/${id}" target="_blank">构筑快照 YDK</a></div>
     <ol class="timeline">${timeline || '<li><p>暂无需要复盘的展开动作。</p></li>'}</ol>
     <h3>最终场面与各区域 <small>快照 ${r.final_state_ref || '未知'}</small></h3>
-    ${r.final_state ? `<p>回合 ${r.final_state.turn} · 我方 LP ${r.final_state.lp[0]} / 占位方 LP ${r.final_state.lp[1]} · 未结束连锁 ${r.final_state.chain_depth}</p>
-      ${board}<details><summary>查看占位方区域与完整状态</summary><pre>${escape(JSON.stringify(r.final_state, null, 2))}</pre></details>` : '<p>未采集到状态。</p>'}
+    ${r.final_state ? `<p>回合 ${r.final_state.turn} · LP ${r.final_state.lp[0]} · 未结束连锁 ${r.final_state.chain_depth}</p>
+      ${board}` : '<p>未采集到状态。</p>'}
     <details><summary>本次构筑快照 · 主 ${r.deck.main.length} / 额外 ${r.deck.extra.length} / 副 ${r.deck.side.length}</summary>${deck}</details>
     <div class="sources">训练标识：${id}<br>构筑 SHA-256：${r.deck_sha256}<br>
       来源：核心原始消息、cardid 与区域状态；效果文本来自本次构筑快照。<br>${escape(r.legality)}

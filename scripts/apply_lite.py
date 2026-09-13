@@ -133,6 +133,28 @@ def main():
     }''')
     save("gframe/game.cpp", t)
 
+    t = read("gframe/drawing.cpp")
+    t = replace(t, '#include "game.h"', '#include "game.h"\n#include "training_support.h"')
+    t = replace(t, 'void Game::WaitFrameSignal(int frame) {', 'void Game::WaitFrameSignal(int frame) {\n    if(TrainingEmbedded() && (TrainingOpening() || dInfo.curMsg == MSG_NEW_TURN || dInfo.curMsg == MSG_NEW_PHASE)) return; // Presentation only; core events are still processed and recorded.')
+    t = replace(t, '\tdriver->drawVertexPrimitiveList(matManager.vField, 4, matManager.iRectangle, 2);', '''    if(TrainingEmbedded()) {
+        irr::video::S3DVertex ownField[4];
+        std::copy(std::begin(matManager.vField), std::end(matManager.vField), ownField);
+        ownField[0].Pos.Y = ownField[1].Pos.Y = -0.8f;
+        ownField[0].TCoords.Y = ownField[1].TCoords.Y = 0.4f;
+        driver->drawVertexPrimitiveList(ownField, 4, matManager.iRectangle, 2);
+    } else driver->drawVertexPrimitiveList(matManager.vField, 4, matManager.iRectangle, 2);''')
+    # Keep own LP and card interactions; remove the empty opponent's status presentation.
+    begin = t.index('\t\tif(dInfo.lp[1] > maxLP) {')
+    end = t.index('\n\t}\n\tauto tLPFrameRect', begin)
+    t = t[:begin] + '\t\tif(!TrainingEmbedded()) {\n' + t[begin:end] + '\n\t\t}' + t[end:]
+    for line in t.splitlines():
+        if ('draw2DImage(imageManager.tLPFrame, Resize(691' in line or
+            'DrawShadowText(numFont, dInfo.strLP[1]' in line):
+            t = t.replace(line, '\tif(!TrainingEmbedded()) ' + line.lstrip())
+    t = replace(t, '\t\tdriver->draw2DRectangle(0xa0000000, Resize(689, 8, 992, 51));', '\t\tif(!TrainingEmbedded()) driver->draw2DRectangle(0xa0000000, Resize(689, 8, 992, 51));')
+    t = replace(t, '\t\tdriver->draw2DRectangleOutline(Resize(689, 8, 992, 51), 0xffff8080);', '\t\tif(!TrainingEmbedded()) driver->draw2DRectangleOutline(Resize(689, 8, 992, 51), 0xffff8080);')
+    save("gframe/drawing.cpp", t)
+
     # Create an actual native child from the start, so no standalone window flashes or steals focus.
     t = read("irrlicht/source/Irrlicht/CIrrDeviceWin32.cpp")
     t = replace(t, '\t// IME enable/disable: only re-check when messages that can change GUI focus state arrive.', '''    if(GetParent(hWnd) && GetEnvironmentVariableA("YGO_EMBED_PARENT", nullptr, 0)) {

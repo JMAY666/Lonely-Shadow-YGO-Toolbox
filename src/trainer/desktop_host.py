@@ -100,7 +100,10 @@ class NativeHost:
         style = self.user.GetWindowLongPtrW(hwnd, -16)
         center = w.POINT(origin.x + (rect.right - rect.left) // 2, origin.y + (rect.bottom - rect.top) // 2)
         hit = self.user.ChildWindowFromPointEx(self.hwnd, center, 0)
+        try: frame = json.loads((store.session_path(sid) / 'frame-ready.json').read_text('utf8'))
+        except (OSError, ValueError): frame = {}
         return {'ready': True, 'pid': self.pid(hwnd), 'hwnd': str(hwnd), 'parent': str(self.hwnd),
+                'frame_ready': bool(frame), 'frame_ms': frame.get('time_ms'),
                 'owns_stage_hit_test': hit == hwnd, 'stage_hit_hwnd': str(hit),
                 'child_style': bool(style & 0x40000000), 'caption': bool(style & 0x00C00000),
                 'visible': bool(style & 0x10000000), 'bounds': {'x': origin.x, 'y': origin.y,

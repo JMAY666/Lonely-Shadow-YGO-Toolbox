@@ -1,3 +1,77 @@
+--- a/gframe/drawing.cpp
++++ b/gframe/drawing.cpp
+@@ -2,6 +2,7 @@
+ #include <cmath>
+ #include <vector>
+ #include "game.h"
++#include "training_support.h"
+ #include "CGUITTFont.h"
+ #include "client_card.h"
+ #include "materials.h"
+@@ -333,7 +334,13 @@
+ 	}
+ 	matManager.mTexture.setTexture(0, drawField ? imageManager.tFieldTransparent[rule] : imageManager.tField[rule]);
+ 	driver->setMaterial(matManager.mTexture);
+-	driver->drawVertexPrimitiveList(matManager.vField, 4, matManager.iRectangle, 2);
++    if(TrainingEmbedded()) {
++        irr::video::S3DVertex ownField[4];
++        std::copy(std::begin(matManager.vField), std::end(matManager.vField), ownField);
++        ownField[0].Pos.Y = ownField[1].Pos.Y = -0.8f;
++        ownField[0].TCoords.Y = ownField[1].TCoords.Y = 0.4f;
++        driver->drawVertexPrimitiveList(ownField, 4, matManager.iRectangle, 2);
++    } else driver->drawVertexPrimitiveList(matManager.vField, 4, matManager.iRectangle, 2);
+ 	//select field
+ 	driver->setMaterial(matManager.mOutLine);
+ 	if(dInfo.curMsg == MSG_SELECT_PLACE || dInfo.curMsg == MSG_SELECT_DISFIELD || dInfo.curMsg == MSG_HINT) {
+@@ -735,8 +742,8 @@
+ 		driver->draw2DRectangle(0xa0000000, Resize(327, 8, 630, 51));
+ 		driver->draw2DRectangleOutline(Resize(327, 8, 630, 51), 0xffff8080);
+ 	} else {
+-		driver->draw2DRectangle(0xa0000000, Resize(689, 8, 992, 51));
+-		driver->draw2DRectangleOutline(Resize(689, 8, 992, 51), 0xffff8080);
++		if(!TrainingEmbedded()) driver->draw2DRectangle(0xa0000000, Resize(689, 8, 992, 51));
++		if(!TrainingEmbedded()) driver->draw2DRectangleOutline(Resize(689, 8, 992, 51), 0xffff8080);
+ 	}
+ 	if(dInfo.start_lp > 0) {
+ 		constexpr float maxBarWidth = 292.0f;
+@@ -755,6 +762,7 @@
+ 			int barWidth = maxBarWidth * dInfo.lp[0] / maxLP;
+ 			driver->draw2DImage(imageManager.tLPBar, Resize(333, 12, 333 + barWidth, 28), irr::core::recti(0, 0, 16, 16), 0, 0, true);
+ 		}
++		if(!TrainingEmbedded()) {
+ 		if(dInfo.lp[1] > maxLP) {
+ 			auto layerCount = dInfo.lp[1] / maxLP;
+ 			auto partialLP = dInfo.lp[1] % maxLP;
+@@ -769,10 +777,11 @@
+ 			int barWidth = maxBarWidth * dInfo.lp[1] / maxLP;
+ 			driver->draw2DImage(imageManager.tLPBar, Resize(987 - barWidth, 12, 987, 28), irr::core::recti(0, 0, 16, 16), 0, 0, true);
+ 		}
++		}
+ 	}
+ 	auto tLPFrameRect = irr::core::recti(0, 0, imageManager.tLPFrame->getOriginalSize().Width, imageManager.tLPFrame->getOriginalSize().Height);
+ 	driver->draw2DImage(imageManager.tLPFrame, Resize(329, 10, 629, 30), tLPFrameRect, 0, 0, true);
+-	driver->draw2DImage(imageManager.tLPFrame, Resize(691, 10, 991, 30), tLPFrameRect, 0, 0, true);
++	if(!TrainingEmbedded()) driver->draw2DImage(imageManager.tLPFrame, Resize(691, 10, 991, 30), tLPFrameRect, 0, 0, true);
+ 	if(lpframe) {
+ 		dInfo.lp[lpplayer] -= lpd;
+ 		myswprintf(dInfo.strLP[lpplayer], L"%d", dInfo.lp[lpplayer]);
+@@ -793,7 +802,7 @@
+ 		driver->draw2DRectangleOutline(Resize(695, 34, 795, 44), 0xffffffff);
+ 	}
+ 	DrawShadowText(numFont, dInfo.strLP[0], Resize(330, 12, 631, 30), Resize(0, 1, 2, 0), 0xffffff00, 0xff000000, true, false, 0);
+-	DrawShadowText(numFont, dInfo.strLP[1], Resize(691, 12, 992, 30), Resize(0, 1, 2, 0), 0xffffff00, 0xff000000, true, false, 0);
++	if(!TrainingEmbedded()) DrawShadowText(numFont, dInfo.strLP[1], Resize(691, 12, 992, 30), Resize(0, 1, 2, 0), 0xffffff00, 0xff000000, true, false, 0);
+ 
+ 	if(!gameConf.hide_player_name) {
+ 		irr::core::recti p1size = Resize(334, 31, 624, 50);
+@@ -1313,6 +1322,7 @@
+ #endif
+ }
+ void Game::WaitFrameSignal(int frame) {
++    if(TrainingEmbedded() && (TrainingOpening() || dInfo.curMsg == MSG_NEW_TURN || dInfo.curMsg == MSG_NEW_PHASE)) return; // Presentation only; core events are still processed and recorded.
+ 	frameSignal.Reset();
+ 	signalFrame = (gameConf.quick_animation && frame >= 12) ? 12 : frame;
+ 	frameSignal.Wait();
 --- a/gframe/duelclient.cpp
 +++ b/gframe/duelclient.cpp
 @@ -4,6 +4,8 @@
@@ -1523,7 +1597,7 @@
 +    mainGame->dInfo.lp[0] = mainGame->dInfo.lp[1] = mainGame->dInfo.start_lp = 8000;
 +    for(auto& lp : mainGame->dInfo.strLP) myswprintf(lp, L"8000");
 +    BufferIO::CopyWideString(L"手动训练", mainGame->dInfo.hostname);
-+    BufferIO::CopyWideString(L"空场占位（自动跳过）", mainGame->dInfo.clientname);
++    BufferIO::CopyWideString(L"", mainGame->dInfo.clientname);
 +    mainGame->dInfo.player_type = 0;
 +    mainGame->dInfo.isFirst = true;
 +    mainGame->dInfo.isStarted = true;
@@ -1534,7 +1608,7 @@
 +    mainGame->wInfos->setVisible(true);
 +    mainGame->wPhase->setVisible(true);
 +    mainGame->btnLeaveGame->setText(L"结束训练");
-+    mainGame->btnLeaveGame->setVisible(true);
++    mainGame->btnLeaveGame->setVisible(!TrainingEmbedded());
 +    mainGame->device->setEventReceiver(&mainGame->dField);
 +    mainGame->gMutex.unlock();
 +    std::vector<unsigned char> buffer(SIZE_MESSAGE_BUFFER);
@@ -2151,7 +2225,7 @@
  	static void SinglePlayThread();
 --- a/gframe/training_support.cpp
 +++ b/gframe/training_support.cpp
-@@ -0,0 +1,254 @@
+@@ -0,0 +1,280 @@
 +// Local recorder for the pinned YGOPro core. No rule decisions are inferred from text.
 +#include "training_support.h"
 +#include "game.h"
@@ -2180,6 +2254,8 @@
 +static std::atomic<bool> stopping{false}, closing{false}, finished{false};
 +static std::ofstream journal;
 +static std::string captureToken;
++static std::atomic<bool> opening{true};
++bool TrainingOpening() { return TrainingEmbedded() && opening; }
 +static std::string quote(const wchar_t* value);
 +static void TestButtons(irr::gui::IGUIElement* element, std::ostringstream& out, bool& first) {
 +    if(!element->isVisible()) return;
@@ -2256,6 +2332,13 @@
 +    captureToken = token;
 +}
 +void TrainingCaptureFrame() {
++    static bool frameReady = false;
++    if(TrainingActive() && mainGame->dInfo.isStarted && !frameReady) {
++        const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
++        std::ofstream ready(TrainingPath("frame-ready.json"));
++        ready << "{\"time_ms\":" << ms << '}';
++        frameReady = true;
++    }
 +    if(captureToken.empty()) return;
 +    const std::string name = "native-" + captureToken;
 +    auto screenshot = mainGame->driver->createScreenShot();
@@ -2350,6 +2433,12 @@
 +    TrainingWrite("\"kind\":\"response\",\"actor\":\"" + std::string(actor) + "\",\"prompt\":" + std::to_string(mainGame->dInfo.curMsg) + ",\"raw\":\"" + hex(bytes, len) + "\"");
 +}
 +bool TrainingAnalyze(intptr_t engine, unsigned char* bytes, size_t len) {
++    if(TrainingOpening() && len && bytes[0] == MSG_SELECT_IDLECMD) {
++        opening = false;
++        std::lock_guard<std::mutex> lock(mainGame->gMutex);
++        mainGame->dField.RefreshAllCards();
++        mainGame->showcard = 0;
++    }
 +    // Empty opponent only passes optional windows and ends its turn. No AI is loaded.
 +    if(TrainingActive() && len > 1 && bytes[1] == 1) {
 +        int32_t answer = 0;
@@ -2393,12 +2482,23 @@
 +    if(!journal) { session.clear(); mainGame->device->closeDevice(); return; }
 +    TrainingWrite("\"kind\":\"begin\",\"source\":\"ygopro-core/8ff3583\",\"ai\":false,\"rule\":5,\"test_control\":" + std::string(TrainingTestControlled() ? "true" : "false"));
 +    mainGame->wMainMenu->setVisible(false);
++    if(TrainingEmbedded()) {
++        mainGame->wInfos->setActiveTab(0);
++        mainGame->wInfos->setTabHeight(0);
++    }
 +    mainGame->exit_on_return = true;
 +    SingleMode::StartPlay();
 +}
 +void TrainingPoll() {
 +    TrainingBoot();
 +    if(TrainingActive()) TrainingTestInput();
++    if(TrainingEmbedded()) {
++        mainGame->btnChainIgnore->setVisible(false);
++        mainGame->btnChainAlways->setVisible(false);
++        mainGame->btnChainWhenAvail->setVisible(false);
++        mainGame->btnShuffle->setVisible(false);
++        mainGame->btnLeaveGame->setVisible(false);
++    }
 +    if(!TrainingActive() || finished || stopping) return;
 +    if(GetFileAttributesA(TrainingPath("stop.request").c_str()) != INVALID_FILE_ATTRIBUTES && mainGame->dInfo.isSingleMode) {
 +        mainGame->singleSignal.SetNoWait(true);
@@ -2408,7 +2508,7 @@
 +}
 --- a/gframe/training_support.h
 +++ b/gframe/training_support.h
-@@ -0,0 +1,21 @@
+@@ -0,0 +1,22 @@
 +#pragma once
 +#include <cstddef>
 +#include <cstdint>
@@ -2417,6 +2517,7 @@
 +namespace ygo {
 +bool TrainingActive();
 +bool TrainingEmbedded();
++bool TrainingOpening();
 +bool TrainingTestControlled();
 +void TrainingCaptureFrame();
 +void TrainingBoot();

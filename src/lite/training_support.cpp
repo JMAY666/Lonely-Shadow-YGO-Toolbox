@@ -26,6 +26,8 @@ static uint64_t sequence = 0;
 static std::atomic<bool> stopping{false}, closing{false}, finished{false};
 static std::ofstream journal;
 static std::string captureToken;
+static std::atomic<bool> opening{true};
+bool TrainingOpening() { return TrainingEmbedded() && opening; }
 static std::string quote(const wchar_t* value);
 static void TestButtons(irr::gui::IGUIElement* element, std::ostringstream& out, bool& first) {
     if(!element->isVisible()) return;
@@ -102,6 +104,13 @@ static void TrainingTestInput() {
     captureToken = token;
 }
 void TrainingCaptureFrame() {
+    static bool frameReady = false;
+    if(TrainingActive() && mainGame->dInfo.isStarted && !frameReady) {
+        const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        std::ofstream ready(TrainingPath("frame-ready.json"));
+        ready << "{\"time_ms\":" << ms << '}';
+        frameReady = true;
+    }
     if(captureToken.empty()) return;
     const std::string name = "native-" + captureToken;
     auto screenshot = mainGame->driver->createScreenShot();
@@ -196,6 +205,12 @@ void TrainingResponse(const unsigned char* bytes, size_t len, const char* actor)
     TrainingWrite("\"kind\":\"response\",\"actor\":\"" + std::string(actor) + "\",\"prompt\":" + std::to_string(mainGame->dInfo.curMsg) + ",\"raw\":\"" + hex(bytes, len) + "\"");
 }
 bool TrainingAnalyze(intptr_t engine, unsigned char* bytes, size_t len) {
+    if(TrainingOpening() && len && bytes[0] == MSG_SELECT_IDLECMD) {
+        opening = false;
+        std::lock_guard<std::mutex> lock(mainGame->gMutex);
+        mainGame->dField.RefreshAllCards();
+        mainGame->showcard = 0;
+    }
     // Empty opponent only passes optional windows and ends its turn. No AI is loaded.
     if(TrainingActive() && len > 1 && bytes[1] == 1) {
         int32_t answer = 0;
@@ -239,12 +254,23 @@ void TrainingBoot() {
     if(!journal) { session.clear(); mainGame->device->closeDevice(); return; }
     TrainingWrite("\"kind\":\"begin\",\"source\":\"ygopro-core/8ff3583\",\"ai\":false,\"rule\":5,\"test_control\":" + std::string(TrainingTestControlled() ? "true" : "false"));
     mainGame->wMainMenu->setVisible(false);
+    if(TrainingEmbedded()) {
+        mainGame->wInfos->setActiveTab(0);
+        mainGame->wInfos->setTabHeight(0);
+    }
     mainGame->exit_on_return = true;
     SingleMode::StartPlay();
 }
 void TrainingPoll() {
     TrainingBoot();
     if(TrainingActive()) TrainingTestInput();
+    if(TrainingEmbedded()) {
+        mainGame->btnChainIgnore->setVisible(false);
+        mainGame->btnChainAlways->setVisible(false);
+        mainGame->btnChainWhenAvail->setVisible(false);
+        mainGame->btnShuffle->setVisible(false);
+        mainGame->btnLeaveGame->setVisible(false);
+    }
     if(!TrainingActive() || finished || stopping) return;
     if(GetFileAttributesA(TrainingPath("stop.request").c_str()) != INVALID_FILE_ATTRIBUTES && mainGame->dInfo.isSingleMode) {
         mainGame->singleSignal.SetNoWait(true);

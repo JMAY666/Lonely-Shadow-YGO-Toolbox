@@ -45,6 +45,15 @@ async function syncNativeHost() {
   return window.trainerDesktop.updateLayout({visible:true,x:box.x,y:box.y,width:box.width,height:box.height,
     viewportWidth:window.innerWidth,viewportHeight:window.innerHeight});
 }
+async function waitNativeFrame(id) {
+  for (let attempt=0; attempt<80 && app.active?.id===id; attempt++) {
+    const state=await api(`/api/native/status?id=${id}`);
+    if(app.active?.id!==id)return;
+    if(state.frame_ready){$('#native-loading').hidden=true;return;}
+    await new Promise(resolve=>setTimeout(resolve,100));
+  }
+  if(app.active?.id===id) $('#native-loading').textContent='场地尚未完成显示，可以结束本次训练后重试。';
+}
 function deckState() { return JSON.stringify({name:$('#deck-name').value.trim(), deck:app.deck}); }
 function dirty() {
   app.dirty = deckState() !== app.savedState;
@@ -98,6 +107,35 @@ async function openDeck(id) {
     if (first) await showCard(first);
   } finally { app.busy = false; updateStart(); updateDetailCounts(); }
 }
+function confirmDeckDeletion(selected, clearing) {
+  const dialog = $('#delete-dialog');
+  $('#delete-message').textContent = `删除构筑“${selected.name}”？`;
+  $('#delete-warning').textContent = '删除前会保存备份；训练历史和构筑快照保留。' +
+    (clearing ? '当前编辑区将清空' + (app.dirty ? '，尚未保存的修改会被放弃。' : '。') : '当前正在编辑的其他构筑不受影响。');
+  dialog.returnValue = 'cancel';
+  return new Promise(resolve => {
+    const form=dialog.querySelector('form');
+    let settled=false;
+    const finish=value=>{
+      if(settled)return;
+      settled=true;
+      form.removeEventListener('submit',submit);
+      dialog.removeEventListener('cancel',cancel);
+      dialog.removeEventListener('close',closed);
+      if(dialog.open)dialog.close(value);
+      resolve(value==='delete');
+    };
+    const submit=event=>{event.preventDefault();finish(event.submitter?.value || 'cancel');};
+    const cancel=event=>{event.preventDefault();finish('cancel');};
+    const closed=()=>finish(dialog.returnValue);
+    // Native dialog close events may wait for a frame in hidden/occluded windows.
+    // Settle directly from the user's submit/cancel event instead.
+    form.addEventListener('submit',submit);
+    dialog.addEventListener('cancel',cancel);
+    dialog.addEventListener('close',closed);
+    dialog.showModal();
+  });
+}
 async function deleteDeck() {
   const id = $('#compact-deck').value;
   if (app.busy || !id) return;
@@ -106,7 +144,7 @@ async function deleteDeck() {
   try {
     const selected = await api(`/api/deck?id=${encodeURIComponent(id)}`);
     const clearing = id === app.id;
-    if (!confirm(`删除构筑“${selected.name}”？\n删除前会保存备份；训练历史和构筑快照保留。${clearing ? '\n当前编辑区将清空' + (app.dirty ? '，尚未保存的修改会被放弃。' : '。') : ''}`)) return;
+    if (!await confirmDeckDeletion(selected, clearing)) return;
     await api('/api/decks/delete', { id, revision: selected.revision });
     if (clearing) {
       ++app.deckEpoch;
@@ -120,7 +158,12 @@ async function deleteDeck() {
     }
     await deckList();
     notice(`已删除“${selected.name}”，备份已保留。`);
-  } finally { app.busy = false; updateStart(); updateDetailCounts(); }
+  } finally {
+    app.busy = false;
+    updateStart();
+    updateDetailCounts();
+    $('#compact-deck').focus({preventScroll:true});
+  }
 }
 function rememberDeck() {
   app.undo.push(structuredClone(app.deck));
@@ -615,8 +658,9 @@ $('#start-training').onclick=run(async()=>{
   if(app.dirty||!app.id)return notice('请先保存构筑。');
   $('#start-training').disabled=true;
   try {
-    if(window.trainerDesktop){switchView('training');await syncNativeHost();}
+    if(window.trainerDesktop){$('#native-loading').hidden=false;$('#native-loading').textContent='正在准备训练场地……';switchView('training');await syncNativeHost();}
     const session=await api('/api/start',{deck_id:app.id});app.reportId=session.id;await refreshHistory();
+    if(window.trainerDesktop) void waitNativeFrame(session.id).catch(e=>notice(e.message));
     notice(window.trainerDesktop?'训练场地已启动，完成后点击“结束训练”。':'已启动模拟器。请在训练窗口手动展开，完成后点击“结束训练”。');
   } catch(error) {switchView('decks');throw error;} finally{updateStart();}
 });
@@ -636,7 +680,7 @@ $('#delete-deck').onclick = run(deleteDeck);
 $('#library-toggle').onclick = () => setLibraryOpen($('#card-library').hidden);
 $('#library-close').onclick = () => setLibraryOpen(false);
 document.addEventListener('keydown', event => {
-  if (event.key === 'Escape' && !$('#card-library').hidden && !$('#import-dialog').open) {
+  if (event.key === 'Escape' && !$('#card-library').hidden && !$('#import-dialog').open && !$('#delete-dialog').open) {
     event.preventDefault();
     setLibraryOpen(false);
   }
