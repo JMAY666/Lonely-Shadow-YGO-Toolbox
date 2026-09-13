@@ -22,10 +22,11 @@ delete env.ELECTRON_RUN_AS_NODE;
 // Prove packaged startup does not resolve Python, Node or tooling from developer PATH.
 if (packaged) env.PATH = path.join(process.env.SystemRoot, 'System32');
 function pass(text) { checks.push(text); console.log(`PASS ${text}`); }
-async function launch(first = false) {
+async function launch(first = false, testControl = true) {
   const args = [...(packaged ? [] : [workspace]), '--data-dir', root];
   if (first) args.push('--import-from', path.join(workspace, '.local', 'YGOPro-Lite'));
-  application = await electron.launch({ executablePath: executable, args, env, timeout: 120000 });
+  application = await electron.launch({ executablePath: executable, args,
+    env: {...env, YGO_DESKTOP_TEST: testControl ? '1' : '0'}, timeout: 120000 });
   page = await application.firstWindow();
   page.on('pageerror', error => errors.push(error.message));
   await page.waitForFunction(() => document.querySelector('#resource-count')?.textContent.includes('张卡牌'), null, { timeout: 300000 });
@@ -52,6 +53,20 @@ async function nativeWait(sid, predicate) {
     await new Promise(resolve=>setTimeout(resolve,150));
   }
   throw new Error('Native UI did not reach the expected state; see native-latest.png/json');
+}
+async function hostWait(sid, predicate) {
+  let state;
+  for (let attempt = 0; attempt < 100; attempt++) {
+    state = await (await fetch(`${service.url}/api/native/status?id=${sid}`)).json();
+    if (await predicate(state)) return state;
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  throw new Error(`Native host did not reach the expected state: ${JSON.stringify(state)}`);
+}
+function assertComposition(host) {
+  assert.equal(host.composition_compatible, true, 'A layered web surface must not cover the native field');
+  assert.deepEqual(host.layered_overlaps, []);
+  assert.equal(host.owns_stage_hit_test, true);
 }
 async function close() {
   const pid = service.pid, url = service.url;
@@ -118,11 +133,13 @@ async function close() {
   assert.equal(metadata.status, 'running');
   assert.deepEqual(metadata.deck, deck);
   console.log(JSON.stringify({ phase: 'embedded-training', label, sessionId, nativePid, service, sessionPath }));
-  const host = await (await fetch(`${service.url}/api/native/status?id=${sessionId}`)).json();
+  const host = await hostWait(sessionId, s => s.frame_ready && s.visible && s.owns_stage_hit_test && s.composition_compatible);
   assert.equal(host.ready, true); assert.equal(host.child_style, true); assert.equal(host.caption, false);
   assert.equal(host.frame_ready,true);
   await page.waitForFunction(()=>document.querySelector('#native-loading').hidden);
-  assert.equal(host.owns_stage_hit_test,true);
+  assertComposition(host);
+  fs.writeFileSync(path.join(evidence, 'native-host.json'), JSON.stringify(host, null, 2));
+  await page.screenshot({path: path.join(evidence, 'training-shell.png')});
   const stage = await page.locator('#native-stage').boundingBox();
   assert(Math.abs(stage.width-host.bounds.width)<3 && Math.abs(stage.height-host.bounds.height)<3);
   assert(Math.abs(stage.x-host.bounds.x)<3 && Math.abs(stage.y-host.bounds.y)<3);
@@ -155,20 +172,27 @@ async function close() {
   fs.copyFileSync(path.join(evidence,'native-latest.png'),path.join(evidence,'embedded-board.png'));
   const originalViewport = await page.evaluate(()=>({width:innerWidth,height:innerHeight}));
   await application.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().find(w=>!w.getParentWindow()).setContentSize(1100,800));
-  await page.waitForFunction(async id=>{const s=await(await fetch(`/api/native/status?id=${id}`)).json();const r=document.querySelector('#native-stage').getBoundingClientRect();return innerWidth===1100&&s.ready&&Math.abs(s.bounds.width-r.width)<3&&Math.abs(s.bounds.height-r.height)<3;},sessionId);
+  const resizedHost = await hostWait(sessionId, async s => {
+    const r = await page.locator('#native-stage').boundingBox();
+    return await page.evaluate(() => innerWidth === 1100) && s.ready && Math.abs(s.bounds.width-r.width)<3 && Math.abs(s.bounds.height-r.height)<3;
+  });
+  assertComposition(resizedHost);
   const resized = await nativeWait(sessionId,s=>s.width<state.width);
   assert(resized.width < state.width);
   fs.copyFileSync(path.join(evidence,'native-latest.png'),path.join(evidence,'embedded-resized.png'));
   await application.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().find(w=>!w.getParentWindow()).webContents.setZoomFactor(1.25));
-  await page.waitForFunction(async id=>{const s=await(await fetch(`/api/native/status?id=${id}`)).json();const r=document.querySelector('#native-stage').getBoundingClientRect();return s.ready&&Math.abs(s.bounds.width-r.width*1.25)<3&&Math.abs(s.bounds.y-r.y*1.25)<3;},sessionId);
+  const zoomedHost = await hostWait(sessionId, async s => {
+    const r = await page.locator('#native-stage').boundingBox();
+    return s.ready && Math.abs(s.bounds.width-r.width*1.25)<3 && Math.abs(s.bounds.y-r.y*1.25)<3;
+  });
+  assertComposition(zoomedHost);
   await application.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().find(w=>!w.getParentWindow()).webContents.setZoomFactor(1));
   await application.evaluate(({BrowserWindow},size)=>BrowserWindow.getAllWindows().find(w=>!w.getParentWindow()).setContentSize(size.width,size.height),originalViewport);
   await page.locator('#nav-decks').click();
-  await page.waitForTimeout(500);
-  assert.equal((await (await fetch(`${service.url}/api/native/status?id=${sessionId}`)).json()).visible,false);
+  await hostWait(sessionId, s => s.visible === false);
   await page.locator('#nav-training').click();
-  await page.waitForTimeout(500);
-  assert.equal((await (await fetch(`${service.url}/api/native/status?id=${sessionId}`)).json()).visible,true);
+  assertComposition(await hostWait(sessionId, s => s.visible && s.composition_compatible && s.owns_stage_hit_test));
+  pass('HWND composition has no layered surface covering the native field, including after resize/zoom and page switching');
   pass('Native child parent/bounds, resize/125% zoom, internal effect/summon, frame capture and page switching without global input');
   await page.locator('#finish-training').click();
   await waitHistory('completed');
@@ -176,6 +200,7 @@ async function close() {
   const report = await (await fetch(`${service.url}/api/report/${sessionId}`)).json();
   assert.equal(report.status, 'completed');
   const journal = fs.readFileSync(path.join(sessionPath, 'native.jsonl'), 'utf8').trim().split('\n').map(JSON.parse);
+  assert.equal(journal[0].test_control, true);
   assert(journal.some(r => r.kind === 'end' && r.reason === 'manual'));
   assert.equal(report.statistics['效果抽卡'],2);
   assert.equal(report.statistics['通常召唤成功'],1);
@@ -200,7 +225,7 @@ async function close() {
   pass('Real embedded engine effect/summon, journal and completed report');
   await close();
   pass('Window close releases service, native process and listening port');
-  await launch();
+  await launch(false, false);
   await page.locator('#compact-deck').selectOption(deckId);
   await page.locator('#compact-open').click();
   await page.waitForFunction(id => app.id === id && !app.busy, deckId);
@@ -217,6 +242,16 @@ async function close() {
   await page.waitForTimeout(2000);
   const interruptedPath = path.join(root, 'runtime', '_trainer', 'sessions', interrupted);
   nativePid = JSON.parse(fs.readFileSync(path.join(interruptedPath, 'session.json'))).pid;
+  assertComposition(await hostWait(interrupted, s => s.frame_ready && s.visible && s.composition_compatible && s.owns_stage_hit_test));
+  const normalJournal = fs.readFileSync(path.join(interruptedPath, 'native.jsonl'), 'utf8').trim().split('\n').map(JSON.parse);
+  assert.equal(normalJournal[0].test_control, false);
+  const normalBoot = await (await fetch(`${service.url}/api/bootstrap`)).json();
+  const disabledControl = await fetch(`${service.url}/api/native/test`, {method:'POST',
+    headers:{'Content-Type':'application/json','X-Trainer-Token':normalBoot.token},
+    body:JSON.stringify({id:interrupted,kind:'capture'})});
+  assert.equal(disabledControl.status, 400);
+  assert.match((await disabledControl.json()).error, /未启用内部验收接口/);
+  pass('Normal startup uses compatible composition with random training and refuses internal test input/capture');
   await close();
   const stopped = JSON.parse(fs.readFileSync(path.join(interruptedPath, 'session.json')));
   assert.equal(stopped.status, 'interrupted');

@@ -1,6 +1,6 @@
 {
   "name": "ygo-trainer-desktop",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "description": "游戏王工具箱：本地卡组编辑、单人训练与展开报告",
   "main": "desktop/main.cjs",
@@ -25,7 +25,7 @@
     "appId": "local.ygotrainer.desktop",
     "productName": "YGOTrainer",
     "asar": true,
-    "directories": { "output": "release/1.0.1" },
+    "directories": { "output": "release/1.0.2" },
     "files": ["desktop/main.cjs", "desktop/preload.cjs", "desktop/loading.html", "package.json"],
     "extraResources": [
       { "from": ".local/desktop-bundle/python", "to": "python" },

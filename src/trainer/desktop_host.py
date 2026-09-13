@@ -19,6 +19,7 @@ class NativeHost:
         self.user = u = ctypes.WinDLL('user32', use_last_error=True)
         u.IsWindow.argtypes = [w.HWND]
         u.GetParent.argtypes = [w.HWND]; u.GetParent.restype = w.HWND
+        u.GetWindow.argtypes = [w.HWND, w.UINT]; u.GetWindow.restype = w.HWND
         u.GetWindowThreadProcessId.argtypes = [w.HWND, ctypes.POINTER(w.DWORD)]
         u.GetClientRect.argtypes = [w.HWND, ctypes.POINTER(w.RECT)]
         u.GetWindowRect.argtypes = [w.HWND, ctypes.POINTER(w.RECT)]
@@ -79,12 +80,34 @@ class NativeHost:
             return hwnd
         return None
 
+    def stage_hit(self):
+        x, y, width, height = self.rect
+        return self.user.ChildWindowFromPointEx(self.hwnd, w.POINT(x + width // 2, y + height // 2), 0)
+
+    def layered_overlaps(self, native, rect):
+        # A layered Chromium surface can paint over an ordinary OpenGL sibling
+        # despite that sibling being first in the input/window Z order.
+        overlaps = []
+        sibling = self.user.GetWindow(self.hwnd, 5)  # GW_CHILD
+        while sibling:
+            style = self.user.GetWindowLongPtrW(sibling, -16)
+            extended = self.user.GetWindowLongPtrW(sibling, -20)
+            if sibling != native and style & 0x10000000 and extended & 0x00080000:
+                other = w.RECT()
+                if self.user.GetWindowRect(sibling, ctypes.byref(other)) and (
+                    max(rect.left, other.left) < min(rect.right, other.right) and
+                    max(rect.top, other.top) < min(rect.bottom, other.bottom)
+                ):
+                    overlaps.append(str(sibling))
+            sibling = self.user.GetWindow(sibling, 2)  # GW_HWNDNEXT
+        return overlaps
+
     def sync(self, store):
         for sid in list(store.processes):
             hwnd = self.child(store, sid)
             if not hwnd: continue
             placement = (hwnd, self.rect, self.visible)
-            if self.last_placement.get(sid) == placement: continue
+            if self.last_placement.get(sid) == placement and (not self.visible or self.stage_hit() == hwnd): continue
             x, y, width, height = self.rect
             if not self.user.SetWindowPos(hwnd, None, x, y, width, height, 0x0010):
                 raise ctypes.WinError(ctypes.get_last_error())
@@ -100,11 +123,13 @@ class NativeHost:
         style = self.user.GetWindowLongPtrW(hwnd, -16)
         center = w.POINT(origin.x + (rect.right - rect.left) // 2, origin.y + (rect.bottom - rect.top) // 2)
         hit = self.user.ChildWindowFromPointEx(self.hwnd, center, 0)
+        overlaps = self.layered_overlaps(hwnd, rect)
         try: frame = json.loads((store.session_path(sid) / 'frame-ready.json').read_text('utf8'))
         except (OSError, ValueError): frame = {}
         return {'ready': True, 'pid': self.pid(hwnd), 'hwnd': str(hwnd), 'parent': str(self.hwnd),
                 'frame_ready': bool(frame), 'frame_ms': frame.get('time_ms'),
                 'owns_stage_hit_test': hit == hwnd, 'stage_hit_hwnd': str(hit),
+                'composition_compatible': not overlaps, 'layered_overlaps': overlaps,
                 'child_style': bool(style & 0x40000000), 'caption': bool(style & 0x00C00000),
                 'visible': bool(style & 0x10000000), 'bounds': {'x': origin.x, 'y': origin.y,
                 'width': rect.right - rect.left, 'height': rect.bottom - rect.top}}

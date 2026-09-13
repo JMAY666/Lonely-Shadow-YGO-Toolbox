@@ -49,10 +49,10 @@ async function waitNativeFrame(id) {
   for (let attempt=0; attempt<80 && app.active?.id===id; attempt++) {
     const state=await api(`/api/native/status?id=${id}`);
     if(app.active?.id!==id)return;
-    if(state.frame_ready){$('#native-loading').hidden=true;return;}
+    if(state.frame_ready && state.visible && state.owns_stage_hit_test && state.composition_compatible){$('#native-loading').hidden=true;return;}
     await new Promise(resolve=>setTimeout(resolve,100));
   }
-  if(app.active?.id===id) $('#native-loading').textContent='场地尚未完成显示，可以结束本次训练后重试。';
+  if(app.active?.id===id) $('#native-loading').textContent='训练场地未能显示，请结束本次训练并重新启动应用。';
 }
 function deckState() { return JSON.stringify({name:$('#deck-name').value.trim(), deck:app.deck}); }
 function dirty() {

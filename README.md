@@ -4,11 +4,13 @@
 
 ## Windows 桌面版
 
+1.0.2 修复“显示训练中，但场地整块空白”：Windows 桌面启动时使用兼容原生子窗口的合成方式，避免网页的独立 DirectComposition 图层覆盖 OpenGL 场地，保留 GPU 加速。准备提示仅在首帧、场地命中和合成兼容检查通过后消失；顶部“查看记录／结束训练”按钮改用清晰的深色底与浅色文字。
+
 1.0.1 将界面收敛为展开记录工具：保留构筑、我方手牌／场地、卡片选择、阶段操作与报告；移除对手状态栏和上半场地底图、辅助／系统设置标签、时点切换、洗切手卡及重复的原生结束按钮。结束操作统一使用工具箱顶部按钮。规则内核仍保留最小双人占位，保证脚本和记录兼容，界面不提供对手玩法。
 
-开场发牌和阶段提示不再等待过场动画；首帧绘制后会清除“正在准备”提示。删除使用页内确认，点击确认／取消后立即处理并恢复构筑选择器焦点，避免等待系统弹窗或延后的关闭帧。旧版本运行中不会被覆盖：请结束当前训练并退出旧版，再从下方 1.0.1 目录启动。
+开场发牌和阶段提示不再等待过场动画；场地完成准备后会清除“正在准备”提示。删除使用页内确认，点击确认／取消后立即处理并恢复构筑选择器焦点，避免等待系统弹窗或延后的关闭帧。旧版本运行中不会被覆盖：请结束当前训练并退出旧版，再从下方 1.0.2 目录启动。
 
-完整解压 `release/1.0.1/YGOTrainer-1.0.1-windows-x64.zip`，双击其中的 `YGOTrainer.exe`。本机已经展开的版本位于 `release/1.0.1/win-unpacked/YGOTrainer.exe`。**必须保留同目录的 DLL、resources 等全部内容，不能只复制 EXE。**
+完整解压 `release/1.0.2/YGOTrainer-1.0.2-windows-x64.zip`，双击其中的 `YGOTrainer.exe`。本机已经展开的版本位于 `release/1.0.2/win-unpacked/YGOTrainer.exe`。**必须保留同目录的 DLL、resources 等全部内容，不能只复制 EXE。**
 
 - 面向 Windows 10/11 x64，包内包含 Electron 44.3.0、Python 3.14.5 嵌入式运行时、YGOPro Lite、卡牌数据库、卡图和 Lua 脚本。启动不需要 Node、Python、开发服务器、外部浏览器或管理员安装步骤。
 - 主窗口自动启动并连接自己的本地服务，使用系统分配的 `127.0.0.1` 端口，避免与旧网页服务或其他软件争用固定端口。同一数据目录重复启动只激活已有桌面窗口。
@@ -32,9 +34,9 @@ npm run test:packaged
 npm run build
 ```
 
-`desktop:prepare` 校验 Python 归档哈希，按白名单生成 `runtime.zip`，只携带所需资源与干净的默认配置；个人卡组、训练记录、旧配置、账号、Bot/WindBot、录像和日志不进入应用包。`build:dir` 生成 `release/1.0.1/win-unpacked/`；`build` 另生成上述 Windows ZIP 包。整个 `release/` 与 `.local/` 均留在本地，不进入 Git。
+`desktop:prepare` 校验 Python 归档哈希，按白名单生成 `runtime.zip`，只携带所需资源与干净的默认配置；个人卡组、训练记录、旧配置、账号、Bot/WindBot、录像和日志不进入应用包。`build:dir` 生成 `release/1.0.2/win-unpacked/`；`build` 另生成上述 Windows ZIP 包。整个 `release/` 与 `.local/` 均留在本地，不进入 Git。
 
-`test:desktop` / `test:packaged` 使用后台 Electron、内置 Python 和真实原生引擎，以隔离数据目录验证 YDK 导入、编辑删除、场地嵌入与缩放、效果发动、通常召唤、报告、重启和关闭。测试通过引擎自己的命中检测和 Irrlicht 事件接口点击，通过渲染驱动捕获场地图像，不使用系统鼠标、全局按键或其他应用窗口。
+`test:desktop` / `test:packaged` 使用后台 Electron、内置 Python 和真实原生引擎，以隔离数据目录验证 YDK 导入、编辑删除、场地嵌入与缩放、效果发动、通常召唤、报告、重启和关闭。验收同时检查场地没有被重叠的分层窗口覆盖，不能仅以原生截图或鼠标命中成功判断场地可显示。测试通过引擎自己的命中检测和 Irrlicht 事件接口点击，通过渲染驱动捕获场地图像，不使用系统鼠标、全局按键或其他应用窗口。
 
 测试脚本显式启用 `YGO_DESKTOP_TEST=1` 与 `YGO_DESKTOP_BACKGROUND=1`：仅测试实例提供内部输入／截图接口并固定随机种子，日志开始行标记 `test_control: true`。正常启动不启用这些接口，继续使用随机起手。验收资料保存在 `.local/evidence/electron-development/` 和 `electron-packaged/`，不覆盖生产数据。
 
@@ -61,7 +63,7 @@ YGOTrainer/
 `npm start` 在首次运行时自动从 `.local/YGOPro-Lite` 备份并迁移到开发数据目录。打包版本不会携带或自动扫描其他机器上的私人数据；首次迁移当前工作副本时使用：
 
 ```powershell
-.\release\1.0.1\win-unpacked\YGOTrainer.exe --import-from "$PWD\.local\YGOPro-Lite"
+.\release\1.0.2\win-unpacked\YGOTrainer.exe --import-from "$PWD\.local\YGOPro-Lite"
 ```
 
 先正常结束旧版训练并停止旧网页服务；源服务仍占用目录或原生训练存活时拒绝迁移。迁移顺序为：完整清点 → 独立备份 → 核对备份和源文件哈希 → 复制到空目标 → 逐文件核对 → 写入完成标记。旧数据保留原处；中途退出可从验证过的备份继续，不覆盖已经产生新修改的目标文件。已使用的桌面数据目录不会被再次导入覆盖；如需另行迁移，使用 `--data-dir "另一个空目录" --import-from "旧副本目录"`。

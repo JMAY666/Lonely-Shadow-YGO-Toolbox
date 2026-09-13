@@ -5,6 +5,11 @@ const fs = require('node:fs');
 const path = require('node:path');
 const readline = require('node:readline');
 
+// Chromium's layered DirectComposition surface can cover the sibling OpenGL
+// child even when that child owns the hit test. Select HWND composition before
+// creating any windows; the renderer and native engine keep GPU acceleration.
+if (process.platform === 'win32') app.commandLine.appendSwitch('disable-direct-composition');
+
 function argument(name) {
   const index = process.argv.indexOf(name);
   if (index < 0) return null;
