@@ -7,11 +7,12 @@ const reasons = {manual:'手动结束',client_closed:'关闭了模拟器窗口',
 const zones = ['main', 'extra', 'side'];
 const zoneLimits = {main:60, extra:15, side:15};
 const app = {token:'',deck:{main:[],extra:[],side:[]},id:null,revision:null,dirty:false,cache:new Map(),pendingCards:new Map(),offset:0,total:0,history:[],active:null,reportId:null,allEvents:false,searchGeneration:0,renderGeneration:0,detailGeneration:0,deckEpoch:0,selected:null,undo:[],savedState:null,busy:false};
+const importState = {generation:0, preview:null, text:'', busy:false};
 const dt = (v) => v ? new Date(v).toLocaleString('zh-CN',{hour12:false}) : '未知';
 const duration = (v) => `${Math.floor(v/60000)} 分 ${Math.floor(v/1000)%60} 秒`;
 let noticeTimer;
 function notice(text){$('#notice').textContent=text;$('#notice').hidden=false;clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>$('#notice').hidden=true,6000);}
-async function api(url, body){const result=await fetch(url,body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json','X-Trainer-Token':app.token},body:JSON.stringify(body)});const data=await result.json();if(!result.ok)throw new Error(data.error||'请求失败');return data;}
+async function api(url, body){const result=await fetch(url,body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json','X-Trainer-Token':app.token},body:JSON.stringify(body)});const data=await result.json();if(!result.ok){const error=new Error(data.error||'请求失败');error.status=result.status;throw error;}return data;}
 function run(fn){return async(...args)=>{try{await fn(...args);}catch(e){notice(e.message);}};}
 async function card(code) {
   if (app.cache.has(code)) return app.cache.get(code);
@@ -43,7 +44,7 @@ function dirty() {
 }
 function updateStart() {
   $('#start-training').disabled = !app.id || app.dirty || !!app.active || app.busy;
-  for (const id of ['save-deck', 'compact-open', 'compact-deck', 'new-deck', 'deck-name']) $(`#${id}`).disabled = app.busy;
+  for (const id of ['save-deck', 'compact-open', 'compact-deck', 'new-deck', 'deck-name', 'import-deck']) $(`#${id}`).disabled = app.busy;
   $('#undo-deck').disabled = app.busy || !app.undo.length;
   $('#sort-deck').disabled = app.busy || !zones.some(zone => app.deck[zone].length);
 }
@@ -168,7 +169,7 @@ async function renderDeck() {
     grid.innerHTML = codes.map((code,index) => {
       const c = app.cache.get(code) || {name:`未知卡牌 ${code}`};
       return `<button class="card-tile deck-card" data-detail="${code}" data-from="${zone}" data-index="${index}" aria-label="${escape(zoneNames[zone])}第 ${index+1} 张：${escape(c.name)}" title="${escape(c.name)} · 右键移除一张"><img src="/pics/${code}.jpg" alt="" draggable="false"></button>`;
-    }).join('') || `<div class="zone-empty"><span>＋</span>${zone === 'main' ? '从右侧搜索卡牌，开始构筑' : `尚未加入${zoneNames[zone]}`}</div>`;
+    }).join('') || `<div class="zone-empty">${zone === 'main' ? '<button data-open-import="true">导入 YDK 卡组</button><small>也可以从右侧搜索卡牌</small>' : `<span>＋</span>尚未加入${zoneNames[zone]}`}</div>`;
   }
   $('#deck-total').textContent = `${zones.reduce((sum,zone) => sum + app.deck[zone].length, 0)} 张`;
   fitDeckGrid();
@@ -264,6 +265,183 @@ async function search() {
     if (generation === app.searchGeneration) $('#search-results').setAttribute('aria-busy', 'false');
   }
 }
+async function previewYdk(text) {
+  if (typeof text !== 'string') throw new Error('请提供 YDK 文件的文本内容。');
+  if (new TextEncoder().encode(text).length > 32 * 1024) throw new Error('YDK 文件不能超过 32 KB。');
+  const lines = text.replace(/^\ufeff/, '').split(/\r\n|\n|\r/);
+  if (lines.at(-1) === '') lines.pop();
+  if (lines.length > 1000) throw new Error('YDK 文件行数过多，最多支持 1000 行。');
+  const deck = {main:[],extra:[],side:[]}, errors = [], warnings = [], entries = [], seen = new Set();
+  const markers = {'#main':'main','#extra':'extra','!side':'side'};
+  let zone = null;
+  lines.forEach((raw,index) => {
+    const line = raw.trim(), number = index + 1, marker = line.toLowerCase();
+    if (!line) return;
+    if (Object.hasOwn(markers, marker)) {
+      zone = markers[marker];
+      if (seen.has(zone)) errors.push(`第 ${number} 行：${zoneNames[zone]}的分区标记重复，请只导入一副卡组。`);
+      seen.add(zone);
+      return;
+    }
+    if (['#side','!main','!extra'].includes(marker)) return errors.push(`第 ${number} 行：分区标记无效，请使用 #main、#extra 和 !side。`);
+    if (line.startsWith('#')) return;
+    if (!zone) return errors.push(`第 ${number} 行：卡号前缺少 #main、#extra 或 !side 分区标记。`);
+    if (!/^[0-9]{1,10}$/.test(line) || Number(line) <= 0 || Number(line) > 0xffffffff) return errors.push(`第 ${number} 行：需要有效的数字卡号，不能使用卡名、数量写法或网页链接。`);
+    const code = Number(line);
+    deck[zone].push(code);
+    entries.push({code,zone,number});
+  });
+  if (!seen.has('main')) errors.unshift('未找到 #main 分区标记。请选择 .ydk 文件，或粘贴完整的 YDK 内容。');
+  if (!entries.length) errors.push('文件中没有可识别的卡牌。');
+  for (const zone of zones) if (deck[zone].length > zoneLimits[zone]) errors.push(`${zoneNames[zone]}有 ${deck[zone].length} 张，超过 ${zoneLimits[zone]} 张上限，请修正后重新解析。`);
+  const codes = [...new Set(entries.map(entry => entry.code))], catalog = new Map();
+  // Limit concurrent local lookups for large or malformed files.
+  let cursor = 0;
+  await Promise.all(Array.from({length:Math.min(8,codes.length)}, async () => {
+    while (cursor < codes.length) {
+      const code = codes[cursor++];
+      try { catalog.set(code, await card(code)); }
+      catch (e) {
+        if (e.status === 400) catalog.set(code, null);
+        else throw new Error('暂时无法读取本地卡牌资料，请确认服务正常后重新解析。');
+      }
+    }
+  }));
+  for (const {code,zone,number} of entries) {
+    const c = catalog.get(code);
+    if (!c) errors.push(`第 ${number} 行：本地数据库找不到卡号 ${code}，请核对卡号或卡牌资源。`);
+    else if (c.type & 0x4000) errors.push(`第 ${number} 行：${c.name}是衍生物，不能加入构筑。`);
+    else if (zone !== 'side' && !!c.extra !== (zone === 'extra')) errors.push(`第 ${number} 行：${c.name}的分区不正确，应放在 ${c.extra ? '#extra' : '#main'} 下。`);
+  }
+  if (deck.main.length < 40) warnings.push(`主卡组目前 ${deck.main.length} 张，可以先导入编辑；开始训练需要 40–60 张。`);
+  const missingScripts = new Set([...deck.main,...deck.extra].filter(code => {
+    const c = catalog.get(code);
+    return c && !(c.type & 0x10) && !c.script_available;
+  }));
+  if (missingScripts.size) warnings.push(`${missingScripts.size} 种卡牌缺少本地效果脚本，可以导入编辑，补齐脚本后才能训练。`);
+  const cards = Object.fromEntries(zones.map(zone => {
+    const quantities = new Map();
+    deck[zone].forEach(code => quantities.set(code, (quantities.get(code) || 0) + 1));
+    return [zone, [...quantities].map(([code,quantity]) => ({id:code, name:catalog.get(code)?.name || `未知卡牌 ${code}`, quantity}))];
+  }));
+  return {format:'YDK',deck,cards,counts:Object.fromEntries(zones.map(zone => [zone,deck[zone].length])),errors,warnings,can_import:errors.length === 0};
+}
+function setImportBusy(busy) {
+  importState.busy = busy;
+  $('#import-preview').disabled = busy || !$('#import-text').value.trim();
+  $('#import-apply').disabled = busy || !importState.preview?.can_import;
+  for (const id of ['import-file','import-text','import-name','import-close','import-cancel']) $(`#${id}`).disabled = app.busy;
+}
+function invalidateImport(message = '内容已修改，请点击“解析内容”重新检查。') {
+  ++importState.generation;
+  importState.preview = null;
+  importState.text = '';
+  $('#import-result').innerHTML = '';
+  $('#import-status').classList.remove('has-errors');
+  $('#import-status').textContent = message;
+  setImportBusy(false);
+}
+function openImport() {
+  if (app.busy) return;
+  if (!$('#import-dialog').open) $('#import-dialog').showModal();
+  setImportBusy(false);
+}
+function importError(message) {
+  importState.preview = null;
+  $('#import-result').innerHTML = '';
+  $('#import-status').classList.add('has-errors');
+  $('#import-status').textContent = message;
+  setImportBusy(false);
+}
+async function loadYdkFile(file) {
+  if (app.busy || !file) return;
+  invalidateImport('正在读取文件…');
+  const generation = importState.generation;
+  $('#import-text').value = '';
+  $('#import-file-info').textContent = file.name;
+  if (!/\.ydk$/i.test(file.name)) return importError('请选择 .ydk 卡组文件。卡组截图、压缩包和网页链接不能作为 YDK 文件导入。');
+  if (file.size > 32 * 1024) return importError('YDK 文件不能超过 32 KB。');
+  setImportBusy(true);
+  try {
+    const text = await file.text();
+    if (generation !== importState.generation || !$('#import-dialog').open) return;
+    $('#import-text').value = text;
+    $('#import-name').value = file.name.replace(/\.ydk$/i, '').slice(0,80) || '导入构筑';
+    await previewImport();
+  } catch (e) {
+    if (generation === importState.generation) importError(`无法读取文件：${e.message}`);
+  }
+}
+async function previewImport() {
+  if (app.busy) return;
+  invalidateImport('正在识别卡牌与分区…');
+  const generation = importState.generation;
+  const text = $('#import-text').value;
+  if (!text.trim()) return importError('请先选择 YDK 文件，或粘贴文件内容。');
+  if (new TextEncoder().encode(text).length > 32 * 1024) return importError('YDK 内容不能超过 32 KB。');
+  setImportBusy(true);
+  try {
+    const result = await previewYdk(text);
+    if (generation !== importState.generation || !$('#import-dialog').open) return;
+    importState.preview = result;
+    importState.text = text;
+    $('#import-status').textContent = result.can_import ? 'YDK 已解析，可以整副导入。' : `检测到 ${result.errors.length} 处问题，修正后再导入。`;
+    $('#import-status').classList.toggle('has-errors', !result.can_import);
+    $('#import-result').innerHTML = `
+      <div class="import-counts">${zones.map(zone => `<span>${zoneNames[zone]} <b>${result.counts[zone]}</b> 张</span>`).join('')}</div>
+      ${result.errors.length ? `<ul class="import-errors">${result.errors.map(message => `<li>${escape(message)}</li>`).join('')}</ul>` : ''}
+      ${result.warnings.length ? `<ul class="import-warnings">${result.warnings.map(message => `<li>${escape(message)}</li>`).join('')}</ul>` : ''}
+      <div class="import-cards">${zones.map(zone => `<section><h3>${zoneNames[zone]}</h3><ul>${result.cards[zone].map(c => `<li><span>${escape(c.name)}<small>${String(c.id).padStart(8,'0')}</small></span><b>×${c.quantity}</b></li>`).join('') || '<li class="import-zone-empty">空</li>'}</ul></section>`).join('')}</div>`;
+  } catch (e) {
+    if (generation === importState.generation) importError(e.message);
+  } finally {
+    if (generation === importState.generation) setImportBusy(false);
+  }
+}
+function availableImportName(name, decks) {
+  let base = name.replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_').trim().slice(0,60).replace(/[. ]+$/g, '') || '导入构筑';
+  if (/^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\.|$)/i.test(base)) base = '导入-' + base;
+  const existing = new Set(decks.filter(d => d.source === 'library').map(d => d.name.toLowerCase()));
+  let candidate = base, number = 1;
+  while (existing.has(candidate.toLowerCase())) {
+    candidate = `${base} - 导入${number === 1 ? '' : ` (${number})`}`;
+    number++;
+  }
+  return candidate;
+}
+async function applyImportedDeck() {
+  const preview = importState.preview;
+  if (app.busy || importState.busy || !preview?.can_import) return;
+  if (importState.text !== $('#import-text').value) return invalidateImport();
+  if (app.dirty && !confirm('当前构筑有未保存修改。导入会把编辑区切换为新构筑，是否放弃当前未保存修改并继续？')) return;
+  const generation = importState.generation;
+  app.busy = true;
+  updateStart();
+  setImportBusy(true);
+  try {
+    const decks = await api('/api/decks');
+    if (generation !== importState.generation || !$('#import-dialog').open) return;
+    const name = availableImportName($('#import-name').value, decks);
+    ++app.deckEpoch;
+    app.deck = structuredClone(preview.deck);
+    app.id = null;
+    app.revision = null;
+    app.undo = [];
+    app.savedState = null;
+    $('#deck-name').value = name;
+    $('#compact-deck').value = '';
+    dirty();
+    switchView('decks');
+    await renderDeck();
+    $('#deck-cards').scrollTop = 0;
+    const first = zones.flatMap(zone => app.deck[zone])[0];
+    if (first) await showCard(first);
+    $('#import-dialog').close();
+    notice(`已导入“${name}”，点击“保存构筑”保存为新构筑。`);
+  } catch (e) {
+    importError(e.message);
+  } finally { app.busy = false; updateStart(); updateDetailCounts(); setImportBusy(false); }
+}
 async function saveDeck() {
   if (app.busy) return;
   let name = $('#deck-name').value.trim();
@@ -316,6 +494,7 @@ async function showReport(id, navigate = true) {
 document.addEventListener('click', run(async e => {
   const b = e.target.closest('button');
   if (!b || b.disabled) return;
+  if (b.dataset.openImport) return openImport();
   if (b.dataset.detail) return showCard(Number(b.dataset.detail));
   if (b.dataset.add) return addCard(Number(b.dataset.add), b.dataset.to);
   if (b.dataset.remove) return removeCard(Number(b.dataset.remove), b.dataset.from);
@@ -332,7 +511,7 @@ document.addEventListener('contextmenu', run(async e => {
   await removeCard(Number(tile.dataset.detail), tile.dataset.from, Number(tile.dataset.index));
 }));
 document.addEventListener('keydown', run(async e => {
-  if ($('#editor').hidden || e.target.closest('input,select,textarea,[contenteditable="true"]')) return;
+  if ($('#editor').hidden || $('#import-dialog').open || e.target.closest('input,select,textarea,[contenteditable="true"]')) return;
   if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
     e.preventDefault();
     await undoDeck();
@@ -343,6 +522,35 @@ $('#save-deck').onclick=run(saveDeck);$('#deck-name').oninput=dirty;
 $('#undo-deck').onclick = run(undoDeck);
 $('#sort-deck').onclick = run(sortDeck);
 $('#new-deck').onclick = run(newDeck);
+$('#import-deck').onclick = openImport;
+$('#import-file').onchange = run(async e => {
+  const file = e.target.files[0];
+  e.target.value = '';
+  await loadYdkFile(file);
+});
+$('#import-text').oninput = () => {
+  $('#import-file-info').textContent = '当前使用粘贴的 YDK 内容。';
+  invalidateImport();
+};
+$('#import-preview').onclick = run(previewImport);
+$('#import-apply').onclick = run(applyImportedDeck);
+$('#import-close').onclick = $('#import-cancel').onclick = () => $('#import-dialog').close();
+$('#import-dialog').onclose = () => invalidateImport('选择文件或点击“解析内容”重新检查。');
+$('#import-dialog').oncancel = e => { if (app.busy) e.preventDefault(); };
+document.addEventListener('dragover', e => {
+  if (!$('#editor').hidden && Array.from(e.dataTransfer?.types || []).includes('Files')) e.preventDefault();
+});
+document.addEventListener('drop', run(async e => {
+  if ($('#editor').hidden || !Array.from(e.dataTransfer?.types || []).includes('Files')) return;
+  e.preventDefault();
+  if (app.busy) return;
+  openImport();
+  if (e.dataTransfer.files.length !== 1) {
+    invalidateImport();
+    return importError('请一次拖入一个 YDK 文件，避免混合多副卡组。');
+  }
+  await loadYdkFile(e.dataTransfer.files[0]);
+}));
 let searchTimer;
 function submitSearch() { clearTimeout(searchTimer); app.offset = 0; return search(); }
 $('#search').oninput = () => {

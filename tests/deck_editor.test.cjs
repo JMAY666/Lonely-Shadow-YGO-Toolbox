@@ -24,19 +24,20 @@ function setup() {
     if (!elements.has(selector)) elements.set(selector, {
       value: selector === '#deck-name' ? '测试构筑' : '', textContent:'', innerHTML:'',
       disabled:false, hidden:false, clientHeight:0, scrollHeight:0,
-      classList:{toggle() {}}, style:{setProperty() {}},
+      classList:{toggle() {}, add() {}, remove() {}}, style:{setProperty() {}},
+      open:false, showModal() { this.open = true; }, close() { this.open = false; },
       setAttribute() {}, removeAttribute() {},
     });
     return elements.get(selector);
   }
   const context = vm.createContext({
     document:{querySelector:node, querySelectorAll:() => [], activeElement:null, body:{classList:{toggle() {}}}},
-    window:{innerWidth:1280}, structuredClone, setTimeout:() => 1, clearTimeout() {}, confirm:() => true,
+    window:{innerWidth:1280}, structuredClone, TextEncoder, setTimeout:() => 1, clearTimeout() {}, confirm:() => true,
     fetch:async () => { throw new Error('Unexpected network request'); },
   });
-  vm.runInContext(editorSource + '\nglobalThis.editor = {app, card, addCard, removeCard, undoDeck, sortDeck, renderDeck, showCard, search, saveDeck, openDeck, newDeck, deckState, dirty};', context);
+  vm.runInContext(editorSource + '\nglobalThis.editor = {app, card, addCard, removeCard, undoDeck, sortDeck, renderDeck, showCard, search, saveDeck, openDeck, newDeck, deckState, dirty, importState, invalidateImport, previewImport, previewYdk, loadYdkFile, applyImportedDeck, availableImportName};', context);
   const editor = context.editor;
-  for (const c of cards) editor.app.cache.set(c.id, {...c});
+  for (const c of cards) editor.app.cache.set(c.id, {...c,script_available:true});
   editor.app.savedState = editor.deckState();
   return {...editor, node, context};
 }
@@ -209,4 +210,183 @@ test('saving an existing construct keeps its source id and requests a practice c
   assert.equal(e.app.id, 'library/测试构筑 - 练习.ydk');
   assert.equal(e.app.dirty, false);
   assert.equal(e.node('#start-training').disabled, false);
+});
+
+function importPreview(overrides = {}) {
+  return {can_import:true, deck:{main:[101,102,101],extra:[201],side:[101]},
+    counts:{main:3,extra:1,side:1}, cards:{main:[{id:101,name:'测试怪兽甲',quantity:2}],extra:[],side:[]},
+    errors:[], warnings:[], ...overrides};
+}
+
+test('import preview does not change the current construct and escapes diagnostics', async () => {
+  const e = setup();
+  e.app.deck.main = [102];
+  e.node('#import-dialog').open = true;
+  e.node('#import-text').value = '#main\n99999';
+  e.context.previewYdk = async () => importPreview({can_import:false, errors:['<script>invalid</script>']});
+  await e.previewImport();
+  assert.deepEqual(plain(e.app.deck.main), [102]);
+  assert.equal(e.node('#import-apply').disabled, true);
+  assert.match(e.node('#import-result').innerHTML, /&lt;script&gt;/);
+  assert.doesNotMatch(e.node('#import-result').innerHTML, /<script>/);
+});
+
+test('changed import text invalidates late preview responses', async () => {
+  const e = setup(), request = deferred();
+  e.node('#import-dialog').open = true;
+  e.node('#import-text').value = '#main\n101';
+  e.context.previewYdk = () => request.promise;
+  const pending = e.previewImport();
+  e.node('#import-text').value = '#main\n102';
+  e.invalidateImport();
+  request.resolve(importPreview());
+  await pending;
+  assert.equal(e.importState.preview, null);
+  assert.equal(e.node('#import-apply').disabled, true);
+});
+
+test('file import reads once and requests preview automatically', async () => {
+  const e = setup();
+  e.node('#import-dialog').open = true;
+  let reads = 0, requests = 0;
+  e.context.previewYdk = async text => {
+    requests++;
+    assert.equal(text, '#main\n101');
+    return importPreview();
+  };
+  await e.loadYdkFile({name:'测试卡组.YDK',size:10,text:async () => { reads++; return '#main\n101'; }});
+  assert.equal(reads, 1);
+  assert.equal(requests, 1);
+  assert.equal(e.node('#import-name').value, '测试卡组');
+  assert.equal(e.node('#import-apply').disabled, false);
+  await e.loadYdkFile({name:'photo.png',size:1,text:async () => { throw new Error('must not read'); }});
+  assert.equal(e.node('#import-apply').disabled, true);
+  assert.equal(requests, 1);
+});
+
+test('applying an import starts a new unsaved construct and keeps every copy and zone', async () => {
+  const e = setup();
+  e.app.id = 'library/existing.ydk';
+  e.app.revision = 'existing-revision';
+  e.node('#import-dialog').open = true;
+  e.node('#import-text').value = e.importState.text = '#main\n101\n102\n101\n#extra\n201\n!side\n101';
+  e.node('#import-name').value = 'Existing';
+  e.importState.preview = importPreview();
+  e.context.api = async url => {
+    assert.equal(url, '/api/decks');
+    return [{source:'library',name:'existing'}];
+  };
+  await e.applyImportedDeck();
+  assert.deepEqual(plain(e.app.deck), {main:[101,102,101],extra:[201],side:[101]});
+  assert.equal(e.app.id, null);
+  assert.equal(e.app.revision, null);
+  assert.equal(e.app.dirty, true);
+  assert.equal(e.node('#deck-name').value, 'Existing - 导入');
+  assert.equal(e.node('#start-training').disabled, true);
+});
+
+test('canceling replacement preserves unsaved edits and never fetches or saves', async () => {
+  const e = setup();
+  e.app.deck.main = [102];
+  e.app.dirty = true;
+  e.context.confirm = () => false;
+  e.node('#import-text').value = e.importState.text = '#main\n101';
+  e.importState.preview = importPreview();
+  e.context.api = () => { throw new Error('must not request'); };
+  await e.applyImportedDeck();
+  assert.deepEqual(plain(e.app.deck.main), [102]);
+  assert.equal(e.app.dirty, true);
+});
+
+test('import names handle Windows reserved names and multiple case-insensitive collisions', () => {
+  const e = setup();
+  assert.equal(e.availableImportName('Deck', [{source:'library',name:'deck'},{source:'library',name:'DECK - 导入'}]), 'Deck - 导入 (2)');
+  assert.equal(e.availableImportName('CON', []), '导入-CON');
+  assert.equal(e.availableImportName('../bad:name', []), '.._bad_name');
+});
+
+test('YDK preserves BOM/CRLF, passcode order, duplicate counts and all zones', async () => {
+  const e = setup();
+  const p = await e.previewYdk('\ufeff#created by test\r\n#main\r\n00101\r\n102\r\n101\r\n#extra\r\n201\r\n!side\r\n201\r\n101\r\n');
+  assert.equal(p.can_import, true);
+  assert.deepEqual(plain(p.deck), {main:[101,102,101],extra:[201],side:[201,101]});
+  assert.deepEqual(plain(p.cards.main.map(c => [c.id,c.quantity])), [[101,2],[102,1]]);
+});
+
+test('YDK accepts optional empty sections and complete free-practice decks', async () => {
+  const e = setup();
+  assert.equal((await e.previewYdk('#MAIN\n101')).can_import, true);
+  const p = await e.previewYdk('#main\n' + '101\n'.repeat(40) + '#extra\n' + '201\n'.repeat(15) + '!side\n' + '102\n'.repeat(15));
+  assert.equal(p.can_import, true);
+  assert.deepEqual(plain(p.counts), {main:40,extra:15,side:15});
+  assert.deepEqual(plain(p.warnings), []);
+});
+
+test('YDK reports unknown passcodes without dropping them or changing the current deck', async () => {
+  const e = setup();
+  e.app.deck.main = [102];
+  e.context.api = async () => { const error = new Error('missing'); error.status = 400; throw error; };
+  const p = await e.previewYdk('#main\n101\n4294967295');
+  assert.equal(p.can_import, false);
+  assert.deepEqual(plain(p.deck.main), [101,4294967295]);
+  assert.match(p.errors.join(' '), /第 3 行.*4294967295/);
+  assert.deepEqual(plain(e.app.deck.main), [102]);
+});
+
+test('YDK rejects invalid lines and missing, misspelled or repeated sections', async () => {
+  const e = setup();
+  for (const line of ['101 x3','测试怪兽','https://example.com/deck','-1','0','4294967296','!unknown']) {
+    const p = await e.previewYdk('#main\n101\n' + line);
+    assert.equal(p.can_import, false, line);
+    assert.match(p.errors.join(' '), /第 3 行/);
+  }
+  for (const text of ['101','#main\n101\n#side\n101','#main\n101\n#main\n102','#main\n101\n!extra\n201']) {
+    assert.equal((await e.previewYdk(text)).can_import, false, text);
+  }
+});
+
+test('YDK rejects tokens and incorrect card zones and never truncates over-capacity decks', async () => {
+  const e = setup();
+  for (const text of ['#main\n501','#main\n201','#main\n101\n#extra\n102','#main\n101\n!side\n501']) {
+    assert.equal((await e.previewYdk(text)).can_import, false, text);
+  }
+  for (const [marker,zone,code,count] of [['#main','main',101,61],['#extra','extra',201,16],['!side','side',101,16]]) {
+    const p = await e.previewYdk((zone === 'main' ? '' : '#main\n101\n') + marker + '\n' + (code+'\n').repeat(count));
+    assert.equal(p.can_import, false);
+    assert.equal(p.deck[zone].length, count);
+  }
+});
+
+test('YDK distinguishes draft warnings from parse errors and connection failures', async () => {
+  const e = setup();
+  e.app.cache.get(101).script_available = false;
+  const p = await e.previewYdk('#main\n101');
+  assert.equal(p.can_import, true);
+  assert.equal(p.warnings.length, 2);
+  e.context.api = async () => { throw new Error('network failure'); };
+  await assert.rejects(e.previewYdk('#main\n999'), /无法读取本地卡牌资料/);
+  for (const text of ['', '\ufeff', '#main\n#extra\n!side', '\0\1\2']) {
+    assert.equal((await e.previewYdk(text)).can_import, false);
+  }
+  for (const text of [null, [], 'x'.repeat(32769), '\n'.repeat(1002)]) {
+    await assert.rejects(e.previewYdk(text));
+  }
+});
+
+test('dropping a YDK file opens preview while multiple files are rejected without changing the deck', async () => {
+  const e = setup(), handlers = new Map();
+  e.context.document.addEventListener = (name, callback) => handlers.set(name, callback);
+  vm.runInContext(source.slice(source.indexOf("document.addEventListener('dragover'"), source.indexOf('let searchTimer;')), e.context);
+  e.context.previewYdk = async text => { assert.equal(text, '#main\n101'); return importPreview(); };
+  const file = {name:'drag.ydk',size:10,text:async () => '#main\n101'};
+  let prevented = false;
+  await handlers.get('drop')({dataTransfer:{types:['Files'],files:[file]},preventDefault() { prevented = true; }});
+  assert.equal(prevented, true);
+  assert.equal(e.node('#import-dialog').open, true);
+  assert.equal(e.node('#import-apply').disabled, false);
+  assert.deepEqual(plain(e.app.deck.main), []);
+  await handlers.get('drop')({dataTransfer:{types:['Files'],files:[file,file]},preventDefault() {}});
+  assert.equal(e.node('#import-apply').disabled, true);
+  assert.match(e.node('#import-status').textContent, /一次拖入一个/);
+  assert.deepEqual(plain(e.app.deck.main), []);
 });

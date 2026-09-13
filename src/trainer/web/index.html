@@ -29,6 +29,7 @@
           <select id="compact-deck" aria-label="选择已有构筑"><option value="">选择已有构筑</option></select>
           <button id="compact-open">打开</button>
           <button id="new-deck">新建</button>
+          <button id="import-deck" class="import-button">导入卡组</button>
         </div>
         <div class="save-actions">
           <button id="save-deck" class="save-button">保存构筑</button>
@@ -36,6 +37,21 @@
         </div>
       </div>
     </header>
+    <dialog id="import-dialog" class="import-dialog" aria-labelledby="import-title">
+      <div class="import-heading"><div><h2 id="import-title">导入 YDK 卡组</h2><p>一次载入整副卡组，再按需微调。</p></div><button id="import-close" aria-label="关闭导入">×</button></div>
+      <div class="import-body">
+        <div id="import-drop" class="import-drop">
+          <label for="import-file">选择 .ydk 文件，或把文件拖到这里</label>
+          <input id="import-file" type="file" accept=".ydk" aria-label="选择 YDK 卡组文件">
+          <small id="import-file-info">文件仅在本机读取，最多 32 KB。也可以直接拖到卡组编辑页。</small>
+        </div>
+        <details class="import-paste"><summary>或粘贴 YDK 文件内容</summary><label for="import-text">YDK 内容</label><textarea id="import-text" spellcheck="false" placeholder="#main&#10;89631139&#10;89631139&#10;#extra&#10;23995346&#10;!side"></textarea><button id="import-preview">解析内容</button></details>
+        <div class="import-name-row"><label for="import-name">构筑名称</label><input id="import-name" value="导入构筑" maxlength="80"><small>同名时自动添加后缀</small></div>
+        <div id="import-status" class="import-status" role="status" aria-live="polite">选择文件后，将在这里显示张数和卡牌清单。</div>
+        <div id="import-result"></div>
+      </div>
+      <div class="import-footer"><small>载入后点击“保存构筑”保存为新构筑。</small><button id="import-cancel">取消</button><button id="import-apply" class="primary" disabled>导入为新构筑</button></div>
+    </dialog>
     <div id="active-training" class="training-banner" hidden>
       <div><strong id="active-title">训练进行中</strong><p id="active-info">请在模拟器窗口操作；过程会自动保存。</p></div>
       <button id="end-training" class="danger">结束训练</button><button id="view-live">查看当前记录</button>
