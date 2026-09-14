@@ -6,6 +6,7 @@ import json
 from protocol import NAMES, PROMPTS, packets, u32, location
 from actions import project_actions
 from card_semantics import material_method, summon_method
+from timeline import route_rows
 
 REPORT_VERSION = 6
 
@@ -40,6 +41,8 @@ def read_journal(path, session):
 
 
 def build_report(meta, rows, issues):
+    source_count = len(rows)
+    rows = route_rows(rows)[0]
     report = deepcopy(meta)
     report.update(events=[], initial_hand=None, final_state=None, loaded_verified=False,
                   warnings=list(issues), limitations=LIMITS, statistics={})
@@ -292,5 +295,6 @@ def build_report(meta, rows, issues):
     report['statistics_note'] = '抽卡统计仅包含引擎标记的效果抽卡，排除起手和规则抽卡；特殊召唤按成功事件计数。'
     report['report_version'] = REPORT_VERSION
     report['duration_ms'] = max(0, (report.get('ended_ms') or (rows[-1]['time_ms'] if rows else meta['started_ms'])) - meta['started_ms'])
-    report['record_count'] = len(rows)
+    report['record_count'] = source_count
+    report['active_record_count'] = len(rows)
     return report

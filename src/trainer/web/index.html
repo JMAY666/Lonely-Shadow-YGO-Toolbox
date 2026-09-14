@@ -142,7 +142,16 @@
   <dialog id="flow-dialog" class="delete-dialog" aria-labelledby="flow-message"><form method="dialog"><h2 id="flow-message"></h2><p id="flow-warning"></p><div class="delete-actions"><button id="flow-cancel" value="cancel" autofocus>取消</button><button id="flow-confirm" value="confirm">确认</button></div></form></dialog>
   <section id="training" hidden aria-label="展开场地">
     <header class="training-toolbar"><div><h2 id="training-title">展开场地</h2><p id="training-description">过程正在记录，展开结束后检查草稿并保存方案。</p><span id="expansion-timer" hidden></span><span id="timer-expired" role="status" hidden>倒计时已结束，场地可继续操作。</span></div><button id="training-report">查看记录</button><button id="return-conditions">返回修改条件</button><button id="restart-expansion">重新展开</button><button id="finish-training" class="danger">展开结束</button></header>
-    <div id="native-stage"><p id="native-loading">正在准备展开场地……</p></div>
+    <div id="native-stage">
+      <aside id="expansion-timeline" aria-label="展开时间轴">
+        <header><h3>展开时间轴</h3><small>回到某一步完成后的场地</small></header>
+        <p class="timeline-help">要撤销一步，请选择它的前一个节点。重新操作后，旧的后续步骤将退出当前路线。</p>
+        <p id="rewind-status" role="status" aria-live="polite"></p>
+        <ol id="rewind-nodes"><li>正在等待初始状态……</li></ol>
+        <p class="timeline-boundary">连锁及连续选择合并至结算完成的节点。</p>
+      </aside>
+      <p id="native-loading">正在准备展开场地……</p>
+    </div>
   </section>
   <section id="history" hidden>
     <header><div><div class="eyebrow">03 / REVIEW & SAVE</div><h1>展开方案调整与保存</h1><p>检查待确认草稿，再保存为正式方案。原训练历史完整保留在下方记录列表中。</p></div><button id="refresh-history">刷新记录</button></header>
@@ -153,6 +162,6 @@
     <div class="history-layout"><div id="plan-list" class="panel history-list"></div><article id="plan-report" class="panel report"><div class="empty">选择已保存方案查看。</div></article></div>
   </section>
 </main>
-<script src="/report-view.js"></script><script src="/app.js"></script><script src="/expansion.js"></script>
+<script src="/report-view.js"></script><script src="/app.js"></script><script src="/expansion.js"></script><script src="/timeline.js"></script>
 </body>
 </html>

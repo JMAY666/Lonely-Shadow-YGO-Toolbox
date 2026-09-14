@@ -127,6 +127,13 @@ async function activatePot(sid) {
 
 (async () => {
   await launch(true);
+  if(process.argv.includes('--timeline-only')) {
+    await require('./timeline-effects-smoke.cjs')({page,nativeWait,nativeState,hostWait,waitHistory,pass,evidence});
+    await close();
+    assert.deepEqual(errors,[]);
+    fs.writeFileSync(path.join(evidence,'timeline-only-result.json'),JSON.stringify({checks,errors},null,2));
+    return;
+  }
   const bootstrap = await (await fetch(`${service.url}/api/bootstrap`)).json();
   assert.equal(bootstrap.cards, 14981);
   pass('Desktop window, isolated renderer, embedded Python and local catalog');
@@ -240,6 +247,7 @@ async function activatePot(sid) {
   zone=state.targets.find(t=>t.location===4 && t.sequence===0);
   await nativeState(sessionId,'click',{x:zone.x,y:zone.y});
   state=await nativeWait(sessionId,s=>s.prompt===11 && s.targets.some(t=>t.location===4 && t.code===1184620));
+  await require('./timeline-smoke.cjs')({page,sid:sessionId,sessionPath,nativeWait,nativeState,pass,evidence});
   fs.copyFileSync(path.join(evidence,'native-latest.png'),path.join(evidence,'embedded-board.png'));
   const originalViewport = await page.evaluate(()=>({width:innerWidth,height:innerHeight}));
   await application.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().find(w=>!w.getParentWindow()).setContentSize(1100,800));
@@ -399,6 +407,15 @@ async function activatePot(sid) {
   await activatePot(aiId);
   const repeatedAI=await (await fetch(`${service.url}/api/report/${aiId}`)).json();
   assert.equal(repeatedAI.statistics['效果抽卡'],0);
+  const aiTimeline=await page.evaluate(id=>api(`/api/timeline/${id}`),aiId);
+  assert(aiTimeline.nodes.some(n=>n.steps.filter(s=>s.kind==='effect').length===2),'Both links must share the completed-chain restore boundary, alongside any retained rule evidence');
+  await page.evaluate(()=>refreshTimeline());
+  await page.locator(`[data-rewind="${aiTimeline.nodes[0].id}"]`).click();
+  await page.waitForFunction(()=>!rewindState.busy,null,{timeout:30000});
+  assert.deepEqual((await (await fetch(`${service.url}/api/report/${aiId}`)).json()).final_state,aiInitial.final_state);
+  await activatePot(aiId);
+  assert.deepEqual((await (await fetch(`${service.url}/api/report/${aiId}`)).json()).final_state,repeatedAI.final_state);
+  pass('Multi-link Ash Blossom chain rewinds both sides and replays identically; chain links share one legal node');
   let aiState=await nativeWait(aiId,s=>s.prompt===11&&s.buttons.some(b=>b.text==='ＥＰ'));
   const endPhase=aiState.buttons.find(b=>b.text==='ＥＰ');
   await nativeState(aiId,'click',{x:endPhase.x,y:endPhase.y});
@@ -443,6 +460,7 @@ async function activatePot(sid) {
   await page.locator('#finish-training').click();await waitHistory('completed');
   pass('Whole-hand ban occupies no slot, leaves all banned copies in the deck, and real effect draws can draw them later');
   await require('./expansion-settings-smoke.cjs')({page,nativeWait,nativeState,hostWait,waitHistory,pass,evidence});
+  await require('./timeline-effects-smoke.cjs')({page,nativeWait,nativeState,hostWait,waitHistory,pass,evidence});
   await page.locator('#nav-decks').click();
   await page.evaluate(async id=>{const current=await api(`/api/deck?id=${encodeURIComponent(id)}`);await api('/api/decks',{...current,deck:{...current.deck,side:[]}});},deckId);
   assert.deepEqual(await (await fetch(`${service.url}/api/plan/${sessionId}`)).json(),report);

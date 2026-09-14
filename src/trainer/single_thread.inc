@@ -70,30 +70,67 @@
     set_script_reader(DataManager::ScriptReaderEx);
     set_card_reader(DataManager::CardReader);
     set_message_handler(SingleMode::MessageHandler);
-    pduel = create_duel_v2(seeds);
-    set_player_info(pduel, 0, playerLP, handCount, 1);
     const bool opponentAI = TrainingOpponentAI();
-    set_player_info(pduel, 1, opponentLP, opponentAI ? opponentHand : 0, opponentAI ? 1 : 0);
-    auto field = reinterpret_cast<duel*>(pduel)->game_field;
-    field->core.first_player = firstPlayer;
-    field->core.simple_ai_responses = responses != 0;
-    if(drawOrder.empty()) {
-        for(auto c : deck.main) new_card(pduel, c->code, 0, 0, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
-    } else {
-        for(auto it = drawOrder.rbegin(); it != drawOrder.rend(); ++it)
-            new_card(pduel, *it, 0, 0, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
-    }
-    for(auto c : deck.extra) new_card(pduel, c->code, 0, 0, LOCATION_EXTRA, 0, POS_FACEDOWN_DEFENSE);
-    if(opponentAI && configuredOpponent) {
-        for(auto it = opponentOrder.rbegin(); it != opponentOrder.rend(); ++it)
-            new_card(pduel, *it, 1, 1, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
-        for(auto code : opponentExtra) new_card(pduel, code, 1, 1, LOCATION_EXTRA, 0, POS_FACEDOWN_DEFENSE);
-    } else if(opponentAI) {
-        // basic-ash-v1: 3 Ash Blossom + 37 normal monsters; Ash + 4 normals in the initial hand.
-        for(int i = 0; i < 2; ++i) new_card(pduel, 14558127, 1, 1, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
-        for(int i = 0; i < 37; ++i) new_card(pduel, 1184620, 1, 1, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
-        new_card(pduel, 14558127, 1, 1, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
-    }
+    // Capture the actual shuffled/configured opening once, including normal random runs.
+    const auto factory = [&]() -> intptr_t {
+        const auto created = create_duel_v2(seeds);
+        set_player_info(created, 0, playerLP, handCount, 1);
+        set_player_info(created, 1, opponentLP, opponentAI ? opponentHand : 0, opponentAI ? 1 : 0);
+        auto field = reinterpret_cast<duel*>(created)->game_field;
+        field->core.first_player = firstPlayer;
+        field->core.simple_ai_responses = responses != 0;
+        if(drawOrder.empty()) {
+            for(auto c : deck.main) new_card(created, c->code, 0, 0, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
+        } else {
+            for(auto it = drawOrder.rbegin(); it != drawOrder.rend(); ++it)
+                new_card(created, *it, 0, 0, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
+        }
+        for(auto c : deck.extra) new_card(created, c->code, 0, 0, LOCATION_EXTRA, 0, POS_FACEDOWN_DEFENSE);
+        if(opponentAI && configuredOpponent) {
+            for(auto it = opponentOrder.rbegin(); it != opponentOrder.rend(); ++it)
+                new_card(created, *it, 1, 1, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
+            for(auto code : opponentExtra) new_card(created, code, 1, 1, LOCATION_EXTRA, 0, POS_FACEDOWN_DEFENSE);
+        } else if(opponentAI) {
+            // basic-ash-v1: 3 Ash Blossom + 37 normal monsters; Ash + 4 normals in the initial hand.
+            for(int i = 0; i < 2; ++i) new_card(created, 14558127, 1, 1, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
+            for(int i = 0; i < 37; ++i) new_card(created, 1184620, 1, 1, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
+            new_card(created, 14558127, 1, 1, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
+        }
+        return created;
+    };
+    pduel = factory();
+    TrainingHistoryInit(factory, [&](const std::vector<unsigned char>& prompt) {
+        {
+            std::lock_guard<std::mutex> lock(mainGame->gMutex);
+            mainGame->dField.HideMenu();
+            for(auto window : {mainGame->wQuery, mainGame->wOptions, mainGame->wPosSelect, mainGame->wCardSelect, mainGame->wCardDisplay,
+                    mainGame->wANNumber, mainGame->wANCard, mainGame->wANAttribute, mainGame->wANRace})
+                window->setVisible(false);
+            mainGame->btnCancelOrFinish->setVisible(false);
+            mainGame->dField.selectable_cards.clear();
+            mainGame->dField.selected_cards.clear();
+            mainGame->dField.selectsum_cards.clear();
+            mainGame->dField.selectsum_all.clear();
+            mainGame->dField.selectable_field = mainGame->dField.selected_field = 0;
+            mainGame->ClearCardInfo();
+            mainGame->dInfo.turn = reinterpret_cast<duel*>(pduel)->game_field->infos.turn_id;
+        }
+        std::vector<unsigned char> reload(SIZE_QUERY_BUFFER);
+        auto size = TrainingQueryFieldInfo(pduel, reload.data());
+        DuelClient::ClientAnalyze(reload.data(), size);
+        {
+            std::lock_guard<std::mutex> lock(mainGame->gMutex);
+            SinglePlayReload();
+            TrainingRestorePresentation();
+            mainGame->dField.RefreshAllCards();
+        }
+        auto phase = reinterpret_cast<duel*>(pduel)->game_field->infos.phase;
+        unsigned char phaseMessage[]{MSG_NEW_PHASE, static_cast<unsigned char>(phase), static_cast<unsigned char>(phase >> 8)};
+        mainGame->dInfo.curMsg = MSG_NEW_PHASE;
+        DuelClient::ClientAnalyze(phaseMessage, sizeof phaseMessage);
+        mainGame->dInfo.curMsg = prompt[0];
+        DuelClient::ClientAnalyze(const_cast<unsigned char*>(prompt.data()), prompt.size());
+    });
     TrainingCapture(pduel, "loaded");
     mainGame->gMutex.lock();
     mainGame->dInfo.Clear();
@@ -117,16 +154,15 @@
     mainGame->device->setEventReceiver(&mainGame->dField);
     mainGame->gMutex.unlock();
     std::vector<unsigned char> buffer(SIZE_MESSAGE_BUFFER);
-    auto len = query_field_info(pduel, buffer.data());
+    auto len = TrainingQueryFieldInfo(pduel, buffer.data());
     TrainingCapture(pduel, "batch", buffer.data(), len);
     SinglePlayAnalyze(buffer.data(), len);
-    start_duel(pduel, (MASTER_RULE_2020 << 16) | (opponentAI ? DUEL_SIMPLE_AI : 0));
+    TrainingStartDuel(pduel, (MASTER_RULE_2020 << 16) | (opponentAI ? DUEL_SIMPLE_AI : 0));
     while(is_continuing && !TrainingStopping()) {
-        const auto result = process(pduel);
+        const auto result = TrainingProcess(pduel, buffer);
         len = result & PROCESSOR_BUFFER_LEN;
         if(len) {
             if(size_t(len) > buffer.size()) buffer.resize(len);
-            get_message(pduel, buffer.data());
             // Persist the entire actual engine batch BEFORE UI animations or choice dialogs.
             TrainingCapture(pduel, "batch", buffer.data(), len);
             is_continuing = SinglePlayAnalyze(buffer.data(), len);

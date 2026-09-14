@@ -332,6 +332,31 @@ header { display: flex; justify-content: space-between; align-items: center; mar
 .training-toolbar button.danger:hover:not(:disabled) { background: #62453c; }
 #native-stage { flex: 1; min-height: 200px; overflow: hidden; background: #111b24; position: relative; }
 #native-stage > p { position: absolute; inset: 40% 0 auto; text-align: center; color: #91a9b8; font-size: 13px; }
+#native-stage > #native-loading { left: 30.2734375%; }
+#expansion-timeline { position: absolute; inset: 0 auto 0 0; width: 30.2734375%; display: flex; flex-direction: column; background: #15242d; border-right: 1px solid #41565d; padding: 16px 12px; overflow: hidden; }
+#expansion-timeline header { margin: 0 0 10px; display: block; }
+#expansion-timeline h3 { font-size: 16px; margin: 0 0 5px; }
+#expansion-timeline small, .timeline-help, .timeline-boundary { color: #9db3bc; font-size: 11px; line-height: 1.65; }
+.timeline-help { margin: 0 0 8px; }
+.timeline-boundary { margin: 12px 0 0; }
+#rewind-status { font-size: 12px; color: #c4e39e; line-height: 1.65; flex-shrink: 0; }
+#rewind-nodes { list-style: none; margin: 10px 0 0; padding: 0 4px 0 8px; overflow: auto; min-height: 0; flex: 1; }
+#rewind-nodes > li { padding: 0 0 12px 12px; border-left: 1px solid #53686f; position: relative; }
+#rewind-nodes > li::before { content: ''; position: absolute; left: -4px; top: 15px; width: 7px; height: 7px; border-radius: 50%; background: #789291; }
+#rewind-nodes button { width: 100%; display: grid; gap: 7px; text-align: left; padding: 12px; color: #dce5e9; background: #20323c; border: 1px solid #435a64; }
+#rewind-nodes button:hover:not(:disabled), #rewind-nodes button:focus-visible { border-color: #c5e792; background: #2b4247; }
+#rewind-nodes .rewind-current button { opacity: 1; border-color: #bde589; background: #2d4137; }
+#rewind-nodes .rewind-current::before { background: #bde589; box-shadow: 0 0 0 3px #bde58922; }
+.rewind-future { opacity: .6; }
+.rewind-node-label { display: flex; justify-content: space-between; gap: 6px; color: #c4e39e; font-size: 12px; }
+.rewind-node-label em { font-style: normal; font-size: 10px; }
+.rewind-step { display: flex; gap: 8px; align-items: flex-start; }
+.rewind-step img { width: 38px; height: 55px; object-fit: contain; flex: 0 0 auto; }
+.rewind-step span { display: grid; gap: 4px; min-width: 0; }
+#rewind-nodes strong { font-size: 12px; line-height: 1.65; overflow-wrap: anywhere; }
+.rewind-pending { color: #aabdc4; font-size: 11px; }
+.rewind-pending .rewind-step { margin-top: 10px; }
+@media (max-width: 900px) { #expansion-timeline { padding: 10px 5px; } .rewind-step img { display: none; } #rewind-nodes button { padding: 8px; } .timeline-help { font-size: 10px; } }
 
 /* The new flow shares the existing editor palette and report presentation. */
 .app-bar { gap: 24px; }

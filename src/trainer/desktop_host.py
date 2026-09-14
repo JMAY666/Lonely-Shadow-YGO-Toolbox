@@ -16,6 +16,7 @@ class NativeHost:
         self.hwnd = None
         self.rect = (0, 0, 1024, 640)
         self.visible = False
+        self.timeline = False
         self.user = u = ctypes.WinDLL('user32', use_last_error=True)
         u.IsWindow.argtypes = [w.HWND]
         u.GetParent.argtypes = [w.HWND]; u.GetParent.restype = w.HWND
@@ -31,6 +32,11 @@ class NativeHost:
         u.IsWindowVisible.argtypes = [w.HWND]
         u.ChildWindowFromPointEx.argtypes = [w.HWND, w.POINT, w.UINT]
         u.ChildWindowFromPointEx.restype = w.HWND
+        u.SetWindowRgn.argtypes = [w.HWND, w.HANDLE, w.BOOL]
+        self.gdi = ctypes.WinDLL('gdi32', use_last_error=True)
+        self.gdi.CreateRectRgn.argtypes = [ctypes.c_int] * 4
+        self.gdi.CreateRectRgn.restype = w.HANDLE
+        self.gdi.DeleteObject.argtypes = [w.HANDLE]
         self.last_placement = {}
 
     def pid(self, hwnd):
@@ -56,6 +62,7 @@ class NativeHost:
                 raise ValueError('无法读取主窗口尺寸')
             scale = (client.right - client.left) / vw
             self.rect = tuple(round(v * scale) for v in (x, y, width, height))
+            self.timeline = body.get('timeline') is True
         self.hwnd, self.visible = hwnd, visible
         self.sync(store)
         return {'embedded': True}
@@ -106,10 +113,16 @@ class NativeHost:
         for sid in list(store.processes):
             hwnd = self.child(store, sid)
             if not hwnd: continue
-            placement = (hwnd, self.rect, self.visible)
+            placement = (hwnd, self.rect, self.visible, self.timeline)
             if self.last_placement.get(sid) == placement and (not self.visible or self.stage_hit() == hwnd): continue
             x, y, width, height = self.rect
             if not self.user.SetWindowPos(hwnd, None, x, y, width, height, 0x0010):
+                raise ctypes.WinError(ctypes.get_last_error())
+            # Only clip the original 310/1024 card-info column. Field coordinates,
+            # phase controls, selection dialogs and the render resolution stay intact.
+            region = self.gdi.CreateRectRgn(round(width * 310 / 1024), 0, width, height) if self.timeline else None
+            if not self.user.SetWindowRgn(hwnd, region, True):
+                if region: self.gdi.DeleteObject(region)
                 raise ctypes.WinError(ctypes.get_last_error())
             self.user.ShowWindow(hwnd, 4 if self.visible else 0)  # SW_SHOWNOACTIVATE / SW_HIDE
             self.last_placement[sid] = placement
@@ -124,11 +137,13 @@ class NativeHost:
         center = w.POINT(origin.x + (rect.right - rect.left) // 2, origin.y + (rect.bottom - rect.top) // 2)
         hit = self.user.ChildWindowFromPointEx(self.hwnd, center, 0)
         overlaps = self.layered_overlaps(hwnd, rect)
+        sidebar = w.POINT(origin.x + max(1, (rect.right - rect.left) // 8), origin.y + (rect.bottom - rect.top) // 2)
         try: frame = json.loads((store.session_path(sid) / 'frame-ready.json').read_text('utf8'))
         except (OSError, ValueError): frame = {}
         return {'ready': True, 'pid': self.pid(hwnd), 'hwnd': str(hwnd), 'parent': str(self.hwnd),
                 'frame_ready': bool(frame), 'frame_ms': frame.get('time_ms'),
                 'owns_stage_hit_test': hit == hwnd, 'stage_hit_hwnd': str(hit),
+                'timeline_accessible': self.timeline and self.user.ChildWindowFromPointEx(self.hwnd, sidebar, 0) != hwnd,
                 'composition_compatible': not overlaps, 'layered_overlaps': overlaps,
                 'child_style': bool(style & 0x40000000), 'caption': bool(style & 0x00C00000),
                 'visible': bool(style & 0x10000000), 'bounds': {'x': origin.x, 'y': origin.y,

@@ -19,7 +19,9 @@ def read(name):
 
 
 def save(name, text):
-    (SOURCE / name).write_text(text, encoding="utf-8", newline="\n")
+    target = SOURCE / name
+    if not target.exists() or target.read_bytes() != text.encode('utf-8'):
+        target.write_text(text, encoding="utf-8", newline="\n")
     changes[name] = text
 
 
@@ -275,6 +277,12 @@ def main():
         t=block(t,'bool Replay::'+name+'(', '    return false; // Replay file operations are excluded from Lite.')
     save("gframe/replay.cpp",t)
 
+    t=read("gframe/event_handler.cpp")
+    t=replace(t, '#include "client_field.h"', '#include "client_field.h"\n#include "training_support.h"')
+    t=replace(t, 'bool ClientField::OnEvent(const irr::SEvent& event) {',
+        'bool ClientField::OnEvent(const irr::SEvent& event) {\n    std::lock_guard<std::recursive_mutex> inputLock(TrainingInputMutex());\n    if(TrainingRestoring()) return true;')
+    save("gframe/event_handler.cpp", t)
+
     t=read("gframe/single_mode.cpp")
     t=replace(t, '#include "single_mode.h"', '#include "single_mode.h"\n#include "training_support.h"\n#include "deck_manager.h"\n#include "../ocgcore/duel.h"\n#include "../ocgcore/field.h"\n#include <fstream>\n#include <algorithm>\n#include <set>')
     t=replace(t, 'bool SingleMode::StartPlay() {', '''static std::thread trainingThread;
@@ -285,8 +293,14 @@ bool SingleMode::StartPlay() {''')
     t=replace(t, '\tstd::thread(SinglePlayThread).detach();', '\tWaitForExit();\n\ttrainingThread = std::thread(SinglePlayThread);')
     t=block(t, 'void SingleMode::SinglePlayThread()', (WORKSPACE/'src/trainer/single_thread.inc').read_text(encoding='utf-8'))
     t=replace(t, 'void SingleMode::StopPlay(bool is_exiting) {', 'void SingleMode::StopPlay(bool is_exiting) {\n    TrainingStop(is_exiting);')
-    t=replace(t, '\tlast_replay_response_size = last_replay.WriteResponse(resp, len);', '\tTrainingResponse(resp, len);\n    last_replay_response_size = last_replay.WriteResponse(resp, len);')
+    t=block(t, 'void SingleMode::SetResponse(', '    if(pduel && !TrainingRestoring()) TrainingSubmitResponse(pduel, resp, len);')
     t=t.replace('DuelClient::ClientAnalyze(offset, pbuf - offset)', 'TrainingAnalyze(pduel, offset, pbuf - offset)')
+    t=t.replace('mainGame->singleSignal.Reset();\n\t\t\t\tmainGame->singleSignal.Wait();', 'TrainingWait(pduel, offset, pbuf - offset);')
+    for original, wrapped in [('query_field_card(', 'TrainingQueryFieldCard('), ('query_card(', 'TrainingQueryCard(')]:
+        t=t.replace(original, wrapped)
+    t=replace(t, 'uint32_t SingleMode::MessageHandler(intptr_t fduel, uint32_t type) {',
+        'uint32_t SingleMode::MessageHandler(intptr_t fduel, uint32_t type) {\n    if(TrainingHistoryScriptError()) return 0;')
+
     t=replace(t, '\tmainGame->AddDebugMsg(msgbuf);', '\tTrainingWrite("\\\"kind\\\":\\\"script_error\\\",\\\"message_type\\\":" + std::to_string(type));\n    mainGame->AddDebugMsg(msgbuf);')
     save("gframe/single_mode.cpp",t)
 
@@ -344,7 +358,9 @@ static bool skip_ai_response(const field& f, const chain* candidate = nullptr) {
     for p in (WORKSPACE/'src/lite').iterdir():
         name='gframe/'+p.name
         content=p.read_text(encoding='utf-8')
-        (SOURCE/name).write_text(content,encoding='utf-8',newline='\n')
+        target = SOURCE / name
+        if not target.exists() or target.read_bytes() != content.encode('utf-8'):
+            target.write_text(content,encoding='utf-8',newline='\n')
         changes[name]=content
     patch=[]
     for name,new in sorted(changes.items()):

@@ -378,6 +378,25 @@
 +    return 0; // External host resolution is removed.
  }
  }
+--- a/gframe/event_handler.cpp
++++ b/gframe/event_handler.cpp
+@@ -1,6 +1,7 @@
+ #include <algorithm>
+ #include "client_card.h"
+ #include "client_field.h"
++#include "training_support.h"
+ #include "network.h"
+ #include "game.h"
+ #include "duelclient.h"
+@@ -15,6 +16,8 @@
+ namespace ygo {
+ 
+ bool ClientField::OnEvent(const irr::SEvent& event) {
++    std::lock_guard<std::recursive_mutex> inputLock(TrainingInputMutex());
++    if(TrainingRestoring()) return true;
+ 	if(OnCommonEvent(event))
+ 		return false;
+ 	switch(event.EventType) {
 --- a/gframe/game.cpp
 +++ b/gframe/game.cpp
 @@ -1,5 +1,6 @@
@@ -1383,7 +1402,7 @@
  #include "duelclient.h"
  #include "game.h"
  #include "data_manager.h"
-@@ -14,11 +21,17 @@
+@@ -14,173 +21,210 @@
  Replay SingleMode::last_replay;
  size_t SingleMode::last_replay_response_size = 0;
  
@@ -1402,14 +1421,14 @@
  	is_closing = is_exiting;
  	is_continuing = false;
  	mainGame->actionSignal.Set();
-@@ -27,160 +40,159 @@
+ 	mainGame->singleSignal.Set();
+ }
  void SingleMode::SetResponse(unsigned char* resp, unsigned int len) {
- 	if(!pduel)
- 		return;
+-	if(!pduel)
+-		return;
 -	last_replay_response_size = last_replay.WriteResponse(resp, len);
-+	TrainingResponse(resp, len);
-+    last_replay_response_size = last_replay.WriteResponse(resp, len);
- 	set_responseb(pduel, resp);
+-	set_responseb(pduel, resp);
++    if(pduel && !TrainingRestoring()) TrainingSubmitResponse(pduel, resp, len);
  }
  void SingleMode::SinglePlayThread() {
 -	const int start_lp = 8000;
@@ -1634,30 +1653,67 @@
 +    set_script_reader(DataManager::ScriptReaderEx);
 +    set_card_reader(DataManager::CardReader);
 +    set_message_handler(SingleMode::MessageHandler);
-+    pduel = create_duel_v2(seeds);
-+    set_player_info(pduel, 0, playerLP, handCount, 1);
 +    const bool opponentAI = TrainingOpponentAI();
-+    set_player_info(pduel, 1, opponentLP, opponentAI ? opponentHand : 0, opponentAI ? 1 : 0);
-+    auto field = reinterpret_cast<duel*>(pduel)->game_field;
-+    field->core.first_player = firstPlayer;
-+    field->core.simple_ai_responses = responses != 0;
-+    if(drawOrder.empty()) {
-+        for(auto c : deck.main) new_card(pduel, c->code, 0, 0, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
-+    } else {
-+        for(auto it = drawOrder.rbegin(); it != drawOrder.rend(); ++it)
-+            new_card(pduel, *it, 0, 0, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
-+    }
-+    for(auto c : deck.extra) new_card(pduel, c->code, 0, 0, LOCATION_EXTRA, 0, POS_FACEDOWN_DEFENSE);
-+    if(opponentAI && configuredOpponent) {
-+        for(auto it = opponentOrder.rbegin(); it != opponentOrder.rend(); ++it)
-+            new_card(pduel, *it, 1, 1, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
-+        for(auto code : opponentExtra) new_card(pduel, code, 1, 1, LOCATION_EXTRA, 0, POS_FACEDOWN_DEFENSE);
-+    } else if(opponentAI) {
-+        // basic-ash-v1: 3 Ash Blossom + 37 normal monsters; Ash + 4 normals in the initial hand.
-+        for(int i = 0; i < 2; ++i) new_card(pduel, 14558127, 1, 1, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
-+        for(int i = 0; i < 37; ++i) new_card(pduel, 1184620, 1, 1, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
-+        new_card(pduel, 14558127, 1, 1, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
-+    }
++    // Capture the actual shuffled/configured opening once, including normal random runs.
++    const auto factory = [&]() -> intptr_t {
++        const auto created = create_duel_v2(seeds);
++        set_player_info(created, 0, playerLP, handCount, 1);
++        set_player_info(created, 1, opponentLP, opponentAI ? opponentHand : 0, opponentAI ? 1 : 0);
++        auto field = reinterpret_cast<duel*>(created)->game_field;
++        field->core.first_player = firstPlayer;
++        field->core.simple_ai_responses = responses != 0;
++        if(drawOrder.empty()) {
++            for(auto c : deck.main) new_card(created, c->code, 0, 0, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
++        } else {
++            for(auto it = drawOrder.rbegin(); it != drawOrder.rend(); ++it)
++                new_card(created, *it, 0, 0, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
++        }
++        for(auto c : deck.extra) new_card(created, c->code, 0, 0, LOCATION_EXTRA, 0, POS_FACEDOWN_DEFENSE);
++        if(opponentAI && configuredOpponent) {
++            for(auto it = opponentOrder.rbegin(); it != opponentOrder.rend(); ++it)
++                new_card(created, *it, 1, 1, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
++            for(auto code : opponentExtra) new_card(created, code, 1, 1, LOCATION_EXTRA, 0, POS_FACEDOWN_DEFENSE);
++        } else if(opponentAI) {
++            // basic-ash-v1: 3 Ash Blossom + 37 normal monsters; Ash + 4 normals in the initial hand.
++            for(int i = 0; i < 2; ++i) new_card(created, 14558127, 1, 1, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
++            for(int i = 0; i < 37; ++i) new_card(created, 1184620, 1, 1, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
++            new_card(created, 14558127, 1, 1, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
++        }
++        return created;
++    };
++    pduel = factory();
++    TrainingHistoryInit(factory, [&](const std::vector<unsigned char>& prompt) {
++        {
++            std::lock_guard<std::mutex> lock(mainGame->gMutex);
++            mainGame->dField.HideMenu();
++            for(auto window : {mainGame->wQuery, mainGame->wOptions, mainGame->wPosSelect, mainGame->wCardSelect, mainGame->wCardDisplay,
++                    mainGame->wANNumber, mainGame->wANCard, mainGame->wANAttribute, mainGame->wANRace})
++                window->setVisible(false);
++            mainGame->btnCancelOrFinish->setVisible(false);
++            mainGame->dField.selectable_cards.clear();
++            mainGame->dField.selected_cards.clear();
++            mainGame->dField.selectsum_cards.clear();
++            mainGame->dField.selectsum_all.clear();
++            mainGame->dField.selectable_field = mainGame->dField.selected_field = 0;
++            mainGame->ClearCardInfo();
++            mainGame->dInfo.turn = reinterpret_cast<duel*>(pduel)->game_field->infos.turn_id;
++        }
++        std::vector<unsigned char> reload(SIZE_QUERY_BUFFER);
++        auto size = TrainingQueryFieldInfo(pduel, reload.data());
++        DuelClient::ClientAnalyze(reload.data(), size);
++        {
++            std::lock_guard<std::mutex> lock(mainGame->gMutex);
++            SinglePlayReload();
++            TrainingRestorePresentation();
++            mainGame->dField.RefreshAllCards();
++        }
++        auto phase = reinterpret_cast<duel*>(pduel)->game_field->infos.phase;
++        unsigned char phaseMessage[]{MSG_NEW_PHASE, static_cast<unsigned char>(phase), static_cast<unsigned char>(phase >> 8)};
++        mainGame->dInfo.curMsg = MSG_NEW_PHASE;
++        DuelClient::ClientAnalyze(phaseMessage, sizeof phaseMessage);
++        mainGame->dInfo.curMsg = prompt[0];
++        DuelClient::ClientAnalyze(const_cast<unsigned char*>(prompt.data()), prompt.size());
++    });
 +    TrainingCapture(pduel, "loaded");
 +    mainGame->gMutex.lock();
 +    mainGame->dInfo.Clear();
@@ -1681,16 +1737,15 @@
 +    mainGame->device->setEventReceiver(&mainGame->dField);
 +    mainGame->gMutex.unlock();
 +    std::vector<unsigned char> buffer(SIZE_MESSAGE_BUFFER);
-+    auto len = query_field_info(pduel, buffer.data());
++    auto len = TrainingQueryFieldInfo(pduel, buffer.data());
 +    TrainingCapture(pduel, "batch", buffer.data(), len);
 +    SinglePlayAnalyze(buffer.data(), len);
-+    start_duel(pduel, (MASTER_RULE_2020 << 16) | (opponentAI ? DUEL_SIMPLE_AI : 0));
++    TrainingStartDuel(pduel, (MASTER_RULE_2020 << 16) | (opponentAI ? DUEL_SIMPLE_AI : 0));
 +    while(is_continuing && !TrainingStopping()) {
-+        const auto result = process(pduel);
++        const auto result = TrainingProcess(pduel, buffer);
 +        len = result & PROCESSOR_BUFFER_LEN;
 +        if(len) {
 +            if(size_t(len) > buffer.size()) buffer.resize(len);
-+            get_message(pduel, buffer.data());
 +            // Persist the entire actual engine batch BEFORE UI animations or choice dialogs.
 +            TrainingCapture(pduel, "batch", buffer.data(), len);
 +            is_continuing = SinglePlayAnalyze(buffer.data(), len);
@@ -1713,16 +1768,19 @@
  }
  bool SingleMode::SinglePlayAnalyze(unsigned char* msg, unsigned int len) {
  	unsigned char* offset, * pbuf = msg;
-@@ -196,7 +208,7 @@
+@@ -196,9 +240,8 @@
  				last_replay.RemoveData(last_replay_response_size);
  				last_replay_response_size = 0;
  			}
 -			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
+-				mainGame->singleSignal.Reset();
+-				mainGame->singleSignal.Wait();
 +			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
- 				mainGame->singleSignal.Reset();
- 				mainGame->singleSignal.Wait();
++				TrainingWait(pduel, offset, pbuf - offset);
  			}
-@@ -207,12 +219,12 @@
+ 			break;
+ 		}
+@@ -207,12 +250,12 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			/*int data = */BufferIO::Read<int32_t>(pbuf);
  			if(player == 0)
@@ -1737,124 +1795,160 @@
  			return false;
  		}
  		case MSG_SELECT_BATTLECMD: {
-@@ -222,7 +234,7 @@
+@@ -222,9 +265,8 @@
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 8 + 2;
  			SinglePlayRefresh();
 -			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
+-				mainGame->singleSignal.Reset();
+-				mainGame->singleSignal.Wait();
 +			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
- 				mainGame->singleSignal.Reset();
- 				mainGame->singleSignal.Wait();
++				TrainingWait(pduel, offset, pbuf - offset);
  			}
-@@ -243,7 +255,7 @@
+ 			break;
+ 		}
+@@ -243,27 +285,24 @@
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 11 + 3;
  			SinglePlayRefresh();
 -			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
+-				mainGame->singleSignal.Reset();
+-				mainGame->singleSignal.Wait();
 +			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
- 				mainGame->singleSignal.Reset();
- 				mainGame->singleSignal.Wait();
++				TrainingWait(pduel, offset, pbuf - offset);
  			}
-@@ -252,7 +264,7 @@
+ 			break;
+ 		}
  		case MSG_SELECT_EFFECTYN: {
  			player = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 12;
 -			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
+-				mainGame->singleSignal.Reset();
+-				mainGame->singleSignal.Wait();
 +			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
- 				mainGame->singleSignal.Reset();
- 				mainGame->singleSignal.Wait();
++				TrainingWait(pduel, offset, pbuf - offset);
  			}
-@@ -261,7 +273,7 @@
+ 			break;
+ 		}
  		case MSG_SELECT_YESNO: {
  			player = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 4;
 -			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
+-				mainGame->singleSignal.Reset();
+-				mainGame->singleSignal.Wait();
 +			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
- 				mainGame->singleSignal.Reset();
- 				mainGame->singleSignal.Wait();
++				TrainingWait(pduel, offset, pbuf - offset);
  			}
-@@ -271,7 +283,7 @@
+ 			break;
+ 		}
+@@ -271,9 +310,8 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 4;
 -			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
+-				mainGame->singleSignal.Reset();
+-				mainGame->singleSignal.Wait();
 +			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
- 				mainGame->singleSignal.Reset();
- 				mainGame->singleSignal.Wait();
++				TrainingWait(pduel, offset, pbuf - offset);
  			}
-@@ -283,7 +295,7 @@
+ 			break;
+ 		}
+@@ -283,9 +321,8 @@
  			pbuf += 3;
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 8;
 -			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
+-				mainGame->singleSignal.Reset();
+-				mainGame->singleSignal.Wait();
 +			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
- 				mainGame->singleSignal.Reset();
- 				mainGame->singleSignal.Wait();
++				TrainingWait(pduel, offset, pbuf - offset);
  			}
-@@ -296,7 +308,7 @@
+ 			break;
+ 		}
+@@ -296,9 +333,8 @@
  			pbuf += count * 8;
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 8;
 -			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
+-				mainGame->singleSignal.Reset();
+-				mainGame->singleSignal.Wait();
 +			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
- 				mainGame->singleSignal.Reset();
- 				mainGame->singleSignal.Wait();
++				TrainingWait(pduel, offset, pbuf - offset);
  			}
-@@ -306,7 +318,7 @@
+ 			break;
+ 		}
+@@ -306,9 +342,8 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 9 + count * 14;
 -			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
+-				mainGame->singleSignal.Reset();
+-				mainGame->singleSignal.Wait();
 +			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
- 				mainGame->singleSignal.Reset();
- 				mainGame->singleSignal.Wait();
++				TrainingWait(pduel, offset, pbuf - offset);
  			}
-@@ -316,7 +328,7 @@
+ 			break;
+ 		}
+@@ -316,18 +351,16 @@
  		case MSG_SELECT_DISFIELD: {
  			player = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 5;
 -			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
+-				mainGame->singleSignal.Reset();
+-				mainGame->singleSignal.Wait();
 +			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
- 				mainGame->singleSignal.Reset();
- 				mainGame->singleSignal.Wait();
++				TrainingWait(pduel, offset, pbuf - offset);
  			}
-@@ -325,7 +337,7 @@
+ 			break;
+ 		}
  		case MSG_SELECT_POSITION: {
  			player = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 5;
 -			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
+-				mainGame->singleSignal.Reset();
+-				mainGame->singleSignal.Wait();
 +			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
- 				mainGame->singleSignal.Reset();
- 				mainGame->singleSignal.Wait();
++				TrainingWait(pduel, offset, pbuf - offset);
  			}
-@@ -336,7 +348,7 @@
+ 			break;
+ 		}
+@@ -336,9 +369,8 @@
  			pbuf += 4;
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 9;
 -			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
+-				mainGame->singleSignal.Reset();
+-				mainGame->singleSignal.Wait();
 +			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
- 				mainGame->singleSignal.Reset();
- 				mainGame->singleSignal.Wait();
++				TrainingWait(pduel, offset, pbuf - offset);
  			}
-@@ -350,7 +362,7 @@
+ 			break;
+ 		}
+@@ -350,9 +382,8 @@
  			pbuf += count * 11;
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 11;
 -			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
+-				mainGame->singleSignal.Reset();
+-				mainGame->singleSignal.Wait();
 +			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
- 				mainGame->singleSignal.Reset();
- 				mainGame->singleSignal.Wait();
++				TrainingWait(pduel, offset, pbuf - offset);
  			}
-@@ -360,7 +372,7 @@
+ 			break;
+ 		}
+@@ -360,9 +391,8 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 7;
 -			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
+-				mainGame->singleSignal.Reset();
+-				mainGame->singleSignal.Wait();
 +			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
- 				mainGame->singleSignal.Reset();
- 				mainGame->singleSignal.Wait();
++				TrainingWait(pduel, offset, pbuf - offset);
  			}
-@@ -370,14 +382,14 @@
+ 			break;
+ 		}
+@@ -370,14 +400,14 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 7;
@@ -1871,7 +1965,7 @@
  			break;
  		}
  		case MSG_CONFIRM_CARDS: {
-@@ -385,12 +397,12 @@
+@@ -385,12 +415,12 @@
  			pbuf += 1;
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 7;
@@ -1886,7 +1980,7 @@
  			SinglePlayRefreshDeck(player);
  			break;
  		}
-@@ -398,53 +410,53 @@
+@@ -398,53 +428,53 @@
  			/*int oplayer = */BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 4;
@@ -1949,7 +2043,7 @@
  			SinglePlayRefresh();
  			break;
  		}
-@@ -458,85 +470,85 @@
+@@ -458,85 +488,85 @@
  			int cs = pbuf[10];
  			/*int cp = pbuf[11];*/
  			pbuf += 16;
@@ -2051,7 +2145,7 @@
  			SinglePlayRefresh();
  			SinglePlayRefreshDeck(0);
  			SinglePlayRefreshDeck(1);
-@@ -544,12 +556,12 @@
+@@ -544,12 +574,12 @@
  		}
  		case MSG_CHAIN_NEGATED: {
  			pbuf++;
@@ -2066,7 +2160,7 @@
  			break;
  		}
  		case MSG_CARD_SELECTED:
-@@ -557,118 +569,118 @@
+@@ -557,143 +587,140 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 4;
@@ -2203,11 +2297,12 @@
  		case MSG_ROCK_PAPER_SCISSORS: {
  			player = BufferIO::Read<uint8_t>(pbuf);
 -			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
+-				mainGame->singleSignal.Reset();
+-				mainGame->singleSignal.Wait();
 +			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
- 				mainGame->singleSignal.Reset();
- 				mainGame->singleSignal.Wait();
++				TrainingWait(pduel, offset, pbuf - offset);
  			}
-@@ -676,13 +688,13 @@
+ 			break;
  		}
  		case MSG_HAND_RES: {
  			pbuf += 1;
@@ -2219,29 +2314,35 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 5;
 -			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
+-				mainGame->singleSignal.Reset();
+-				mainGame->singleSignal.Wait();
 +			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
- 				mainGame->singleSignal.Reset();
- 				mainGame->singleSignal.Wait();
++				TrainingWait(pduel, offset, pbuf - offset);
  			}
-@@ -691,7 +703,7 @@
+ 			break;
+ 		}
  		case MSG_ANNOUNCE_ATTRIB: {
  			player = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 5;
 -			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
+-				mainGame->singleSignal.Reset();
+-				mainGame->singleSignal.Wait();
 +			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
- 				mainGame->singleSignal.Reset();
- 				mainGame->singleSignal.Wait();
++				TrainingWait(pduel, offset, pbuf - offset);
  			}
-@@ -702,7 +714,7 @@
+ 			break;
+ 		}
+@@ -702,26 +729,25 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 4 * count;
 -			if(!DuelClient::ClientAnalyze(offset, pbuf - offset)) {
+-				mainGame->singleSignal.Reset();
+-				mainGame->singleSignal.Wait();
 +			if(!TrainingAnalyze(pduel, offset, pbuf - offset)) {
- 				mainGame->singleSignal.Reset();
- 				mainGame->singleSignal.Wait();
++				TrainingWait(pduel, offset, pbuf - offset);
  			}
-@@ -710,18 +722,18 @@
+ 			break;
  		}
  		case MSG_CARD_HINT: {
  			pbuf += 9;
@@ -2263,7 +2364,7 @@
  			SinglePlayRefreshDeck(player);
  			SinglePlayRefreshExtra(player);
  			break;
-@@ -748,7 +760,7 @@
+@@ -748,7 +774,7 @@
  			}
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 15;
@@ -2272,8 +2373,29 @@
  			SinglePlayReload();
  			mainGame->gMutex.lock();
  			mainGame->dField.RefreshAllCards();
-@@ -849,7 +861,8 @@
+@@ -791,7 +817,7 @@
+ 	return is_continuing;
+ }
+ inline void SingleMode::ReloadLocation(int player, int location, int flag, std::vector<unsigned char>& queryBuffer) {
+-	query_field_card(pduel, player, location, flag, queryBuffer.data(), 0);
++	TrainingQueryFieldCard(pduel, player, location, flag, queryBuffer.data(), 0);
+ 	mainGame->dField.UpdateFieldCard(mainGame->LocalPlayer(player), location, queryBuffer.data());
+ }
+ void SingleMode::SinglePlayRefresh(int flag) {
+@@ -823,7 +849,7 @@
+ }
+ void SingleMode::SinglePlayRefreshSingle(int player, int location, int sequence, int flag) {
+ 	unsigned char queryBuffer[0x1000];
+-	/*int len = */query_card(pduel, player, location, sequence, flag, queryBuffer, 0);
++	/*int len = */TrainingQueryCard(pduel, player, location, sequence, flag, queryBuffer, 0);
+ 	mainGame->dField.UpdateCard(mainGame->LocalPlayer(player), location, sequence, queryBuffer);
+ }
+ void SingleMode::SinglePlayReload() {
+@@ -847,9 +873,11 @@
+ 	ReloadLocation(1, LOCATION_REMOVED, flag, queryBuffer);
+ }
  uint32_t SingleMode::MessageHandler(intptr_t fduel, uint32_t type) {
++    if(TrainingHistoryScriptError()) return 0;
  	char msgbuf[1024];
  	get_log_message(fduel, msgbuf);
 -	mainGame->AddDebugMsg(msgbuf);
@@ -2292,9 +2414,281 @@
  	static void StopPlay(bool is_exiting = false);
  	static void SetResponse(unsigned char* resp, unsigned int len);
  	static void SinglePlayThread();
+--- a/gframe/training_history.cpp
++++ b/gframe/training_history.cpp
+@@ -0,0 +1,244 @@
++// Reconstruct a second, independent Lua/core instance before changing the live duel.
++// Record every core call made by the adapter, including queries that can evaluate Lua.
++#include "training_support.h"
++#include "game.h"
++#include "../ocgcore/ocgapi.h"
++#include "../ocgcore/duel.h"
++#include "../ocgcore/field.h"
++#include <windows.h>
++#include <array>
++#include <algorithm>
++#include <atomic>
++#include <chrono>
++#include <cstring>
++#include <fstream>
++#include <mutex>
++#include <sstream>
++#include <stdexcept>
++#include <thread>
++
++namespace ygo {
++struct CoreCall {
++    enum Kind { Process, Response, Integer, Start, FieldInfo, FieldCards, Card } kind;
++    int result = 0;
++    uint8_t player = 0, location = 0, sequence = 0;
++    uint32_t flags = 0;
++    int cache = 0;
++    std::vector<unsigned char> bytes;
++};
++struct Checkpoint {
++    uint64_t id;
++    size_t calls;
++    std::vector<unsigned char> prompt;
++    std::string state;
++    bool deckReversed = false, cantCheckGrave = false;
++    uint32_t disabledField = 0;
++};
++static std::vector<CoreCall> calls;
++static std::vector<CoreCall> resumeCalls;
++static std::vector<Checkpoint> checkpoints;
++static std::function<intptr_t()> makeDuel;
++static std::function<void(const std::vector<unsigned char>&)> showDuel;
++static std::recursive_mutex historyMutex;
++static std::atomic<bool> restoring{false};
++static bool replayError = false;
++static uint64_t revision = 0, nextNode = 0, cursor = 0;
++static bool atNode = false;
++static bool resumeFromNode = false, rebuildingView = false;
++static Checkpoint* presentationNode = nullptr;
++
++static void atomicFile(const char* name, const std::string& value) {
++    const auto destination = TrainingPath(name), temporary = destination + ".tmp";
++    std::ofstream file(temporary, std::ios::binary | std::ios::trunc);
++    file << value;
++    file.close();
++    if(!file) throw std::runtime_error("write_failed");
++    for(int attempt = 0; attempt < 100; ++attempt) {
++        if(MoveFileExA(temporary.c_str(), destination.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) return;
++        const auto error = GetLastError();
++        if(error != ERROR_SHARING_VIOLATION && error != ERROR_ACCESS_DENIED) break;
++        std::this_thread::sleep_for(std::chrono::milliseconds(5));
++    }
++    throw std::runtime_error("write_failed");
++}
++static void status() {
++    std::ostringstream out;
++    out << "{\"revision\":" << revision << ",\"cursor\":" << cursor << ",\"at_node\":" << (atNode ? "true" : "false") << '}';
++    // A missed read-only status update must not terminate a playable duel. A stale
++    // revision is rejected by the core before a subsequent restore can start.
++    try { atomicFile("timeline-state.json", out.str()); } catch(const std::exception&) {}
++}
++static void operation(const std::string& token, const char* state, const char* error = "") {
++    atomicFile("rewind-operation.json", "{\"token\":\"" + token + "\",\"status\":\"" + state + "\",\"error\":\"" + error + "\"}");
++}
++void TrainingHistoryInit(std::function<intptr_t()> factory, std::function<void(const std::vector<unsigned char>&)> show) {
++    makeDuel = factory; showDuel = show;
++}
++bool TrainingRestoring() { return restoring; }
++std::recursive_mutex& TrainingInputMutex() { return historyMutex; }
++void TrainingRestorePresentation() {
++    if(!presentationNode) return;
++    mainGame->dField.deck_reversed = presentationNode->deckReversed;
++    mainGame->dField.cant_check_grave = presentationNode->cantCheckGrave;
++    mainGame->dField.disabled_field = presentationNode->disabledField;
++}
++bool TrainingHistoryScriptError() {
++    if(!restoring) return false;
++    replayError = true;
++    return true;
++}
++static int execute(intptr_t engine, CoreCall& call, unsigned char* buffer, std::vector<unsigned char>* storage = nullptr) {
++    switch(call.kind) {
++    case CoreCall::Process: {
++        const auto result = process(engine);
++        const auto length = result & PROCESSOR_BUFFER_LEN;
++        if(storage) {
++            if(storage->size() < size_t(length)) storage->resize(length);
++            buffer = storage->data();
++        }
++        if(result & PROCESSOR_BUFFER_LEN) get_message(engine, buffer);
++        return result;
++    }
++    case CoreCall::Response: set_responseb(engine, call.bytes.data()); return 0;
++    case CoreCall::Integer: {
++        int32_t value; std::memcpy(&value, call.bytes.data(), sizeof value);
++        set_responsei(engine, value); return 0;
++    }
++    case CoreCall::Start: start_duel(engine, call.flags); return 0;
++    case CoreCall::FieldInfo: return query_field_info(engine, buffer);
++    case CoreCall::FieldCards: return query_field_card(engine, call.player, call.location, call.flags, buffer, call.cache);
++    case CoreCall::Card: return query_card(engine, call.player, call.location, call.sequence, call.flags, buffer, call.cache);
++    }
++    return 0;
++}
++static int record(intptr_t engine, CoreCall call, unsigned char* buffer, std::vector<unsigned char>* storage = nullptr) {
++    std::lock_guard<std::recursive_mutex> lock(historyMutex);
++    const int result = execute(engine, call, buffer, storage);
++    if(storage) buffer = storage->data();
++    if(!restoring || rebuildingView) {
++        call.result = result;
++        const int len = call.kind == CoreCall::Process ? result & PROCESSOR_BUFFER_LEN : result;
++        if(len > 0) call.bytes.assign(buffer, buffer + len);
++        (rebuildingView ? resumeCalls : calls).push_back(std::move(call));
++    }
++    return result;
++}
++int TrainingProcess(intptr_t engine, std::vector<unsigned char>& buffer) { return record(engine, {CoreCall::Process}, buffer.data(), &buffer); }
++void TrainingStartDuel(intptr_t engine, int options) {
++    CoreCall call{CoreCall::Start}; call.flags = options; record(engine, call, nullptr);
++}
++int TrainingQueryFieldInfo(intptr_t engine, unsigned char* buffer) { return record(engine, {CoreCall::FieldInfo}, buffer); }
++int TrainingQueryFieldCard(intptr_t engine, uint8_t player, uint8_t location, uint32_t flags, unsigned char* buffer, int cache) {
++    CoreCall call{CoreCall::FieldCards}; call.player = player; call.location = location; call.flags = flags; call.cache = cache;
++    return record(engine, call, buffer);
++}
++int TrainingQueryCard(intptr_t engine, uint8_t player, uint8_t location, uint8_t sequence, uint32_t flags, unsigned char* buffer, int cache) {
++    CoreCall call{CoreCall::Card}; call.player = player; call.location = location; call.sequence = sequence; call.flags = flags; call.cache = cache;
++    return record(engine, call, buffer);
++}
++void TrainingHistoryResponse(const unsigned char* bytes, size_t len, bool integer) {
++    std::lock_guard<std::recursive_mutex> lock(historyMutex);
++    if(restoring) return;
++    if(resumeFromNode) {
++        const auto node = std::find_if(checkpoints.begin(), checkpoints.end(), [](const Checkpoint& c){return c.id == cursor;});
++        calls.resize(node->calls);
++        checkpoints.erase(node + 1, checkpoints.end());
++        calls.insert(calls.end(), resumeCalls.begin(), resumeCalls.end());
++        resumeCalls.clear(); resumeFromNode = false;
++        TrainingWrite("\"kind\":\"branch\",\"target\":" + std::to_string(cursor));
++    }
++    CoreCall call{integer ? CoreCall::Integer : CoreCall::Response};
++    // set_responseb consumes the entire 64-byte buffer, even for a shorter UI answer.
++    call.bytes.assign(bytes, bytes + (integer ? 4 : 64));
++    calls.push_back(std::move(call));
++    ++revision; atNode = false;
++    TrainingWrite("\"kind\":\"route_input\",\"revision\":" + std::to_string(revision));
++    status();
++}
++void TrainingSubmitResponse(intptr_t& engine, unsigned char* bytes, size_t len) {
++    std::lock_guard<std::recursive_mutex> lock(historyMutex);
++    if(restoring) return;
++    TrainingResponse(bytes, len);
++    set_responseb(engine, bytes);
++}
++void TrainingWait(intptr_t& engine, const unsigned char* prompt, size_t len) {
++    mainGame->singleSignal.Reset();
++    {
++        std::lock_guard<std::recursive_mutex> lock(historyMutex);
++        const auto f = reinterpret_cast<duel*>(engine)->game_field;
++        const auto playerOffset = prompt[0] == MSG_SELECT_SUM ? 2u : 1u;
++        const bool firstChoice = checkpoints.empty() && len > playerOffset && prompt[playerOffset] == 0
++            && prompt[0] >= MSG_SELECT_BATTLECMD && prompt[0] <= MSG_SELECT_UNSELECT_CARD;
++        if(firstChoice || (len > 1 && prompt[1] == 0 && (prompt[0] == MSG_SELECT_IDLECMD || prompt[0] == MSG_SELECT_BATTLECMD)
++                && f->core.current_chain.empty())) {
++            Checkpoint node{++nextNode, calls.size(), {prompt, prompt + len}, TrainingState(engine)};
++            {
++                std::lock_guard<std::mutex> viewLock(mainGame->gMutex);
++                node.deckReversed = mainGame->dField.deck_reversed;
++                node.cantCheckGrave = mainGame->dField.cant_check_grave;
++                node.disabledField = mainGame->dField.disabled_field;
++            }
++            cursor = node.id; atNode = true;
++            TrainingWrite("\"kind\":\"checkpoint\",\"node\":" + std::to_string(node.id) + ",\"revision\":" + std::to_string(revision)
++                + ",\"state\":" + node.state);
++            checkpoints.push_back(std::move(node));
++        }
++        status();
++    }
++    while(!TrainingStopping()) {
++        // Only the duel thread reads rewind requests, at an engine input boundary.
++        std::ifstream request(TrainingPath("rewind.request"));
++        uint64_t target, expected;
++        std::string token;
++        if(request >> target >> expected >> token) {
++            request.close(); DeleteFileA(TrainingPath("rewind.request").c_str());
++            if(token.size() != 32 || token.find_first_not_of("0123456789abcdef") != std::string::npos) continue;
++            std::lock_guard<std::recursive_mutex> lock(historyMutex);
++            intptr_t candidate = 0;
++            try {
++                if(expected != revision) throw std::runtime_error("stale_route");
++                auto node = std::find_if(checkpoints.begin(), checkpoints.end(), [target](const Checkpoint& c){return c.id == target;});
++                if(node == checkpoints.end()) throw std::runtime_error("node_unavailable");
++                restoring = true; replayError = false;
++                operation(token, "running");
++                candidate = makeDuel();
++                if(!candidate) throw std::runtime_error("create_failed");
++                std::vector<unsigned char> buffer(SIZE_QUERY_BUFFER + SIZE_MESSAGE_BUFFER);
++                const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(20);
++                for(size_t i = 0; i < node->calls; ++i) {
++                    if(TrainingStopping() || std::chrono::steady_clock::now() > deadline) throw std::runtime_error("replay_timeout");
++                    auto& call = calls[i];
++                    const int result = execute(candidate, call, buffer.data(), &buffer);
++                    if(result != call.result || replayError) throw std::runtime_error("replay_mismatch");
++                    if(call.kind != CoreCall::Response && call.kind != CoreCall::Integer && !call.bytes.empty()
++                            && !std::equal(call.bytes.begin(), call.bytes.end(), buffer.begin())) throw std::runtime_error("replay_mismatch");
++                }
++                if(TrainingState(candidate) != node->state) throw std::runtime_error("state_mismatch");
++                // Test-only failure injection exercises the real transaction after reconstruction.
++                if(TrainingTestControlled() && GetFileAttributesA(TrainingPath("test-rewind-fail").c_str()) != INVALID_FILE_ATTRIBUTES)
++                    throw std::runtime_error("test_validation_failed");
++                // Flush the branch pointer before publishing the new field. The old engine is still intact.
++                TrainingWrite("\"kind\":\"rewind\",\"target\":" + std::to_string(target) + ",\"token\":\"" + token
++                    + "\",\"revision\":" + std::to_string(revision + 1) + ",\"state\":" + node->state);
++                if(TrainingStopping()) throw std::runtime_error("write_failed");
++                const auto old = engine; engine = candidate; candidate = 0;
++                resumeCalls.clear(); rebuildingView = true; presentationNode = &*node;
++                showDuel(node->prompt);
++                rebuildingView = false; presentationNode = nullptr; resumeFromNode = true;
++                end_duel(old);
++                cursor = target; atNode = true; ++revision;
++                mainGame->singleSignal.Reset();
++                status();
++                // A lost acknowledgement is not a failed restore. The service can
++                // reconcile the committed token with the published cursor/revision.
++                try { operation(token, "done"); } catch(const std::exception&) {}
++            } catch(const std::exception& error) {
++                if(candidate) end_duel(candidate);
++                try { operation(token, "error", error.what()); } catch(const std::exception&) {}
++            }
++            restoring = false;
++        }
++        if(mainGame->singleSignal.Wait(30)) return;
++    }
++}
++}
+--- a/gframe/training_history.h
++++ b/gframe/training_history.h
+@@ -0,0 +1,22 @@
++#pragma once
++#include <cstddef>
++#include <cstdint>
++#include <functional>
++#include <vector>
++#include <mutex>
++
++namespace ygo {
++void TrainingHistoryInit(std::function<intptr_t()> factory, std::function<void(const std::vector<unsigned char>&)> show);
++bool TrainingRestoring();
++std::recursive_mutex& TrainingInputMutex();
++void TrainingRestorePresentation(); // Called under the renderer mutex after reloading cards.
++bool TrainingHistoryScriptError();
++void TrainingHistoryResponse(const unsigned char* bytes, size_t len, bool integer);
++void TrainingSubmitResponse(intptr_t& engine, unsigned char* bytes, size_t len);
++void TrainingWait(intptr_t& engine, const unsigned char* prompt, size_t len);
++int TrainingProcess(intptr_t engine, std::vector<unsigned char>& buffer);
++void TrainingStartDuel(intptr_t engine, int options);
++int TrainingQueryFieldInfo(intptr_t engine, unsigned char* buffer);
++int TrainingQueryFieldCard(intptr_t engine, uint8_t player, uint8_t location, uint32_t flags, unsigned char* buffer, int cache);
++int TrainingQueryCard(intptr_t engine, uint8_t player, uint8_t location, uint8_t sequence, uint32_t flags, unsigned char* buffer, int cache);
++}
 --- a/gframe/training_support.cpp
 +++ b/gframe/training_support.cpp
-@@ -0,0 +1,314 @@
+@@ -0,0 +1,336 @@
 +// Local recorder for the pinned YGOPro core. No rule decisions are inferred from text.
 +#include "training_support.h"
 +#include "game.h"
@@ -2374,6 +2768,24 @@
 +    }
 +    out << "],\"buttons\":[";
 +    first = true; TestButtons(mainGame->env->getRootGUIElement(), out, first);
++    out << "],\"activatable\":[";
++    first = true;
++    for(auto card : field.activatable_cards) { if(!first) out << ','; first = false; out << card->code; }
++    out << "],\"summonable\":[";
++    first = true;
++    for(auto card : field.summonable_cards) { if(!first) out << ','; first = false; out << card->code; }
++    out << "],\"choices\":[";
++    first = true;
++    if(mainGame->wCardSelect->isVisible()) {
++        const auto start = mainGame->scrCardList->getPos() / 10;
++        for(int i = 0; i < 5 && size_t(start + i) < field.selectable_cards.size(); ++i) {
++            auto button = mainGame->btnCardSelect[i];
++            if(!button->isVisible()) continue;
++            if(!first) out << ','; first = false;
++            const auto point = button->getAbsoluteClippingRect().getCenter();
++            out << "{\"code\":" << field.selectable_cards[start + i]->code << ",\"x\":" << point.X << ",\"y\":" << point.Y << '}';
++        }
++    }
 +    out << ']';
 +    return out.str();
 +}
@@ -2468,12 +2880,11 @@
 +    journal.flush();
 +    if(!journal) { stopping = true; closing = true; }
 +}
-+void TrainingCapture(intptr_t engine, const char* kind, const unsigned char* bytes, size_t len) {
-+    if(!TrainingActive() || !engine) return;
++std::string TrainingState(intptr_t engine) {
 +    const auto d = reinterpret_cast<duel*>(engine);
 +    const auto f = d->game_field;
 +    std::ostringstream out;
-+    out << "\"kind\":\"" << kind << "\",\"raw\":\"" << hex(bytes, len) << "\",\"state\":{\"turn\":" << f->infos.turn_id
++    out << "{\"turn\":" << f->infos.turn_id
 +        << ",\"turn_player\":" << unsigned(f->infos.turn_player) << ",\"phase\":" << f->infos.phase
 +        << ",\"lp\":[" << f->player[0].lp << ',' << f->player[1].lp << "],\"cards\":[";
 +    std::vector<card*> cards(d->cards.begin(), d->cards.end());
@@ -2505,9 +2916,14 @@
 +        out << "{\"link\":" << unsigned(chain.chain_count) << ",\"effect\":" << describeEffect(chain.triggering_effect) << '}';
 +    }
 +    out << "]}";
-+    TrainingWrite(out.str());
++    return out.str();
++}
++void TrainingCapture(intptr_t engine, const char* kind, const unsigned char* bytes, size_t len) {
++    if(!TrainingActive() || !engine) return;
++    TrainingWrite("\"kind\":\"" + std::string(kind) + "\",\"raw\":\"" + hex(bytes, len) + "\",\"state\":" + TrainingState(engine));
 +}
 +void TrainingResponse(const unsigned char* bytes, size_t len, const char* actor, int prompt) {
++    TrainingHistoryResponse(bytes, len, std::string(actor) != "user");
 +    TrainingWrite("\"kind\":\"response\",\"actor\":\"" + std::string(actor) + "\",\"prompt\":" + std::to_string(prompt >= 0 ? prompt : mainGame->dInfo.curMsg) + ",\"raw\":\"" + hex(bytes, len) + "\"");
 +}
 +bool TrainingAnalyze(intptr_t engine, unsigned char* bytes, size_t len) {
@@ -2611,11 +3027,12 @@
 +}
 --- a/gframe/training_support.h
 +++ b/gframe/training_support.h
-@@ -0,0 +1,23 @@
+@@ -0,0 +1,25 @@
 +#pragma once
 +#include <cstddef>
 +#include <cstdint>
 +#include <string>
++#include "training_history.h"
 +
 +namespace ygo {
 +bool TrainingActive();
@@ -2630,6 +3047,7 @@
 +void TrainingStop(bool closing);
 +void TrainingWrite(const std::string& body);
 +void TrainingCapture(intptr_t engine, const char* kind, const unsigned char* bytes = nullptr, size_t len = 0);
++std::string TrainingState(intptr_t engine);
 +void TrainingResponse(const unsigned char* bytes, size_t len, const char* actor = "user", int prompt = -1);
 +bool TrainingAnalyze(intptr_t engine, unsigned char* bytes, size_t len);
 +void TrainingFinish(intptr_t engine, const char* reason);

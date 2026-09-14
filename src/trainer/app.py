@@ -24,6 +24,7 @@ import webbrowser
 
 from report import REPORT_VERSION, build_report, read_journal
 from expansion import OPPONENT, draw_opening, plan_text, validate_conditions, training_settings
+from timeline import route_rows, timeline_nodes
 
 WORKSPACE = Path(__file__).resolve().parents[2]
 RUNTIME = WORKSPACE / '.local/YGOPro-Lite'
@@ -495,6 +496,52 @@ class Store:
             meta['status'] = 'stopping'; atomic_json(p / 'session.json', meta)
             return {'id': identifier, 'status': 'stopping'}
 
+    def timeline(self, identifier):
+        folder = self.session_path(identifier)
+        meta = read_json(folder / 'session.json')
+        rows, issues = read_journal(folder / 'native.jsonl', identifier)
+        active, full, valid = route_rows(rows)
+        # Once input has branched, include the still-resolving portion of the current route.
+        if valid and any(r.get('node') == valid[-1] for r in active): full = active
+        report = build_report(meta, full, issues)
+        nodes, pending = timeline_nodes(full, report['actions'])
+        try: state = read_json(folder / 'timeline-state.json')
+        except FileNotFoundError: state = {'revision': 0, 'cursor': None, 'at_node': False}
+        try: operation = read_json(folder / 'rewind-operation.json')
+        except FileNotFoundError: operation = None
+        if operation and operation['status'] in ('queued', 'running'):
+            committed = next((r for r in reversed(rows) if r.get('kind') == 'rewind' and r.get('token') == operation['token']), None)
+            if committed and (state.get('cursor'), state.get('revision'), state.get('at_node')) == (committed['target'], committed.get('revision'), True):
+                operation = {**operation, 'status': 'done', 'error': ''}
+        alive = meta['status'] == 'running' and self.alive(meta)
+        if operation and operation['status'] in ('queued', 'running') and not alive:
+            operation = {**operation, 'status': 'error', 'error': 'engine_closed'}
+        return {'id': identifier, **state, 'nodes': nodes, 'pending': pending,
+                'available': alive and bool(nodes), 'operation': operation,
+                'record_count': len(rows), 'warnings': issues}
+
+    def rewind(self, body):
+        with self.lock:
+            identifier = body.get('id', '')
+            timeline = self.timeline(identifier)
+            if not timeline['available']: raise ValueError('此展开尚无可恢复节点，或场地已结束')
+            if timeline['operation'] and timeline['operation']['status'] in ('queued', 'running'):
+                raise ValueError('正在恢复场地，请等待本次回退完成')
+            node, revision = body.get('node'), body.get('revision')
+            if type(node) is not int or node not in [n['id'] for n in timeline['nodes']]:
+                raise ValueError('此节点已退出当前路线，请刷新时间轴')
+            if type(revision) is not int or revision != timeline['revision']:
+                raise ValueError('场地已有新操作，请刷新时间轴后重试')
+            token = uuid.uuid4().hex
+            folder = self.session_path(identifier)
+            operation = {'token': token, 'status': 'queued', 'node': node}
+            atomic_json(folder / 'rewind-operation.json', operation)
+            try: atomic_bytes(folder / 'rewind.request', f'{node} {revision} {token}\n'.encode('ascii'))
+            except OSError:
+                atomic_json(folder / 'rewind-operation.json', {**operation, 'status': 'error', 'error': 'write_failed'})
+                raise
+            return operation
+
     def shutdown(self, timeout=8):
         """Close only native processes launched here; preserve interrupted journals and reports."""
         with self.lock:
@@ -576,6 +623,7 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/start': return self.send(store.start(body['deck_id'], body.get('design')))
                 if path == '/api/stop': return self.send(store.stop(body['id']))
                 if path == '/api/restart': return self.send(store.restart(body['id']))
+                if path == '/api/rewind': return self.send(store.rewind(body))
                 if path == '/api/return-to-design': return self.send(store.return_to_design(body['id']))
                 if path == '/api/drafts/discard': return self.send(store.discard_draft(body))
                 if path == '/api/plans/save': return self.send(store.save_plan(body))
@@ -603,6 +651,7 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/plans': return self.send(store.list_plans())
                 if path.startswith('/api/plan/'): return self.send(read_json(store.plan_path(path.rsplit('/', 1)[1])))
                 if path.startswith('/api/report/'): return self.send(store.report(path.rsplit('/', 1)[1]))
+                if path.startswith('/api/timeline/'): return self.send(store.timeline(path.rsplit('/', 1)[1]))
                 if path.startswith('/api/raw/'):
                     p = store.session_path(path.rsplit('/', 1)[1]) / 'native.jsonl'
                     return self.send(p.read_bytes(), 'text/plain; charset=utf-8')
@@ -616,7 +665,7 @@ class Handler(BaseHTTPRequestHandler):
                             p = root / f'{code}{ext}'
                             if p.is_file(): return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0])
                     p = WEB / 'card-back.svg'; return self.send(p.read_bytes(), 'image/svg+xml')
-                files = {'/': 'index.html', '/app.js': 'app.js', '/expansion.js': 'expansion.js', '/report-view.js': 'report-view.js', '/style.css': 'style.css', '/card-back.svg': 'card-back.svg'}
+                files = {'/': 'index.html', '/app.js': 'app.js', '/expansion.js': 'expansion.js', '/timeline.js': 'timeline.js', '/report-view.js': 'report-view.js', '/style.css': 'style.css', '/card-back.svg': 'card-back.svg'}
                 if path in files:
                     p = WEB / files[path]; return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0] + '; charset=utf-8')
             self.send({'error': '内容不存在'}, status=404)

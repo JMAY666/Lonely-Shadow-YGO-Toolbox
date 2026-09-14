@@ -79,3 +79,12 @@ class NativeCompositionTests(unittest.TestCase):
         self.host.layout({'hwnd': str(self.parent), 'visible': False}, self.store)
         self.host.sync(self.store)
         self.assertFalse(self.host.status(self.store, 'test')['visible'])
+
+    def test_timeline_clips_only_native_card_info_and_preserves_field_hit(self):
+        self.host.layout({'hwnd':str(self.parent), 'visible':True, 'timeline':True,
+                          'x':18, 'y':132, 'width':1164, 'height':750,
+                          'viewportWidth':1200, 'viewportHeight':900}, self.store)
+        state = self.host.status(self.store, 'test')
+        self.assertTrue(state['timeline_accessible'])
+        self.assertTrue(state['owns_stage_hit_test'])
+        self.assertTrue(state['composition_compatible'])

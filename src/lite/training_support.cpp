@@ -77,6 +77,24 @@ static std::string TestUIState() {
     }
     out << "],\"buttons\":[";
     first = true; TestButtons(mainGame->env->getRootGUIElement(), out, first);
+    out << "],\"activatable\":[";
+    first = true;
+    for(auto card : field.activatable_cards) { if(!first) out << ','; first = false; out << card->code; }
+    out << "],\"summonable\":[";
+    first = true;
+    for(auto card : field.summonable_cards) { if(!first) out << ','; first = false; out << card->code; }
+    out << "],\"choices\":[";
+    first = true;
+    if(mainGame->wCardSelect->isVisible()) {
+        const auto start = mainGame->scrCardList->getPos() / 10;
+        for(int i = 0; i < 5 && size_t(start + i) < field.selectable_cards.size(); ++i) {
+            auto button = mainGame->btnCardSelect[i];
+            if(!button->isVisible()) continue;
+            if(!first) out << ','; first = false;
+            const auto point = button->getAbsoluteClippingRect().getCenter();
+            out << "{\"code\":" << field.selectable_cards[start + i]->code << ",\"x\":" << point.X << ",\"y\":" << point.Y << '}';
+        }
+    }
     out << ']';
     return out.str();
 }
@@ -171,12 +189,11 @@ void TrainingWrite(const std::string& body) {
     journal.flush();
     if(!journal) { stopping = true; closing = true; }
 }
-void TrainingCapture(intptr_t engine, const char* kind, const unsigned char* bytes, size_t len) {
-    if(!TrainingActive() || !engine) return;
+std::string TrainingState(intptr_t engine) {
     const auto d = reinterpret_cast<duel*>(engine);
     const auto f = d->game_field;
     std::ostringstream out;
-    out << "\"kind\":\"" << kind << "\",\"raw\":\"" << hex(bytes, len) << "\",\"state\":{\"turn\":" << f->infos.turn_id
+    out << "{\"turn\":" << f->infos.turn_id
         << ",\"turn_player\":" << unsigned(f->infos.turn_player) << ",\"phase\":" << f->infos.phase
         << ",\"lp\":[" << f->player[0].lp << ',' << f->player[1].lp << "],\"cards\":[";
     std::vector<card*> cards(d->cards.begin(), d->cards.end());
@@ -208,9 +225,14 @@ void TrainingCapture(intptr_t engine, const char* kind, const unsigned char* byt
         out << "{\"link\":" << unsigned(chain.chain_count) << ",\"effect\":" << describeEffect(chain.triggering_effect) << '}';
     }
     out << "]}";
-    TrainingWrite(out.str());
+    return out.str();
+}
+void TrainingCapture(intptr_t engine, const char* kind, const unsigned char* bytes, size_t len) {
+    if(!TrainingActive() || !engine) return;
+    TrainingWrite("\"kind\":\"" + std::string(kind) + "\",\"raw\":\"" + hex(bytes, len) + "\",\"state\":" + TrainingState(engine));
 }
 void TrainingResponse(const unsigned char* bytes, size_t len, const char* actor, int prompt) {
+    TrainingHistoryResponse(bytes, len, std::string(actor) != "user");
     TrainingWrite("\"kind\":\"response\",\"actor\":\"" + std::string(actor) + "\",\"prompt\":" + std::to_string(prompt >= 0 ? prompt : mainGame->dInfo.curMsg) + ",\"raw\":\"" + hex(bytes, len) + "\"");
 }
 bool TrainingAnalyze(intptr_t engine, unsigned char* bytes, size_t len) {

@@ -49,10 +49,10 @@ function switchView(view) {
 }
 async function syncNativeHost() {
   if (!window.trainerDesktop) return;
-  if ($('#training').hidden || (typeof flow !== 'undefined' && flow.confirming)) return window.trainerDesktop.updateLayout({visible:false});
+  if ($('#training').hidden || (typeof flow !== 'undefined' && flow.confirming) || (typeof rewindState !== 'undefined' && rewindState.busy)) return window.trainerDesktop.updateLayout({visible:false});
   const box = $('#native-stage').getBoundingClientRect();
   return window.trainerDesktop.updateLayout({visible:true,x:box.x,y:box.y,width:box.width,height:box.height,
-    viewportWidth:window.innerWidth,viewportHeight:window.innerHeight});
+    viewportWidth:window.innerWidth,viewportHeight:window.innerHeight, timeline:true});
 }
 async function waitNativeFrame(id) {
   for (let attempt=0; attempt<80 && app.active?.id===id; attempt++) {
@@ -79,7 +79,7 @@ function updateStart() {
   $('#delete-deck').disabled = app.busy || !$('#compact-deck').value;
   $('#nav-training').hidden = false;
   $('#nav-training').disabled = !app.active;
-  const flowBusy = typeof flow !== 'undefined' && flow.busy;
+  const flowBusy = (typeof flow !== 'undefined' && flow.busy) || (typeof rewindState !== 'undefined' && rewindState.busy);
   $('#finish-training').disabled = !app.active || app.active.status === 'stopping' || flowBusy;
   $('#end-training').disabled = $('#finish-training').disabled;
   $('#restart-expansion').disabled = !app.active?.plan_stage || app.active.status === 'stopping' || flowBusy;
@@ -574,6 +574,7 @@ async function refreshHistory(){
   if(generation!==app.historyGeneration)return;
   app.history=history;
   app.active=app.history.find(h=>['running','starting','stopping'].includes(h.status))||null;
+  if(typeof resetTimelineSession==='function')resetTimelineSession(app.active?.id || null);
   $('#history-count').textContent=app.history.filter(h=>h.plan_stage==='draft').length||'';
   $('#active-training').hidden=!app.active;
   if(app.active){$('#active-title').textContent=`${app.active.name} · ${statusNames[app.active.status]}`;$('#active-info').textContent=`${dt(app.active.started_ms)} 开始 · 过程正在记录，尚未保存为方案。`;}
