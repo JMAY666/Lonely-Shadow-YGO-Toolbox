@@ -5,7 +5,7 @@ import json
 import re
 
 FORMAT, VERSION, MAX_BYTES = 'ygo-trainer-plan', 1, 20 * 1024 * 1024
-PLAN_FIELDS = set('name deck_name deck catalog expansion events actions initial_hand initial_hand_ref final_state final_state_ref review annotations requirements started_ms ended_ms duration_ms status end_reason loaded_verified warnings limitations statistics raw_statistics statistics_note report_version record_count active_record_count rule'.split())
+PLAN_FIELDS = set('name deck_name deck catalog expansion events actions initial_hand initial_hand_ref final_state final_state_ref review annotations requirements started_ms ended_ms duration_ms status end_reason loaded_verified warnings limitations statistics raw_statistics statistics_note report_version record_count active_record_count rule branches'.split())
 EXPANSION_FIELDS = set('name notes conditions actual_opening opponent_ai opponent_responses opponent_config turn_order player_lp opponent_lp timer'.split())
 CARD_FIELDS = set('id name desc type alias setcode level atk def race attribute extra script_available'.split()) | {f'str{i}' for i in range(1, 17)}
 REF = re.compile(r'^[a-zA-Z0-9:_-]{1,100}$')
@@ -22,6 +22,14 @@ def portable(plan):
     # files use decimal strings so browser preview/import never rounds it.
     for card in result['catalog'].values():
         if type(card.get('setcode')) is int: card['setcode'] = str(card['setcode'])
+    if 'branches' in result:
+        result['branches'] = []
+        for branch in plan['branches']:
+            item = {key: deepcopy(branch[key]) for key in ('id', 'name', 'conditions', 'premises', 'associations', 'valid', 'invalid_reason') if key in branch}
+            item['source'] = {key: deepcopy(value) for key, value in branch.get('source', {}).items()
+                              if key in ('checkpoint', 'seq', 'node_id', 'action_id', 'cards', 'operation', 'timing', 'prompt', 'player', 'chain_depth', 'main_revision')}
+            if branch.get('report'): item['report'] = portable({key: value for key, value in branch['report'].items() if key != 'branches'})
+            result['branches'].append(item)
     return result
 
 
@@ -128,6 +136,26 @@ def validate(document):
                     need(isinstance(row.get(refs, []), list) and all(isinstance(v, str) for v in row.get(refs, [])), '条件摘要依据无效')
         need(isinstance(summary.get('final', {}), dict), '终场摘要无效')
     tags = document.get('tags', [])
+    if 'branches' in plan:
+        branches = plan['branches']; branch_ids = set()
+        need(isinstance(branches, list) and len(branches) <= 100, '妥协分支数量无效')
+        for branch in branches:
+            need(isinstance(branch, dict) and isinstance(branch.get('id'), str) and REF.fullmatch(branch['id']) and branch['id'] not in branch_ids, '妥协分支标识无效')
+            branch_ids.add(branch['id'])
+            need(isinstance(branch.get('name'), str) and 0 < len(branch['name'].strip()) <= 80, '妥协分支名称无效')
+            need(isinstance(branch.get('source'), dict) and isinstance(branch.get('conditions'), dict) and isinstance(branch.get('premises'), list), '妥协分支前提无效')
+            source = branch['source']
+            need(type(source.get('checkpoint')) is int and source['checkpoint'] > 0 and isinstance(source.get('main_revision'), str), '妥协分支恢复位置标识无效')
+            need(isinstance(source.get('node_id'), str) and REF.fullmatch(source['node_id']) and type(source.get('seq')) is int, '妥协分支起点无效')
+            need(isinstance(source.get('cards', []), list) and isinstance(source.get('timing'), str) and isinstance(source.get('operation'), str), '分支位置说明无效')
+            hand = branch['conditions'].get('hand')
+            need(isinstance(hand, list) and len(hand) <= 60 and all(type(code) is int and 0 < code < 2**32 for code in hand), '分支场景手牌无效')
+            for premise in branch['premises']:
+                need(isinstance(premise, dict) and all(isinstance(premise.get(key), list) for key in ('source_cards', 'affected_cards', 'evidence_refs'))
+                     and isinstance(premise.get('result'), str), '分支实际事件无效')
+            if branch.get('report'):
+                need(isinstance(branch['report'], dict) and 'branches' not in branch['report'], '暂不支持嵌套妥协分支')
+                validate({'format': FORMAT, 'version': VERSION, 'plan': branch['report'], 'tags': []})
     need(isinstance(tags, list) and len(tags) <= 30, '分享标签无效')
     seen = set()
     for tag in tags:

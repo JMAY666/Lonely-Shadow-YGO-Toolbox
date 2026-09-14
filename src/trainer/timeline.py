@@ -39,7 +39,11 @@ def route_rows(rows):
 
 
 def timeline_nodes(rows, actions):
-    boundaries = [r for r in rows if r.get('kind') == 'checkpoint']
+    # The ordinary live timeline retains its familiar settled operation nodes.
+    # Fine-grained response checkpoints are exposed separately by compromise.py.
+    boundaries = [r for r in rows if r.get('kind') == 'checkpoint' and
+                  ('restorable' not in r or r.get('player') == 0 and r.get('prompt') in (10, 11)
+                   and not r.get('state', {}).get('chain_depth', 0))]
     nodes, used = [], set()
     for index, row in enumerate(boundaries):
         steps = []

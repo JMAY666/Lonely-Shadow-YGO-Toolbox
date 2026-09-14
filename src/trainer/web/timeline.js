@@ -26,10 +26,11 @@ function renderRewind(data) {
     const active = index===current;
     const future = index>current;
     const phase = {4:'主要阶段 1',8:'战斗开始',16:'战斗阶段',128:'战斗阶段',256:'主要阶段 2'}[node.phase] || '阶段变化';
-    return `<li class="${active?'rewind-current':future?'rewind-future':''}"><button type="button" data-rewind="${node.id}" ${active?'aria-current="step"':''} ${rewindState.busy || !data.available || (active && data.at_node)?'disabled':''}>
+    return `<li class="${active?'rewind-current':future?'rewind-future':''}"><button type="button" data-rewind="${node.id}" ${active?'aria-current="step"':''} ${rewindState.busy || !data.available || node.restorable===false || (active && data.at_node)?'disabled':''}>
       <span class="rewind-node-label">${node.initial?'初始状态':`节点 ${node.ordinal}`}<em>${active?(data.at_node?'当前':'操作中'):future?'待替换':node.steps.length>1?'结算完成':''}</em></span>
       ${node.steps.map(timelineStep).join('') || `<strong>${node.initial?'本次起手已就绪':`第 ${node.turn} 回合 · ${phase}`}</strong>`}
       <small>第 ${node.turn} 回合 · ${phase} · LP ${node.lp[0]}</small>
+      ${node.restorable===false?'<small>继承自主线 · 请从所属方案重新构建分支</small>':''}
       ${node.steps.length>1?'<small>以上步骤作为一组恢复</small>':''}</button></li>`;
   }).join('') + (data.pending?.length ? `<li class="rewind-pending"><span>正在处理 · 完成后可恢复</span>${data.pending.map(timelineStep).join('')}</li>` : '') || '<li>正在等待可恢复的初始状态……</li>';
 }

@@ -81,7 +81,8 @@ function tutorialAction(action,node,plan) {
   }
   return {id:action.id,stages,notes};
 }
-function buildPlanTutorial(plan) {
+function buildPlanTutorial(plan,includeBranches=false) {
+  if(includeBranches && typeof buildBranchedTutorial==='function')return buildBranchedTutorial(plan,includeBranches);
   const nodes=plan.review?.nodes||reviewFallback(plan),edits=plan.annotations||{};
   const actions=new Map((plan.actions||[]).map(a=>[a.id,a]));
   const steps=[];
@@ -165,6 +166,7 @@ function layoutTutorialAction(action,width) {
   return {...action,stages,notes,notesY,height:notesY+notes.length*20};
 }
 function layoutPlanTutorial(model) {
+  if(model.routes)return layoutBranchedTutorial(model);
   const width=1440,pad=32,gap=32,columns=model.steps.length>24?4:3;
   const nodeWidth=(width-pad*2-gap*(columns-1))/columns;
   const boxes=model.steps.map(s=>{
@@ -223,6 +225,7 @@ function layoutPlanTutorial(model) {
   return {width,height:y+footer.length*20+60,pad,gap,columns,boxes,openingWidth,openingNoteY,finalWidth,openingRows,finalCards,finalNotes,conditionLines,overviewY,overviewHeight,footerY:y,footer};
 }
 function renderPlanTutorialSvg(model,layout=layoutPlanTutorial(model),assets={}) {
+  if(model.routes)return renderBranchedTutorial(model,layout,assets);
   const out=[],esc=tutorialEscape;
   const rect=(x,y,w,h,fill,stroke='#d9e5df',radius=12)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${radius}" fill="${fill}" stroke="${stroke}"/>`;
   const text=(value,x,y,size=15,color='ink',weight=400,anchor='start')=>`<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="${size}" font-weight="${weight}" fill="${tutorialColors[color]||color}">${esc(value)}</text>`;
@@ -310,10 +313,11 @@ function renderPlanTutorialSvg(model,layout=layoutPlanTutorial(model),assets={})
 }
 
 const planTutorialUI={plan:null,model:null,layout:null,busy:false,assets:null};
-function openPlanTutorial(plan) {
+function openPlanTutorial(plan,includeBranches=false) {
   closeReviewDetail();
-  const model=buildPlanTutorial(plan),layout=layoutPlanTutorial(model);
+  const model=buildPlanTutorial(plan,includeBranches),layout=layoutPlanTutorial(model);
   Object.assign(planTutorialUI,{plan,model,layout,assets:null});
+  if(typeof mountTutorialBranches==='function')mountTutorialBranches(plan,includeBranches);
   $('#plan-tutorial-canvas').innerHTML=renderPlanTutorialSvg(model,layout);
   $('#plan-tutorial-canvas').classList.remove('actual-size');
   $('#plan-tutorial-zoom').textContent='原始大小';
@@ -323,6 +327,8 @@ function openPlanTutorial(plan) {
   $('#plan-tutorial-scroll').scrollTo(0,0);
 }
 async function tutorialAssets(model) {
+  if(model.routes)return Object.assign({},...await Promise.all(model.routes.map(route=>tutorialAssets({...route.model,
+    opening:[...route.model.opening,...(route.facts||[]).flatMap(f=>[...f.sources,...f.affected]).map(c=>({src:`/pics/${Number(c.code)}.jpg`}))]}))));
   const sources=[...new Set([...model.opening,...model.finalCards,...model.steps.flatMap(s=>s.actions.flatMap(a=>a.stages.flatMap(stage=>stage.cards)))].map(c=>c.src))];
   const assets={};
   let next=0;
@@ -380,6 +386,8 @@ async function followTutorialStep(e) {
   const plan=planTutorialUI.plan,id=step.dataset.tutorialNode;
   $('#plan-tutorial-dialog').close();
   await $('#edit-plan').onclick();
+  const route=step.closest('[data-tutorial-route]')?.dataset.tutorialRoute;
+  if(route&&route!=='main'&&typeof displayBranchRoute==='function') {branchUI.selected=route;branchUI.viewing=true;displayBranchRoute();}
   if(app.view==='history'&&reviewUI.report?.id===plan.id)selectReviewNode(id);
 }
 $('#plan-tutorial-canvas').addEventListener('click',followTutorialStep);

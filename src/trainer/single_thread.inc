@@ -129,9 +129,9 @@
         mainGame->dInfo.curMsg = MSG_NEW_PHASE;
         DuelClient::ClientAnalyze(phaseMessage, sizeof phaseMessage);
         mainGame->dInfo.curMsg = prompt[0];
-        DuelClient::ClientAnalyze(const_cast<unsigned char*>(prompt.data()), prompt.size());
+        if(TrainingPromptPlayer(prompt.data(), prompt.size()) != 1)
+            DuelClient::ClientAnalyze(const_cast<unsigned char*>(prompt.data()), prompt.size());
     });
-    TrainingCapture(pduel, "loaded");
     mainGame->gMutex.lock();
     mainGame->dInfo.Clear();
     mainGame->dInfo.lp[0] = mainGame->dInfo.start_lp = playerLP;
@@ -154,10 +154,19 @@
     mainGame->device->setEventReceiver(&mainGame->dField);
     mainGame->gMutex.unlock();
     std::vector<unsigned char> buffer(SIZE_MESSAGE_BUFFER);
-    auto len = TrainingQueryFieldInfo(pduel, buffer.data());
-    TrainingCapture(pduel, "batch", buffer.data(), len);
-    SinglePlayAnalyze(buffer.data(), len);
-    TrainingStartDuel(pduel, (MASTER_RULE_2020 << 16) | (opponentAI ? DUEL_SIMPLE_AI : 0));
+    int len = 0;
+    std::vector<unsigned char> resumed;
+    if(TrainingResumeBranch(pduel, resumed)) {
+        if(!TrainingStopping()) TrainingWait(pduel, resumed.data(), resumed.size());
+    } else {
+        TrainingCapture(pduel, "loaded");
+        len = TrainingQueryFieldInfo(pduel, buffer.data());
+        TrainingCapture(pduel, "batch", buffer.data(), len);
+        SinglePlayAnalyze(buffer.data(), len);
+        // Surface both seats' legal prompts before the adapter delegates to the
+        // same pinned simple-AI policies. This keeps response windows restorable.
+        TrainingStartDuel(pduel, MASTER_RULE_2020 << 16);
+    }
     while(is_continuing && !TrainingStopping()) {
         const auto result = TrainingProcess(pduel, buffer);
         len = result & PROCESSOR_BUFFER_LEN;

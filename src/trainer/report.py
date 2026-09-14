@@ -9,7 +9,7 @@ from card_semantics import material_method, summon_method
 from timeline import route_rows
 from review import make_review
 
-REPORT_VERSION = 8
+REPORT_VERSION = 10
 
 LIMITS = [
     '事件时间为引擎批次采集时间；同批事件用字节偏移确定先后。',
@@ -53,6 +53,7 @@ def build_report(meta, rows, issues):
     last_prompt = None
     building_links = {}
     previous_seq = None
+    resolution_source = None
 
     def ref(loc, code=None):
         if loc.get('location', 0) & 0x80:
@@ -127,8 +128,11 @@ def build_report(meta, rows, issues):
     for row in rows:
         if previous_seq is not None and row['seq'] != previous_seq + 1:
             building_links.clear()  # Missing messages could include the end of a cost window.
+            resolution_source = None
         previous_seq = row['seq']
         kind = row.get('kind')
+        if kind in ('checkpoint', 'rewind', 'branch_restored') and 'state' in row:
+            state = deepcopy(row['state'])
         if kind == 'loaded':
             state = deepcopy(row['state'])
             for c in state['cards']: names[c['code']] = c['name']
@@ -138,7 +142,7 @@ def build_report(meta, rows, issues):
             report['loaded_state_ref'] = row['seq']
             if not report['loaded_verified']: report['warnings'].append('引擎实际载入卡牌与构筑不一致')
         if kind == 'response':
-            e = append(row, '玩家选择' if row.get('actor') == 'user' else '对手 AI 选择' if row.get('actor') == 'opponent_ai' else '占位方自动跳过', 0,
+            e = append(row, '玩家选择' if row.get('actor') == 'user' else '对手手动选择' if row.get('actor') == 'opponent_manual' else '对手 AI 选择' if row.get('actor') == 'opponent_ai' else '占位方自动跳过', 0,
                        actor=row.get('actor'), raw=row['raw'], prompt_ref=last_prompt and last_prompt['id'], result='等待后续引擎事件确认')
             if last_prompt:
                 e['prompt'] = last_prompt.get('message')
@@ -152,7 +156,7 @@ def build_report(meta, rows, issues):
         if kind == 'script_error':
             append(row, '效果脚本错误', 0, result='客户端记录了脚本诊断，请检查本次 native 日志及客户端错误日志')
             report['warnings'].append('本次训练存在脚本诊断，相关效果可能未正常执行')
-        if kind == 'batch':
+        if kind == 'batch' or kind == 'branch_restored' and row.get('raw'):
             for c in row['state']['cards']: names[c['code']] = c['name']
             try:
                 for offset, msg, b in packets(bytes.fromhex(row['raw'])):
@@ -231,14 +235,19 @@ def build_report(meta, rows, issues):
                             if native_chain.get('link') == n:
                                 e['engine_effect'] = native_chain.get('effect')
                                 break
+                        if msg in (75, 76): e['resolution_source_ref'] = resolution_source
                         if msg == 75: ch['negated'] = True
                         if msg == 76: ch['disabled'] = True
                         if msg in (71, 75, 76): building_links.pop(n, None)
-                        if msg == 72: building_links.clear()
+                        if msg == 72:
+                            building_links.clear()
+                            resolution_source = ch.get('activation_ref')
                         if msg == 73:
                             e['result'] = '发动已无效' if ch.get('negated') else '效果已无效' if ch.get('disabled') else '处理完成；实际结果请核对后续事件与场面'
+                            resolution_source = None
                     elif msg == 74:
                         chains.clear(); building_links.clear()
+                        resolution_source = None
                     elif msg == 83:
                         e['targets'] = [ref(location(b, 1 + i * 4)) for i in range(b[0])]
                         e['cards'] = e['targets']
@@ -278,6 +287,7 @@ def build_report(meta, rows, issues):
             except (ValueError, IndexError) as exc:
                 report['warnings'].append(f"原始记录 {row['seq']}：{exc}")
                 state = deepcopy(row['state'])
+                resolution_source = None
         if 'state' in row:
             report['final_state'], report['final_state_ref'] = deepcopy(row['state']), row['seq']
     stats = Counter(e['message'] for e in report['events'])

@@ -60,6 +60,7 @@ function reviewFallback(r) {
   return nodes.map((n,i)=>({...n,number:i+1}));
 }
 function mountReview(r) {
+  if(typeof adoptBranchRoot==='function' && !r._route)adoptBranchRoot(r);
   const changed=reviewUI.report?.id!==r.id;
   if(changed)closeReviewDetail();
   const editable=['draft','saved'].includes(r.plan_stage);
@@ -104,6 +105,7 @@ function renderReviewSidebar() {
     $('#save-plan').onclick=run(savePlan);$('#delete-draft').onclick=run(deleteDraft);
   }
   if($('#draft-conditions'))$('#draft-conditions').onclick=run(()=>reopenConditions(r.id));
+  if(typeof mountBranchSidebar==='function')mountBranchSidebar();
 }
 function reviewCard(c, node=reviewUI.node, options={}) {
   const report=options.report||reviewUI.report;
@@ -125,6 +127,7 @@ function selectReviewNode(id) {
   if(!reviewUI.nodes.some(n=>n.id===id))return;
   closeReviewDetail();
   reviewUI.node=id;reviewUI.selected=null;reviewUI.materialTab=false;reviewUI.zone=null;
+  renderReviewSidebar();
   renderReviewNode();
   document.querySelectorAll('[data-review-node]').forEach(b=>{
     if(b.dataset.reviewNode===id)b.setAttribute('aria-current','step');else b.removeAttribute('aria-current');
@@ -412,6 +415,7 @@ function summaryHtml(summary, savedPlan=null) {
     <p class="review-warning">${escape(summary.basis||'按本次实际记录统计')}${(summary.warnings||[]).map(w=>'<br>'+escape(w)).join('')}</p>${summary.note?`<p class="preserve-lines">用户核对说明：${escape(summary.note)}</p>`:''}`;
 }
 async function previewReview() {
+  if(typeof prepareBranchSave==='function' && !await prepareBranchSave())return;
   if(flow.busy||!flow.draft)return;
   flow.busy=true;$('#save-plan').disabled=true;
   const d=flow.draft;
@@ -447,6 +451,8 @@ function renderConfirmation() {
     <footer class="confirmation-footer"><p id="confirmation-message" role="status">取消确认不会产生正式方案。</p><button id="back-to-review">返回修改</button><button id="confirm-save-plan" class="primary">${p.saved?'确认保存修改':'确认存入展开管理'}</button></footer>`;
   $('#back-to-review').onclick=()=>{if(flow.saving)return;reviewUI.pending=null;switchView('history');renderReviewSidebar();renderReviewNode();renderReviewLog();};
   $('#confirm-save-plan').onclick=run(confirmReviewSave);
+  if(p.branches?.length && typeof branchPremises==='function')$('#save-confirmation .confirmation-footer').insertAdjacentHTML('beforebegin',
+    `<section class="confirmation-section"><h2>随主线保存的妥协分支 · ${p.branches.length} 条</h2><p>默认资源仍按主线统计；分支条件、记录、说明和各自终场将一并保存。</p>${p.branches.map(b=>`<details><summary>${escape(b.name)} · ${b.report?'已记录终场':'仅预设条件'}</summary>${branchPremises(b)}${b.report?.requirements?summaryHtml(b.report.requirements,b.report):''}</details>`).join('')}</section>`);
   const invalidate=()=>{p.dirty=true;$('#confirm-save-plan').disabled=true;$('#condition-status').textContent='核对内容已修改，请重新生成确认摘要。';};
   $('#condition-note').oninput=e=>{reviewEdits().conditions_note=e.target.value;invalidate();};
   document.querySelectorAll('[data-cost-mode],[data-cost-constraint]').forEach(el=>el.oninput=()=>{
@@ -474,6 +480,7 @@ async function confirmReviewSave() {
       throw new Error('此尝试已有不同内容的正式方案。请返回修改后重新生成摘要，当前编辑仍保留');
     }
     flow.draft=null;reviewUI.pending=null;reviewUI.report=null;app.reportKey=null;
+    if(typeof branchUI!=='undefined'){branchUI.drafts.clear();branchUI.key=null;branchUI.config=null;branchUI.viewing=false;}
     $('#review-workspace').hidden=true;
     await showPlan(saved.id);notice(`方案“${saved.name}”已存入展开管理。`);
     await refreshHistory().catch(e=>notice(`方案已保存，历史列表刷新失败：${e.message}`));
@@ -486,7 +493,7 @@ async function confirmReviewSave() {
   }
 }
 function renderSavedPlan(plan) {
-  $('#plan-report').innerHTML=`<div class="plan-actions"><span>保存于 ${dt(plan.saved_ms)}</span><button id="generate-plan-tutorial" class="primary">生成一图流</button><button id="edit-plan">查看步骤与调整说明</button><button id="plan-conditions">以此条件再次展开</button><button id="delete-plan" class="danger">删除方案</button></div><h2>${escape(plan.name)}</h2><p class="preserve-lines">${escape(plan.expansion?.notes||'')}</p>${plan.requirements?summaryHtml(plan.requirements,plan):'<p>旧方案未保存条件摘要，原始报告仍完整保留。</p>'}<details><summary>原始冻结报告</summary><div id="saved-raw-report"></div></details>`;
+  $('#plan-report').innerHTML=`<div class="plan-actions"><span>保存于 ${dt(plan.saved_ms)}</span><button id="generate-plan-tutorial" class="primary">生成一图流</button><button id="edit-plan">查看步骤与调整说明</button><button id="plan-conditions">以此条件再次展开</button><button id="delete-plan" class="danger">删除方案</button></div><h2>${escape(plan.name)}</h2><p class="preserve-lines">${escape(plan.expansion?.notes||'')}</p><div id="saved-route-summary">${plan.requirements?summaryHtml(plan.requirements,plan):'<p>旧方案未保存条件摘要，原始报告仍完整保留。</p>'}</div><details><summary>原始冻结报告</summary><div id="saved-raw-report"></div></details>`;
   $('#generate-plan-tutorial').onclick=()=>openPlanTutorial(plan);
   const rawView=raw=>{
     $('#saved-raw-report').innerHTML=renderTrainingReport(plan,{raw}).replaceAll('all-events','plan-all-events');
@@ -494,6 +501,7 @@ function renderSavedPlan(plan) {
   };
   rawView(false);
   if(typeof mountPlanLibrary==='function')mountPlanLibrary(plan);
+  if(typeof mountSavedBranches==='function')mountSavedBranches(plan);
   $('#edit-plan').onclick=run(async()=>{
     if(flow.draft?.id===plan.id&&flow.draft.originalRevision!==(plan.edit_revision||0)) {
       if(draftDirty()&&!await confirmFlow('重新载入已更新的方案？','当前未保存的说明会被已保存版本替换。取消可继续保留当前编辑。','载入已保存版本'))return;

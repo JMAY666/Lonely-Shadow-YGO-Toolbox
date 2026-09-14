@@ -29,6 +29,7 @@ from review import annotations_for, confirmation_key, legacy_review, requirement
 from plan_library import PlanLibrary
 from plan_tags import tag_list
 from plan_sharing import MAX_BYTES
+from compromise import Compromise, resource_scope
 
 WORKSPACE = Path(__file__).resolve().parents[2]
 RUNTIME = WORKSPACE / '.local/YGOPro-Lite'
@@ -126,6 +127,7 @@ class Store:
         self.catalog = Catalog(self.runtime)
         self.lock = threading.RLock()
         self.library = PlanLibrary(self, read_json, atomic_json, now)
+        self.compromise = Compromise(self, read_json, atomic_json, atomic_bytes)
         self.processes = {}
         self.closing = False
         self.job = None
@@ -259,17 +261,18 @@ class Store:
         for p in self.sessions.glob('*/session.json'):
             try:
                 meta = read_json(p)
+                if meta.get('compromise') and meta['status'] not in ('running', 'starting', 'stopping'): continue
                 if meta.get('plan_stage') == 'discarded' and meta['status'] not in ('starting','running','stopping'): continue
                 if (self.plans / 'deleted' / (meta['id'] + '.json')).exists(): meta['plan_stage'] = 'deleted'
                 elif (self.plans / (meta['id'] + '.json')).exists():
                     meta['plan_stage'] = 'saved'
                     meta['name'] = read_json(self.plans / (meta['id'] + '.json'))['name']
-                result.append({k: meta.get(k) for k in ('id', 'name', 'started_ms', 'ended_ms', 'status', 'end_reason', 'plan_stage', 'deck_name')})
+                result.append({k: meta.get(k) for k in ('id', 'name', 'started_ms', 'ended_ms', 'status', 'end_reason', 'plan_stage', 'deck_name', 'compromise')})
             except (ValueError, OSError, KeyError, TypeError):
                 result.append({'id': p.parent.name, 'name': '记录元数据损坏（原文件保留）', 'status': 'damaged', 'started_ms': 0})
         return sorted(result, key=lambda m: m['started_ms'], reverse=True)
 
-    def start(self, identifier, design=None, retry_meta=None):
+    def start(self, identifier, design=None, retry_meta=None, branch_setup=None):
         with self.lock:
             if self.closing: raise ValueError('应用正在保存并退出，请稍候')
             self.refresh()
@@ -319,6 +322,7 @@ class Store:
                     'sources': self.catalog.sources, 'engine_sha256': hashlib.sha256((self.runtime / 'YGOPro.exe').read_bytes()).hexdigest(),
                     'rule': 'Master Rule 2020 / core 8ff3583', 'opponent': 'empty; no AI; passes optional windows',
                     'legality': '构筑数量和类型校验；自由练习不执行禁限卡表及同名三张限制'}
+            meta['scripts_sha256'] = retry_meta.get('scripts_sha256') if retry_meta else self.compromise.script_identity()
             if expansion:
                 if retry_meta:
                     for key in ('catalog', 'sources', 'engine_sha256', 'rule'):
@@ -346,6 +350,11 @@ class Store:
                           int(settings['turn_order'] == 'second'), settings['player_lp'], settings['opponent_lp'],
                           opponent_hand, len(opponent_order), *opponent_order, len(extra), *extra]
                 atomic_bytes(path / 'opening.cfg', (' '.join(map(str, values)) + '\n').encode('ascii'))
+            if branch_setup:
+                meta['compromise'] = {key: deepcopy(branch_setup[key]) for key in ('root_id', 'branch_id', 'source', 'name')}
+                meta['name'] = branch_setup['name']
+                for code in branch_setup['hand']: meta['catalog'][str(code)] = deepcopy(self.catalog.cards[code])
+                self.compromise.prepare(path, meta, branch_setup)
             atomic_json(path / 'session.json', meta)
             env = os.environ.copy(); env['YGO_TRAIN_SESSION'] = sid
             if self.host: env.update(self.host.environment())
@@ -442,6 +451,8 @@ class Store:
             if meta.get('plan_stage') != 'draft' or self.alive(meta): raise ValueError('请先结束展开，再保存待确认草稿')
             name, notes = plan_text(body)
             report = self.report(identifier)
+            if report.get('compromise'): raise ValueError('妥协分支随主线统一保存，请返回所属方案确认保存')
+            self.compromise.validate_save(report)
             if not report['initial_hand'] or not report['final_state']:
                 raise ValueError('未采集到完整起手和场面，请检查记录后重试')
             if [c['code'] for c in report['initial_hand']] != meta['expansion']['actual_opening'] or not report['loaded_verified']:
@@ -481,6 +492,8 @@ class Store:
     def preview_plan(self, body):
         with self.lock:
             report = self.report(body.get('id', ''))
+            if report.get('compromise'): raise ValueError('请在所属主线方案中统一确认保存分支')
+            self.compromise.validate_save(report)
             if report.get('plan_stage') not in ('draft', 'saved'): raise ValueError('没有有效待保存方案，请返回方案调整')
             self.validate_review_save(report)
             name, notes = plan_text(body)
@@ -488,7 +501,8 @@ class Store:
             return {'id': report['id'], 'name': name, 'notes': notes, 'annotations': annotations,
                     'saved': report.get('plan_stage') == 'saved', 'edit_revision': report.get('edit_revision', 0),
                     'original_name': report['name'], 'original_notes': report.get('expansion', {}).get('notes', ''),
-                    'requirements': requirements(report, annotations),
+                    'requirements': requirements(report, annotations), 'branches': report.get('branches', []),
+                    'branches_revision': report.get('branches_revision', 0),
                     'confirmation': confirmation_key(report, name, notes, annotations)}
 
     def list_plans(self):
@@ -508,15 +522,17 @@ class Store:
         with self.lock:
             target = self.plan_path(body.get('id', ''))
             plan = read_json(target)
+            edited = self.compromise.edit(plan)
+            self.compromise.validate_save(edited)
             name, notes = plan_text(body)
             annotations = annotations_for(plan, body.get('annotations'))
-            if (plan['name'], plan['expansion']['notes'], annotations_for(plan)) == (name, notes, annotations): return plan
+            if (plan['name'], plan['expansion']['notes'], annotations_for(plan), plan.get('branches', [])) == (name, notes, annotations, edited.get('branches', [])): return plan
             if (body.get('original_name'), body.get('original_notes')) != (plan['name'], plan['expansion']['notes']):
                 raise ValueError('方案已在其他页面修改，请重新打开后再编辑；当前文字仍保留')
             if 'annotations' in body:
                 if body.get('original_revision', 0) != plan.get('edit_revision', 0):
                     raise ValueError('方案说明已在其他页面修改，当前编辑已保留，请重新核对')
-                if body.get('confirmation') != confirmation_key(plan, name, notes, annotations):
+                if body.get('confirmation') != confirmation_key(edited, name, notes, annotations):
                     raise ValueError('保存摘要已过期，请返回修改后重新确认')
             backup = self.plans / 'revisions' / target.stem / f"{plan.get('edit_revision', 0)}.json"
             if not backup.exists(): atomic_json(backup, plan)
@@ -525,6 +541,8 @@ class Store:
             plan['review'] = legacy_review(plan)
             plan['annotations'] = annotations
             plan['requirements'] = requirements(plan, annotations)
+            plan['branches'] = edited.get('branches', [])
+            plan['branches_revision'] = edited.get('branches_revision', 0)
             plan['edit_revision'] = plan.get('edit_revision', 0) + 1
             atomic_json(target, plan)
             return plan
@@ -566,8 +584,16 @@ class Store:
             if committed and (state.get('cursor'), state.get('revision'), state.get('at_node')) == (committed['target'], committed.get('revision'), True):
                 operation = {**operation, 'status': 'done', 'error': ''}
         alive = meta['status'] == 'running' and self.alive(meta)
+        if meta.get('compromise') and 'available_nodes' in state:
+            for node in nodes: node['restorable'] = node['id'] in state['available_nodes']
         if operation and operation['status'] in ('queued', 'running') and not alive:
             operation = {**operation, 'status': 'error', 'error': 'engine_closed'}
+        if state.get('cursor') is not None and state['cursor'] not in [n['id'] for n in nodes]:
+            # A live response/place checkpoint is not a settled operation node.
+            # Keep the ordinary timeline on the preceding node in its in-progress state.
+            state['engine_cursor'] = state['cursor']
+            state['cursor'] = max((n['id'] for n in nodes if n['id'] < state['engine_cursor']), default=None)
+            state['at_node'] = False
         return {'id': identifier, **state, 'nodes': nodes, 'pending': pending,
                 'available': alive and bool(nodes), 'operation': operation,
                 'record_count': len(rows), 'warnings': issues}
@@ -580,6 +606,8 @@ class Store:
             if timeline['operation'] and timeline['operation']['status'] in ('queued', 'running'):
                 raise ValueError('正在恢复场地，请等待本次回退完成')
             node, revision = body.get('node'), body.get('revision')
+            if any(n['id'] == node and n.get('restorable') is False for n in timeline['nodes']):
+                raise ValueError('此节点继承自主线，不能在当前分支内回退；请在所属方案中重新构建分支')
             if type(node) is not int or node not in [n['id'] for n in timeline['nodes']]:
                 raise ValueError('此节点已退出当前路线，请刷新时间轴')
             if type(revision) is not int or revision != timeline['revision']:
@@ -624,6 +652,9 @@ class Store:
         self.refresh()
 
     def report(self, identifier):
+        return self.compromise.edit(self._report(identifier))
+
+    def _report(self, identifier):
         self.refresh()
         plan = self.plan_path(identifier)
         if plan.exists(): return read_json(plan)
@@ -678,6 +709,10 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/desktop/layout' and store.host: return self.send(store.host.layout(body, store))
                 if path == '/api/native/test' and store.host: return self.send(store.host.test_event(store, body))
                 if path == '/api/start': return self.send(store.start(body['deck_id'], body.get('design')))
+                if path == '/api/branches/create': return self.send(store.compromise.create(body))
+                if path == '/api/branches/update': return self.send(store.compromise.update(body))
+                if path == '/api/branches/enter': return self.send(store.compromise.enter(body))
+                if path == '/api/opponent/control': return self.send(store.compromise.control(body))
                 if path == '/api/stop': return self.send(store.stop(body['id']))
                 if path == '/api/restart': return self.send(store.restart(body['id']))
                 if path == '/api/rewind': return self.send(store.rewind(body))
@@ -714,6 +749,11 @@ class Handler(BaseHTTPRequestHandler):
                 if path.startswith('/api/plan/'): return self.send(read_json(store.plan_path(path.rsplit('/', 1)[1])))
                 if path.startswith('/api/report/'): return self.send(store.report(path.rsplit('/', 1)[1]))
                 if path.startswith('/api/timeline/'): return self.send(store.timeline(path.rsplit('/', 1)[1]))
+                if path.startswith('/api/opponent/state/'): return self.send(store.compromise.opponent(path.rsplit('/', 1)[1]))
+                if path.startswith('/api/branch-resources/'):
+                    report = store.report(path.rsplit('/', 1)[1])
+                    branch = next((b for b in report.get('branches', []) if b['id'] == query.get('branch', [''])[0]), None)
+                    return self.send(resource_scope(report, branch))
                 if path.startswith('/api/raw/'):
                     plan = store.plan_path(path.rsplit('/', 1)[1])
                     if plan.exists() and read_json(plan).get('imported'):
@@ -735,7 +775,7 @@ class Handler(BaseHTTPRequestHandler):
                 files = {'/': 'index.html', '/app.js': 'app.js', '/expansion.js': 'expansion.js', '/timeline.js': 'timeline.js', '/report-view.js': 'report-view.js', '/review.js': 'review.js', '/review.css': 'review.css', '/plan-tutorial.js': 'plan-tutorial.js', '/plan-tutorial.css': 'plan-tutorial.css', '/review-back.svg': 'review-back.svg', '/style.css': 'style.css', '/card-back.svg': 'card-back.svg'}
                 if path in files:
                     p = WEB / files[path]; return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0] + '; charset=utf-8')
-                if path in ('/activation.js', '/plan-library.js', '/plan-library.css', '/tag-manager.js', '/tag-manager.css'):
+                if path in ('/activation.js', '/plan-library.js', '/plan-library.css', '/tag-manager.js', '/tag-manager.css', '/compromise.js', '/compromise.css', '/compromise-tutorial.js', '/opponent.html', '/opponent.js'):
                     p = WEB / path[1:]; return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0] + '; charset=utf-8')
             self.send({'error': '内容不存在'}, status=404)
         except (ValueError, KeyError, FileNotFoundError, TypeError) as exc:

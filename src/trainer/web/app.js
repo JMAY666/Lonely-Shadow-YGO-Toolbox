@@ -25,6 +25,7 @@ async function card(code) {
   return app.pendingCards.get(code);
 }
 function switchView(view) {
+  if(view==='compromise' && typeof branchUI!=='undefined' && !selectedBranch()?.valid)return notice('请先在展开时间轴中创建或选择妥协分支');
   if (view === 'confirmation' && (typeof reviewUI === 'undefined' || !reviewUI.pending)) { notice('请从当前方案的保存操作进入确认。'); view = 'history'; }
   if (typeof flow !== 'undefined' && flow.deckEdit && view !== 'decks') return notice('请先应用本次卡组编辑，或取消编辑并返回条件。');
   if (typeof flow !== 'undefined' && app.view !== view) {
@@ -40,10 +41,11 @@ function switchView(view) {
   $('#training').hidden = view !== 'training';
   $('#design').hidden = view !== 'design';
   $('#plans').hidden = view !== 'plans';
-  $('#tags').hidden = view !== 'tags';
+    $('#tags').hidden = view !== 'tags';
+    $('#compromise-design').hidden = view !== 'compromise';
   $('#save-confirmation').hidden = view !== 'confirmation';
   document.body.classList.toggle('history-view', ['history','plans','confirmation','tags'].includes(view));
-  for (const name of ['decks', 'history', 'training', 'design', 'plans', 'tags']) {
+    for (const name of ['decks', 'history', 'training', 'design', 'plans', 'tags', 'compromise']) {
     const button = $(`#nav-${name}`);
     button.classList.toggle('active', view === name);
     if (view === name) button.setAttribute('aria-current', 'page');
@@ -589,7 +591,10 @@ async function refreshHistory(){
     $('#history-list').innerHTML=app.history.map(h=>`<button class="history-item ${h.id===app.reportId?'current':''}" data-report="${h.id}"><strong>${escape(h.name)}</strong><small>${escape(h.deck_name || '原训练历史')}</small><small>${dt(h.started_ms)}</small><span class="badge ${h.status==='interrupted'?'warning':''}">${escape(typeof stageNames!=='undefined'&&stageNames[h.plan_stage] || statusNames[h.status] || h.status)}</span></button>`).join('')||'<div class="empty">还没有展开记录<br><small>保存牌组后进入方案前置设计。</small></div>';
   }
   if(typeof flow!=='undefined' && flow.restarting)return;
-  if(previous&&!app.active){await showReport(previous.id);notice(previous.plan_stage?'本次展开已保留为待确认草稿，请检查后点击“保存方案”。':'历史记录已保留。');}
+    if(previous&&!app.active){
+      if(previous.compromise && typeof returnFromBranch==='function')await returnFromBranch(previous.compromise);
+      else {await showReport(previous.id);notice(previous.plan_stage?'本次展开已保留为待确认草稿，请检查后点击“保存方案”。':'历史记录已保留。');}
+    }
   else if(app.reportId && !$('#history').hidden && app.reportId===app.active?.id){await showReport(app.reportId,false);}
 }
 function cardsHtml(cards){return `<div class="report-cards">${cards.map(c=>`<div class="mini-card"><img src="/pics/${c.code}.jpg" alt="${escape(c.name)}"><small>${escape(c.name)}<br>#${c.instance_id??'未知'}</small></div>`).join('')}</div>`;}

@@ -9,12 +9,14 @@ const { once } = require('node:events');
 const workspace = path.resolve(__dirname, '..');
 const packaged = process.argv.includes('--packaged');
 const label = packaged ? 'packaged' : 'development';
-const root = path.join(workspace, '.local', `desktop-check-${label}`);
-const evidence = path.join(workspace, '.local', 'evidence', `electron-${label}`);
+const onlyCompromise=process.argv.includes('--compromise-only');
+const root = path.join(workspace, '.local', `desktop-check-${label}${onlyCompromise?'-compromise':''}`);
+const evidence = path.join(workspace, '.local', 'evidence', `electron-${label}${onlyCompromise?'-compromise':''}`);
 fs.mkdirSync(evidence, { recursive: true });
 const executable = packaged ? path.join(workspace, require('../package.json').build.directories.output, 'win-unpacked', 'YGOTrainer.exe') : require('electron');
 const checks = [], errors = [];
 let application, page, service, nativePid;
+let compromiseSaved;
 const env = { ...process.env };
 env.YGO_DESKTOP_TEST = '1';
 env.YGO_DESKTOP_BACKGROUND = '1';
@@ -97,6 +99,20 @@ async function close() {
   application = null;
 }
 
+async function verifyBranchRestart() {
+  nativePid=null;
+  await launch(false,false);
+  await page.evaluate(id=>showPlan(id),compromiseSaved.id);
+  assert.equal(await page.locator('#saved-branch-view').isChecked(),false);
+  assert.equal(await page.locator('#nav-compromise').isDisabled(),true);
+  await page.locator('#saved-branch-select').selectOption(compromiseSaved.branch);
+  await page.locator('#saved-branch-view').check();
+  assert((await page.locator('#saved-branch-panel').innerText()).includes('效果被无效'));
+  const reopened=await page.evaluate(id=>api('/api/plan/'+id),compromiseSaved.id);
+  assert.equal(reopened.branches.length,2);
+  assert(reopened.branches.every(b=>b.report.final_state&&b.source.checkpoint));
+  await close();pass('Fresh desktop/backend restart with test controls disabled preserves both branches, their premises and end boards, and opens on the mainline');
+}
 async function designExpansion(name, ai = false) {
   await page.locator('#start-training').click();
   await page.waitForFunction(() => !!flow.design && !document.querySelector('#design').hidden);
@@ -127,6 +143,10 @@ async function activatePot(sid) {
 
 (async () => {
   await launch(true);
+  if(onlyCompromise) {
+    compromiseSaved=await require('./compromise-smoke.cjs')({application,page,nativeWait,nativeState,hostWait,pass,evidence});
+    await close();await verifyBranchRestart();console.log(JSON.stringify({label,checks,errors}));process.exit(0);
+  }
   if(process.argv.includes('--inspection-only')) {
     const plans=await page.evaluate(()=>api('/api/plans'));let plan;
     for(const p of plans){const r=await page.evaluate(id=>api(`/api/plan/${id}`),p.id);if(r.review?.nodes.some(n=>n.state?.cards.some(c=>c.overlay_target!=null))){plan=r;break;}}
@@ -505,6 +525,7 @@ async function activatePot(sid) {
   await require('./expansion-settings-smoke.cjs')({page,nativeWait,nativeState,hostWait,waitHistory,pass,evidence});
   await require('./timeline-effects-smoke.cjs')({page,nativeWait,nativeState,hostWait,waitHistory,pass,evidence});
   await require('./review-materials-smoke.cjs')({page,nativeWait,nativeState,hostWait,waitHistory,pass,evidence});
+  compromiseSaved=await require('./compromise-smoke.cjs')({application,page,nativeWait,nativeState,hostWait,pass,evidence});
   await page.locator('#nav-decks').click();
   await page.evaluate(async id=>{const current=await api(`/api/deck?id=${encodeURIComponent(id)}`);await api('/api/decks',{...current,deck:{...current.deck,side:[]}});},deckId);
   assert.deepEqual(await (await fetch(`${service.url}/api/plan/${sessionId}`)).json(),report);
@@ -524,6 +545,7 @@ async function activatePot(sid) {
   assert(deletedBackups.some(id => JSON.parse(fs.readFileSync(path.join(root, 'runtime', '_trainer', 'backups', 'deleted', id, 'metadata.json'))).id === deckId));
   await close();
   pass('Deletion cancel, confirmed deletion, verified recovery backup and retained training report');
+  await verifyBranchRestart();
   assert.deepEqual(errors, []);
   fs.writeFileSync(path.join(evidence, 'result.json'), JSON.stringify({ label, embedded:true,globalInput:false,checks,errors,root,sessionId,interrupted }, null, 2));
 })().catch(async error => {

@@ -71,10 +71,31 @@ function bindWindow(window, origin) {
   contents.on('will-navigate', (event, url) => { if (!allowedPage(url, origin)) event.preventDefault(); });
   contents.on('will-redirect', (event, url) => { if (!allowedPage(url, origin)) event.preventDefault(); });
   contents.setWindowOpenHandler(({ url }) => {
-    if (!allowedPage(url, origin) || !/^\/api\/(raw|ydk)\/[0-9a-f-]{36}$/.test(new URL(url).pathname)) return { action: 'deny' };
-    return { action: 'allow', overrideBrowserWindowOptions: { parent: mainWindow, width: 1000, height: 760, autoHideMenuBar: true, webPreferences } };
+    if (!allowedPage(url, origin)) return { action: 'deny' };
+    const parsed=new URL(url);
+    const opponent=parsed.pathname==='/opponent.html'&&/^[0-9a-f-]{36}$/.test(parsed.searchParams.get('session')||'');
+    if(!opponent&&!/^\/api\/(raw|ydk)\/[0-9a-f-]{36}$/.test(parsed.pathname))return { action: 'deny' };
+    return { action: 'allow', overrideBrowserWindowOptions: { parent: mainWindow, show:process.env.YGO_DESKTOP_BACKGROUND!=='1', width: 1050, height: 820, autoHideMenuBar: true, webPreferences } };
   });
-  contents.on('did-create-window', child => bindWindow(child, origin));
+  contents.on('did-create-window', (child,details) => {
+    bindWindow(child, origin);
+    const parsed=new URL(details.url);
+    if(parsed.pathname!=='/opponent.html')return;
+    const id=parsed.searchParams.get('session');let releasing=false,canClose=false;
+    child.on('close',event=>{
+      if(canClose||shuttingDown)return;
+      event.preventDefault();if(releasing)return;releasing=true;
+      void (async()=>{
+        for(let attempt=0;attempt<30;attempt++) {
+          const state=await (await fetch(`${ready.url}/api/opponent/state/${id}`)).json();
+          if(!state.running||!state.manual){canClose=true;child.close();return;}
+          if(attempt%5===0)await fetch(`${ready.url}/api/opponent/control`,{method:'POST',headers:{'Content-Type':'application/json','X-Trainer-Token':ready.token},body:JSON.stringify({id,command:'release',version:state.version})});
+          await new Promise(resolve=>setTimeout(resolve,100));
+        }
+        writeLog('Opponent window retained: AI handover was not acknowledged.');
+      })().catch(error=>writeLog(`Opponent handover: ${error.message}`)).finally(()=>{releasing=false;});
+    });
+  });
   contents.session.setPermissionRequestHandler((_contents, _permission, callback) => callback(false));
   contents.session.setPermissionCheckHandler(() => false);
 }

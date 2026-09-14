@@ -336,4 +336,5 @@ def requirements(report, annotations=None):
 
 def confirmation_key(report, name, notes, annotations):
     return digest({'id': report['id'], 'review': legacy_review(report)['revision'], 'name': name, 'notes': notes,
-                   'annotations': annotations, 'edit_revision': report.get('edit_revision', 0)})
+                   'annotations': annotations, 'edit_revision': report.get('edit_revision', 0),
+                   'branches': report.get('branches', []), 'branches_revision': report.get('branches_revision', 0)})

@@ -110,6 +110,16 @@ class TimelineStoreTests(unittest.TestCase):
         self.store.alive.return_value=False
         self.assertEqual(self.store.timeline(self.sid)['operation']['error'],'engine_closed')
 
+    def test_response_checkpoint_does_not_mark_a_place_selection_as_a_settled_node(self):
+        self.rows.append(row(3,'checkpoint',node=2,state=STATE,prompt=18,player=0,restorable=True))
+        self.write_rows()
+        atomic_json(self.folder/'timeline-state.json',{'cursor':2,'revision':1,'at_node':True,'available_nodes':[1,2]})
+        timeline=self.store.timeline(self.sid)
+        self.assertEqual(timeline['cursor'],1)
+        self.assertEqual(timeline['engine_cursor'],2)
+        self.assertFalse(timeline['at_node'])
+        self.assertEqual([n['id'] for n in timeline['nodes']],[1])
+
     def test_save_after_restore_excludes_old_suffix_and_later_rewind_cannot_change_plan(self):
         state = {**STATE,'lp':[7000,8000]}
         card = dict(code=55144522, name='强欲之壶', instance_id=1, controller=0, owner=0, location=2, sequence=0, position=1, reason=0x400)

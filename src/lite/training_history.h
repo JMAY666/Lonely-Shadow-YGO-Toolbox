@@ -19,4 +19,13 @@ void TrainingStartDuel(intptr_t engine, int options);
 int TrainingQueryFieldInfo(intptr_t engine, unsigned char* buffer);
 int TrainingQueryFieldCard(intptr_t engine, uint8_t player, uint8_t location, uint32_t flags, unsigned char* buffer, int cache);
 int TrainingQueryCard(intptr_t engine, uint8_t player, uint8_t location, uint8_t sequence, uint32_t flags, unsigned char* buffer, int cache);
+int TrainingPromptPlayer(const unsigned char* prompt, size_t len);
+void TrainingCheckpoint(intptr_t engine, const unsigned char* prompt, size_t len);
+bool TrainingResumeBranch(intptr_t& engine, std::vector<unsigned char>& prompt);
+bool TrainingBranchActive();
+bool TrainingOpponentManual();
+bool TrainingOpponentTick(intptr_t engine, const std::vector<unsigned char>& prompt);
+void TrainingPublishOpponent(intptr_t engine, const unsigned char* prompt, size_t len);
+bool TrainingAutoResponse(intptr_t engine, int prompt);
+bool TrainingRetry(intptr_t engine);
 }

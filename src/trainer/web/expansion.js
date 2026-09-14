@@ -2,6 +2,7 @@
 
 const flow = {design:null, draft:null, selectedPlan:null, slot:0, target:'player', mode:'required', busy:false, saving:false, restarting:false, deckEdit:null, timer:null};
 const stageNames = {recording:'正在记录 · 未保存方案', draft:'待确认草稿', saved:'已保存方案', discarded:'已放弃尝试', abandoned:'原始记录 · 草稿已放弃', deleted:'原始记录 · 正式方案已删除'};
+stageNames.branch_pending='仅预设条件 · 尚未进入妥协场';
 const maxValue = 2147483647;
 const cardName = (d, code) => d.catalog?.[code]?.name || flow.design?.catalog?.[code]?.name || String(code);
 const handCount = d => d.conditions.hand_count === undefined ? 5 : d.conditions.hand_count;
@@ -14,11 +15,14 @@ function unsavedSummary() {
   if (typeof tagManagerUI!=='undefined'&&tagManagerUI.dirty) messages.push('TAG 管理的名称、别名或卡牌范围尚未保存。');
   if (flow.design) messages.push('前置设计尚未开始，退出后需要重新填写。');
   if (app.active) messages.push('展开尚未结束，退出将保留中断记录，尚未保存为正式方案。');
-  if (flow.draft && draftDirty()) messages.push('当前方案的名称、步骤或卡牌说明尚未保存。');
+  if (draftDirty()) messages.push('当前方案的名称、分支条件、步骤或卡牌说明尚未保存。');
   else if (flow.draft && !flow.draft.saved) messages.push('待确认草稿已保留在本地，但尚未保存为正式方案。');
   return messages.join('\n');
 }
-function draftDirty() { return flow.draft && (flow.draft.name !== flow.draft.originalName || flow.draft.notes !== flow.draft.originalNotes || (flow.draft.annotations && JSON.stringify(flow.draft.annotations) !== flow.draft.originalAnnotations)); }
+function draftDirty() {
+  const dirty=d=>!!d&&(d.name!==d.originalName||d.notes!==d.originalNotes||(d.annotations&&JSON.stringify(d.annotations)!==d.originalAnnotations));
+  return dirty(flow.draft)||(typeof branchUI!=='undefined'&&([...branchUI.drafts.values()].some(dirty)||branchConfigurationDirty()));
+}
 
 async function confirmFlow(title, warning, action) {
   const dialog = $('#flow-dialog'), form = dialog.querySelector('form');
@@ -215,6 +219,7 @@ async function finishDesignDeckEdit(apply) {
   } finally {app.busy=false;updateStart();}
 }
 async function returnConditions() {
+  if(app.active?.compromise)return notice('请先结束当前妥协展开，再从“妥协场构建前置”修改条件。');
   if (flow.busy || !app.active) return;
   if (!await confirmFlow('返回修改条件？','本次尚未保存的操作将放弃，原始记录保留。双方配置将带回前置设计，再次开始会重新随机补牌；已有正式方案不变。','返回修改条件')) return;
   flow.busy=true;flow.restarting=true;updateStart();
@@ -285,6 +290,7 @@ async function beginExpansion() {
   finally { flow.busy = false; renderDesign(); updateStart(); }
 }
 async function restartExpansion() {
+  if(app.active?.compromise)return notice('妥协分支请先结束当前展开，在前置面板中重新构建；主线不会重启。');
   if (flow.busy || !app.active) return;
   if (!await confirmFlow('重新展开？', '将放弃当前尝试的步骤，恢复本次实际起手及双方初始状态。其他方案和历史不受影响。', '保留起手并重新展开')) return;
   flow.busy = true; flow.restarting = true; updateStart();
@@ -317,7 +323,8 @@ function expansionSummary(r) {
 async function allowReportChange(id) {
   if (flow.deleting) return false;
   if (flow.saving && (flow.draft?.id || flow.savingId) !== id) return false;
-  if (flow.draft?.id !== id && draftDirty()) return confirmFlow('切换记录？', '当前方案名称、步骤或卡牌说明有未保存修改；已落盘的原始记录仍会保留。', '放弃说明修改并切换');
+  const current=flow.draft?.id||(typeof branchUI!=='undefined'?branchUI.root?.id:null);
+  if (current !== id && draftDirty()) return confirmFlow('切换记录？', '当前方案名称、分支条件、步骤或卡牌说明有未保存修改；已落盘的原始记录仍会保留。', '放弃说明修改并切换');
   return true;
 }
 function prepareDraft(r) {

@@ -92,7 +92,7 @@ static std::string TestUIState() {
             if(!button->isVisible()) continue;
             if(!first) out << ','; first = false;
             const auto point = button->getAbsoluteClippingRect().getCenter();
-            out << "{\"code\":" << field.selectable_cards[start + i]->code << ",\"x\":" << point.X << ",\"y\":" << point.Y << '}';
+            out << "{\"code\":" << field.selectable_cards[start + i]->code << ",\"selected\":" << (field.selectable_cards[start + i]->is_selected ? "true" : "false") << ",\"x\":" << point.X << ",\"y\":" << point.Y << '}';
         }
     }
     out << ']';
@@ -189,7 +189,7 @@ void TrainingWrite(const std::string& body) {
     journal.flush();
     if(!journal) { stopping = true; closing = true; }
 }
-std::string TrainingState(intptr_t engine) {
+std::string TrainingState(intptr_t engine, bool omitOpponentHand) {
     const auto d = reinterpret_cast<duel*>(engine);
     const auto f = d->game_field;
     std::ostringstream out;
@@ -201,6 +201,7 @@ std::string TrainingState(intptr_t engine) {
     bool first = true;
     for(const auto c : cards) {
         if(!c->data.code || (!c->current.location && !c->overlay_target)) continue;
+        if(omitOpponentHand && c->current.controler == 1 && c->current.location == LOCATION_HAND) continue;
         if(!first) out << ',';
         first = false;
         out << "{\"instance_id\":" << c->cardid << ",\"code\":" << c->data.code << ",\"name\":" << quote(dataManager.GetName(c->data.code))
@@ -232,10 +233,21 @@ void TrainingCapture(intptr_t engine, const char* kind, const unsigned char* byt
     TrainingWrite("\"kind\":\"" + std::string(kind) + "\",\"raw\":\"" + hex(bytes, len) + "\",\"state\":" + TrainingState(engine));
 }
 void TrainingResponse(const unsigned char* bytes, size_t len, const char* actor, int prompt) {
-    TrainingHistoryResponse(bytes, len, std::string(actor) != "user");
+    TrainingHistoryResponse(bytes, len, std::string(actor) != "user" && std::string(actor) != "opponent_manual" && std::string(actor) != "opponent_auto");
     TrainingWrite("\"kind\":\"response\",\"actor\":\"" + std::string(actor) + "\",\"prompt\":" + std::to_string(prompt >= 0 ? prompt : mainGame->dInfo.curMsg) + ",\"raw\":\"" + hex(bytes, len) + "\"");
 }
 bool TrainingAnalyze(intptr_t engine, unsigned char* bytes, size_t len) {
+    if(len && bytes[0] == MSG_RETRY && TrainingRetry(engine)) return false;
+    const int inputPlayer = TrainingPromptPlayer(bytes, len);
+    if(inputPlayer >= 0) {
+        TrainingCheckpoint(engine, bytes, len);
+        TrainingPublishOpponent(engine, bytes, len);
+        if(inputPlayer == 1) {
+            if(TrainingBranchActive()) return false;
+            if(TrainingAutoResponse(engine, bytes[0])) return true;
+            // Retain the native choice UI for prompts beyond the pinned basic AI.
+        }
+    }
     // Read-only readiness marker in every runtime, never an input/control endpoint.
     static bool ready = false;
     if(!ready && TrainingActive() && len > 1 && bytes[1] == 0 && bytes[0] >= MSG_SELECT_BATTLECMD && bytes[0] <= MSG_SELECT_UNSELECT_CARD) {
@@ -308,6 +320,12 @@ void TrainingBoot() {
     if(GetFileAttributesA(TrainingPath("native.jsonl").c_str()) != INVALID_FILE_ATTRIBUTES) { session.clear(); mainGame->device->closeDevice(); return; }
     journal.open(TrainingPath("native.jsonl"), std::ios::binary);
     if(!journal) { session.clear(); mainGame->device->closeDevice(); return; }
+    if(TrainingBranchActive()) {
+        std::ifstream inherited(TrainingPath("inherit.jsonl"), std::ios::binary);
+        std::string line;
+        while(std::getline(inherited, line)) { journal << line << '\n'; ++sequence; }
+        journal.flush();
+    }
     TrainingWrite("\"kind\":\"begin\",\"source\":\"ygopro-core/8ff3583\",\"ai\":" + std::string(TrainingOpponentAI() ? "true" : "false") + ",\"rule\":5,\"test_control\":" + std::string(TrainingTestControlled() ? "true" : "false"));
     mainGame->wMainMenu->setVisible(false);
     if(TrainingEmbedded()) {

@@ -11,9 +11,9 @@ from card_semantics import CIRCLED, effect_clause, material_method, zone_name, c
 
 REASON_BATTLE, REASON_EFFECT, REASON_COST, REASON_RULE = 0x20, 0x40, 0x80, 0x400
 ZONES = {1: '卡组', 2: '手牌', 4: '怪兽区', 8: '魔法陷阱区', 16: '墓地', 32: '除外区', 64: '额外卡组', 128: '叠放素材'}
-NOISE = {2, *range(10, 27), 30, 31, 32, 33, 34, 36, 38, 39, 40, 41, 42,
+NOISE = {1, 2, *range(10, 27), 30, 31, 32, 33, 34, 36, 38, 39, 40, 41, 42,
          71, 72, 73, 74, 80, 81, 83, 94, 110, 111, 113, 114, 132, 133, 140, 141, 142, 143, 160, 161, 162, 163, 164, 165, 170,
-         '玩家选择', '占位方自动跳过', '对手 AI 选择'}
+         '玩家选择', '占位方自动跳过', '对手 AI 选择', '对手手动选择'}
 
 
 def card_names(cards):
@@ -244,6 +244,8 @@ def project_actions(report):
             if a:
                 attach(a, e, 'lifecycle')
                 if msg in (75, 76): a['status'] = 'negated' if msg == 75 else 'disabled'
+                if msg in (75, 76) and resolving is not None and resolving is not a and e.get('resolution_source_ref') == resolving.get('activation_ref'):
+                    attach(resolving, e, 'results')
                 if msg == 73:
                     if e.get('engine_effect'): a['engine_effect'] = deepcopy(e['engine_effect'])
                     for candidate in deferred_results.pop(a['id'], []):

@@ -30,6 +30,12 @@ test('ending or replacing a session releases old restore locks and invalidates l
   assert(s.generation>generation);
   resetTimelineSession('new');assert.equal(s.id,'new');assert.equal(s.operation,null);
 });
+test('inherited mainline steps stay visible but cannot rewind an independent branch engine',()=>{
+  const {renderRewind}=setup();
+  const html=renderRewind({available:true,cursor:3,at_node:true,nodes:[{id:1,restorable:false,initial:true,steps:[],turn:1,phase:4,lp:[8000]},
+    {id:3,restorable:true,steps:[],turn:1,phase:4,lp:[8000]}]});
+  assert.match(html,/data-rewind="1"\s+disabled/);assert.match(html,/继承自主线/);
+});
 test('restore locks all nodes, while unfinished chain steps never become restore buttons',()=>{
   const {renderRewind,rewindState}=setup();rewindState.busy=true;
   const html=renderRewind({available:true,cursor:1,at_node:false,nodes:[{id:1,ordinal:0,initial:true,steps:[],turn:1,phase:4,lp:[8000]}],
