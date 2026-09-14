@@ -1,6 +1,10 @@
-# 游戏王工具箱
+# 寂寞暗影的游戏王工具箱
+
+**Lonely Shadow's Yu-Gi-Oh! Toolbox**。目前聚焦游戏王卡组展开的前置设计、练习记录、逐步回看与方案管理。
 
 基于精简后的 YGOPro 工作副本，提供“卡组编辑 → 展开前置设计 → 展开场地 → 当前展开方案调整 → 保存前二次确认 → 展开管理”。Electron 桌面版复用现有 HTML/CSS/JavaScript 界面、Python 服务、YDK/JSONL 数据格式与原生引擎，不写入原始 YGO 安装目录。
+
+本仓库公开源码、适配补丁、依赖锁定文件、测试与文档。Windows 成品包、卡牌数据库、卡图、效果脚本和个人数据保留在本地，不随 Git 发布；从源码运行时需按下方说明准备运行资源。
 
 ## Windows 桌面版
 
@@ -248,4 +252,6 @@ Node 用于 Electron 开发、打包和编辑器测试；打包后的桌面应�
 
 ## 版本管理
 
-相关检查与审核通过后创建本地提交。推送需要用户单独授权，当前无远程配置。完整规则见 [AGENTS.md](AGENTS.md)。
+公开源码仓库：[JMAY666/Lonely-Shadow-Yu-Gi-Oh-Toolbox](https://github.com/JMAY666/Lonely-Shadow-Yu-Gi-Oh-Toolbox)，默认分支为 `main`。
+
+相关检查与审核通过后创建本地提交，推送需要用户单独授权。完整规则见 [AGENTS.md](AGENTS.md)。
