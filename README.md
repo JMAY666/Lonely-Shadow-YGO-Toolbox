@@ -197,6 +197,8 @@ Node 用于 Electron 开发、打包和编辑器测试；打包后的桌面应�
 
 [验收记录](docs/verification.md) 区分实际运行与合成测试；[第三方来源](docs/third-party.md) 说明上游版本与许可证。
 
+[引擎与卡牌资源更新机制设计](docs/update-mechanism-design.md) 记录上游更新包检查、兼容边界、安装恢复和验收方案；该更新机制尚未实施。
+
 ## 版本管理
 
 相关检查与审核通过后创建本地提交。推送需要用户单独授权，当前无远程配置。完整规则见 [AGENTS.md](AGENTS.md)。
