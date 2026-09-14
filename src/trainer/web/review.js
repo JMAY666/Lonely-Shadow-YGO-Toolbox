@@ -3,7 +3,7 @@
 // Card popovers keep their own recorded node, so reading the log does not move
 // the selected board. Live rewinding remains confined to timeline.js / the field.
 const reviewUI = {report:null, nodes:[], node:null, selected:null, detailNode:null, detailReport:null, anchor:null, materialTab:false, zone:null, drawer:false, logMode:'compact', pending:null, cards:new Map(), serial:0};
-const emptyEdits = () => ({version:1,nodes:{},cards:{},effects:{},costs:{},conditions_note:'',extra_conditions:[]});
+const emptyEdits = () => ({version:1,nodes:{},cards:{},effects:{},costs:{},final_marks:{},conditions_note:'',extra_conditions:[]});
 const reviewEdits = () => flow.draft?.annotations || reviewUI.report?.annotations || emptyEdits();
 const reviewTitle = n => reviewEdits().nodes[n.id]?.name || (n.kind==='initial'?'初始手牌':n.kind==='final'?'终场结果':`Step ${n.number}`);
 const reviewNode = () => reviewUI.nodes.find(n=>n.id===reviewUI.node);
@@ -86,11 +86,13 @@ function pruneReviewCards() {
 }
 function renderReviewSidebar() {
   const d=flow.draft, r=reviewUI.report;
-  $('#draft-editor').innerHTML=`<div class="review-sidebar-head"><div class="eyebrow">CURRENT ROUTE</div><label for="draft-name">方案名称</label><input id="draft-name" maxlength="80" value="${escape(d?.name||r.name)}" ${d?'':'disabled'}><p class="review-stage">${escape(stageNames[r.plan_stage]||'原训练历史')}</p></div>
+  $('#draft-editor').innerHTML=`<button id="review-sidebar-toggle" aria-expanded="${!reviewUI.collapsed}">${reviewUI.collapsed?'展开':'收起'}</button><div class="review-sidebar-head"><div class="eyebrow">CURRENT ROUTE</div><label for="draft-name">方案名称</label><input id="draft-name" maxlength="80" value="${escape(d?.name||r.name)}" ${d?'':'disabled'}><p class="review-stage">${escape(stageNames[r.plan_stage]||'原训练历史')}</p></div>
     <ol id="review-steps" class="review-steps">${reviewUI.nodes.map(n=>`<li><button data-review-node="${escape(n.id)}" ${n.id===reviewUI.node?'aria-current="step"':''}><small>Step ${n.number}</small><strong class="review-step-title">${escape(reviewTitle(n))}</strong><span>${n.kind==='initial'?'实际起手':n.kind==='final'?'展开结束时的状态':`${n.action_ids.length} 项操作`}</span></button></li>`).join('')}</ol>
     <label for="draft-notes">方案备注</label><textarea id="draft-notes" rows="3" maxlength="4000" ${d?'':'disabled'}>${escape(d?.notes||r.expansion?.notes||'')}</textarea>
     <p id="draft-message" role="status">${d?(d.saved?'正式方案的说明可继续编辑。':'确认存入前，当前内容仍为草稿。'):'此记录只读，原始数据保留。'}</p>
     <div class="review-sidebar-actions">${d?`<button id="save-plan" class="primary" ${r.status!=='completed'&&!d.saved?'disabled':''}>${d.saved?'保存修改':'保存方案'}</button><button id="delete-draft" class="danger">${d.saved?'删除方案':'放弃草稿'}</button>`:''}${r.expansion?'<button id="draft-conditions">以此条件再次展开</button>':''}</div>`;
+  $('#review-workspace').classList.toggle('sidebar-collapsed',!!reviewUI.collapsed);
+  $('#review-sidebar-toggle').onclick=()=>{reviewUI.collapsed=!reviewUI.collapsed;renderReviewSidebar();};
   if(d) {
     $('#draft-name').oninput=e=>{d.name=e.target.value;$('#save-plan').disabled=!d.name.trim()||(r.status!=='completed'&&!d.saved);reviewUI.pending=null;};
     $('#draft-notes').oninput=e=>{d.notes=e.target.value;reviewUI.pending=null;};
@@ -158,7 +160,7 @@ function renderReviewNode() {
   const index=reviewUI.nodes.indexOf(n);
   $('#review-center').innerHTML=`<header class="review-node-header"><div><small>Step ${n.number} / ${reviewUI.nodes.length}</small><h2 id="current-node-title">${escape(reviewTitle(n))}</h2></div><div><button data-review-node="${escape(reviewUI.nodes[Math.max(0,index-1)].id)}" ${index===0?'disabled':''} aria-label="上一步">←</button><button data-review-node="${escape(reviewUI.nodes[Math.min(reviewUI.nodes.length-1,index+1)].id)}" ${index===reviewUI.nodes.length-1?'disabled':''} aria-label="下一步">→</button><button id="review-log-toggle" aria-controls="review-log" aria-expanded="${reviewUI.drawer}">${reviewUI.drawer?'收起':'展开'}日志</button></div></header>
     <p class="review-detail-help">点击卡牌，就近查看效果与来源。</p>
-    <div class="review-board">${renderBoard(n)}</div><div id="review-zone-content"></div>
+    <div class="review-board">${renderBoard(n)}</div><div id="review-zone-content" class="review-zone-popover" role="dialog" aria-label="区域卡牌" hidden></div>${n.kind==='final'?`<section id="review-final-marks" class="node-explanation">${reviewFinalCards(n)}</section>`:''}
     <div class="node-explanation"><label for="review-step-name">步骤名称 <small>留空使用默认名称</small></label><input id="review-step-name" maxlength="80" value="${escape(edit.name||'')}" ${editable?'':'disabled'}><label for="review-step-notes">${n.kind==='final'?'终场整体说明':'步骤备注'}</label><textarea id="review-step-notes" maxlength="4000" rows="3" ${editable?'':'disabled'} placeholder="操作目的、关键选择或注意事项">${escape(edit.notes||'')}</textarea>
     <p class="review-range">${n.range?`记录范围 ${n.range[0]??'?'}—${n.range[1]??'?'} · `:''}${escape(reviewUI.report.review?.boundary_note||'旧方案未保存逐步快照；缺失内容明确标为未知。')}</p></div>`;
   $('#review-log-toggle').onclick=()=>setReviewDrawer(!reviewUI.drawer);
@@ -209,10 +211,11 @@ function renderReviewDetail() {
   $('#review-card-detail').innerHTML=`<img class="detail-card-art" src="${known?`/pics/${Number(c.code)}.jpg`:'/review-back.svg'}" alt="${escape(reviewCardLabel(c,n,r))}"><div class="detail-card-copy"><div class="detail-name"><h3>${escape(reviewCardLabel(c,n,r))}</h3><small>${known?`卡号 ${c.code}`:random?'随机抽到的 1 张牌':'身份未记录'}</small></div><p>${escape(stats.join(' · '))}</p>
     ${materials.length||d.type&0x800000?`<div class="detail-tabs"><button id="review-body-tab" aria-pressed="${!reviewUI.materialTab}">本体</button><button id="review-material-tab" aria-pressed="${reviewUI.materialTab}">素材 ×${materials.length}</button></div>`:''}
     ${reviewUI.materialTab?`<div class="material-list">${materials.map(m=>reviewCard(m,n.id,{name:true,face:reviewKnown(m),report:r})).join('')||'<p>当前没有素材。</p>'}</div>`:`<p class="detail-effect">${escape(known?d.desc||'本次记录未保存完整效果文本。':random?'本次由抽卡获得，路线中以随机卡背表示，不作为指定检索结果。实际使用的指定随机命中仍会列入随机依赖。':'当前节点未记录可公开的卡牌身份。')}</p><div class="card-provenance"><strong>截至本步的来源与移动</strong>${sources.length?sources.map(s=>`<p>${app.view==='history'&&r===reviewUI.report?`<button data-review-node="${escape(s.node.id)}">Step ${s.node.number}</button>`:`Step ${s.node.number}`} ${escape(s.text)}</p>`).join(''):'<p>来源未记录</p>'}</div>`}
-    ${annotation!==null?`<label for="review-card-note">终场此卡说明 <small>关联本次卡牌实例</small></label><textarea id="review-card-note" rows="2" maxlength="4000" ${editable?'':'disabled'}>${escape(annotation)}</textarea>`:''}</div>`;
+    ${annotation!==null?reviewMarkEditor(c,d,edits,editable):''}${annotation!==null?`<label for="review-card-note">终场此卡说明 <small>关联本次卡牌实例</small></label><textarea id="review-card-note" rows="2" maxlength="4000" ${editable?'':'disabled'}>${escape(annotation)}</textarea>`:''}</div>`;
   if($('#review-body-tab'))$('#review-body-tab').onclick=()=>{reviewUI.materialTab=false;renderReviewDetail();};
   if($('#review-material-tab'))$('#review-material-tab').onclick=()=>{reviewUI.materialTab=true;renderReviewDetail();};
-  if($('#review-card-note')&&editable)$('#review-card-note').oninput=e=>{edits.cards[String(c.instance_id)]=e.target.value;reviewUI.pending=null;};
+  bindReviewMarks(c,edits,editable);
+  if($('#review-card-note')&&editable)$('#review-card-note').oninput=e=>{edits.cards[String(c.instance_id)]=e.target.value;reviewUI.pending=null;refreshFinalMarks();};
   $('#review-card-popover').hidden=false;positionReviewDetail();
 }
 function positionReviewDetail() {
@@ -246,8 +249,8 @@ function compactOperation(item,node,role='') {
   const materials=cards.flatMap(c=>c.materials||[]), opts={name:true,zone:false,position:false};
   const pictures=cs=>cs.map(c=>reviewLogCard(c,node,opts)).join('<b>＋</b>');
   const destination=dest?reviewPlace(dest):[61,63,65,54].includes(e.message)&&cards[0]?reviewPlace(cards[0]):e.message===90?'我方手牌':'';
-  if(materials.length)return `<div class="compact-summon"><div class="compact-cards">${pictures(materials)}</div><span class="chain-arrow">→</span><div class="chain-stage"><small class="log-role">${escape(method)}</small><div class="compact-cards">${cards.map(c=>reviewLogCard(c,node,{...opts,materials:reviewMaterials(reviewUI.nodes.find(n=>n.id===node),c).length})).join('')}</div></div></div>`;
-  return `<div class="chain-stage"><small class="log-role">${escape(role?`${role} · ${method}`:method)}</small><div class="compact-cards">${pictures(cards)}</div>${destination?`<small class="compact-destination">${escape(destination)}</small>`:''}${!cards.length?`<p>${escape(item.text||e.result||eventSummary(e)||'处理结果未记录')}</p>`:''}</div>`;
+  if(materials.length)return `<div class="compact-summon"><div class="compact-cards">${pictures(materials)}</div><span class="chain-arrow">→</span><div class="chain-stage"><small class="log-role">${escape(method)}</small><div class="compact-cards">${cards.map(c=>reviewLogCard(c,node,{...opts,materials:reviewMaterials(reviewUI.nodes.find(n=>n.id===node),c).length})).join('')}</div>${cards.map(c=>reviewLocationIcon(c)).join('')}</div></div>`;
+  return `<div class="chain-stage"><small class="log-role">${escape(role?`${role} · ${method}`:method)}</small><div class="compact-cards">${pictures(cards)}</div>${destination?`<small class="compact-destination">${origin?reviewLocationIcon(origin)+'<span class="chain-arrow">→</span>':''}${reviewLocationIcon(dest||cards[0]||{controller:0,location:2})}</small>`:''}${!cards.length?`<p>${escape(item.text||e.result||eventSummary(e)||'处理结果未记录')}</p>`:''}</div>`;
 }
 function compactLogAction(a,n) {
   const stages=[], opts={name:true,zone:false,position:false};
@@ -265,6 +268,7 @@ function reviewLogAction(a,n) {
   const events=(a.evidence_refs||[]).map(id=>(reviewUI.report.events||[]).find(e=>e.id===id)).filter(Boolean);
   const title=a.kind==='effect'?'效果发动':a.cards?.find(c=>c.summon_method)?.summon_method||a.summary;
   let body='';
+  if(reviewUI.logMode==='compact'&&compactCleanup(a))return '';
   if(reviewUI.logMode==='compact')body=compactLogAction(a,n);
   else if(a.kind==='effect') {
     const specific=a.selected_effect_text&&a.effect_text_source!=='unknown';
@@ -289,7 +293,7 @@ function reviewLogAction(a,n) {
 }
 function renderReviewLog() {
   const actions=new Map((reviewUI.report.actions||[]).map(a=>[a.id,a]));
-  $('#review-log').innerHTML=`<header><h3>展开日志</h3><div class="log-mode" role="group" aria-label="日志显示方式"><button data-log-mode="compact" aria-pressed="${reviewUI.logMode==='compact'}">简略</button><button data-log-mode="detailed" aria-pressed="${reviewUI.logMode==='detailed'}">详细</button></div><button id="review-log-close">收起</button></header><div class="log-scroll">${reviewUI.nodes.map(n=>`<section class="log-node" data-log-node="${escape(n.id)}"><button class="log-node-heading" data-review-node="${escape(n.id)}"><small>Step ${n.number}</small><strong class="log-node-title">${escape(reviewTitle(n))}</strong></button>${n.action_ids.map(id=>actions.get(id)).filter(Boolean).map(a=>reviewLogAction(a,n)).join('')||`<p>${n.kind==='initial'?'开始展开时的实际手牌。':n.kind==='final'?'结束后的最终状态与逐卡说明。':'本节点无额外操作。'}</p>`}</section>`).join('')}
+  $('#review-log').innerHTML=`<header><h3>展开日志</h3><div class="log-mode" role="group" aria-label="日志显示方式"><button data-log-mode="compact" aria-pressed="${reviewUI.logMode==='compact'}">简略</button><button data-log-mode="detailed" aria-pressed="${reviewUI.logMode==='detailed'}">详细</button></div><button id="review-log-close">收起</button></header><div class="log-scroll">${reviewUI.nodes.map(n=>`<section class="log-node" data-log-node="${escape(n.id)}"><button class="log-node-heading" data-review-node="${escape(n.id)}"><small>Step ${n.number}</small><strong class="log-node-title">${escape(reviewTitle(n))}</strong></button>${n.kind==='initial'?`<div class="compact-cards">${(reviewUI.report.initial_hand||boardCards(n,0,2)).map(c=>reviewLogCard(c,n.id,{zone:false})).join('')}</div>`:n.kind==='final'?reviewFinalCards(n):''}${n.action_ids.map(id=>actions.get(id)).filter(Boolean).map(a=>reviewLogAction(a,n)).join('')||`<p>${n.kind==='initial'?'开始展开时的实际手牌。':n.kind==='final'?'结束后的最终状态与逐卡说明。':'本节点无额外操作。'}</p>`}</section>`).join('')}
     <details class="review-evidence"><summary>完整报告与原始事件</summary><label><input id="all-events" type="checkbox">查看原始事件</label><a href="/api/raw/${escape(reviewUI.report.id)}" target="_blank">原始记录 JSONL</a><div id="review-raw-events"></div></details></div>`;
   $('#review-log-close').onclick=()=>setReviewDrawer(false);
   $('#review-log-edge-toggle').onclick=()=>setReviewDrawer(!reviewUI.drawer);
@@ -300,7 +304,7 @@ function renderReviewLog() {
   pruneReviewCards();
 }
 function setReviewDrawer(open,focus=true) {
-  closeReviewDetail();
+  if(!reviewUI.refreshingMarks)closeReviewDetail();
   reviewUI.drawer=open;$('#review-log').hidden=!open;$('#review-workspace').classList.toggle('log-open',open);
   const b=$('#review-log-toggle');if(b){b.textContent=open?'收起日志':'展开日志';b.setAttribute('aria-expanded',String(open));}
   const edge=$('#review-log-edge-toggle');if(edge){edge.textContent=open?'收起日志':'展开日志';edge.setAttribute('aria-expanded',String(open));}
@@ -319,7 +323,7 @@ function setReviewLogMode(mode) {
   const anchor=[...scroll.querySelectorAll('.log-action')].find(a=>a.getBoundingClientRect().bottom>top);
   const offset=anchor?anchor.getBoundingClientRect().top-top:0, id=anchor?.dataset.reviewAction;
   reviewUI.logMode=mode;renderReviewLog();
-  if(id){const next=document.querySelector(`[data-review-action="${CSS.escape(id)}"]`), s=$('#review-log .log-scroll');s.scrollTop+=next.getBoundingClientRect().top-s.getBoundingClientRect().top-offset;}
+  if(id){const next=document.querySelector(`[data-review-action="${CSS.escape(id)}"]`), s=$('#review-log .log-scroll');if(next)s.scrollTop+=next.getBoundingClientRect().top-s.getBoundingClientRect().top-offset;}
 }
 function requirementRows(items=[], nodes=reviewUI.nodes) {
   return items.length?`<div class="requirement-grid">${items.map(item=>`<div class="requirement-card"><span class="requirement-art"><img src="${item.code?`/pics/${Number(item.code)}.jpg`:'/review-back.svg'}" alt="">${item.code?'':'<b>?</b>'}</span><div><strong>${escape(item.name)} ×${item.count}</strong><small>${escape(item.status||'已记录使用')}</small><p>${(item.nodes||[]).map(id=>{const n=nodes.find(n=>n.id===id);return n?`Step ${n.number}`:'步骤待核对';}).join('、')}</p><details><summary>用途与依据</summary>${(item.uses||[]).map(s=>`<p>${escape(s)}</p>`).join('')}</details></div></div>`).join('')}</div>`:'<p class="requirement-empty">未识别到指定资源；请核对记录及补充条件。</p>';
@@ -330,7 +334,7 @@ function summaryHtml(summary, savedPlan=null) {
   return `<section class="confirmation-section"><h2>起手条件</h2>${requirementRows(summary.opening,nodes)}<p>任意牌的必要数量必须满足；身份不限不代表可以省略。</p></section>
     <section class="confirmation-section"><h2>展开使用资源</h2><h3>主卡组</h3>${requirementRows(summary.main,nodes)}<h3>EX 额外卡组</h3>${requirementRows(summary.extra,nodes)}</section>
     <section class="confirmation-section"><h2>随机依赖</h2>${summary.random?.length?`${requirementRows(summary.random,nodes)}<p class="review-warning">本路线依赖途中抽到指定卡牌，不属于已验证的稳定展开。</p>`:'<p>未识别到已使用的指定随机命中。</p>'}</section>
-    <section class="confirmation-section"><h2>终场摘要</h2><div class="final-summary-cards">${(summary.final?.cards||[]).map(c=>`<div>${reviewCard(c,'final',{report:savedPlan||reviewUI.report,name:true,zone:false,position:false,face:true})}<small>${escape(reviewPlace(c))}</small>${edits.cards?.[String(c.instance_id)]?`<p>${escape(edits.cards[String(c.instance_id)])}</p>`:''}</div>`).join('')}</div><p class="preserve-lines">${escape(summary.final?.notes||'未填写终场整体说明')}</p></section>
+    <section class="confirmation-section"><h2>终场摘要</h2>${reviewFinalCards({id:'final',state:(savedPlan||reviewUI.report).review?.nodes?.find(n=>n.kind==='final')?.state||(savedPlan||reviewUI.report).final_state},savedPlan||reviewUI.report,edits)}${summary.final?.notes?`<p class="preserve-lines">${escape(summary.final.notes)}</p>`:''}</section>
     <p class="review-warning">${escape(summary.basis||'按本次实际记录统计')}${(summary.warnings||[]).map(w=>'<br>'+escape(w)).join('')}</p>${summary.note?`<p class="preserve-lines">用户核对说明：${escape(summary.note)}</p>`:''}`;
 }
 async function previewReview() {
@@ -434,6 +438,8 @@ document.addEventListener('click',e=>{
   // event path still identifies an inside click even after the button detaches.
   const inDetail=e.composedPath().some(el=>el.id==='review-card-popover'||el.dataset?.reviewCard);
   if(reviewUI.selected&&!inDetail)closeReviewDetail();
+  const zonePanel=$('#review-zone-content');
+  if(zonePanel&&!zonePanel.hidden&&!inDetail&&!e.target.closest('#review-zone-content,[data-review-zone]'))zonePanel.hidden=true;
   const b=e.target.closest('button');if(!b||b.disabled)return;
   if(b.id==='review-detail-close'){closeReviewDetail(true);return;}
   if(b.dataset.reviewNode){selectReviewNode(b.dataset.reviewNode);return;}
@@ -447,14 +453,21 @@ document.addEventListener('click',e=>{
     reviewUI.selected=current||item.card;reviewUI.detailNode=n;reviewUI.detailReport=r;reviewUI.materialTab=false;
     renderReviewDetail();$('#review-card-popover').focus({preventScroll:true});return;
   }
+  if(b.id==='review-zone-close'){$('#review-zone-content').hidden=true;return;}
   if(b.dataset.reviewZone){
     const [side,zone]=b.dataset.reviewZone.split(':').map(Number),n=reviewNode();
-    $('#review-zone-content').innerHTML=`<section class="zone-contents"><h3>${escape(reviewPlace({controller:side,location:zone}))} · ${boardCards(n,side,zone).length} 张</h3><div>${boardCards(n,side,zone).map(c=>reviewCard(c,n.id,{name:true,face:reviewKnown(c)})).join('')||'<p>当前区域为空。</p>'}</div></section>`;
+    $('#review-zone-content').hidden=false;
+    $('#review-zone-content').innerHTML=`<section class="zone-contents"><button id="review-zone-close" aria-label="关闭区域">×</button><h3>${escape(reviewPlace({controller:side,location:zone}))} · ${boardCards(n,side,zone).length} 张</h3><div>${boardCards(n,side,zone).map(c=>reviewCard(c,n.id,{name:true,face:reviewKnown(c)})).join('')||'<p>当前区域为空。</p>'}</div></section>`;
   }
 });
 document.addEventListener('keydown',e=>{
+  if(app.view==='history'&&['ArrowLeft','ArrowRight'].includes(e.key)&&!e.altKey&&!e.ctrlKey&&!e.metaKey&&!e.shiftKey&&!e.target.closest('input,textarea,select,[contenteditable=true],[role=dialog]')&&!reviewUI.selected&&$('#review-zone-content')?.hidden!==false) {
+    const i=reviewUI.nodes.indexOf(reviewNode()),n=reviewUI.nodes[i+(e.key==='ArrowLeft'?-1:1)];
+    if(n){e.preventDefault();selectReviewNode(n.id);}return;
+  }
   if(e.key!=='Escape')return;
   if(reviewUI.selected){e.preventDefault();closeReviewDetail(true);}
+  else if($('#review-zone-content')?.hidden===false){e.preventDefault();$('#review-zone-content').hidden=true;}
   else if(reviewUI.drawer&&app.view==='history'){e.preventDefault();setReviewDrawer(false);}
 });
 document.addEventListener('scroll',e=>{
@@ -465,3 +478,56 @@ document.addEventListener('scroll',e=>{
   if(!now||Math.abs(now.top-anchor.rect.top)>.5||Math.abs(now.left-anchor.rect.left)>.5)closeReviewDetail();
 },true);
 globalThis.addEventListener?.('resize',()=>closeReviewDetail());
+
+
+function reviewLocationIcon(l) {
+  if(!l)return '';
+  const label=reviewPlace(l), seq=l.sequence;
+  if([4,8].includes(l.location)) {
+    const slots=[[4,5,1],[4,6,3],...Array.from({length:5},(_,i)=>[4,i,i+5]),...Array.from({length:5},(_,i)=>[8,i,i+10]),[8,5,0],[8,6,15],[8,7,19]];
+    return `<span class="location-icon side-${l.controller===1?'opponent':'self'}" role="img" aria-label="${escape(label)}" title="${escape(label)}"><svg viewBox="0 0 55 44">${slots.map(([zone,s,pos])=>`<rect x="${pos%5*11+1}" y="${Math.floor(pos/5)*11+1}" width="8" height="9" rx="1" fill="${zone===l.location&&s===seq?'currentColor':'none'}" stroke="currentColor"/>`).join('')}</svg></span>`;
+  }
+  return `<span class="location-icon zone-icon" role="img" aria-label="${escape(label)}" title="${escape(label)}">${({1:'▤',2:'▱',16:'墓',32:'⊘',64:'EX',128:'▣'}[l.location&128?128:l.location])||'?'}<small>${escape(({1:'卡组',2:'手牌',16:'墓地',32:'除外',64:'额外',128:'素材'}[l.location&128?128:l.location])||'未知')}</small></span>`;
+}
+// Only explicit rule cleanup (including lost overlay target) is omitted. Costs, effect
+// movements and uncertain reasons remain visible; detailed evidence is intact.
+function compactCleanup(a) {
+  if(a.kind==='effect'||a.kind==='cost')return false;
+  const events=(a.evidence_refs||[a.id]).map(id=>(reviewUI.report.events||[]).find(e=>e.id===id)).filter(Boolean);
+  return events.length>0&&events.every(e=>e.message===50&&(e.origin?.location&128)&&e.destination?.location===16&&[0x400,0x20000400].includes(e.reason)&&!e.cost&&!e.cause);
+}
+function reviewEffectParts(desc='') {
+  return String(desc).split(/(?=[①②③④⑤⑥⑦⑧⑨⑩][：:])/).filter(Boolean).map((text,i)=>({key:String(i),text,label:/^[①②③④⑤⑥⑦⑧⑨⑩][：:]/.test(text)?text[0]:'文本'}));
+}
+function reviewMarkEditor(c,d,edits,editable) {
+  const mark=edits.final_marks?.[String(c.instance_id)]||{};
+  return `<label><input type="checkbox" id="review-final-mark" ${mark.marked?'checked':''} ${editable?'':'disabled'}>标记为终场有效卡牌</label><div class="effect-marks">${reviewEffectParts(d.desc).map(p=>`<div class="effect-mark ${mark.effects?.[p.key]?'is-marked':''}"><label><input type="checkbox" data-final-effect="${p.key}" ${mark.effects?.[p.key]?'checked':''} ${editable?'':'disabled'}><span>${escape(p.text)}</span></label>${mark.effects?.[p.key]?`<input data-final-effect-note="${p.key}" aria-label="${p.label}效果备注" placeholder="用途或阻抗说明（可留空）" maxlength="4000" value="${escape(mark.effects[p.key].note||'')}" ${editable?'':'disabled'}>`:''}</div>`).join('')}</div>`;
+}
+function bindReviewMarks(c,edits,editable) {
+  const box=$('#review-final-mark');if(!box||!editable)return;
+  const get=()=>{edits.final_marks||={};return edits.final_marks[String(c.instance_id)]||={marked:false,effects:{}};};
+  box.onchange=()=>{get().marked=box.checked;reviewUI.pending=null;refreshFinalMarks();};
+  document.querySelectorAll('[data-final-effect]').forEach(b=>b.onchange=()=>{const mark=get();if(b.checked){mark.effects[b.dataset.finalEffect]={note:''};mark.marked=true;}else delete mark.effects[b.dataset.finalEffect];reviewUI.pending=null;refreshFinalMarks();renderReviewDetail();});
+  document.querySelectorAll('[data-final-effect-note]').forEach(b=>b.oninput=()=>{get().effects[b.dataset.finalEffectNote].note=b.value;reviewUI.pending=null;refreshFinalMarks();});
+}
+function reviewFinalCards(n,report=reviewUI.report,edits=reviewEdits()) {
+  const cards=(n.state?.cards||[]).filter(c=>edits.final_marks?.[String(c.instance_id)]?.marked).sort((a,b)=>a.controller-b.controller||a.location-b.location||a.sequence-b.sequence);
+  return `<h3>终场有效卡牌</h3><div class="marked-final-cards">${cards.map(c=>{const mark=edits.final_marks[String(c.instance_id)],parts=reviewEffectParts(report.catalog?.[c.code]?.desc);return `<article>${reviewCard(c,n.id,{report,name:true,face:true,zone:false})}${reviewLocationIcon(c)}<small>${escape(reviewPlace(c))}</small>${edits.cards?.[String(c.instance_id)]?`<p>${escape(edits.cards[String(c.instance_id)])}</p>`:''}${parts.filter(p=>mark.effects?.[p.key]).map(p=>`<div class="marked-effect"><strong>✓ ${escape(p.label)}效果</strong><p>${escape(p.text)}</p>${mark.effects[p.key].note?`<p>${escape(mark.effects[p.key].note)}</p>`:''}</div>`).join('')}</article>`;}).join('')||'<p>点击终场卡牌（含墓地、除外区）勾选标记与有效效果。</p>'}</div>`;
+}
+function refreshFinalMarks() {
+  const n=reviewUI.nodes.find(n=>n.kind==='final');if(!n)return;
+  const anchorScope=reviewUI.anchor?.element?.closest('#review-log,#review-final-marks')?.id;
+  if($('#review-final-marks'))$('#review-final-marks').innerHTML=reviewFinalCards(n);
+  const scroll=$('#review-log .log-scroll')?.scrollTop||0;
+  reviewUI.refreshingMarks=true;renderReviewLog();reviewUI.refreshingMarks=false;
+  if($('#review-log .log-scroll'))$('#review-log .log-scroll').scrollTop=scroll;
+  // Rebind the popover to the replacement of its original card button. A log
+  // refresh must not make the next queued scroll event close an active editor.
+  if(anchorScope&&reviewUI.selected) {
+    const replacement=[...document.querySelectorAll(`#${anchorScope} [data-review-card]`)].find(b=>{
+      const item=reviewUI.cards.get(b.dataset.reviewCard);
+      return item?.card.instance_id===reviewUI.selected.instance_id&&item.node===reviewUI.detailNode?.id;
+    });
+    if(replacement)reviewUI.anchor={element:replacement,rect:replacement.getBoundingClientRect()};
+  }
+}

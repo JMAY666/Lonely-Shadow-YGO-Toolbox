@@ -149,7 +149,7 @@ def opponent_context(actions, report, nodes, node):
 
 
 def empty_annotations():
-    return {'version': 1, 'nodes': {}, 'cards': {}, 'effects': {}, 'costs': {}, 'conditions_note': '', 'extra_conditions': []}
+    return {'version': 1, 'nodes': {}, 'cards': {}, 'effects': {}, 'costs': {}, 'final_marks': {}, 'conditions_note': '', 'extra_conditions': []}
 
 
 def annotations_for(report, value=None):
@@ -176,6 +176,20 @@ def annotations_for(report, value=None):
     for key, edit in mapping('cards').items():
         if key not in final_ids: raise ValueError('终场卡牌实例不存在，不能关联说明')
         result['cards'][key] = text(edit)
+    for key, edit in mapping('final_marks').items():
+        if key not in final_ids or not isinstance(edit, dict) or type(edit.get('marked')) is not bool:
+            raise ValueError('终场标记须关联有效卡牌实例')
+        card = next(c for c in nodes['final']['state']['cards'] if str(c.get('instance_id')) == key)
+        desc = report.get('catalog', {}).get(str(card.get('code')), {}).get('desc', '')
+        parts = [p for p in re.split(r'(?=[①②③④⑤⑥⑦⑧⑨⑩][：:])', desc) if p]
+        effects = edit.get('effects', {})
+        if not isinstance(effects, dict) or len(effects) > len(parts): raise ValueError('效果标记无效')
+        checked = {}
+        for index, item in effects.items():
+            if index not in {str(i) for i in range(len(parts))} or not isinstance(item, dict):
+                raise ValueError('效果文本已改变，请重新核对')
+            checked[index] = {'note': text(item.get('note', ''))}
+        result['final_marks'][key] = {'marked': edit['marked'], 'effects': checked}
     for key, edit in mapping('effects').items():
         if key not in actions: raise ValueError('效果对应步骤不存在')
         result['effects'][key] = text(edit)
@@ -316,7 +330,7 @@ def requirements(report, annotations=None):
             'warnings': list(dict.fromkeys(unknown)), 'note': edits['conditions_note'],
             'basis': '按本次路线中实际使用的卡牌实例统计；不是对所有替代路线的最小条件证明。',
             'final': {'cards': [c for c in (nodes['final'].get('state') or {}).get('cards', [])
-                               if c.get('controller') == 0 and c.get('location') in (2, 4, 8)],
+                               if edits['final_marks'].get(str(c.get('instance_id')), {}).get('marked')],
                       'notes': edits['nodes'].get('final', {}).get('notes', '')}}
 
 

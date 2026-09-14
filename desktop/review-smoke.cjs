@@ -21,6 +21,17 @@ module.exports=async function({page,report,pass,evidence}) {
     assert.equal(await page.locator('.own-board .monster-slot .review-card').count(),cards.filter(c=>c.location===4&&c.sequence<5&&!c.overlay_target).length);
     assert.equal(await page.locator('.opponent-board').count(),0);
   }
+  await page.locator('#review-sidebar-toggle').click();
+  assert(await page.locator('#review-workspace').evaluate(el=>el.classList.contains('sidebar-collapsed')));
+  await page.locator('#review-sidebar-toggle').click();
+  await select('initial');
+  await page.locator('#current-node-title').click();
+  await page.keyboard.press('ArrowRight');
+  assert.equal(await page.evaluate(()=>reviewUI.node),nodes[1].id);
+  await page.locator('[data-review-zone="0:16"]').click();
+  assert.equal(await page.locator('#review-zone-content').evaluate(el=>getComputedStyle(el).position),'fixed');
+  await page.keyboard.press('Escape');
+  assert(await page.locator('#review-zone-content').isHidden());
   await select(nodes[1].id);
   await page.locator('#review-step-name').fill('补充手牌');
   await page.locator('#review-step-notes').fill('先补充资源，再完成通常召唤。');
@@ -49,6 +60,7 @@ module.exports=async function({page,report,pass,evidence}) {
   },monster.instance_id);
   assert.match(await page.locator('#review-card-detail').innerText(),/通常召唤/);
   assert.match(await page.locator('.detail-effect').innerText(),new RegExp(report.catalog[monster.code].desc.slice(0,3)));
+  await page.locator('#review-final-mark').check();
   await page.locator('#review-card-note').fill('终场此卡：实例注释保存验收');
   await page.locator('#review-detail-close').click();
   await page.evaluate(()=>window.scrollTo(0,document.body.scrollHeight));
@@ -69,7 +81,8 @@ module.exports=async function({page,report,pass,evidence}) {
   await page.waitForFunction(()=>app.view==='confirmation'&&!flow.busy);
   assert.equal(await page.evaluate(async id=>(await api('/api/plans')).some(p=>p.id===id),report.id),false);
   assert.match(await page.locator('#save-confirmation').innerText(),/终场此卡：实例注释保存验收/);
-  assert.equal(await page.locator('#save-confirmation .final-summary-cards .random-card').count(),report.final_state.cards.filter(c=>c.controller===0&&[2,4,8].includes(c.location)&&drawnIds.has(c.instance_id)).length);
+  assert.equal(await page.locator('#save-confirmation .marked-final-cards .review-card').count(),1);
+  assert.equal(await page.locator('#save-confirmation .marked-final-cards .random-card').count(),0);
   await page.evaluate(id=>[...document.querySelectorAll('#save-confirmation [data-review-card]')].find(b=>reviewUI.cards.get(b.dataset.reviewCard).card.instance_id===id).click(),monster.instance_id);
   assert.equal(await page.locator('#review-card-note').inputValue(),'终场此卡：实例注释保存验收');
   assert(await page.locator('#review-card-note').isDisabled());

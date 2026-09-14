@@ -8,7 +8,7 @@ function setup(){
   const context=vm.createContext({flow:{draft:null},app:{},Map,structuredClone,CSS:{escape:s=>s},
     escape:s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;'),
     document:{addEventListener(){}},eventSummary:e=>e.result||e.type||'',zoneNames:{},dt:()=>'',stageNames:{}});
-  vm.runInContext(source+'\nglobalThis.r={reviewUI,renderBoard,reviewCard,reviewLogAction,provenance,reviewTitle,reviewFallback,previewReview,summaryHtml,reviewRandomDraw};',context);
+  vm.runInContext(source+'\nglobalThis.r={reviewUI,renderBoard,reviewCard,reviewLogAction,provenance,reviewTitle,reviewFallback,previewReview,summaryHtml,reviewRandomDraw,reviewFinalCards,reviewEffectParts,compactCleanup,reviewLocationIcon};',context);
   return {...context.r,context};
 }
 test('XYZ host shows its own body plus material count, while attached copies do not occupy monster slots',()=>{
@@ -74,7 +74,7 @@ test('random draws use card backs across nodes, log, details identity and saved 
   const initial={id:'initial',kind:'initial',number:1,state_ref:2,action_ids:[]};
   const step={id:'step',kind:'step',number:2,state_ref:8,action_ids:[]};
   const final={id:'final',kind:'final',state_ref:10,state:{cards:[drawn,searched]}};
-  const report={id:'saved',catalog:{},initial_hand_ref:'2:0',events:[
+  const report={id:'saved',final_state:final.state,annotations:{final_marks:{1:{marked:true,effects:{}},2:{marked:true,effects:{}}}},catalog:{},initial_hand_ref:'2:0',events:[
     {id:'2:0',native_seq:2,message:90,cards:[searched]},
     {id:'5:0',native_seq:5,message:90,draw_kind:'effect',cards:[drawn]},
     {id:'7:0',native_seq:7,message:50,cards:[searched],origin:{location:1},destination:{location:2}}],review:{nodes:[initial,step,final]}};
@@ -131,4 +131,20 @@ test('confirmation submits the reviewed normalized name instead of falsely treat
   assert.equal(r.reviewUI.pending.payload.name,'已核对的名称');
   assert.equal(r.reviewUI.pending.payload.notes,'保留备注');
   assert.equal(r.context.flow.draft.name,'  已核对的名称  ');
+});
+
+
+test('final summaries show marked grave and banished instances only and retain effect notes',()=>{
+  const r=setup(), cards=[{instance_id:1,code:10,name:'场上',controller:0,location:4,sequence:0},{instance_id:2,code:10,name:'墓地同名',controller:0,location:16},{instance_id:3,code:11,name:'除外',controller:0,location:32}];
+  const report={catalog:{10:{desc:'①②每回合一次。①：检索。②：墓地效果。'}},final_state:{cards},annotations:{cards:{2:'后续资源'},final_marks:{2:{marked:true,effects:{2:{note:'阻抗'}}},3:{marked:true,effects:{}}}}};
+  r.reviewUI.report=report;
+  const html=r.summaryHtml({},report);assert(!html.includes('>场上<'));assert.match(html,/墓地同名/);assert.match(html,/除外/);assert.match(html,/②效果/);assert.match(html,/阻抗/);assert(!html.includes('未填写终场'));
+  assert.equal(r.reviewEffectParts(report.catalog[10].desc).length,3);
+});
+test('compact cleanup omits only explicit rule material disposal and never a cost or effect',()=>{
+  const r=setup(), e={id:'1:0',message:50,origin:{location:128},destination:{location:16},reason:1024};
+  r.reviewUI.report={events:[e]};const a={id:e.id,kind:'action',evidence_refs:[e.id]};
+  assert(r.compactCleanup(a));e.reason=0x20000400;assert(r.compactCleanup(a));e.cost=true;assert(!r.compactCleanup(a));delete e.cost;
+  e.reason=64;assert(!r.compactCleanup(a));e.reason=1024;assert(!r.compactCleanup({...a,kind:'effect'}));
+  assert.match(r.reviewLocationIcon({location:4,sequence:2,controller:0}),/<svg/);
 });

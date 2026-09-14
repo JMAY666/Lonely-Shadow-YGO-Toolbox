@@ -123,10 +123,15 @@ module.exports=async function({page,nativeState,nativeWait,hostWait,waitHistory,
   for(const zone of [16,32,64]) {
     await page.locator(`[data-review-zone="0:${zone}"]`).click();
     assert.equal(await page.locator('.zone-contents .review-card').count(),detachNode.state.cards.filter(c=>c.controller===0&&c.location===zone).length);
+    await page.locator('#review-zone-close').click();
   }
   await page.locator('#review-log-toggle').click();
   await page.locator('[data-log-mode="compact"]').click();
   assert.equal(await page.locator('.log-materials').count(),0);
+  const cleanup=review.events.filter(e=>e.message===50&&(e.origin?.location&128)&&e.reason===0x20000400)||[];
+  assert(cleanup.length>0,'Real engine must record attached material rule cleanup');
+  for(const e of cleanup)assert.equal(await page.locator(`[data-review-action="${e.id}"]`).count(),0);
+
   assert(await page.locator('.compact-summon').count()>0);
   await page.locator('[data-log-mode="detailed"]').click();
   assert.match(await page.locator('#review-log').innerText(),/费用 Cost/);
@@ -137,8 +142,28 @@ module.exports=async function({page,nativeState,nativeWait,hostWait,waitHistory,
   await effectHint.focus();assert(await page.locator('[role="tooltip"]').first().isVisible());
   await page.screenshot({path:path.join(evidence,'review-xyz-materials.png')});
   await page.locator('#review-log-close').click();
+  await page.evaluate(()=>selectReviewNode('final'));
+  await page.locator('[data-review-zone="0:16"]').click();
+  await page.locator('.zone-contents .review-card').first().click();
+  await page.locator('#review-final-mark').check();
+  const effectBox=page.locator('[data-final-effect]').last();
+  await effectBox.check();
+  await page.locator('[data-final-effect-note]').fill('墓地有效效果验收');
+  assert(await page.locator('.effect-mark.is-marked').count()>0);
+  await page.screenshot({path:path.join(evidence,'review-final-effect-mark.png'),preserveScroll:true});
+  await page.locator('#review-detail-close').click();
+  await page.locator('#review-zone-close').click();
+  await page.locator('#review-log-toggle').click();
+  await page.locator('[data-log-node="final"] .marked-final-cards .review-card').click();
+  await page.locator('[data-final-effect-note]').fill('墓地有效效果验收');
+  await page.waitForTimeout(100);
+  assert(await page.locator('#review-card-popover').isVisible(),'Editing a marked log card keeps its popover open');
+  await page.locator('#review-detail-close').click();
+  await page.locator('#review-log-close').click();
   await page.locator('#save-plan').click();await page.waitForFunction(()=>app.view==='confirmation'&&!flow.busy);
   assert.match(await page.locator('#save-confirmation').innerText(),/任意手牌 ×1/);
+  assert.match(await page.locator('#save-confirmation .marked-final-cards').innerText(),/墓地有效效果验收/);
+  assert.equal(await page.locator('#save-confirmation .marked-final-cards .review-card').count(),1);
   await page.route('**/api/plans/save',async route=>{
     const response=await route.fetch();assert(response.ok());
     await route.fulfill({status:502,contentType:'application/json',body:JSON.stringify({error:'隔离测试：保存回执丢失'})});
@@ -154,6 +179,12 @@ module.exports=async function({page,nativeState,nativeWait,hostWait,waitHistory,
   const saved=await request(`/api/plan/${sid}`);
   assert.equal(saved.name,'素材验收：回执丢失后修改');assert.equal(saved.edit_revision,2);
   assert.equal((await request('/api/plans')).filter(p=>p.id===sid).length,1);
+  const marked=Object.entries(saved.annotations.final_marks).filter(([,m])=>m.marked);
+  assert.equal(marked.length,1);assert.equal(saved.requirements.final.cards[0].location,16);
+  assert(Object.values(marked[0][1].effects).some(e=>e.note==='墓地有效效果验收'));
+  assert.match(await page.locator('#plan-report .marked-final-cards').innerText(),/墓地有效效果验收/);
+  await page.locator('#plan-report .marked-final-cards').scrollIntoViewIfNeeded();
+  await page.screenshot({path:path.join(evidence,'review-marked-summary.png'),preserveScroll:true});
   fs.writeFileSync(path.join(evidence,'review-materials.json'),JSON.stringify({sid,xyz,detached,linked,saved},null,2));
   pass('Real Xyz summon, two distinct materials, detachment to grave, Link material destinations, image costs and generic hand requirement');
   pass('Committed save with a lost acknowledgement, return/edit/reconfirm and duplicate UI submission keep exactly one updated plan');

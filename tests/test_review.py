@@ -242,4 +242,19 @@ class ReviewSaveTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'连锁'):self.store.preview_plan(body)
 
 
+
+class FinalMarksTests(unittest.TestCase):
+    def test_marks_persist_and_include_grave_only_when_selected(self):
+        report, _ = fixture()
+        report['catalog']['101']['desc'] = '①②各一次。①：检索。②：墓地效果。'
+        edits = empty_annotations()
+        edits['final_marks'] = {'1': {'marked': True, 'effects': {'2': {'note': '阻抗'}}}}
+        normalized = annotations_for(report, edits)
+        self.assertEqual(normalized['final_marks'], edits['final_marks'])
+        self.assertEqual([c['instance_id'] for c in requirements(report, edits)['final']['cards']], [1])
+        self.assertEqual(requirements(report)['final']['cards'], [])
+        edits['final_marks']['1']['effects']['99'] = {'note': ''}
+        with self.assertRaises(ValueError): annotations_for(report, edits)
+
+
 if __name__=='__main__': unittest.main()
