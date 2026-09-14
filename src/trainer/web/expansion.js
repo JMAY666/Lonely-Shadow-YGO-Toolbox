@@ -13,11 +13,11 @@ function unsavedSummary() {
   if (app.dirty) messages.push('构筑有未保存修改。');
   if (flow.design) messages.push('前置设计尚未开始，退出后需要重新填写。');
   if (app.active) messages.push('展开尚未结束，退出将保留中断记录，尚未保存为正式方案。');
-  if (flow.draft && draftDirty()) messages.push('当前草稿名称或备注的修改尚未保存。');
+  if (flow.draft && draftDirty()) messages.push('当前方案的名称、步骤或卡牌说明尚未保存。');
   else if (flow.draft && !flow.draft.saved) messages.push('待确认草稿已保留在本地，但尚未保存为正式方案。');
   return messages.join('\n');
 }
-function draftDirty() { return flow.draft && (flow.draft.name !== flow.draft.originalName || flow.draft.notes !== flow.draft.originalNotes); }
+function draftDirty() { return flow.draft && (flow.draft.name !== flow.draft.originalName || flow.draft.notes !== flow.draft.originalNotes || (flow.draft.annotations && JSON.stringify(flow.draft.annotations) !== flow.draft.originalAnnotations)); }
 
 async function confirmFlow(title, warning, action) {
   const dialog = $('#flow-dialog'), form = dialog.querySelector('form');
@@ -316,10 +316,11 @@ function expansionSummary(r) {
 async function allowReportChange(id) {
   if (flow.deleting) return false;
   if (flow.saving && (flow.draft?.id || flow.savingId) !== id) return false;
-  if (flow.draft?.id !== id && draftDirty()) return confirmFlow('切换记录？', '当前草稿名称和备注有未保存修改；已落盘的原始草稿仍会保留。', '放弃文字修改并切换');
+  if (flow.draft?.id !== id && draftDirty()) return confirmFlow('切换记录？', '当前方案名称、步骤或卡牌说明有未保存修改；已落盘的原始记录仍会保留。', '放弃说明修改并切换');
   return true;
 }
 function prepareDraft(r) {
+  if (typeof mountReview === 'function') return mountReview(r);
   const area = $('#draft-editor');
   if (!['draft','saved'].includes(r.plan_stage)) { area.hidden = true; flow.draft = null; return; }
   area.hidden = false;
@@ -341,6 +342,9 @@ async function deleteDraft() {
   try {
     await api(d.saved?'/api/plans/delete':'/api/drafts/discard',{id:d.id,name:d.originalName});
     flow.draft=null;flow.selectedPlan=null;app.reportId=null;app.reportKey=null;$('#draft-editor').hidden=true;
+    if ($('#review-workspace')) $('#review-workspace').hidden=true;
+    if (typeof reviewUI !== 'undefined') {reviewUI.report=null;reviewUI.pending=null;}
+    $('#report').hidden=false;
     $('#report').innerHTML='<div class="empty">已处理。可选择其他记录或开始新的前置设计。</div>';
     $('#plan-report').innerHTML='<div class="empty">请选择方案。</div>';
     switchView(d.saved?'plans':'history');
@@ -349,6 +353,7 @@ async function deleteDraft() {
   finally {flow.busy=false;flow.deleting=false;}
 }
 async function savePlan() {
+  if (typeof previewReview === 'function') return previewReview();
   if (flow.busy || !flow.draft) return;
   flow.busy = true; flow.saving = true; $('#save-plan').disabled = true;
   $('#draft-name').disabled = $('#draft-notes').disabled = true;
@@ -376,6 +381,7 @@ async function showPlan(id) {
   if (flow.selectedPlan !== id) return;
   switchView('plans'); await refreshPlans();
   if (flow.selectedPlan !== id) return;
+  if (typeof renderSavedPlan === 'function') {renderSavedPlan(plan);return;}
   const render = raw => {
     $('#plan-report').innerHTML = `<div class="plan-actions"><span>保存于 ${dt(plan.saved_ms)}</span><button id="edit-plan">调整方案</button><button id="plan-conditions">以此条件再次展开</button><button id="delete-plan" class="danger">删除方案</button></div>${expansionSummary(plan)}${renderTrainingReport(plan,{raw}).replaceAll('all-events','plan-all-events')}`;
     $('#edit-plan').onclick=run(()=>showReport(id));

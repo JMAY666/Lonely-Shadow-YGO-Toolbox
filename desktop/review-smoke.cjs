@@ -1,0 +1,57 @@
+'use strict';
+const assert=require('node:assert/strict');
+const path=require('node:path');
+
+module.exports=async function({page,report,pass,evidence}) {
+  const nodes=report.review.nodes;
+  assert(report.review.complete,'Real engine journal must provide complete review states');
+  assert.equal(await page.locator('#history #history-list').count(),0);
+  let engineWrites=0;
+  const observer=request=>{if(/\/api\/(start|rewind|native\/test)$/.test(request.url())&&request.method()==='POST')engineWrites++;};
+  page.on('request',observer);
+  const select=async id=>{
+    await page.locator('#review-steps [data-review-node]').filter({has:page.locator('span')}).evaluateAll((buttons,id)=>buttons.find(b=>b.dataset.reviewNode===id).click(),id);
+    await page.waitForFunction(id=>reviewUI.node===id,id);
+  };
+  for(const node of [...nodes,...nodes.slice().reverse()]) {
+    await select(node.id);
+    const cards=node.state.cards.filter(c=>c.controller===0);
+    const expected=cards.filter(c=>c.location===2).length;
+    assert.equal(await page.locator('.own-board .review-hand .review-card').count(),expected);
+    assert.equal(await page.locator('.own-board .monster-slot .review-card').count(),cards.filter(c=>c.location===4&&c.sequence<5&&!c.overlay_target).length);
+    assert.equal(await page.locator('.opponent-board').count(),0);
+  }
+  await select(nodes[1].id);
+  await page.locator('#review-step-name').fill('补充手牌');
+  await page.locator('#review-step-notes').fill('先补充资源，再完成通常召唤。');
+  assert.match(await page.locator('#review-steps [aria-current=step]').innerText(),/Step 2/);
+  await select('final');
+  await page.locator('#review-step-notes').fill('终场验收：保留怪兽作为后续资源。');
+  const monster=report.final_state.cards.find(c=>c.controller===0&&c.location===4);
+  assert(monster);
+  await page.evaluate(id=>{
+    const button=[...document.querySelectorAll('.own-board .monster-slot [data-review-card]')].find(b=>reviewUI.cards.get(b.dataset.reviewCard).card.instance_id===id);
+    button.click();
+  },monster.instance_id);
+  assert.match(await page.locator('#review-card-detail').innerText(),/通常召唤/);
+  assert.match(await page.locator('.detail-effect').innerText(),new RegExp(report.catalog[monster.code].desc.slice(0,3)));
+  await page.locator('#review-card-note').fill('终场此卡：实例注释保存验收');
+  await page.locator('#review-log-toggle').click();
+  assert(await page.locator('.log-action .review-card').count()>0);
+  await page.screenshot({path:path.join(evidence,'review-board-log.png')});
+  await page.locator('#review-log-close').click();
+  await page.locator('#save-plan').click();
+  await page.waitForFunction(()=>app.view==='confirmation'&&!flow.busy);
+  assert.equal(await page.evaluate(async id=>(await api('/api/plans')).some(p=>p.id===id),report.id),false);
+  assert.match(await page.locator('#save-confirmation').innerText(),/终场此卡：实例注释保存验收/);
+  await page.screenshot({path:path.join(evidence,'review-confirmation.png')});
+  await page.locator('#back-to-review').click();
+  await select(nodes[1].id);
+  assert.equal(await page.locator('#review-step-name').inputValue(),'补充手牌');
+  assert.equal(await page.locator('#review-step-notes').inputValue(),'先补充资源，再完成通常召唤。');
+  await select('final');
+  assert.equal(await page.locator('#review-step-notes').inputValue(),'终场验收：保留怪兽作为后续资源。');
+  assert.equal(engineWrites,0,'Reviewing must never run or rewind the engine');
+  page.off('request',observer);
+  pass('Real recorded node states, hand history, hidden unrelated opponent, card provenance, names/notes, drawer and return from confirmation');
+};

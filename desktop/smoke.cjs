@@ -127,6 +127,11 @@ async function activatePot(sid) {
 
 (async () => {
   await launch(true);
+  if(process.argv.includes('--materials-only')) {
+    await require('./review-materials-smoke.cjs')({page,nativeWait,nativeState,hostWait,waitHistory,pass,evidence});
+    await close();assert.deepEqual(errors,[]);
+    fs.writeFileSync(path.join(evidence,'materials-only-result.json'),JSON.stringify({checks,errors},null,2));return;
+  }
   if(process.argv.includes('--timeline-only')) {
     await require('./timeline-effects-smoke.cjs')({page,nativeWait,nativeState,hostWait,waitHistory,pass,evidence});
     await close();
@@ -311,20 +316,22 @@ async function activatePot(sid) {
   assert.equal(report.statistics['效果抽卡'],2);
   assert.equal(report.statistics['通常召唤成功'],1);
   assert.equal(report.actions.length,2);
-  assert.equal(await page.locator('.timeline > li').count(), 2);
-  assert.equal(await page.locator('.action-title').filter({hasText: /攻击宣言|伤害步骤|战斗结果|受到.*伤害/}).count(), 0);
+  assert.equal(await page.locator('#review-steps > li').count(), report.review.nodes.length);
+  await page.locator('#review-log-toggle').click();
+  assert.equal(await page.locator('.log-action').count(), 2);
+  assert.equal(await page.locator('.log-action h4').filter({hasText: /攻击宣言|伤害步骤|战斗结果|受到.*伤害/}).count(), 0);
   await page.screenshot({ path: path.join(evidence, 'report.png') });
-  assert.equal(await page.locator('.action-title').filter({ hasText: '编号未知' }).count(), 0);
   if (report.actions.some(a => a.kind === 'effect')) {
-    assert(await page.locator('.effect-description').count() > 0);
-    assert((await page.locator('.actual-execution').first().innerText()).includes('实际结果'));
+    assert(await page.locator('.effect-hint').count() > 0);
+    assert((await page.locator('.log-role').first().innerText()).includes('处理结果'));
   }
+  await page.locator('.review-evidence > summary').click();
   await page.locator('#all-events').check();
   assert(await page.locator('#all-events').isChecked());
-  await page.waitForFunction(() => [...document.querySelectorAll('.action-title')].some(e => e.textContent === '战斗结果'));
-  assert.equal(await page.locator('.action-title').filter({hasText: '战斗结果'}).count(), 1);
+  await page.waitForFunction(() => [...document.querySelectorAll('#review-raw-events summary')].some(e => e.textContent === '战斗结果'));
+  assert.equal(await page.locator('#review-raw-events summary').filter({hasText: '战斗结果'}).count(), 1);
   await page.locator('#all-events').uncheck();
-  await page.waitForFunction(() => document.querySelectorAll('.timeline > li').length === 2);
+  await page.waitForFunction(() => document.querySelectorAll('.log-action').length === 2);
   const popupPromise = page.waitForEvent('popup');
   await page.locator('a[href^="/api/raw/"]').click();
   const rawWindow = await popupPromise;
@@ -334,13 +341,16 @@ async function activatePot(sid) {
   await rawWindow.close();
   pass('Raw-event toggle and JSONL open in an isolated Electron child window');
   pass('Real embedded engine effect/summon, journal and completed report');
+  await page.locator('#review-log-close').click();
+  await require('./review-smoke.cjs')({page,report,pass,evidence});
   await page.locator('#draft-name').fill('正式展开方案');
   await page.locator('#draft-notes').fill('正式方案的冻结备注');
   await page.route('**/api/plans/save',route=>route.fulfill({status:500,contentType:'application/json',body:JSON.stringify({error:'隔离测试：模拟磁盘失败'})}),{times:1});
   await page.locator('#save-plan').click();
-  await page.waitForFunction(()=>document.querySelector('#draft-message').textContent.includes('保存失败')&&!flow.busy);
+  await page.locator('#confirm-save-plan').click();
+  await page.waitForFunction(()=>document.querySelector('#confirmation-message').textContent.includes('模拟磁盘失败')&&!flow.busy);
   assert.equal(await page.locator('#draft-name').inputValue(),'正式展开方案');
-  await page.locator('#save-plan').click();
+  await page.locator('#confirm-save-plan').click();
   await page.waitForFunction(id=>flow.selectedPlan===id&&!document.querySelector('#plans').hidden,sessionId);
   report=await (await fetch(`${service.url}/api/plan/${sessionId}`)).json();
   const duplicate=await page.evaluate(async id=>api('/api/plans/save',{id,name:'重复请求',notes:''}),sessionId);
@@ -355,7 +365,8 @@ async function activatePot(sid) {
   await page.locator('#compact-open').click();
   await page.waitForFunction(id => app.id === id && !app.busy, deckId);
   assert.deepEqual(await page.evaluate(() => app.deck), deck);
-  await page.locator('#nav-history').click();
+  await page.locator('#nav-plans').click();
+  await page.locator('#history-archive > summary').click();
   await page.locator(`[data-report="${sessionId}"]`).click();
   await page.waitForFunction(id => app.reportId === id, sessionId);
   assert.deepEqual(await (await fetch(`${service.url}/api/report/${sessionId}`)).json(), report);
@@ -427,6 +438,7 @@ async function activatePot(sid) {
   await page.locator('#finish-training').click();await waitHistory('completed');
   await page.waitForFunction(()=>!!flow.draft&&!document.querySelector('#draft-editor').hidden);
   await page.locator('#save-plan').click();
+  await page.locator('#confirm-save-plan').click();
   await page.waitForFunction(id=>flow.selectedPlan===id&&!flow.busy,aiId);
   await page.locator('#delete-plan').click();await page.locator('#flow-cancel').click();
   assert((await (await fetch(`${service.url}/api/plans`)).json()).some(p=>p.id===aiId));
@@ -461,6 +473,7 @@ async function activatePot(sid) {
   pass('Whole-hand ban occupies no slot, leaves all banned copies in the deck, and real effect draws can draw them later');
   await require('./expansion-settings-smoke.cjs')({page,nativeWait,nativeState,hostWait,waitHistory,pass,evidence});
   await require('./timeline-effects-smoke.cjs')({page,nativeWait,nativeState,hostWait,waitHistory,pass,evidence});
+  await require('./review-materials-smoke.cjs')({page,nativeWait,nativeState,hostWait,waitHistory,pass,evidence});
   await page.locator('#nav-decks').click();
   await page.evaluate(async id=>{const current=await api(`/api/deck?id=${encodeURIComponent(id)}`);await api('/api/decks',{...current,deck:{...current.deck,side:[]}});},deckId);
   assert.deepEqual(await (await fetch(`${service.url}/api/plan/${sessionId}`)).json(),report);

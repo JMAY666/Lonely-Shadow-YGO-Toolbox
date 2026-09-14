@@ -102,7 +102,7 @@ module.exports=async function({page,nativeState,nativeWait,hostWait,waitHistory,
   await page.screenshot({path:path.join(evidence,'timeline-effects.png')});
   await page.locator('#finish-training').click();await waitHistory('completed');
   await page.waitForFunction(()=>!!flow.draft);
-  await page.locator('#save-plan').click();await page.waitForFunction(id=>flow.selectedPlan===id&&!flow.busy,sid);
+  await page.locator('#save-plan').click();await page.locator('#confirm-save-plan').click();await page.waitForFunction(id=>flow.selectedPlan===id&&!flow.busy,sid);
   const saved=await request(`/api/plan/${sid}`);
   assert.equal(saved.actions.length,1);assert.deepEqual(saved.final_state,repeated.final_state);
   assert.equal(saved.statistics['效果抽卡'],2);

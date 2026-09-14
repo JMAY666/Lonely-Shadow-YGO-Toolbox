@@ -25,6 +25,7 @@ import webbrowser
 from report import REPORT_VERSION, build_report, read_journal
 from expansion import OPPONENT, draw_opening, plan_text, validate_conditions, training_settings
 from timeline import route_rows, timeline_nodes
+from review import annotations_for, confirmation_key, legacy_review, requirements
 
 WORKSPACE = Path(__file__).resolve().parents[2]
 RUNTIME = WORKSPACE / '.local/YGOPro-Lite'
@@ -441,11 +442,19 @@ class Store:
                 raise ValueError('未采集到完整起手和场面，请检查记录后重试')
             if [c['code'] for c in report['initial_hand']] != meta['expansion']['actual_opening'] or not report['loaded_verified']:
                 raise ValueError('实际发牌与起手条件不一致，不能保存，请检查引擎版本')
+            self.validate_review_save(report)
+            annotations = annotations_for(report, body.get('annotations'))
+            if report.get('review') and body.get('confirmation') != confirmation_key(report, name, notes, annotations):
+                raise ValueError('请先核对最新保存摘要，再确认存入展开管理')
             snapshot = deepcopy(report)
             snapshot['name'] = name
             snapshot['expansion'].update(name=name, notes=notes)
             snapshot['plan_stage'] = 'saved'
             snapshot['saved_ms'] = now()
+            snapshot['review'] = legacy_review(report)
+            snapshot['annotations'] = annotations
+            snapshot['requirements'] = requirements(report, annotations)
+            snapshot['edit_revision'] = 1
             atomic_json(target, snapshot)
             # The immutable plan file is the commit point. Repairable display metadata comes second.
             meta.update(plan_stage='saved', name=name)
@@ -453,6 +462,29 @@ class Store:
             try: atomic_json(path / 'session.json', meta)
             except OSError: pass
             return snapshot
+
+    @staticmethod
+    def validate_review_save(report):
+        if report.get('plan_stage') == 'saved': return
+        if report.get('status') != 'completed': raise ValueError('本次展开尚未完整结束，请完成展开后再保存')
+        if not report.get('initial_hand') or not report.get('final_state') or not report.get('loaded_verified'):
+            raise ValueError('起手、终场或构筑载入校验不完整，请核对原始记录')
+        if (report.get('final_state') or {}).get('chain_depth', 0): raise ValueError('终场仍有未结束连锁，无法保存为完整方案')
+        if report.get('review') and not report['review']['complete']:
+            raise ValueError('缺少完整步骤快照，原始记录已保留，暂不能保存为完整方案')
+
+    def preview_plan(self, body):
+        with self.lock:
+            report = self.report(body.get('id', ''))
+            if report.get('plan_stage') not in ('draft', 'saved'): raise ValueError('没有有效待保存方案，请返回方案调整')
+            self.validate_review_save(report)
+            name, notes = plan_text(body)
+            annotations = annotations_for(report, body.get('annotations'))
+            return {'id': report['id'], 'name': name, 'notes': notes, 'annotations': annotations,
+                    'saved': report.get('plan_stage') == 'saved', 'edit_revision': report.get('edit_revision', 0),
+                    'original_name': report['name'], 'original_notes': report.get('expansion', {}).get('notes', ''),
+                    'requirements': requirements(report, annotations),
+                    'confirmation': confirmation_key(report, name, notes, annotations)}
 
     def list_plans(self):
         result = []
@@ -469,11 +501,23 @@ class Store:
             target = self.plan_path(body.get('id', ''))
             plan = read_json(target)
             name, notes = plan_text(body)
-            if (plan['name'], plan['expansion']['notes']) == (name, notes): return plan
+            annotations = annotations_for(plan, body.get('annotations'))
+            if (plan['name'], plan['expansion']['notes'], annotations_for(plan)) == (name, notes, annotations): return plan
             if (body.get('original_name'), body.get('original_notes')) != (plan['name'], plan['expansion']['notes']):
                 raise ValueError('方案已在其他页面修改，请重新打开后再编辑；当前文字仍保留')
+            if 'annotations' in body:
+                if body.get('original_revision', 0) != plan.get('edit_revision', 0):
+                    raise ValueError('方案说明已在其他页面修改，当前编辑已保留，请重新核对')
+                if body.get('confirmation') != confirmation_key(plan, name, notes, annotations):
+                    raise ValueError('保存摘要已过期，请返回修改后重新确认')
+            backup = self.plans / 'revisions' / target.stem / f"{plan.get('edit_revision', 0)}.json"
+            if not backup.exists(): atomic_json(backup, plan)
             plan['name'] = name
             plan['expansion'].update(name=name, notes=notes)
+            plan['review'] = legacy_review(plan)
+            plan['annotations'] = annotations
+            plan['requirements'] = requirements(plan, annotations)
+            plan['edit_revision'] = plan.get('edit_revision', 0) + 1
             atomic_json(target, plan)
             return plan
 
@@ -627,6 +671,7 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/return-to-design': return self.send(store.return_to_design(body['id']))
                 if path == '/api/drafts/discard': return self.send(store.discard_draft(body))
                 if path == '/api/plans/save': return self.send(store.save_plan(body))
+                if path == '/api/plans/preview': return self.send(store.preview_plan(body))
                 if path == '/api/plans/update': return self.send(store.update_plan(body))
                 if path == '/api/plans/delete': return self.send(store.delete_plan(body))
                 if path == '/api/shutdown':
@@ -665,7 +710,7 @@ class Handler(BaseHTTPRequestHandler):
                             p = root / f'{code}{ext}'
                             if p.is_file(): return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0])
                     p = WEB / 'card-back.svg'; return self.send(p.read_bytes(), 'image/svg+xml')
-                files = {'/': 'index.html', '/app.js': 'app.js', '/expansion.js': 'expansion.js', '/timeline.js': 'timeline.js', '/report-view.js': 'report-view.js', '/style.css': 'style.css', '/card-back.svg': 'card-back.svg'}
+                files = {'/': 'index.html', '/app.js': 'app.js', '/expansion.js': 'expansion.js', '/timeline.js': 'timeline.js', '/report-view.js': 'report-view.js', '/review.js': 'review.js', '/review.css': 'review.css', '/review-back.svg': 'review-back.svg', '/style.css': 'style.css', '/card-back.svg': 'card-back.svg'}
                 if path in files:
                     p = WEB / files[path]; return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0] + '; charset=utf-8')
             self.send({'error': '内容不存在'}, status=404)

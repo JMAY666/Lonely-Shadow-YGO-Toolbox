@@ -7,8 +7,9 @@ from protocol import NAMES, PROMPTS, packets, u32, location
 from actions import project_actions
 from card_semantics import material_method, summon_method
 from timeline import route_rows
+from review import make_review
 
-REPORT_VERSION = 6
+REPORT_VERSION = 7
 
 LIMITS = [
     '事件时间为引擎批次采集时间；同批事件用字节偏移确定先后。',
@@ -297,4 +298,5 @@ def build_report(meta, rows, issues):
     report['duration_ms'] = max(0, (report.get('ended_ms') or (rows[-1]['time_ms'] if rows else meta['started_ms'])) - meta['started_ms'])
     report['record_count'] = source_count
     report['active_record_count'] = len(rows)
+    report['review'] = make_review(report, rows)
     return report

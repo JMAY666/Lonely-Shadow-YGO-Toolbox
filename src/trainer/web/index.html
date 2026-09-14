@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>YGO 展开练习室</title>
   <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/review.css">
 </head>
 <body>
 <div class="app-bar">
@@ -154,14 +155,17 @@
     </div>
   </section>
   <section id="history" hidden>
-    <header><div><div class="eyebrow">03 / REVIEW & SAVE</div><h1>展开方案调整与保存</h1><p>检查待确认草稿，再保存为正式方案。原训练历史完整保留在下方记录列表中。</p></div><button id="refresh-history">刷新记录</button></header>
-    <div class="history-layout"><div id="history-list" class="panel history-list"></div><div><div id="draft-editor" class="panel draft-editor" hidden></div><article id="report" class="panel report"><div class="empty">选择草稿或原训练历史，查看过程报告。</div></article></div></div>
+    <header><div><div class="eyebrow">03 / REVIEW & SAVE</div><h1>当前展开方案调整</h1><p>逐步回看真实场面，补充说明后确认保存。</p></div><button id="refresh-history">刷新记录</button></header>
+    <div id="review-workspace" class="review-layout" hidden><aside id="draft-editor" class="review-sidebar"></aside><article id="review-center" class="review-center"></article><aside id="review-log" class="review-log" aria-label="简版展开日志" hidden></aside></div>
+    <article id="report" class="panel report"><div class="empty">完成当前展开后，在这里调整方案。已有记录可从展开管理打开。</div></article>
   </section>
+  <section id="save-confirmation" class="save-confirmation" hidden aria-label="保存前二次确认"></section>
   <section id="plans" hidden class="plans-page" aria-label="展开管理">
     <header><div><div class="eyebrow">SAVED PLANS</div><h1>展开管理</h1><p>正式保存的方案，保留展开当时的牌组与记录。</p></div><button id="refresh-plans">刷新方案</button></header>
     <div class="history-layout"><div id="plan-list" class="panel history-list"></div><article id="plan-report" class="panel report"><div class="empty">选择已保存方案查看。</div></article></div>
+    <details id="history-archive"><summary>历史记录与未保存草稿</summary><div id="history-list" class="panel history-list"></div></details>
   </section>
 </main>
-<script src="/report-view.js"></script><script src="/app.js"></script><script src="/expansion.js"></script><script src="/timeline.js"></script>
+<script src="/report-view.js"></script><script src="/app.js"></script><script src="/expansion.js"></script><script src="/timeline.js"></script><script src="/review.js"></script>
 </body>
 </html>

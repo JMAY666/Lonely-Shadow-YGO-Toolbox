@@ -56,9 +56,9 @@ static std::string TestUIState() {
     auto oldSequence = field.hovered_sequence;
     std::map<int, std::vector<int>> hits;
     // Use the engine's own hit test in its reference coordinate system.
-    for(int y = 280; y < 600; y += 8) for(int x = 330; x < 930; x += 8) {
+    for(int y = 200; y < 624; y += 8) for(int x = 280; x < 1000; x += 8) {
         field.GetHoverField(x, y);
-        if(field.hovered_controler != 0 || (field.hovered_location != 2 && field.hovered_location != 4 && field.hovered_location != 8)) continue;
+        if(field.hovered_controler != 0 || (field.hovered_location != 2 && field.hovered_location != 4 && field.hovered_location != 8 && field.hovered_location != 64)) continue;
         const int key = field.hovered_location * 100 + int(field.hovered_sequence);
         auto& hit = hits[key];
         if(hit.empty()) hit = {0, 0, 0};

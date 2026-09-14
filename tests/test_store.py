@@ -140,7 +140,7 @@ class StoreTests(unittest.TestCase):
         files = ['native.jsonl', 'session.json', 'deck.ydk', 'report.json', 'report-v5.json']
         originals = {name: (p / name).read_bytes() for name in files}
         upgraded = self.store.report(sid)
-        self.assertEqual(upgraded['report_version'], 6)
+        self.assertEqual(upgraded['report_version'], REPORT_VERSION)
         self.assertEqual(upgraded['actions'], [])
         self.assertEqual(upgraded['statistics']['展开步骤'], 0)
         self.assertEqual(len(upgraded['events']), 5)

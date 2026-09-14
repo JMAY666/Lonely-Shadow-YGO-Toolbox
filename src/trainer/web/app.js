@@ -25,6 +25,7 @@ async function card(code) {
   return app.pendingCards.get(code);
 }
 function switchView(view) {
+  if (view === 'confirmation' && (typeof reviewUI === 'undefined' || !reviewUI.pending)) { notice('请从当前方案的保存操作进入确认。'); view = 'history'; }
   if (typeof flow !== 'undefined' && flow.deckEdit && view !== 'decks') return notice('请先应用本次卡组编辑，或取消编辑并返回条件。');
   if (typeof flow !== 'undefined' && app.view !== view) {
     if (app.view === 'design' && flow.design && view !== 'training') notice('前置设计尚未开始，填写内容保留在“展开前置设计”中；退出应用会丢失这些设置。');
@@ -38,7 +39,8 @@ function switchView(view) {
   $('#training').hidden = view !== 'training';
   $('#design').hidden = view !== 'design';
   $('#plans').hidden = view !== 'plans';
-  document.body.classList.toggle('history-view', view === 'history' || view === 'plans');
+  $('#save-confirmation').hidden = view !== 'confirmation';
+  document.body.classList.toggle('history-view', ['history','plans','confirmation'].includes(view));
   for (const name of ['decks', 'history', 'training', 'design', 'plans']) {
     const button = $(`#nav-${name}`);
     button.classList.toggle('active', view === name);
@@ -606,6 +608,10 @@ async function showReport(id, navigate = true) {
   if (app.reportId !== id) return;
   if (navigate) switchView('history');
   if (typeof prepareDraft === 'function') prepareDraft(r);
+  if (typeof mountReview === 'function') {
+    document.querySelectorAll('[data-report]').forEach(b => b.classList.toggle('current', b.dataset.report === id));
+    return;
+  }
   const renderKey = `${id}:${r.report_version}:${r.record_count}:${r.status}:${r.plan_stage}:${app.allEvents}`;
   if (app.reportKey !== renderKey) {
     app.reportKey = renderKey;

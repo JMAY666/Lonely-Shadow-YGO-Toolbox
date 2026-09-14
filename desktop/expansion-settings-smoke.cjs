@@ -110,9 +110,10 @@ module.exports = async function settingsAcceptance({page, nativeWait, nativeStat
   await nativeWait(silentId,s=>s.prompt===11&&s.buttons.some(b=>b.text==='ＢＰ'));
   assert((await report(silentId)).final_state.cards.some(c=>c.controller===1&&c.location===4));
   await finish();await page.locator('#draft-name').fill('设置保存恢复验收');await page.locator('#save-plan').click();
+  await page.locator('#confirm-save-plan').click();
   await page.waitForFunction(id=>flow.selectedPlan===id&&!flow.busy,silentId);
   await page.locator('#edit-plan').click();await page.waitForFunction(()=>flow.draft?.saved);
-  await page.locator('#draft-notes').fill('新增设置随正式方案保存');await page.locator('#save-plan').click();await page.waitForFunction(()=>!flow.busy&&!flow.draft);
+  await page.locator('#draft-notes').fill('新增设置随正式方案保存');await page.locator('#save-plan').click();await page.locator('#confirm-save-plan').click();await page.waitForFunction(()=>!flow.busy&&!flow.draft);
   await page.locator('#plan-conditions').click();await page.waitForFunction(()=>!!flow.design&&app.view==='design');
   const savedConfig=await page.evaluate(()=>designPayload(flow.design));
   assert.equal(savedConfig.opponent_responses,false);assert.equal(savedConfig.player_lp,4000);

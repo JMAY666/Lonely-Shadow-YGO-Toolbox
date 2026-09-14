@@ -122,7 +122,9 @@ class TimelineStoreTests(unittest.TestCase):
                      row(5,'checkpoint',node=2,state=state),row(6,'rewind',target=1,state=initial),row(7,'end',reason='manual')]
         self.write_rows()
         self.store.alive.return_value=False
-        saved=self.store.save_plan(dict(id=self.sid,name='已确认路线',notes='测试'))
+        body=dict(id=self.sid,name='已确认路线',notes='测试')
+        preview=self.store.preview_plan(body)
+        saved=self.store.save_plan({**body,'confirmation':preview['confirmation']})
         self.assertEqual(saved['actions'],[])
         self.assertEqual(saved['final_state']['lp'],[8000,8000])
         before=self.store.plan_path(self.sid).read_bytes()
