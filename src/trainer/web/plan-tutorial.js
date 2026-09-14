@@ -25,7 +25,16 @@ function tutorialNote(value) {
 }
 function tutorialCard(c,node,plan) {
   const known=reviewKnown(c)&&!reviewRandomDraw(c,node,plan);
-  return {name:reviewCardLabel(c,node,plan),src:known?`/pics/${Number(c.code)}.jpg`:'/review-back.svg'};
+  const fieldPosition=[0,1].includes(c.controller)&&[4,8].includes(c.location)&&Number.isInteger(c.sequence)&&reviewFieldSlots(c).some(s=>s.active)?
+    {controller:c.controller,location:c.location,sequence:c.sequence}:null;
+  return {name:reviewCardLabel(c,node,plan),src:known?`/pics/${Number(c.code)}.jpg`:'/review-back.svg',fieldPosition};
+}
+function tutorialPositionMap(position,x,y) {
+  if(!position)return '';
+  const color=position.controller===1?'#b75757':'#237caa',sx=30/55,sy=24/44;
+  // Absolute SVG coordinates and explicit styling survive offline SVG and PNG
+  // export, without depending on the application's HTML/CSS location icon.
+  return `<g class="tutorial-location-map" role="img" aria-label="${tutorialEscape(reviewPlace(position))}" data-controller="${position.controller}" data-location="${position.location}" data-sequence="${position.sequence}"><title>${tutorialEscape(reviewPlace(position))}</title><rect x="${x}" y="${y}" width="30" height="24" fill="none"/>${reviewFieldSlots(position).map(s=>`<rect x="${x+s.x*sx}" y="${y+s.y*sy}" width="${8*sx}" height="${9*sy}" rx="0.5" fill="${s.active?color:'none'}" stroke="${color}" stroke-width="0.55"${s.active?' data-active-slot="true"':''}/>`).join('')}</g>`;
 }
 function tutorialFlowCards(cards,node,plan,locations=true) {
   return (cards||[]).map(c=>({...tutorialCard(c,node,plan),
@@ -122,10 +131,10 @@ function layoutTutorialStage(stage,maxWidth) {
   const labelWidth=Math.ceil(Array.from(stage.label).reduce((sum,c)=>sum+12*(/[\x20-\x7e]/.test(c)?.6:1),16));
   const width=Math.min(maxWidth,stage.cards.length?Math.max(84,Math.min(132,labelWidth),stage.cards.length*76+8):stage.text?.length>60?240:100);
   const labels=tutorialWrap(stage.label,width-12,12),columns=Math.max(1,Math.floor((width-8)/76));
-  const cards=stage.cards.map(c=>({...c,lines:tutorialWrap(c.name,70,11),places:c.location?tutorialWrap(c.location,70,10):[]}));
+  const cards=stage.cards.map(c=>({...c,mapHeight:c.fieldPosition?28:0,lines:tutorialWrap(c.name,70,11),places:c.location?tutorialWrap(c.location,70,10):[]}));
   let y=labels.length*17+12;
   for(let i=0;i<cards.length;i+=columns) {
-    const row=cards.slice(i,i+columns),height=Math.max(...row.map(c=>72+c.lines.length*14+c.places.length*13));
+    const row=cards.slice(i,i+columns),height=Math.max(...row.map(c=>72+c.mapHeight+c.lines.length*14+c.places.length*13));
     row.forEach((c,col)=>Object.assign(c,{x:(width-row.length*76+6)/2+col*76,y}));
     y+=height+6;
   }
@@ -175,7 +184,7 @@ function layoutPlanTutorial(model) {
     const lines=[...tutorialWrap(c.name,cardWidth-82,15).map(text=>({text,color:'ink'})),
       ...(c.location?tutorialWrap(c.location,cardWidth-82,12).map(text=>({text,color:'muted'})):[])];
     const notes=c.notes.flatMap(l=>tutorialWrap(l.text,cardWidth-16,14).map(text=>({...l,text})));
-    const headHeight=Math.max(82,lines.length*20+8);
+    const headHeight=Math.max(c.fieldPosition?108:82,lines.length*20+8);
     return {...c,lines,notes,headHeight,width:cardWidth,height:headHeight+notes.length*20+12};
   });
   let finalHeight=58;
@@ -236,6 +245,7 @@ function renderPlanTutorialSvg(model,layout=layoutPlanTutorial(model),assets={})
   for(const c of layout.finalCards) {
     const y=overviewY+c.y;
     out.push(picture(c.src,c.x,y,50,73));
+    out.push(tutorialPositionMap(c.fieldPosition,c.x+10,y+78));
     c.lines.forEach((l,i)=>out.push(text(l.text,c.x+64,y+16+i*20,i===0?15:14,l.color,i===0?600:400)));
     c.notes.forEach((l,i)=>out.push(text(l.text,c.x,y+c.headHeight+16+i*20,14,l.color,l.color==='note'?600:400)));
   }
@@ -277,8 +287,9 @@ function renderPlanTutorialSvg(model,layout=layoutPlanTutorial(model),assets={})
         stage.cards.forEach((c,i)=>{
           const cx=x+c.x,cy=y+c.y;
           out.push(`<g class="tutorial-flow-card"><title>${esc(c.name+(c.location?' · '+c.location:''))}</title>`,picture(c.src,cx+12.5,cy,45,65));
-          c.lines.forEach((l,i)=>out.push(text(l,cx+35,cy+78+i*14,11,'ink',400,'middle')));
-          c.places.forEach((l,i)=>out.push(text(l,cx+35,cy+78+c.lines.length*14+i*13,10,'muted',400,'middle')));
+          out.push(tutorialPositionMap(c.fieldPosition,cx+20,cy+68));
+          c.lines.forEach((l,i)=>out.push(text(l,cx+35,cy+78+c.mapHeight+i*14,11,'ink',400,'middle')));
+          c.places.forEach((l,i)=>out.push(text(l,cx+35,cy+78+c.mapHeight+c.lines.length*14+i*13,10,'muted',400,'middle')));
           out.push('</g>');
           if(stage.cards[i+1]?.y===c.y)out.push(text('+',cx+73,cy+35,11,'muted',600,'middle'));
         });
@@ -294,7 +305,7 @@ function renderPlanTutorialSvg(model,layout=layoutPlanTutorial(model),assets={})
   }
   if(!layout.boxes.length)out.push(text('本方案没有可展示的展开动作。',pad,overviewY+overviewHeight+105,16,'muted'));
   layout.footer.forEach((l,i)=>out.push(text(l.text,pad,layout.footerY+12+i*20,14,l.color)));
-  out.push(text('依据已保存路线生成 · 卡牌效果全文与完整备注可在原步骤中查看',pad,height-24,12,'muted'),'</svg>');
+  out.push(text('依据已保存路线生成 · 位置图：蓝色为我方，红色为对方 · 卡牌效果全文与完整备注可在原步骤中查看',pad,height-24,12,'muted'),'</svg>');
   return out.join('');
 }
 

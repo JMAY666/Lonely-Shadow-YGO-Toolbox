@@ -33,6 +33,10 @@
 .review-card-popover { position: fixed; z-index: 60; width: min(640px,calc(100vw - 24px)); max-height: min(640px,calc(100dvh - 24px)); display: flex; flex-direction: column; border: 1px solid #7da1b4; border-radius: 12px; background: #f6f9fb; color: #243c47; box-shadow: 0 12px 45px #102b4660; overflow: hidden; }
 .review-card-popover > header { display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; border-bottom: 1px solid #dce5ea; background: #fff; font-size: 12px; flex-shrink: 0; }
 .review-card-popover > header button { padding: 2px 9px; font-size: 20px; }
+.review-card-popover > header { gap:8px; flex-wrap:wrap; }
+.review-card-popover > header #review-detail-back,.review-card-popover > header #review-detail-pin { font-size:12px; padding:5px 8px; }
+#review-detail-back { max-width:240px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+#review-detail-mode { color:#6c8390; margin-left:auto; }
 .review-card-detail { padding: 16px; display: flex; gap: 16px; overflow: auto; overscroll-behavior: contain; min-height: 0; }
 .detail-placeholder { color: #71838d; font-size: 12px; align-self: center; }
 .detail-card-art { width: 126px; max-height: 190px; object-fit: contain; align-self: start; }

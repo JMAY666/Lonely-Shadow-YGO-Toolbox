@@ -2,7 +2,8 @@
 
 // Card popovers keep their own recorded node, so reading the log does not move
 // the selected board. Live rewinding remains confined to timeline.js / the field.
-const reviewUI = {report:null, nodes:[], node:null, selected:null, detailNode:null, detailReport:null, anchor:null, materialTab:false, zone:null, drawer:false, logMode:'compact', pending:null, cards:new Map(), serial:0};
+const reviewUI = {report:null, nodes:[], node:null, selected:null, detailNode:null, detailReport:null, anchor:null, materialTab:false, detailHistory:[], detailPinned:false, zone:null, drawer:false, logMode:'compact', pending:null, cards:new Map(), serial:0};
+const reviewHover = {openTimer:null,closeTimer:null,target:null,generation:0,suppressed:null};
 const emptyEdits = () => ({version:1,nodes:{},cards:{},effects:{},costs:{},final_marks:{},conditions_note:'',extra_conditions:[]});
 const reviewEdits = () => flow.draft?.annotations || reviewUI.report?.annotations || emptyEdits();
 const reviewTitle = n => reviewEdits().nodes[n.id]?.name || (n.kind==='initial'?'初始手牌':n.kind==='final'?'终场结果':`Step ${n.number}`);
@@ -113,7 +114,7 @@ function reviewCard(c, node=reviewUI.node, options={}) {
   const defense=location.location===4&&!badLink&&!!(c.position&12), down=[4,8,32,64].includes(location.location)&&!!(c.position&10);
   const materials=options.materials;
   const position=location.location===4?(badLink?'状态待核对':![1,2,4,8].includes(c.position)?'表示未记录':down?'里侧':defense?'守备':'攻击'):'';
-  return `<button class="review-card ${defense?'is-defense':''} ${materials?'has-materials':''} ${random?'random-card':known?'':'unknown-card'}" data-review-card="${key}" aria-haspopup="dialog" aria-label="${escape(label)} · ${escape(reviewPlace(location))}">
+  return `<button class="review-card ${defense?'is-defense':''} ${materials?'has-materials':''} ${random?'random-card':known?'':'unknown-card'}" data-review-card="${key}" aria-haspopup="dialog" aria-label="${escape(label)}${options.catalogue?'':' · '+escape(reviewPlace(location))}">
     <span class="review-art"><img src="${known&&(!down||options.face)?`/pics/${Number(c.code)}.jpg`:'/review-back.svg'}" alt="${escape(label)}" loading="lazy">${down?'<span class="face-label">里侧</span>':''}${!known?`<span class="unknown-mark">${random?'随机':'?'}</span>`:''}</span>
     ${options.zone!==false?`<span class="region-badge side-${location.controller===1?'opponent':'self'}">${escape(reviewPlace(location))}</span>`:''}
     ${options.miniLocation&&[4,8].includes(location.location)?`<span class="compact-card-location">${reviewLocationIcon(location)}</span>`:''}
@@ -164,7 +165,7 @@ function renderReviewNode() {
   const editable=!!flow.draft, edit=reviewEdits().nodes[n.id]||{};
   const index=reviewUI.nodes.indexOf(n);
   $('#review-center').innerHTML=`<header class="review-node-header"><div><small>Step ${n.number} / ${reviewUI.nodes.length}</small><h2 id="current-node-title">${escape(reviewTitle(n))}</h2></div><div><button data-review-node="${escape(reviewUI.nodes[Math.max(0,index-1)].id)}" ${index===0?'disabled':''} aria-label="上一步">←</button><button data-review-node="${escape(reviewUI.nodes[Math.min(reviewUI.nodes.length-1,index+1)].id)}" ${index===reviewUI.nodes.length-1?'disabled':''} aria-label="下一步">→</button><button id="review-log-toggle" aria-controls="review-log" aria-expanded="${reviewUI.drawer}">${reviewUI.drawer?'收起':'展开'}日志</button></div></header>
-    <p class="review-detail-help">点击卡牌，就近查看效果与来源。</p>
+    <p class="review-detail-help">悬停卡牌查看信息，点击可固定；素材详情可返回上一级。</p>
     <div class="review-board">${renderBoard(n)}</div><div id="review-zone-content" class="review-zone-popover" role="dialog" aria-label="区域卡牌" hidden></div>${n.kind==='final'?`<section id="review-final-marks" class="node-explanation">${reviewFinalCards(n)}</section>`:''}
     <div class="node-explanation"><label for="review-step-name">步骤名称 <small>留空使用默认名称</small></label><input id="review-step-name" maxlength="80" value="${escape(edit.name||'')}" ${editable?'':'disabled'}><label for="review-step-notes">${n.kind==='final'?'终场整体说明':'步骤备注'}</label><textarea id="review-step-notes" maxlength="4000" rows="3" ${editable?'':'disabled'} placeholder="操作目的、关键选择或注意事项">${escape(edit.notes||'')}</textarea>
     <p class="review-range">${n.range?`记录范围 ${n.range[0]??'?'}—${n.range[1]??'?'} · `:''}${escape(reviewUI.report.review?.boundary_note||'旧方案未保存逐步快照；缺失内容明确标为未知。')}</p></div>`;
@@ -213,15 +214,76 @@ function renderReviewDetail() {
   if(d.type&1){const race=races.find((_,i)=>d.race===2**i);if(race)stats.push(race+'族');}
   if(d.type&1){stats.push(d.type&0x4000000?`LINK-${d.level&255}`:`${d.type&0x800000?'阶级':'等级'} ${d.level&255}`);stats.push(`ATK ${d.atk??'?'}`);if(!(d.type&0x4000000))stats.push(`DEF ${d.def??'?'}`);}
   if(d.type&0x1000000)stats.push(`灵摆刻度 ${(d.level>>>24)&255} / ${(d.level>>>16)&255}`);
+  const parent=reviewUI.detailHistory.at(-1);
+  if($('#review-detail-back')){$('#review-detail-back').hidden=!parent;$('#review-detail-back').textContent=parent?`← 返回${reviewCardLabel(parent.selected,parent.detailNode,parent.detailReport)}`:'返回上一级';}
+  if($('#review-detail-mode'))$('#review-detail-mode').textContent=reviewUI.detailPinned?'已固定':'悬停预览';
+  if($('#review-detail-pin'))$('#review-detail-pin').hidden=reviewUI.detailPinned;
   $('#review-card-detail').innerHTML=`<img class="detail-card-art" src="${known?`/pics/${Number(c.code)}.jpg`:'/review-back.svg'}" alt="${escape(reviewCardLabel(c,n,r))}"><div class="detail-card-copy"><div class="detail-name"><h3>${escape(reviewCardLabel(c,n,r))}</h3><small>${known?`卡号 ${c.code}`:random?'随机抽到的 1 张牌':'身份未记录'}</small></div><p>${escape(stats.join(' · '))}</p>
     ${materials.length||d.type&0x800000?`<div class="detail-tabs"><button id="review-body-tab" aria-pressed="${!reviewUI.materialTab}">本体</button><button id="review-material-tab" aria-pressed="${reviewUI.materialTab}">素材 ×${materials.length}</button></div>`:''}
     ${reviewUI.materialTab?`<div class="material-list">${materials.map(m=>reviewCard(m,n.id,{name:true,face:reviewKnown(m),report:r})).join('')||'<p>当前没有素材。</p>'}</div>`:`<p class="detail-effect">${escape(known?d.desc||'本次记录未保存完整效果文本。':random?'本次由抽卡获得，路线中以随机卡背表示，不作为指定检索结果。实际使用的指定随机命中仍会列入随机依赖。':'当前节点未记录可公开的卡牌身份。')}</p><div class="card-provenance"><strong>截至本步的来源与移动</strong>${sources.length?sources.map(s=>`<p>${app.view==='history'&&r===reviewUI.report?`<button data-review-node="${escape(s.node.id)}">Step ${s.node.number}</button>`:`Step ${s.node.number}`} ${escape(s.text)}</p>`).join(''):'<p>来源未记录</p>'}</div>`}
     ${annotation!==null?reviewMarkEditor(c,d,edits,editable):''}${annotation!==null?`<label for="review-card-note">终场此卡说明 <small>关联本次卡牌实例</small></label><textarea id="review-card-note" rows="2" maxlength="4000" ${editable?'':'disabled'}>${escape(annotation)}</textarea>`:''}</div>`;
   if($('#review-body-tab'))$('#review-body-tab').onclick=()=>{reviewUI.materialTab=false;renderReviewDetail();};
   if($('#review-material-tab'))$('#review-material-tab').onclick=()=>{reviewUI.materialTab=true;renderReviewDetail();};
+  if($('#review-card-detail .card-provenance'))$('#review-card-detail .card-provenance').hidden=n.kind==='catalog';
   bindReviewMarks(c,edits,editable);
   if($('#review-card-note')&&editable)$('#review-card-note').oninput=e=>{edits.cards[String(c.instance_id)]=e.target.value;reviewUI.pending=null;refreshFinalMarks();};
   $('#review-card-popover').hidden=false;positionReviewDetail();
+}
+function cancelReviewHover() {
+  clearTimeout(reviewHover.openTimer);clearTimeout(reviewHover.closeTimer);
+  reviewHover.openTimer=reviewHover.closeTimer=null;reviewHover.target=null;reviewHover.generation++;
+}
+function pinReviewDetail() {
+  cancelReviewHover();reviewUI.detailPinned=true;
+  if($('#review-detail-mode'))$('#review-detail-mode').textContent='已固定';
+  if($('#review-detail-pin'))$('#review-detail-pin').hidden=true;
+}
+function openReviewDetail(button,{hover=false}={}) {
+  const item=reviewUI.cards.get(button.dataset.reviewCard);if(!item)return;
+  const inside=!!button.closest('#review-card-popover');
+  if(hover&&reviewUI.detailPinned&&!inside)return;
+  const r=(app.view==='history'&&item.report?.id===reviewUI.report?.id?reviewUI.report:item.report)||reviewUI.report;
+  const nodes=r.review?.nodes||(r===reviewUI.report?reviewUI.nodes:reviewFallback(r));
+  const n=nodes.find(n=>n.id===item.node);if(!n)return;
+  const current=(n.state?.cards||[]).find(c=>c.instance_id!=null&&c.instance_id===item.card.instance_id)||item.card;
+  cancelReviewHover();
+  reviewHover.suppressed=null;
+  if(inside&&reviewUI.selected) {
+    // Keep the original board/log anchor. The clicked material button is about
+    // to be replaced and must never become the anchor for scroll/dismiss logic.
+    reviewUI.detailHistory.push({selected:reviewUI.selected,detailNode:reviewUI.detailNode,detailReport:reviewUI.detailReport,materialTab:reviewUI.materialTab});
+    reviewUI.detailPinned=true;
+  } else {
+    reviewUI.detailHistory=[];reviewUI.detailPinned=!hover;
+    reviewUI.anchor={element:button,rect:button.getBoundingClientRect()};
+  }
+  reviewUI.selected=current;reviewUI.detailNode=n;reviewUI.detailReport=r;reviewUI.materialTab=false;
+  renderReviewDetail();
+  if(!hover)$('#review-card-popover').focus({preventScroll:true});
+}
+function backReviewDetail() {
+  const parent=reviewUI.detailHistory.pop();if(!parent)return;
+  pinReviewDetail();Object.assign(reviewUI,parent);renderReviewDetail();
+  $('#review-card-popover').focus({preventScroll:true});
+}
+function scheduleReviewHover(button) {
+  if(reviewHover.suppressed===button)return;
+  if(reviewUI.detailPinned&&!button.closest('#review-card-popover'))return;
+  if(reviewHover.target===button)return;
+  cancelReviewHover();reviewHover.target=button;
+  const generation=reviewHover.generation;
+  reviewHover.openTimer=setTimeout(()=>{
+    if(generation!==reviewHover.generation||!button.isConnected||!button.matches(':hover'))return;
+    openReviewDetail(button,{hover:true});
+  },400);
+}
+function scheduleReviewDetailClose() {
+  clearTimeout(reviewHover.openTimer);reviewHover.openTimer=null;reviewHover.target=null;reviewHover.generation++;
+  if(reviewUI.detailPinned)return;
+  clearTimeout(reviewHover.closeTimer);
+  reviewHover.closeTimer=setTimeout(()=>{
+    if(!reviewUI.detailPinned&&!$('#review-card-popover')?.matches(':hover')&&!reviewUI.anchor?.element?.matches(':hover'))closeReviewDetail();
+  },220);
 }
 function positionReviewDetail() {
   const panel=$('#review-card-popover'), a=reviewUI.anchor?.rect;if(!panel||panel.hidden||!a)return;
@@ -233,9 +295,11 @@ function positionReviewDetail() {
   panel.style.top=`${Math.max(gap,Math.min(top,innerHeight-height-gap))}px`;
 }
 function closeReviewDetail(focus=false) {
+  if(focus)reviewHover.suppressed=reviewUI.anchor?.element;
+  cancelReviewHover();
   const panel=$('#review-card-popover');if(panel)panel.hidden=true;
   if(focus&&reviewUI.anchor?.element?.isConnected)reviewUI.anchor.element.focus({preventScroll:true});
-  reviewUI.selected=null;reviewUI.anchor=null;reviewUI.detailNode=null;reviewUI.detailReport=null;
+  reviewUI.selected=null;reviewUI.anchor=null;reviewUI.detailNode=null;reviewUI.detailReport=null;reviewUI.detailHistory=[];reviewUI.detailPinned=false;
 }
 function reviewOperation(item,node,role='处理结果') {
   const e=(reviewUI.report.events||[]).find(e=>e.id===(item.event_ref||item.id))||item;
@@ -449,21 +513,17 @@ document.addEventListener('click',e=>{
   // Tab buttons replace the detail body during this same click. Its original
   // event path still identifies an inside click even after the button detaches.
   const inDetail=e.composedPath().some(el=>el.id==='review-card-popover'||el.dataset?.reviewCard);
+  if(reviewUI.selected&&e.composedPath().some(el=>el.id==='review-card-popover'))pinReviewDetail();
   if(reviewUI.selected&&!inDetail)closeReviewDetail();
   const zonePanel=$('#review-zone-content');
   if(zonePanel&&!zonePanel.hidden&&!inDetail&&!e.target.closest('#review-zone-content,[data-review-zone]'))zonePanel.hidden=true;
   const b=e.target.closest('button');if(!b||b.disabled)return;
   if(b.id==='review-detail-close'){closeReviewDetail(true);return;}
+  if(b.id==='review-detail-back'){backReviewDetail();return;}
+  if(b.id==='review-detail-pin'){pinReviewDetail();return;}
   if(b.dataset.reviewNode){selectReviewNode(b.dataset.reviewNode);return;}
   if(b.dataset.reviewCard){
-    const item=reviewUI.cards.get(b.dataset.reviewCard);if(!item)return;
-    const r=(app.view==='history'&&item.report?.id===reviewUI.report?.id?reviewUI.report:item.report)||reviewUI.report;
-    const nodes=r.review?.nodes||(r===reviewUI.report?reviewUI.nodes:reviewFallback(r));
-    const n=nodes.find(n=>n.id===item.node);if(!n)return;
-    const current=(n.state?.cards||[]).find(c=>c.instance_id!=null&&c.instance_id===item.card.instance_id);
-    if(!b.closest('#review-card-popover'))reviewUI.anchor={element:b,rect:b.getBoundingClientRect()};
-    reviewUI.selected=current||item.card;reviewUI.detailNode=n;reviewUI.detailReport=r;reviewUI.materialTab=false;
-    renderReviewDetail();$('#review-card-popover').focus({preventScroll:true});return;
+    openReviewDetail(b);return;
   }
   if(b.id==='review-zone-close'){$('#review-zone-content').hidden=true;return;}
   if(b.dataset.reviewZone){
@@ -471,6 +531,19 @@ document.addEventListener('click',e=>{
     $('#review-zone-content').hidden=false;
     $('#review-zone-content').innerHTML=`<section class="zone-contents"><button id="review-zone-close" aria-label="关闭区域">×</button><h3>${escape(reviewPlace({controller:side,location:zone}))} · ${boardCards(n,side,zone).length} 张</h3><div>${boardCards(n,side,zone).map(c=>reviewCard(c,n.id,{name:true,face:reviewKnown(c)})).join('')||'<p>当前区域为空。</p>'}</div></section>`;
   }
+});
+document.addEventListener('pointerover',e=>{
+  if(e.pointerType==='touch'||e.buttons)return;
+  if(e.target.closest('#review-card-popover')){clearTimeout(reviewHover.closeTimer);reviewHover.closeTimer=null;}
+  const card=e.target.closest('[data-review-card]');
+  if(card&&!card.disabled&&!card.contains(e.relatedTarget))scheduleReviewHover(card);
+});
+document.addEventListener('pointerout',e=>{
+  const card=e.target.closest('[data-review-card]'),panel=e.target.closest('#review-card-popover');
+  if(card===reviewHover.suppressed&&!card?.contains(e.relatedTarget))reviewHover.suppressed=null;
+  if(!card&&!panel)return;
+  if(card?.contains(e.relatedTarget)||e.relatedTarget?.closest?.('#review-card-popover'))return;
+  scheduleReviewDetailClose();
 });
 document.addEventListener('keydown',e=>{
   if(app.view==='history'&&['ArrowLeft','ArrowRight'].includes(e.key)&&!e.altKey&&!e.ctrlKey&&!e.metaKey&&!e.shiftKey&&!e.target.closest('input,textarea,select,[contenteditable=true],[role=dialog]')&&!reviewUI.selected&&$('#review-zone-content')?.hidden!==false) {
@@ -492,12 +565,15 @@ document.addEventListener('scroll',e=>{
 globalThis.addEventListener?.('resize',()=>closeReviewDetail());
 
 
+function reviewFieldSlots(l) {
+  const slots=[[4,5,1],[4,6,3],...Array.from({length:5},(_,i)=>[4,i,i+5]),...Array.from({length:5},(_,i)=>[8,i,i+10]),[8,5,0],[8,6,15],[8,7,19]];
+  return slots.map(([zone,sequence,pos])=>({x:pos%5*11+1,y:Math.floor(pos/5)*11+1,active:zone===l.location&&sequence===l.sequence}));
+}
 function reviewLocationIcon(l) {
   if(!l)return '';
-  const label=reviewPlace(l), seq=l.sequence;
+  const label=reviewPlace(l);
   if([4,8].includes(l.location)) {
-    const slots=[[4,5,1],[4,6,3],...Array.from({length:5},(_,i)=>[4,i,i+5]),...Array.from({length:5},(_,i)=>[8,i,i+10]),[8,5,0],[8,6,15],[8,7,19]];
-    return `<span class="location-icon side-${l.controller===1?'opponent':'self'}" role="img" aria-label="${escape(label)}" title="${escape(label)}"><svg viewBox="0 0 55 44">${slots.map(([zone,s,pos])=>`<rect x="${pos%5*11+1}" y="${Math.floor(pos/5)*11+1}" width="8" height="9" rx="1" fill="${zone===l.location&&s===seq?'currentColor':'none'}" stroke="currentColor"/>`).join('')}</svg></span>`;
+    return `<span class="location-icon side-${l.controller===1?'opponent':'self'}" role="img" aria-label="${escape(label)}" title="${escape(label)}"><svg viewBox="0 0 55 44">${reviewFieldSlots(l).map(s=>`<rect x="${s.x}" y="${s.y}" width="8" height="9" rx="1" fill="${s.active?'currentColor':'none'}" stroke="currentColor"/>`).join('')}</svg></span>`;
   }
   return `<span class="location-icon zone-icon" role="img" aria-label="${escape(label)}" title="${escape(label)}">${({1:'▤',2:'▱',16:'墓',32:'⊘',64:'EX',128:'▣'}[l.location&128?128:l.location])||'?'}<small>${escape(({1:'卡组',2:'手牌',16:'墓地',32:'除外',64:'额外',128:'素材'}[l.location&128?128:l.location])||'未知')}</small></span>`;
 }

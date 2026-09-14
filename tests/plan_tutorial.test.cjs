@@ -28,7 +28,7 @@ test('tutorial reads the frozen plan only and preserves costs, targets, notes an
   r.reviewUI.report={annotations:{nodes:{'step:2:0':{name:'无关草稿'}}}};
   const model=r.buildPlanTutorial(plan),svg=r.renderPlanTutorialSvg(model);
   for(const label of ['起手条件','终场展示','任意手牌 ×1','发动①','Cost · 支付 LP','支付 1000 LP','对象','检索','无效一次','我方墓地','Step 2'])assert(svg.includes(label),label);
-  for(const label of ['效果原文','展开使用资源','不应列出的使用资源','无关草稿','我方 1 号主怪兽区'])assert(!svg.includes(label),label);
+  for(const label of ['效果原文','展开使用资源','不应列出的使用资源','无关草稿'])assert(!svg.includes(label),label);
   assert.equal(model.finalCards.length,2);assert.equal(model.steps.length,1);
   assert.equal((svg.match(/class="tutorial-flow-card"/g)||[]).length,3,'Actor, target and result each have their own card image');
   assert.deepEqual(Array.from(model.steps[0].actions[0].stages,s=>s.label),['发动①','Cost · 支付 LP','对象','检索']);
@@ -50,6 +50,32 @@ test('negated and unrecorded outcomes and random dependencies remain explicit',(
   const svg=r.renderPlanTutorialSvg(r.buildPlanTutorial(plan));
   assert.match(svg,/发动被无效/);assert.match(svg,/处理结果未记录/);assert.match(svg,/Cost/);assert.match(svg,/随机依赖：需要随机命中 ×1/);
   assert(!svg.includes('data-tutorial-role="检索"'));
+});
+test('position mini maps accompany action and final cards using recorded zones, without mutating the plan',()=>{
+  const r=setup(),plan=fixture(),actor=plan.actions[0].cards[0];
+  plan.actions[0].targets=[{...actor,controller:1,location:8,sequence:5}];
+  plan.actions[0].results=[{message:63,cards:[{...actor,location:4,sequence:6,summon_method:'连接召唤',materials:[{...actor,sequence:3}]}]}];
+  const before=JSON.stringify(plan),model=r.buildPlanTutorial(plan),svg=r.renderPlanTutorialSvg(model);
+  const positions=model.steps[0].actions[0].stages.flatMap(s=>s.cards).filter(c=>c.fieldPosition).map(c=>c.fieldPosition);
+  assert.deepEqual(JSON.parse(JSON.stringify(positions)),[{controller:0,location:4,sequence:0},{controller:1,location:8,sequence:5},{controller:0,location:4,sequence:3},{controller:0,location:4,sequence:6}]);
+  assert.equal((svg.match(/class="tutorial-location-map"/g)||[]).length,5,'Four operation cards and one marked field card');
+  assert.equal((svg.match(/data-active-slot="true"/g)||[]).length,5);
+  assert.match(svg,/data-controller="1" data-location="8" data-sequence="5"/);
+  assert.match(svg,/fill="#b75757"/);assert.match(svg,/fill="#237caa"/);
+  assert.match(svg,/width="30" height="24"/);assert.equal(JSON.stringify(plan),before);
+  const layout=r.layoutPlanTutorial(model);
+  for(const box of layout.boxes)for(const action of box.actions)for(const stage of action.stages)for(const card of stage.cards) {
+    assert(card.y+72+card.mapHeight+card.lines.length*14+card.places.length*13<=stage.height);
+  }
+  assert(layout.finalCards[0].headHeight>=108);
+});
+test('unknown or off-field positions do not get fabricated highlighted mini maps',()=>{
+  const r=setup(),plan=fixture();
+  plan.actions[0].cards[0].sequence=-1;
+  plan.annotations.final_marks={};
+  const svg=r.renderPlanTutorialSvg(r.buildPlanTutorial(plan));
+  assert(!svg.includes('tutorial-location-map'));
+  assert.match(svg,/我方墓地/);
 });
 test('random drawn instance is masked while identical searched copy and actual opening remain distinguishable',()=>{
   const r=setup(),plan=fixture(),drawn={instance_id:8,code:99,name:'抽中身份',controller:0,location:2};

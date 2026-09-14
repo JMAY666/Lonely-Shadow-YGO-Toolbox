@@ -4,11 +4,11 @@ const path=require('node:path');
 const vm=require('node:vm');
 const test=require('node:test');
 const source=['activation.js','review.js'].map(file=>readFileSync(path.join(__dirname,'../src/trainer/web',file),'utf8')).join('\n');
-function setup(){
+function setup(extra={}){
   const context=vm.createContext({flow:{draft:null},app:{},Map,structuredClone,CSS:{escape:s=>s},
     escape:s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;'),
-    document:{addEventListener(){}},eventSummary:e=>e.result||e.type||'',zoneNames:{},dt:()=>'',stageNames:{}});
-  vm.runInContext(source+'\nglobalThis.r={reviewUI,renderBoard,reviewCard,reviewLogAction,provenance,reviewTitle,reviewFallback,previewReview,summaryHtml,reviewRandomDraw,reviewFinalCards,reviewEffectParts,compactCleanup,reviewLocationIcon};',context);
+    document:{addEventListener(){}},eventSummary:e=>e.result||e.type||'',zoneNames:{},dt:()=>'',stageNames:{},...extra});
+  vm.runInContext(source+'\nglobalThis.r={reviewUI,reviewHover,openReviewDetail,backReviewDetail,closeReviewDetail,scheduleReviewHover,scheduleReviewDetailClose,renderBoard,reviewCard,reviewLogAction,provenance,reviewTitle,reviewFallback,previewReview,summaryHtml,reviewRandomDraw,reviewFinalCards,reviewEffectParts,compactCleanup,reviewLocationIcon};',context);
   return {...context.r,context};
 }
 test('XYZ host shows its own body plus material count, while attached copies do not occupy monster slots',()=>{
@@ -190,4 +190,32 @@ test('compact cleanup omits only explicit rule material disposal and never a cos
   assert(r.compactCleanup(a));e.reason=0x20000400;assert(r.compactCleanup(a));e.cost=true;assert(!r.compactCleanup(a));delete e.cost;
   e.reason=64;assert(!r.compactCleanup(a));e.reason=1024;assert(!r.compactCleanup({...a,kind:'effect'}));
   assert.match(r.reviewLocationIcon({location:4,sequence:2,controller:0}),/<svg/);
+});
+
+function detailFixture() {
+  let time=0,serial=0;const timers=new Map(),panel={hidden:true,focus(){},matches:()=>false};
+  const r=setup({$:()=>panel,clearTimeout:id=>timers.delete(id),setTimeout:(fn,delay)=>{timers.set(++serial,{fn,due:time+delay});return serial;}});
+  vm.runInContext('renderReviewDetail=()=>{};',r.context);
+  const host={code:10,instance_id:1},material={code:11,instance_id:2},node={id:'step',action_ids:[],state:{cards:[host,material]}};
+  const report={id:'fixture',review:{nodes:[node]}};r.reviewUI.report=report;
+  const button=(key,inside=false)=>({dataset:{reviewCard:key},isConnected:true,hovered:true,closest:()=>inside?panel:null,matches(){return this.hovered;},getBoundingClientRect:()=>({left:1,right:50,top:20,bottom:100}),focus(){}});
+  const outside=button('host'),nested=button('material',true);
+  r.reviewUI.cards.set('host',{card:host,node:'step',report});r.reviewUI.cards.set('material',{card:material,node:'step',report});
+  const advance=ms=>{time+=ms;for(const [id,t] of [...timers])if(t.due<=time){timers.delete(id);t.fn();}};
+  return {...r,outside,nested,host,material,advance,timers};
+}
+test('material navigation keeps the external anchor and returns to the original material tab',()=>{
+  const r=detailFixture();r.openReviewDetail(r.outside);r.reviewUI.materialTab=true;
+  r.openReviewDetail(r.nested);r.nested.isConnected=false;
+  assert.equal(r.reviewUI.selected,r.material);assert.equal(r.reviewUI.anchor.element,r.outside);assert.equal(r.reviewUI.detailHistory.length,1);
+  assert.equal(r.reviewUI.detailPinned,true);r.backReviewDetail();
+  assert.equal(r.reviewUI.selected,r.host);assert.equal(r.reviewUI.materialTab,true);assert.equal(r.reviewUI.detailHistory.length,0);
+  r.closeReviewDetail();assert.equal(r.reviewUI.selected,null);
+});
+test('hover opens only after its delay, stale targets are canceled and pinned detail is stable',()=>{
+  const r=detailFixture();r.scheduleReviewHover(r.outside);r.advance(399);assert.equal(r.reviewUI.selected,null);
+  r.advance(1);assert.equal(r.reviewUI.selected,r.host);assert.equal(r.reviewUI.detailPinned,false);
+  r.closeReviewDetail();r.scheduleReviewHover(r.outside);r.outside.hovered=false;r.advance(400);assert.equal(r.reviewUI.selected,null);
+  r.outside.hovered=true;r.scheduleReviewHover(r.outside);r.closeReviewDetail();r.advance(400);assert.equal(r.reviewUI.selected,null);
+  r.openReviewDetail(r.outside);r.scheduleReviewHover({...r.outside,dataset:{reviewCard:'material'}});r.advance(400);assert.equal(r.reviewUI.selected,r.host);
 });

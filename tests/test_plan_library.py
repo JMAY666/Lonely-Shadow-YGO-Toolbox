@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src/trainer'))
 from app import Store, atomic_json, read_json
-from plan_tags import suggest, matches_set, used_codes, edit_tag, validate_selection
+from plan_tags import suggest, matches_set, used_codes, edit_tag, validate_selection, contains_card, edit_members, member_ids
 from plan_sharing import portable, validate
 from card_semantics import card_activation
 from actions import project_actions
@@ -79,6 +79,20 @@ class TagTests(unittest.TestCase):
         self.assertEqual(len(chosen['primary_ids']),2)
         with self.assertRaises(ValueError):validate_selection(dict(tag_ids=[],primary_ids=['set:119']),tags)
 
+    def test_membership_overrides_include_remove_and_keep_future_base_cards(self):
+        catalog={1:{'setcode':0x119},2:{'setcode':0x119},3:{'setcode':0}}
+        tag=edit_members(self.tags()['set:119'],[1,3],catalog)
+        self.assertEqual(tag['include_cards'],[3]);self.assertEqual(tag['exclude_cards'],[2])
+        self.assertEqual(member_ids(tag,catalog),[1,3]);self.assertFalse(contains_card(tag,2,catalog[2]))
+        catalog[4]={'setcode':0x119};self.assertEqual(member_ids(tag,catalog),[1,3,4])
+        with self.assertRaises(ValueError):edit_members(tag,[999],catalog)
+
+    def test_custom_membership_participates_in_concentration_and_manual_tags_stay(self):
+        plan=sample();tag={'id':'custom:'+'a'*32,'name':'自定义系列','aliases':[],'setcode':None,'include_cards':[101,102]}
+        result=suggest(plan,{tag['id']:tag},{})
+        self.assertEqual(result['primary_ids'],[tag['id']]);tag['exclude_cards']=[102]
+        self.assertEqual(suggest(plan,{tag['id']:tag},{})['tag_ids'],[])
+
 
 class LibraryStoreTests(unittest.TestCase):
     setUp=test_store.StoreTests.setUp
@@ -105,6 +119,26 @@ class LibraryStoreTests(unittest.TestCase):
         self.assertEqual(tag['official_name'],'转生炎兽')
         self.assertIn('沙拉',Store(self.root).library.all_tags()['set:119']['aliases'])
         with self.assertRaises(ValueError):self.store.library.edit_tag(dict(name='另一个',revision=0))
+
+    def test_tag_card_editor_roundtrip_preserves_alias_only_edits_and_backups(self):
+        created=self.store.library.edit_tag(dict(name='卡牌范围验收',aliases=['别称'],card_ids=[55144522,1184620],revision=0))
+        key=created['tag']['id'];self.assertEqual(set(c['id'] for c in self.store.library.members(key)['cards']),{55144522,1184620})
+        changed=self.store.library.edit_tag(dict(id=key,name='新名字',aliases=['别称'],card_ids=[1184620],revision=1))
+        self.assertEqual(changed['tag']['include_cards'],[1184620])
+        self.store.library.edit_tag(dict(id=key,name='新名字',aliases=['更多叫法'],revision=2))
+        reopened=Store(self.root);self.assertEqual([c['id'] for c in reopened.library.members(key)['cards']],[1184620])
+        self.assertTrue((self.store.root/'backups/tags/1.json').exists())
+        with self.assertRaises(ValueError):reopened.library.edit_tag(dict(id=key,name='错误',card_ids=[999],revision=3))
+
+    def test_new_shared_custom_tag_carries_membership_without_overwriting_local_members(self):
+        plan=self.saved();created=self.store.library.edit_tag(dict(name='分享卡牌范围',card_ids=[55144522,1184620],revision=0))
+        key=created['tag']['id'];self.store.library.save_selection(dict(id=plan['id'],revision=1,classification=dict(tag_ids=[key],primary_ids=[key])))
+        document=self.store.library.export(plan['id']);self.assertEqual(document['tags'][0]['include_cards'],[1184620,55144522])
+        document['tags'][0]['include_cards']=[23995346]
+        preview=self.store.library.import_document({'document':document},preview=True)
+        self.assertTrue(any('卡牌范围不同' in n for n in preview['notes']))
+        self.store.library.import_document(dict(document=document,fingerprint=preview['fingerprint']))
+        self.assertEqual(self.store.library.all_tags()[key]['include_cards'],[1184620,55144522])
 
     def test_export_import_roundtrip_omits_machine_data_and_preserves_frozen_facts(self):
         plan=self.saved();before=self.store.plan_path(plan['id']).read_bytes()

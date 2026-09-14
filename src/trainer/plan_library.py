@@ -43,10 +43,19 @@ class PlanLibrary:
             document = self.document()
             if body.get('revision') != document['revision']: raise ValueError('标签库已更新，请重新打开后编辑；当前输入仍保留')
             tag = tags.edit_tag(body, tags.vocabulary(self.builtins, document))
+            if 'card_ids' in body: tag = tags.edit_members(tag, body['card_ids'], self.store.catalog.cards)
             document['entries'][tag['id']] = tag
             document['revision'] += 1
             self.save_vocabulary(document)
             return {'tag': tag, 'revision': document['revision']}
+
+    def members(self, identifier):
+        with self.store.lock:
+            tag = self.all_tags().get(identifier)
+            if not tag: raise ValueError('标签不存在')
+            return {'tag': tag, 'revision': self.document()['revision'],
+                    'cards': [self.store.catalog.cards.get(code, {'id': code, 'name': f'未安装卡牌 {code}', 'desc': '', 'type': 0})
+                              for code in tags.member_ids(tag, self.store.catalog.cards)]}
 
     def save_selection(self, body):
         with self.store.lock:
@@ -70,7 +79,8 @@ class PlanLibrary:
             vocabulary = self.all_tags()
             selection = self.selection(plan, vocabulary)
             document = {'format': sharing.FORMAT, 'version': sharing.VERSION, 'plan': sharing.portable(plan),
-                        'tags': [{k: t[k] for k in ('id', 'name', 'aliases', 'setcode', 'primary')}
+                        'tags': [{**{k: t[k] for k in ('id', 'name', 'aliases', 'setcode', 'primary')},
+                                  'include_cards': t.get('include_cards', []), 'exclude_cards': t.get('exclude_cards', [])}
                                  for t in tags.tag_list(selection, vocabulary)]}
             # Export and import use the same validator; unusable files never get a successful download.
             document = sharing.validate(document)
@@ -97,10 +107,13 @@ class PlanLibrary:
                 if tags.normalized(name) in occupied:
                     name = f"{name[:45]} ({key[4:] if key.startswith('set:') else key[-8:]})"
                 tag = {'id': key, 'name': name, 'aliases': [a for a in item['aliases'] if tags.normalized(a) not in occupied],
-                       'setcode': item['setcode'], 'source': '分享文件'}
+                       'setcode': item['setcode'], 'source': '分享文件',
+                       'include_cards': item.get('include_cards', []), 'exclude_cards': item.get('exclude_cards', [])}
                 vocabulary[key] = document['entries'][key] = tag
             else:
                 existing = vocabulary[key]
+                if any(item.get(field, []) != existing.get(field, []) for field in ('include_cards', 'exclude_cards')):
+                    notes.append(f'“{existing["name"]}”的卡牌范围不同，保留本地设置')
                 occupied = {tags.normalized(s) for identifier, tag in vocabulary.items() if identifier != key for s in [tag['name'], *tag.get('aliases', [])]}
                 old = {tags.normalized(s) for s in [existing['name'], *existing['aliases']]}
                 extra = []

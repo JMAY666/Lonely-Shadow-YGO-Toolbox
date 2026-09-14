@@ -17,6 +17,13 @@ module.exports=async function({page,application,plan,pass,evidence}) {
   assert.equal(await page.locator('.tutorial-flow-card image').count(),expected.cards);
   assert.equal(await page.locator('.tutorial-flow-arrow').count(),expected.arrows);
   assert(expected.cards>count,'Steps picture the individual operations rather than just a lead card');
+  const expectedMaps=await page.evaluate(()=>planTutorialUI.model.steps.flatMap(s=>s.actions).flatMap(a=>a.stages).flatMap(s=>s.cards).filter(c=>c.fieldPosition).length+planTutorialUI.model.finalCards.filter(c=>c.fieldPosition).length);
+  assert(expectedMaps>0,'Acceptance plan must exercise recorded field positions');
+  assert.equal(await page.locator('.tutorial-location-map').count(),expectedMaps);
+  const mapBounds=await page.locator('.tutorial-location-map').evaluateAll(maps=>maps.map(el=>{
+    const b=el.getBBox();return {x:b.x,y:b.y,width:b.width,height:b.height,side:Number(el.dataset.controller),active:el.querySelectorAll('[data-active-slot]').length};
+  }));
+  for(const map of mapBounds){assert(Math.abs(map.width-30)<0.001);assert(Math.abs(map.height-24)<0.001);assert.equal(map.active,1);}
   const longTitleLayout=await page.evaluate(()=>{
     const model=structuredClone(planTutorialUI.model),base=model.steps[0];
     const card=base.actions.flatMap(a=>a.stages.flatMap(s=>s.cards))[0];
@@ -26,7 +33,7 @@ module.exports=async function({page,application,plan,pass,evidence}) {
     document.querySelector('#plan-tutorial-canvas').innerHTML=renderPlanTutorialSvg(model);
     const bounds=[...document.querySelectorAll('.tutorial-step,.tutorial-stage')].every(step=>{
       const box=step.querySelector('rect').getBBox();
-      return [...step.querySelectorAll('text,image')].every(el=>{const r=el.getBBox();return !(r.width||r.height)||(r.x>=box.x&&r.x+r.width<=box.x+box.width+1&&r.y>=box.y&&r.y+r.height<=box.y+box.height+1);});
+      return [...step.querySelectorAll('text,image,.tutorial-location-map')].every(el=>{const r=el.getBBox();return !(r.width||r.height)||(r.x>=box.x&&r.x+r.width<=box.x+box.width+1&&r.y>=box.y&&r.y+r.height<=box.y+box.height+1);});
     });
     const texts=[...document.querySelectorAll('#plan-tutorial-canvas text')];
     const empty=texts.find(el=>el.textContent.includes('未识别到指定起手')||el.textContent==='起手未记录').getBBox();
@@ -37,7 +44,7 @@ module.exports=async function({page,application,plan,pass,evidence}) {
   assert.deepEqual(longTitleLayout,{bounds:true,notesBelowEmpty:true});
   const overflow=await page.locator('.tutorial-step,.tutorial-stage').evaluateAll(steps=>steps.flatMap(step=>{
     const box=step.querySelector('rect').getBBox();
-    return [...step.querySelectorAll('text,image')].filter(el=>{
+    return [...step.querySelectorAll('text,image,.tutorial-location-map')].filter(el=>{
       const r=el.getBBox();return (r.width>0||r.height>0)&&(r.x<box.x||r.x+r.width>box.x+box.width+1||r.y<box.y||r.y+r.height>box.y+box.height+1);
     }).map(el=>({step:step.dataset.tutorialNode,text:el.textContent}));
   }));
@@ -68,6 +75,7 @@ module.exports=async function({page,application,plan,pass,evidence}) {
     assert(fs.statSync(target).size>1000);
     if(format==='svg') {
       const data=fs.readFileSync(target,'utf8');
+      assert.equal((data.match(/class="tutorial-location-map"/g)||[]).length,expectedMaps);
       assert.match(data,/href="data:image\//);assert(!data.includes('href="/pics/'));
       assert(!data.includes('href="/review-back.svg'));
       // The exported document is valid XML and contains embedded image assets.
@@ -77,6 +85,17 @@ module.exports=async function({page,application,plan,pass,evidence}) {
       },data);assert.equal(validation.errors,0);assert(validation.images>0);
     } else {
       const png=fs.readFileSync(target);assert.equal(png.readUInt32BE(16),2880);assert(png.readUInt32BE(20)>600);
+      const colored=await page.evaluate(async({base64,maps})=>{
+        const img=new Image();img.src='data:image/png;base64,'+base64;await img.decode();
+        const canvas=document.createElement('canvas');canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;
+        const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0);
+        return maps.map(map=>{
+          const pixels=ctx.getImageData(Math.round(map.x*2),Math.round(map.y*2),60,48).data,color=map.side===1?[183,87,87]:[35,124,170];
+          let count=0;for(let i=0;i<pixels.length;i+=4)if(color.every((c,j)=>Math.abs(pixels[i+j]-c)<12))count++;
+          return count;
+        });
+      },{base64:png.toString('base64'),maps:mapBounds});
+      assert(colored.every(count=>count>20),'Every position icon must survive rasterization into the downloaded PNG');
     }
   }
   // Exercise export failure without changing source data, then reopen the
@@ -94,5 +113,5 @@ module.exports=async function({page,application,plan,pass,evidence}) {
   assert(await page.locator('#plan-tutorial-dialog').isHidden());
   await page.evaluate(id=>showPlan(id),plan.id);
   assert.equal(JSON.stringify(await page.evaluate(id=>api(`/api/plan/${id}`),plan.id)),before);
-  pass('One-image tutorial: card flows for each operation, wrapped materials, readable step and stage bounds, embedded SVG and PNG downloads, recoverable export failure and keyboard step navigation; frozen plan unchanged');
+  pass('One-image tutorial: operation and final position mini maps, highlighted slots, PNG pixel verification, wrapped cards and readable bounds, self-contained SVG/PNG downloads and keyboard navigation; frozen plan unchanged');
 };

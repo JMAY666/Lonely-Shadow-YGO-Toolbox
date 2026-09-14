@@ -40,9 +40,10 @@ function switchView(view) {
   $('#training').hidden = view !== 'training';
   $('#design').hidden = view !== 'design';
   $('#plans').hidden = view !== 'plans';
+  $('#tags').hidden = view !== 'tags';
   $('#save-confirmation').hidden = view !== 'confirmation';
-  document.body.classList.toggle('history-view', ['history','plans','confirmation'].includes(view));
-  for (const name of ['decks', 'history', 'training', 'design', 'plans']) {
+  document.body.classList.toggle('history-view', ['history','plans','confirmation','tags'].includes(view));
+  for (const name of ['decks', 'history', 'training', 'design', 'plans', 'tags']) {
     const button = $(`#nav-${name}`);
     button.classList.toggle('active', view === name);
     if (view === name) button.setAttribute('aria-current', 'page');

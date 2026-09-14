@@ -1,6 +1,6 @@
 {
   "name": "ygo-trainer-desktop",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "private": true,
   "description": "游戏王工具箱：牌组编辑、起手设计、展开记录与方案管理",
   "main": "desktop/main.cjs",
@@ -26,7 +26,7 @@
     "productName": "YGOTrainer",
     "asar": true,
     "directories": {
-      "output": "release/1.7.0"
+      "output": "release/1.8.0"
     },
     "files": [
       "desktop/main.cjs",

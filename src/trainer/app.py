@@ -666,7 +666,7 @@ class Handler(BaseHTTPRequestHandler):
                 origin = self.headers.get('Origin')
                 if origin and origin != f'http://127.0.0.1:{self.server.server_port}': raise ValueError('请求来源不匹配')
                 length = int(self.headers.get('Content-Length', 0))
-                maximum = MAX_BYTES if path in ('/api/plans/import', '/api/plans/import-preview') else 100_000
+                maximum = MAX_BYTES if path in ('/api/plans/import', '/api/plans/import-preview') else 1_000_000 if path == '/api/tags/save' else 100_000
                 if not 0 < length < maximum: raise ValueError('请求长度无效，分享文件上限为 20 MB')
                 body = json.loads(self.rfile.read(length))
                 if path == '/api/tags/save': return self.send(store.library.edit_tag(body))
@@ -709,6 +709,7 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/plans': return self.send(store.list_plans())
                 if path.startswith('/api/plan-tags/'): return self.send(store.library.info(path.rsplit('/', 1)[1]))
                 if path == '/api/tags': return self.send({'tags': list(store.library.all_tags().values()), 'revision': store.library.document()['revision']})
+                if path.startswith('/api/tag-members/'): return self.send(store.library.members(path.rsplit('/', 1)[1]))
                 if path.startswith('/api/plan-export/'): return self.send(store.library.export(path.rsplit('/', 1)[1]))
                 if path.startswith('/api/plan/'): return self.send(read_json(store.plan_path(path.rsplit('/', 1)[1])))
                 if path.startswith('/api/report/'): return self.send(store.report(path.rsplit('/', 1)[1]))
@@ -734,7 +735,7 @@ class Handler(BaseHTTPRequestHandler):
                 files = {'/': 'index.html', '/app.js': 'app.js', '/expansion.js': 'expansion.js', '/timeline.js': 'timeline.js', '/report-view.js': 'report-view.js', '/review.js': 'review.js', '/review.css': 'review.css', '/plan-tutorial.js': 'plan-tutorial.js', '/plan-tutorial.css': 'plan-tutorial.css', '/review-back.svg': 'review-back.svg', '/style.css': 'style.css', '/card-back.svg': 'card-back.svg'}
                 if path in files:
                     p = WEB / files[path]; return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0] + '; charset=utf-8')
-                if path in ('/activation.js', '/plan-library.js', '/plan-library.css'):
+                if path in ('/activation.js', '/plan-library.js', '/plan-library.css', '/tag-manager.js', '/tag-manager.css'):
                     p = WEB / path[1:]; return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0] + '; charset=utf-8')
             self.send({'error': '内容不存在'}, status=404)
         except (ValueError, KeyError, FileNotFoundError, TypeError) as exc:

@@ -127,6 +127,17 @@ async function activatePot(sid) {
 
 (async () => {
   await launch(true);
+  if(process.argv.includes('--inspection-only')) {
+    const plans=await page.evaluate(()=>api('/api/plans'));let plan;
+    for(const p of plans){const r=await page.evaluate(id=>api(`/api/plan/${id}`),p.id);if(r.review?.nodes.some(n=>n.state?.cards.some(c=>c.overlay_target!=null))){plan=r;break;}}
+    assert(plan,'Run the full smoke once to create an isolated saved material route');
+    await page.evaluate(id=>showPlan(id),plan.id);
+    await require('./plan-tutorial-smoke.cjs')({page,application,plan,pass,evidence});
+    await require('./review-details-smoke.cjs')({page,plan,pass,evidence});
+    await require('./tag-manager-smoke.cjs')({page,plan,pass,evidence});
+    await close();assert.deepEqual(errors,[]);
+    fs.writeFileSync(path.join(evidence,'inspection-result.json'),JSON.stringify({checks,errors},null,2));return;
+  }
   if(process.argv.includes('--library-only')) {
     const plans=await page.evaluate(()=>api('/api/plans'));
     const selected=plans.find(p=>!p.imported);assert(selected,'Run the desktop smoke once to create an isolated saved plan');

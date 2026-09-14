@@ -70,6 +70,27 @@ def matches_set(packed, series):
                for part in ((packed >> shift) & 0xffff for shift in (0, 16, 32, 48)) if part)
 
 
+def contains_card(tag, code, card):
+    if code in tag.get('exclude_cards', []): return False
+    return code in tag.get('include_cards', []) or bool(tag.get('setcode') and matches_set(card.get('setcode'), tag['setcode']))
+
+
+def member_ids(tag, catalog):
+    baseline = {code for code, card in catalog.items() if tag.get('setcode') and matches_set(card.get('setcode'), tag['setcode'])}
+    return sorted((baseline | set(tag.get('include_cards', []))) - set(tag.get('exclude_cards', [])))
+
+
+def edit_members(tag, selected, catalog):
+    if not isinstance(selected, list) or len(selected) > 20000 or any(type(code) is not int or not 0 < code < 2**32 for code in selected):
+        raise ValueError('标签卡牌列表无效，最多 20000 张不同卡牌')
+    retained = set(tag.get('include_cards', []))
+    if any(code not in catalog and code not in retained for code in selected): raise ValueError('新添加的卡牌不在当前卡库中')
+    baseline = {code for code, card in catalog.items() if tag.get('setcode') and matches_set(card.get('setcode'), tag['setcode'])}
+    missing_exclusions = set(tag.get('exclude_cards', [])) - set(catalog)
+    return {**tag, 'include_cards': sorted(set(selected) - baseline),
+            'exclude_cards': sorted((baseline - set(selected)) | missing_exclusions)}
+
+
 def used_codes(plan):
     codes = set()
     def add(cards):
@@ -99,10 +120,10 @@ def suggest(plan, tags, catalog):
         card = plan.get('catalog', {}).get(str(code), {})
         if 'setcode' not in card: card = catalog.get(code, card)
         for identifier, tag in tags.items():
-            if tag.get('setcode') and matches_set(card.get('setcode'), tag['setcode']):
+            if contains_card(tag, code, card):
                 counts[identifier] += 1
                 evidence.setdefault(identifier, []).append({'code': code, 'name': card.get('name', str(code))})
-    ranked = sorted(counts, key=lambda key: (-counts[key], -(tags[key]['setcode'] >> 12).bit_count(), tags[key]['name'], key))
+    ranked = sorted(counts, key=lambda key: (-counts[key], -((tags[key].get('setcode') or 0) >> 12).bit_count(), tags[key]['name'], key))
     candidates = [{'id': key, 'count': counts[key], 'total': len(codes), 'ratio': counts[key] / len(codes),
                    'cards': evidence[key], 'eligible': counts[key] >= MIN_CARDS and counts[key] / len(codes) >= MIN_RATIO}
                   for key in ranked]
@@ -125,7 +146,7 @@ def validate_selection(value, tags):
 
 def classification(plan, tags, catalog):
     saved = plan.get('classification')
-    return deepcopy(saved) if saved is not None else suggest(plan, tags, catalog)
+    return deepcopy(saved) if saved is not None and saved.get('mode') != 'automatic' else suggest(plan, tags, catalog)
 
 
 def tag_list(selection, tags):

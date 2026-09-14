@@ -138,5 +138,9 @@ def validate(document):
         need(type(tag.get('primary')) is bool, '主标签标记无效')
         expected = int(tag['id'][4:], 16) if tag['id'].startswith('set:') else None
         need(tag.get('setcode') == expected, '分享标签系列编号不一致')
+        for field in ('include_cards', 'exclude_cards'):
+            values = tag.get(field, [])
+            need(isinstance(values, list) and len(values) <= 20000 and all(type(c) is int and 0 < c < 2**32 for c in values), '标签卡牌范围无效')
     return {'format': FORMAT, 'version': VERSION, 'plan': portable(plan),
-            'tags': [{k: deepcopy(t[k]) for k in ('id', 'name', 'aliases', 'setcode', 'primary')} for t in tags]}
+            'tags': [{**{k: deepcopy(t[k]) for k in ('id', 'name', 'aliases', 'setcode', 'primary')},
+                      **{k: deepcopy(t[k]) for k in ('include_cards', 'exclude_cards') if k in t}} for t in tags]}

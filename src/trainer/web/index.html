@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="/review.css">
   <link rel="stylesheet" href="/plan-tutorial.css">
   <link rel="stylesheet" href="/plan-library.css">
+  <link rel="stylesheet" href="/tag-manager.css">
 </head>
 <body>
 <div class="app-bar">
@@ -18,6 +19,7 @@
     <button id="nav-training" class="nav" disabled>展开场地</button>
     <button id="nav-history" class="nav">展开方案调整与保存 <span id="history-count"></span></button>
     <button id="nav-plans" class="nav">展开管理</button>
+    <button id="nav-tags" class="nav">TAG 管理</button>
   </nav>
   <div class="local"><span class="status-dot"></span>本地工作副本 <small id="resource-count"></small></div>
 </div>
@@ -168,13 +170,25 @@
     <div class="history-layout"><div id="plan-list" class="panel history-list"></div><article id="plan-report" class="panel report"><div class="empty">选择已保存方案查看。</div></article></div>
     <details id="history-archive"><summary>历史记录与未保存草稿</summary><div id="history-list" class="panel history-list"></div></details>
   </section>
+  <section id="tags" class="tag-manager-page" hidden aria-label="TAG 管理">
+    <header><div><div class="eyebrow">TAG LIBRARY</div><h1>TAG 管理</h1><p>维护标签名称、别名和包含的卡牌，供方案分类与自动识别使用。</p></div><div class="library-actions"><button id="tag-manager-new" class="primary">新增 TAG</button><button id="tag-manager-refresh">刷新标签库</button></div></header>
+    <div class="tag-manager-layout"><aside class="panel tag-manager-sidebar"><label for="tag-manager-search">查找标签</label><input id="tag-manager-search" type="search" placeholder="正名或其他叫法"><div id="tag-manager-list"></div></aside>
+      <article class="panel tag-manager-editor"><div id="tag-manager-empty" class="empty">选择标签，查看和编辑它包含的卡牌。</div><form id="tag-manager-form" hidden>
+        <div class="tag-manager-heading"><div><h2 id="tag-manager-title">标签详情</h2><small id="tag-manager-source"></small></div><button id="tag-manager-save" class="primary" type="submit">保存修改</button></div>
+        <div class="tag-manager-fields"><label>标签正名<input id="tag-manager-name" maxlength="60" required></label><label>其他叫法（每行一个）<textarea id="tag-manager-aliases" rows="3"></textarea></label></div>
+        <p id="tag-manager-status" role="status"></p>
+        <div class="tag-member-heading"><h3>包含的卡牌 <small id="tag-member-count"></small></h3><input id="tag-member-filter" type="search" placeholder="筛选已包含的卡牌" aria-label="筛选已包含的卡牌"></div>
+        <div id="tag-member-cards" class="tag-card-grid"></div>
+        <section class="tag-add-section"><h3>添加卡牌</h3><label>搜索卡名、卡号或效果<input id="tag-add-search" type="search" placeholder="输入卡牌信息查找"></label><p id="tag-add-status" role="status"></p><div id="tag-add-results" class="tag-card-grid"></div><button id="tag-add-more" type="button" hidden>加载更多</button></section>
+      </form></article></div>
+  </section>
 </main>
-<section id="review-card-popover" class="review-card-popover" role="dialog" aria-label="卡牌详情" tabindex="-1" hidden><header><strong>卡牌详情</strong><button id="review-detail-close" aria-label="关闭卡牌详情">×</button></header><div id="review-card-detail" class="review-card-detail"></div></section>
+<section id="review-card-popover" class="review-card-popover" role="dialog" aria-label="卡牌详情" tabindex="-1" hidden><header><button id="review-detail-back" hidden>返回上一级</button><strong>卡牌详情</strong><small id="review-detail-mode"></small><button id="review-detail-pin">固定查看</button><button id="review-detail-close" aria-label="关闭卡牌详情">×</button></header><div id="review-card-detail" class="review-card-detail"></div></section>
 <dialog id="plan-tutorial-dialog" class="plan-tutorial-dialog" aria-labelledby="plan-tutorial-title">
   <header><h2 id="plan-tutorial-title">一图流展开教程</h2><button id="plan-tutorial-zoom">原始大小</button><button data-tutorial-export="png" class="primary">导出 PNG</button><button data-tutorial-export="svg">导出 SVG</button><button id="plan-tutorial-close">关闭</button></header>
   <div id="plan-tutorial-scroll"><div id="plan-tutorial-canvas"></div></div>
   <p id="plan-tutorial-status" role="status"></p>
 </dialog>
-<script src="/activation.js"></script><script src="/report-view.js"></script><script src="/app.js"></script><script src="/expansion.js"></script><script src="/timeline.js"></script><script src="/review.js"></script><script src="/plan-tutorial.js"></script><script src="/plan-library.js"></script>
+<script src="/activation.js"></script><script src="/report-view.js"></script><script src="/app.js"></script><script src="/expansion.js"></script><script src="/timeline.js"></script><script src="/review.js"></script><script src="/plan-tutorial.js"></script><script src="/plan-library.js"></script><script src="/tag-manager.js"></script>
 </body>
 </html>
