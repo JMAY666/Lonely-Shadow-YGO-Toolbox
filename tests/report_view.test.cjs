@@ -5,7 +5,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 const escape = text => String(text ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const context = vm.createContext({escape, zoneNames:{main:'主',extra:'额外',side:'副'}, dt:()=>'',duration:()=>'',statusNames:{completed:'完成'},reasons:{}, cardsHtml:()=>'',eventSummary:()=>''});
-vm.runInContext(fs.readFileSync(path.join(__dirname, '../src/trainer/web/report-view.js'), 'utf8'), context);
+for(const file of ['activation.js','report-view.js'])vm.runInContext(fs.readFileSync(path.join(__dirname, '../src/trainer/web',file), 'utf8'), context);
 function render(number) {
   return context.renderTrainingReport({id:'test',name:'测试',events:[],deck:{main:[],extra:[],side:[]},catalog:{},started_ms:0,status:'completed',warnings:[],statistics:{},limitations:[],actions:[{
     id:'a',kind:'effect',time_ms:0,cards:[{name:'多效果卡'}],evidence_refs:[],heading:'发动多效果卡的效果（编号未知）：',

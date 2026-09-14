@@ -103,6 +103,19 @@ def material_method(reason):
     return None
 
 
+def card_activation(action, catalog):
+    card = next(iter(action.get('cards', [])), {})
+    native = action.get('engine_effect') or {}
+    kind = catalog.get(str(card.get('code')), {}).get('type', 0)
+    if not native.get('effect_type', 0) & 0x10: return None
+    if kind & 2:
+        for flag, name in ((0x80000, '场地'), (0x20000, '永续'), (0x40000, '装备'), (0x10000, '速攻'), (0x80, '仪式')):
+            if kind & flag: return f'发动{name}魔法卡'
+        return '发动魔法卡'
+    if kind & 4: return '发动' + ('永续' if kind & 0x20000 else '反击' if kind & 0x100000 else '') + '陷阱卡'
+    return None
+
+
 def summon_method(info):
     return SUMMON_TYPES.get(info & 0xff000000) if type(info) is int else None
 

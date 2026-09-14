@@ -372,6 +372,7 @@ async function savePlan() {
 }
 async function refreshPlans() {
   const plans = await api('/api/plans');
+  if(typeof renderPlanList==='function'){renderPlanList(plans);return;}
   $('#plan-list').innerHTML = plans.map(p=>`<button class="history-item ${p.id===flow.selectedPlan?'current':''}" data-plan="${p.id}"><strong>${escape(p.name)}</strong><small>${escape(p.deck_name)}</small><small>${dt(p.saved_ms)}</small></button>`).join('') || '<div class="empty">还没有正式方案<br><small>展开结束后，在草稿中点击“保存方案”。</small></div>';
 }
 async function showPlan(id) {

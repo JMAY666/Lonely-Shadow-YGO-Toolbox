@@ -7,7 +7,7 @@ association. Card text describes the effect, never supplies a missing result.
 from collections import Counter
 from copy import deepcopy
 import re
-from card_semantics import CIRCLED, effect_clause, material_method, zone_name
+from card_semantics import CIRCLED, effect_clause, material_method, zone_name, card_activation
 
 REASON_BATTLE, REASON_EFFECT, REASON_COST, REASON_RULE = 0x20, 0x40, 0x80, 0x400
 ZONES = {1: '卡组', 2: '手牌', 4: '怪兽区', 8: '魔法陷阱区', 16: '墓地', 32: '除外区', 64: '额外卡组', 128: '叠放素材'}
@@ -386,12 +386,16 @@ def project_actions(report):
         a['observed_summary'] = ' → '.join(step['text'] for step in a['execution'])
         if a['targets']: a['observed_targets'] = '对象：' + card_names(a['targets'])
         a['summary'] = a['heading'] + (a['effect_quote'] or '效果编号或对应文本未确认，展开可查看完整卡片文本。')
+        activation = card_activation(a, catalog)
+        if activation:
+            a['activation_label'] = activation
+            a['summary'] = a['heading'] = activation + '－' + card_names(a['cards'])
         a['status_label'] = None
         if a['status'] in ('negated', 'disabled'):
             a['status_label'] = '发动被无效' if a['status'] == 'negated' else '效果被无效'
         elif a['status'] == 'pending':
             a['status_label'] = '尚未确认结算完成'
-        elif not a['results']:
+        elif not a['results'] and not activation:
             a['status_label'] = '未识别出可描述的实际结果'
         a['association'] = '核心原因效果与连锁结算区间' if a.get('engine_effect') else '连锁编号与结算区间（旧记录无原因效果标识）'
     order = {e['id']: i for i, e in enumerate(events)}

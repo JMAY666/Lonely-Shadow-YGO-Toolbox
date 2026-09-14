@@ -2,9 +2,12 @@
    textual so these controls do not pretend to be unverified MD icon artwork. */
 #history { max-width: 1800px; padding: 24px 12px; }
 #history > header { margin-bottom: 20px; }
-.review-layout { --review-log-width: min(480px,calc(100vw - 76px)); display: grid; grid-template-columns: 230px minmax(0,1fr); gap: 18px; align-items: start; position: relative; }
+.review-layout { --review-rail-width:230px; --review-log-width: min(480px,calc(100vw - 76px)); display: grid; grid-template-columns: var(--review-rail-width) minmax(0,1fr); gap: 18px; align-items: start; position: relative; }
+.review-sidebar-edge { position:sticky; grid-column:1; grid-row:1; justify-self:end; z-index:3; top:66px; margin-top:54px; margin-right:-11px; display:flex; align-items:center; justify-content:center; width:24px; height:48px; padding:0; border:1px solid #c4d7dc; border-radius:8px; color:#527984; background:#f6fafb; box-shadow:0 2px 6px #20394210; }
+.review-sidebar-edge:hover { color:#225f77; background:#e9f3f7; border-color:#84adbd; }
+.review-sidebar-edge svg { width:12px; height:20px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
 .review-sidebar, .review-center, .review-log { background: #fff; border: 1px solid #dce4e5; border-radius: 12px; min-width: 0; }
-.review-sidebar { padding: 18px; position: sticky; top: 12px; max-height: calc(100dvh - var(--app-bar-height,58px) - 32px); overflow: auto; }
+.review-sidebar { grid-column:1; grid-row:1; padding: 18px; position: sticky; top: 12px; max-height: calc(100dvh - var(--app-bar-height,58px) - 32px); overflow: auto; }
 .review-sidebar label, .node-explanation label, .detail-card-copy label, .confirmation-section label { display: block; margin: 10px 0 7px; font-size: 12px; font-weight: 600; }
 .review-sidebar input, .review-sidebar textarea, .node-explanation input, .node-explanation textarea, .detail-card-copy textarea, .confirmation-section textarea, .confirmation-section input, .confirmation-section select { width: 100%; font: inherit; padding: 10px; border: 1px solid #d4dedf; border-radius: 6px; background: #fbfcfc; color: #24322e; }
 .review-sidebar .eyebrow { color: #45738b; font-size: 10px; letter-spacing: 1.8px; }
@@ -20,7 +23,7 @@
 .review-steps span { display: block; font-size: 10px; margin-top: 5px; color: #71828b; }
 .review-sidebar-actions { display: grid; gap: 8px; margin-top: 15px; }
 #draft-message { font-size: 11px; margin-top: 12px; }
-.review-center { overflow: hidden; }
+.review-center { grid-column:2; grid-row:1; overflow: hidden; }
 .review-node-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 20px; border-bottom: 1px solid #e5ebee; }
 .review-node-header h2 { font-size: 20px; margin: 6px 0 0; }
 .review-node-header small { font-size: 10px; letter-spacing: 1px; }
@@ -194,7 +197,7 @@ textarea:focus-visible { outline: 2px solid #619fc2; outline-offset: 2px; }
 [hidden] { display: none !important; }
 
 /* Compact step rail keeps ordinal navigation available. */
-.review-layout.sidebar-collapsed { grid-template-columns: 88px minmax(0,1fr); }
+.review-layout.sidebar-collapsed { --review-rail-width:88px; grid-template-columns: var(--review-rail-width) minmax(0,1fr); }
 .sidebar-collapsed .review-sidebar { padding: 8px; }
 .sidebar-collapsed .review-sidebar-head,.sidebar-collapsed .review-sidebar > label,.sidebar-collapsed #draft-notes,.sidebar-collapsed #draft-message,.sidebar-collapsed .review-sidebar-actions { display:none; }
 .sidebar-collapsed .review-steps { padding:0; margin:12px 0; }
@@ -207,6 +210,8 @@ textarea:focus-visible { outline: 2px solid #619fc2; outline-offset: 2px; }
 .location-icon { display:inline-flex; vertical-align:middle; color:#237caa; width:48px; flex-shrink:0; }
 .location-icon.side-opponent { color:#b75757; }
 .location-icon svg { width:48px; height:40px; }
+.compact-card-location { display:flex; justify-content:center; margin:2px 0; line-height:0; }
+.compact-card-location .location-icon, .compact-card-location .location-icon svg { width:30px; height:24px; }
 .zone-icon { flex-direction:column; align-items:center; font-size:22px; }
 .zone-icon small { font-size:10px; }
 .effect-mark label { display:flex; align-items:start; gap:8px; line-height:1.8; font-weight:400; }
@@ -222,3 +227,5 @@ textarea:focus-visible { outline: 2px solid #619fc2; outline-offset: 2px; }
 .marked-final-cards .marked-note { color:#b33737; font-weight:600; margin:5px 0 0; }
 #plan-report .marked-final-cards { grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); }
 #plan-report .marked-effect-original { font-size:13px; line-height:1.7; }
+@media (min-width:721px) and (max-width:1000px) { .review-layout:not(.sidebar-collapsed) { --review-rail-width:195px; } }
+@media (max-width:720px) { .review-sidebar-edge { position:absolute; margin:0; right:-5px; top:42px; } }

@@ -26,6 +26,9 @@ from report import REPORT_VERSION, build_report, read_journal
 from expansion import OPPONENT, draw_opening, plan_text, validate_conditions, training_settings
 from timeline import route_rows, timeline_nodes
 from review import annotations_for, confirmation_key, legacy_review, requirements
+from plan_library import PlanLibrary
+from plan_tags import tag_list
+from plan_sharing import MAX_BYTES
 
 WORKSPACE = Path(__file__).resolve().parents[2]
 RUNTIME = WORKSPACE / '.local/YGOPro-Lite'
@@ -122,6 +125,7 @@ class Store:
         self.plans.mkdir(exist_ok=True)
         self.catalog = Catalog(self.runtime)
         self.lock = threading.RLock()
+        self.library = PlanLibrary(self, read_json, atomic_json, now)
         self.processes = {}
         self.closing = False
         self.job = None
@@ -455,6 +459,7 @@ class Store:
             snapshot['annotations'] = annotations
             snapshot['requirements'] = requirements(report, annotations)
             snapshot['edit_revision'] = 1
+            snapshot['classification'] = self.library.selection(snapshot)
             atomic_json(target, snapshot)
             # The immutable plan file is the commit point. Repairable display metadata comes second.
             meta.update(plan_stage='saved', name=name)
@@ -488,10 +493,13 @@ class Store:
 
     def list_plans(self):
         result = []
+        vocabulary = self.library.all_tags()
         for path in self.plans.glob('*.json'):
             try:
                 plan = read_json(path)
-                result.append({key: plan[key] for key in ('id', 'name', 'deck_name', 'saved_ms')})
+                selection = self.library.selection(plan, vocabulary)
+                result.append({**{key: plan[key] for key in ('id', 'name', 'deck_name', 'saved_ms')},
+                               'tags': tag_list(selection, vocabulary), 'tag_mode': selection.get('mode'), 'imported': plan.get('imported', False)})
             except (ValueError, OSError, KeyError):
                 result.append({'id': path.stem, 'name': '方案文件损坏（原文件保留）', 'deck_name': '', 'saved_ms': 0})
         return sorted(result, key=lambda p: p['saved_ms'], reverse=True)
@@ -658,8 +666,13 @@ class Handler(BaseHTTPRequestHandler):
                 origin = self.headers.get('Origin')
                 if origin and origin != f'http://127.0.0.1:{self.server.server_port}': raise ValueError('请求来源不匹配')
                 length = int(self.headers.get('Content-Length', 0))
-                if not 0 < length < 100_000: raise ValueError('请求长度无效')
+                maximum = MAX_BYTES if path in ('/api/plans/import', '/api/plans/import-preview') else 100_000
+                if not 0 < length < maximum: raise ValueError('请求长度无效，分享文件上限为 20 MB')
                 body = json.loads(self.rfile.read(length))
+                if path == '/api/tags/save': return self.send(store.library.edit_tag(body))
+                if path == '/api/plans/classify': return self.send(store.library.save_selection(body))
+                if path == '/api/plans/import-preview': return self.send(store.library.import_document(body, preview=True))
+                if path == '/api/plans/import': return self.send(store.library.import_document(body))
                 if path == '/api/decks': return self.send(store.save_deck(body))
                 if path == '/api/decks/delete': return self.send(store.delete_deck(body))
                 if path == '/api/desktop/layout' and store.host: return self.send(store.host.layout(body, store))
@@ -694,13 +707,21 @@ class Handler(BaseHTTPRequestHandler):
                 if path.startswith('/api/ready/'):
                     return self.send({'ready': (store.session_path(path.rsplit('/', 1)[1]) / 'ready.json').exists()})
                 if path == '/api/plans': return self.send(store.list_plans())
+                if path.startswith('/api/plan-tags/'): return self.send(store.library.info(path.rsplit('/', 1)[1]))
+                if path == '/api/tags': return self.send({'tags': list(store.library.all_tags().values()), 'revision': store.library.document()['revision']})
+                if path.startswith('/api/plan-export/'): return self.send(store.library.export(path.rsplit('/', 1)[1]))
                 if path.startswith('/api/plan/'): return self.send(read_json(store.plan_path(path.rsplit('/', 1)[1])))
                 if path.startswith('/api/report/'): return self.send(store.report(path.rsplit('/', 1)[1]))
                 if path.startswith('/api/timeline/'): return self.send(store.timeline(path.rsplit('/', 1)[1]))
                 if path.startswith('/api/raw/'):
+                    plan = store.plan_path(path.rsplit('/', 1)[1])
+                    if plan.exists() and read_json(plan).get('imported'):
+                        raise ValueError('此方案来自分享文件；可查看冻结事件，原生 JSONL 未随文件导入')
                     p = store.session_path(path.rsplit('/', 1)[1]) / 'native.jsonl'
                     return self.send(p.read_bytes(), 'text/plain; charset=utf-8')
                 if path.startswith('/api/ydk/'):
+                    plan = store.plan_path(path.rsplit('/', 1)[1])
+                    if plan.exists(): return self.send(store.ydk(read_json(plan)['deck']), 'text/plain; charset=utf-8')
                     p = store.session_path(path.rsplit('/', 1)[1]) / 'deck.ydk'
                     return self.send(p.read_bytes(), 'text/plain; charset=utf-8')
                 if path.startswith('/pics/'):
@@ -713,6 +734,8 @@ class Handler(BaseHTTPRequestHandler):
                 files = {'/': 'index.html', '/app.js': 'app.js', '/expansion.js': 'expansion.js', '/timeline.js': 'timeline.js', '/report-view.js': 'report-view.js', '/review.js': 'review.js', '/review.css': 'review.css', '/plan-tutorial.js': 'plan-tutorial.js', '/plan-tutorial.css': 'plan-tutorial.css', '/review-back.svg': 'review-back.svg', '/style.css': 'style.css', '/card-back.svg': 'card-back.svg'}
                 if path in files:
                     p = WEB / files[path]; return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0] + '; charset=utf-8')
+                if path in ('/activation.js', '/plan-library.js', '/plan-library.css'):
+                    p = WEB / path[1:]; return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0] + '; charset=utf-8')
             self.send({'error': '内容不存在'}, status=404)
         except (ValueError, KeyError, FileNotFoundError, TypeError) as exc:
             self.send({'error': str(exc)}, status=400)

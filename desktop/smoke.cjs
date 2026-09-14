@@ -127,6 +127,14 @@ async function activatePot(sid) {
 
 (async () => {
   await launch(true);
+  if(process.argv.includes('--library-only')) {
+    const plans=await page.evaluate(()=>api('/api/plans'));
+    const selected=plans.find(p=>!p.imported);assert(selected,'Run the desktop smoke once to create an isolated saved plan');
+    const plan=await page.evaluate(id=>api(`/api/plan/${id}`),selected.id);
+    await require('./plan-library-smoke.cjs')({page,application,plan,pass,evidence});
+    await close();assert.deepEqual(errors,[]);
+    fs.writeFileSync(path.join(evidence,'library-only-result.json'),JSON.stringify({checks,errors},null,2));return;
+  }
   if(process.argv.includes('--tutorial-only')) {
     const plans=await page.evaluate(()=>api('/api/plans'));
     assert(plans.length,'Run the full desktop smoke once to create an isolated saved plan');
@@ -368,6 +376,7 @@ async function activatePot(sid) {
   assert.equal((await (await fetch(`${service.url}/api/plans`)).json()).filter(p=>p.id===sessionId).length,1);
   await page.screenshot({path:path.join(evidence,'saved-plan.png')});
   await require('./plan-tutorial-smoke.cjs')({page,application,plan:report,pass,evidence});
+  await require('./plan-library-smoke.cjs')({page,application,plan:report,pass,evidence});
   pass('Draft text adjustment, visible save failure with retained content, retry and idempotent formal save');
   await close();
   pass('Window close releases service, native process and listening port');

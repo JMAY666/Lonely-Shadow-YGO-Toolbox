@@ -20,8 +20,8 @@ function renderTrainingReport(r, options) {
       ? `<p class="chain-order">第 ${a.chain_group} 组连锁 · 连锁 ${a.chain_link} · ${a.resolution_order ? `第 ${[...r.actions].filter(x => x.chain_group === a.chain_group && x.resolution_order && x.resolution_order < a.resolution_order).length + 1} 个结算` : '尚未结算'}</p>` : '';
     const execution = a.execution || [];
     return `<li id="action-${a.id}"><span class="ref">${String(index + 1).padStart(2, '0')} · +${Math.max(0, Math.floor((a.time_ms - r.started_ms) / 1000))}s</span>
-      ${a.kind === 'effect' ? `<span class="action-title">发动${escape(a.cards?.map(c => c.name).filter(Boolean).join('、') || '卡片')}的效果</span><div class="effect-description"><small>效果文本</small><p class="effect-quote">${escape(a.effect_text || '本次记录未保存效果文本。')}</p></div>` : `<span class="action-title">${escape(a.summary)}</span>`}${chain}
-      ${a.status_label ? `<p class="action-status">${escape(a.status_label)}</p>` : ''}
+      ${a.kind === 'effect' ? `<span class="action-title">${escape(cardActivation(a,r)?`${cardActivation(a,r)}－${a.cards?.map(c=>c.name).join('、')||'卡片'}`:`发动${a.cards?.map(c=>c.name).join('、')||'卡片'}的效果`)}</span><div class="effect-description"><small>效果文本</small><p class="effect-quote">${escape(a.effect_text || '本次记录未保存效果文本。')}</p></div>` : `<span class="action-title">${escape(a.summary)}</span>`}${chain}
+      ${a.status_label && !(cardActivation(a,r)&&a.status==='resolved'&&!a.results?.length) ? `<p class="action-status">${escape(a.status_label)}</p>` : ''}
       ${execution.length ? `<div class="actual-execution"><small>实际结果</small><ol>${execution.map(step => `<li><span class="execution-role">${step.role === 'cost' ? '费用' : '处理'}</span>${highlightCardNames(step.text.replace(/^支付费用：/, ''), step.cards)}${step.message === 90 ? `<p>抽到：${highlightCardNames(step.cards.map(c => c.name).join('、'), step.cards)}</p>` : ''}</li>`).join('')}</ol></div>` : ''}
       ${a.observed_targets ? `<p>${escape(a.observed_targets)}</p>` : ''}
       <details><summary>查看依据 · ${events.length} 条原始事件</summary>
@@ -54,16 +54,16 @@ function renderTrainingReport(r, options) {
     <span class="badge ${!r.loaded_verified ? 'warning' : ''}">${r.loaded_verified ? '选定构筑与引擎载入一致' : '尚未确认构筑载入'}</span>
     <p>${escape(reasons[r.end_reason] || r.end_reason || '展开仍在进行')}</p>
     ${r.warnings.length ? `<ul class="warnings">${[...new Set(r.warnings)].map(w => `<li>${escape(w)}</li>`).join('')}</ul>` : ''}
-    <div class="stats">${Object.entries(r.statistics).map(([key, value]) => `<div class="stat"><strong>${value}</strong><span>${escape(key)}</span></div>`).join('')}</div>
+    <div class="stats">${Object.entries(r.statistics).map(([key, value]) => `<div class="stat"><strong>${escape(value)}</strong><span>${escape(key)}</span></div>`).join('')}</div>
     <small>${escape(r.statistics_note)}</small>
     <h3>初始手牌</h3>${r.initial_hand ? cardsHtml(r.initial_hand) : '<p>尚未采集到初始手牌。</p>'}
     <h3>展开步骤 <small>${r.actions.length} 步</small></h3>
     <p class="summary-hint">上方保留卡片完整效果文本，下方展示本次实际结果。</p>
     <div class="report-toolbar"><label><input type="checkbox" id="all-events" ${options.raw ? 'checked' : ''}>查看原始事件</label>
-      <a href="/api/raw/${id}" target="_blank">原始记录 JSONL</a><a href="/api/ydk/${id}" target="_blank">构筑快照 YDK</a></div>
+      ${r.imported?'<span>分享方案：冻结事件已包含，原生 JSONL 未导入</span>':`<a href="/api/raw/${id}" target="_blank">原始记录 JSONL</a>`}<a href="/api/ydk/${id}" target="_blank">构筑快照 YDK</a></div>
     <ol class="timeline">${timeline || '<li><p>暂无需要复盘的展开动作。</p></li>'}</ol>
-    <h3>最终场面与各区域 <small>快照 ${r.final_state_ref || '未知'}</small></h3>
-    ${r.final_state ? `<p>回合 ${r.final_state.turn} · LP ${r.final_state.lp[0]} · 未结束连锁 ${r.final_state.chain_depth}</p>
+    <h3>最终场面与各区域 <small>快照 ${escape(r.final_state_ref || '未知')}</small></h3>
+    ${r.final_state ? `<p>回合 ${escape(r.final_state.turn)} · LP ${escape(r.final_state.lp[0])} · 未结束连锁 ${escape(r.final_state.chain_depth)}</p>
       ${board}${opponent}` : '<p>未采集到状态。</p>'}
     <details><summary>本次构筑快照 · 主 ${r.deck.main.length} / 额外 ${r.deck.extra.length} / 副 ${r.deck.side.length}</summary>${deck}</details>
     <div class="sources">训练标识：${id}<br>构筑 SHA-256：${r.deck_sha256}<br>

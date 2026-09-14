@@ -3,7 +3,7 @@ const {readFileSync}=require('node:fs');
 const path=require('node:path');
 const vm=require('node:vm');
 const test=require('node:test');
-const source=readFileSync(path.join(__dirname,'../src/trainer/web/review.js'),'utf8');
+const source=['activation.js','review.js'].map(file=>readFileSync(path.join(__dirname,'../src/trainer/web',file),'utf8')).join('\n');
 function setup(){
   const context=vm.createContext({flow:{draft:null},app:{},Map,structuredClone,CSS:{escape:s=>s},
     escape:s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;'),
@@ -176,12 +176,12 @@ test('saved management summaries retain full marked effects, positions and notes
   assert.equal(JSON.stringify(plan),before);
 });
 
-test('compact operations omit field mini maps but retain graveyard and overlay cost locations',()=>{
+test('compact operations restore small field mini maps and retain graveyard and overlay cost locations',()=>{
   const r=setup(),card={instance_id:1,code:10,name:'效果怪兽',location:4,controller:0,sequence:0};
   const cost={id:'2:0',message:50,cards:[card],origin:{location:128,controller:0},destination:{location:16,controller:0}};
   const summon={id:'3:0',message:63,cards:[card]};r.reviewUI.report={events:[cost,summon],catalog:{}};
   const html=r.reviewLogAction({id:'1:0',kind:'effect',cards:[card],costs:[cost],results:[summon],status:'resolved'},{id:'step',number:2});
-  assert(!html.includes('location-icon'));assert(!html.includes('<svg'));
+  assert.match(html,/compact-card-location/);assert.match(html,/location-icon/);assert.match(html,/<svg/);
   assert.match(html,/我方素材/);assert.match(html,/我方墓地/);assert.match(html,/特殊召唤/);
 });
 test('compact cleanup omits only explicit rule material disposal and never a cost or effect',()=>{

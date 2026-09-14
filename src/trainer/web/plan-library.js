@@ -1,0 +1,165 @@
+'use strict';
+
+const planLibraryUI={plans:[],info:null,selection:null,editingTag:null,tagDocument:null,importDocument:null,preview:null};
+const tagSearchKey=value=>String(value||'').normalize('NFKC').trim().toLocaleLowerCase();
+const tagMatches=(tag,q)=>[tag.name,...tag.aliases||[]].some(value=>tagSearchKey(value).includes(tagSearchKey(q)));
+function filterPlans(plans,query='',tag='',primaryOnly=false) {
+  const q=tagSearchKey(query);
+  return plans.filter(p=>{
+    const tags=(p.tags||[]).filter(t=>!primaryOnly||t.primary);
+    return (!tag||(tag==='untagged'?!p.tags?.length:tags.some(t=>t.id===tag)))&&
+      (!q||tagSearchKey(p.name).includes(q)||tagSearchKey(p.deck_name).includes(q)||tags.some(t=>tagMatches(t,q)));
+  });
+}
+function tagChips(tags) {
+  return `<span class="plan-tag-chips">${tags.map(t=>`<span class="plan-tag ${t.primary?'is-primary':''}" title="${escape([t.name,...t.aliases||[]].join(' / '))}">${t.primary?'★ ':''}${escape(t.name)}</span>`).join('')}</span>`;
+}
+function renderPlanList(plans=planLibraryUI.plans) {
+  planLibraryUI.plans=plans;
+  const select=$('#plan-tag-filter'), previous=select.value, tags=new Map();
+  for(const p of plans)for(const tag of p.tags||[])tags.set(tag.id,tag);
+  select.innerHTML='<option value="">全部标签</option><option value="untagged">未分类</option>'+[...tags.values()].sort((a,b)=>a.name.localeCompare(b.name,'zh-CN')).map(t=>`<option value="${escape(t.id)}">${escape(t.name)}</option>`).join('');
+  select.value=[...select.options].some(o=>o.value===previous)?previous:'';
+  const visible=filterPlans(plans,$('#plan-search').value,select.value,$('#plan-primary-only').checked);
+  $('#plan-count').textContent=`${visible.length} / ${plans.length} 个方案`;
+  $('#plan-list').innerHTML=visible.map(p=>`<button class="history-item ${p.id===flow.selectedPlan?'current':''}" data-plan="${escape(p.id)}"><strong>${escape(p.name)}</strong>${tagChips(p.tags||[])}<small>${escape(p.deck_name)}${p.imported?' · 已导入':''}</small><small>${dt(p.saved_ms)}</small></button>`).join('')||`<div class="empty">${plans.length?'没有符合条件的方案':'还没有正式方案'}<br><small>${plans.length?'可以更换名称、别名或分类条件。':'展开结束后保存，或导入分享文件。'}</small></div>`;
+}
+async function downloadPlan(plan) {
+  const data=await api(`/api/plan-export/${plan.id}`);
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),anchor=document.createElement('a');
+  anchor.href=url;anchor.download=(plan.name.replace(/[<>:"/\\|?*\u0000-\u001f]/g,'_').replace(/[. ]+$/,'').slice(0,65)||'展开方案')+'.ygoplan.json';
+  document.body.append(anchor);anchor.click();anchor.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+  notice('方案分享文件已生成，包含构筑、起手、步骤、说明、终场和标签。');
+}
+function mountPlanLibrary(plan) {
+  const actions=$('#plan-report .plan-actions');
+  actions.insertAdjacentHTML('beforeend','<button id="export-plan">导出方案</button><button id="edit-plan-tags">编辑标签</button>');
+  const title=$('#plan-report h2');title.insertAdjacentHTML('afterend','<div id="saved-plan-tags" class="saved-plan-tags"></div>');
+  $('#export-plan').onclick=run(()=>downloadPlan(plan));
+  $('#edit-plan-tags').onclick=run(()=>openPlanTags(plan.id));
+  const summary=planLibraryUI.plans.find(p=>p.id===plan.id);
+  $('#saved-plan-tags').innerHTML=tagChips(summary?.tags||[])+`<small>${summary?.tag_mode==='automatic'?'自动识别 · 可人工修改':summary?.tags?.length?'★ 为主标签':'尚未分类，可编辑标签或自动识别'}</small>`;
+}
+
+function ensureLibraryDialogs() {
+  if($('#plan-tags-dialog'))return;
+  document.body.insertAdjacentHTML('beforeend',`
+  <dialog id="plan-tags-dialog" class="library-dialog" aria-labelledby="plan-tags-title"><header><h2 id="plan-tags-title">方案标签</h2><button data-library-close="plan-tags-dialog">关闭</button></header>
+    <p>★ 主标签用于分类；可手动指定多个。自动识别按实际使用浓度，只设置一个主标签。</p>
+    <div id="chosen-plan-tags"></div><div class="library-actions"><button id="auto-plan-tags">自动识别标签</button><button id="open-tag-dictionary">编辑名称与别名</button></div>
+    <label>添加标签<input id="plan-tag-search" type="search" placeholder="输入系列正名或别名"></label><div id="tag-options" class="tag-options"></div>
+    <details><summary>查看浓度与识别依据</summary><p>按实际参与路线的我方卡牌种类去重；至少 2 种且占比达到 20% 才自动添加。抽到但未使用的卡和对方卡牌不计入。</p><div id="tag-evidence"></div></details>
+    <p id="plan-tags-status" role="status"></p><footer><button id="save-plan-tags" class="primary">保存标签</button></footer></dialog>
+  <dialog id="tag-dictionary-dialog" class="library-dialog" aria-labelledby="tag-dictionary-title"><header><h2 id="tag-dictionary-title">标签名称与别名</h2><button data-library-close="tag-dictionary-dialog">关闭</button></header>
+    <p>优先使用已核实的官方系列名；其余使用卡库系列表名称。别名只改变搜索方式，不会拆成多个标签。</p>
+    <label>查找标签<input id="dictionary-search" type="search" placeholder="正名或别名"></label><div id="dictionary-results" class="tag-options"></div><button id="new-library-tag">新增标签</button>
+    <form id="tag-definition-form"><p id="tag-definition-source"></p><label>标签正名<input id="tag-canonical-name" required maxlength="60"></label><label>其他叫法（每行一个）<textarea id="tag-aliases" rows="4" placeholder="别称、简称、其他中文译名或外文名"></textarea></label><p id="tag-definition-status" role="status"></p><button class="primary" type="submit">保存名称与别名</button></form></dialog>
+  <dialog id="plan-import-dialog" class="library-dialog" aria-labelledby="plan-import-title"><header><h2 id="plan-import-title">导入展开方案</h2><button data-library-close="plan-import-dialog">关闭</button></header>
+    <p>选择分享的 .ygoplan.json 文件（最多 20 MB）。导入后可回看、调整、生成一图流或按条件再次展开。同名方案独立保存，重复文件不会重复导入。</p>
+    <label>方案文件<input id="plan-import-file" type="file" accept=".json,.ygoplan.json,application/json"></label><div id="plan-import-preview"></div><p id="plan-import-status" role="status"></p><footer><button id="confirm-import-plan" class="primary" disabled>导入方案</button></footer></dialog>`);
+  document.querySelectorAll('[data-library-close]').forEach(b=>b.onclick=()=>$('#'+b.dataset.libraryClose).close());
+  $('#plan-tag-search').oninput=renderTagOptions;
+  $('#auto-plan-tags').onclick=()=>{planLibraryUI.selection=structuredClone(planLibraryUI.info.suggestions);renderChosenTags();renderTagOptions();$('#plan-tags-status').textContent='已按浓度重新识别，保存后生效。';};
+  $('#save-plan-tags').onclick=savePlanTags;
+  $('#open-tag-dictionary').onclick=run(openTagDictionary);
+  $('#dictionary-search').oninput=renderDictionary;
+  $('#new-library-tag').onclick=()=>editTagDefinition(null);
+  $('#tag-definition-form').onsubmit=saveTagDefinition;
+  $('#plan-import-file').onchange=previewPlanImport;
+  $('#confirm-import-plan').onclick=commitPlanImport;
+  $('#plan-tags-dialog').addEventListener('click',e=>{
+    const button=e.target.closest('button'),s=planLibraryUI.selection;if(!button||!s)return;
+    const {tagAdd,tagRemove,tagPrimary}=button.dataset;
+    if(tagAdd&&!s.tag_ids.includes(tagAdd)&&s.tag_ids.length<30)s.tag_ids.push(tagAdd);
+    if(tagRemove){s.tag_ids=s.tag_ids.filter(id=>id!==tagRemove);s.primary_ids=s.primary_ids.filter(id=>id!==tagRemove);}
+    if(tagPrimary)s.primary_ids=s.primary_ids.includes(tagPrimary)?s.primary_ids.filter(id=>id!==tagPrimary):[...s.primary_ids,tagPrimary];
+    if(tagAdd||tagRemove||tagPrimary){s.mode='manual';renderChosenTags();renderTagOptions();$('#plan-tags-status').textContent='标签选择尚未保存。';}
+  });
+  $('#dictionary-results').addEventListener('click',e=>{const button=e.target.closest('[data-edit-tag]');if(button)editTagDefinition(planLibraryUI.tagDocument.tags.find(t=>t.id===button.dataset.editTag));});
+}
+async function openPlanTags(id) {
+  ensureLibraryDialogs();
+  planLibraryUI.info=await api(`/api/plan-tags/${id}`);
+  planLibraryUI.selection=structuredClone(planLibraryUI.info.classification);
+  $('#plan-tag-search').value='';$('#plan-tags-status').textContent='保存只修改分类，已保存的步骤与说明保留。';
+  renderChosenTags();renderTagOptions();
+  $('#tag-evidence').innerHTML=planLibraryUI.info.suggestions.candidates.map(item=>{
+    const tag=planLibraryUI.info.tags.find(t=>t.id===item.id);
+    return `<p><strong>${escape(tag?.name||item.id)}</strong> · ${item.count}/${item.total} 种 · ${Math.round(item.ratio*100)}% · ${item.eligible?'达到阈值':'未达到阈值'}<br><small>${item.cards.map(c=>escape(c.name)).join('、')}</small></p>`;
+  }).join('')||'<p>当前记录没有足够的系列卡牌证据，可手动添加。</p>';
+  $('#plan-tags-dialog').showModal();
+}
+function renderChosenTags() {
+  const s=planLibraryUI.selection;
+  $('#chosen-plan-tags').innerHTML=s.tag_ids.map(id=>{
+    const tag=planLibraryUI.info.tags.find(t=>t.id===id),primary=s.primary_ids.includes(id);
+    return `<div class="chosen-tag"><span>${escape(tag?.name||id)}</span><button data-tag-primary="${escape(id)}" aria-pressed="${primary}" aria-label="${escape((primary?'取消':'设为')+'主标签：'+(tag?.name||id))}">${primary?'★ 主标签':'☆ 设为主标签'}</button><button data-tag-remove="${escape(id)}" aria-label="${escape('移除标签：'+(tag?.name||id))}">移除</button></div>`;
+  }).join('')||'<p class="empty">暂未添加标签</p>';
+}
+function renderTagOptions() {
+  const s=planLibraryUI.selection,q=$('#plan-tag-search').value;
+  const options=planLibraryUI.info.tags.filter(t=>!s.tag_ids.includes(t.id)&&tagMatches(t,q));
+  $('#tag-options').innerHTML=options.slice(0,40).map(t=>`<button data-tag-add="${escape(t.id)}" ${s.tag_ids.length>=30?'disabled':''}>＋ ${escape(t.name)}</button>`).join('')||'<p>没有匹配的可添加标签，可在“编辑名称与别名”中新增。</p>';
+}
+async function savePlanTags() {
+  const button=$('#save-plan-tags');button.disabled=true;
+  try {
+    const info=planLibraryUI.info,s=planLibraryUI.selection;
+    const saved=await api('/api/plans/classify',{id:info.id,revision:info.edit_revision,classification:s,automatic:s.mode==='automatic'});
+    $('#plan-tags-dialog').close();await showPlan(saved.id);notice('方案标签已保存。');
+  }catch(e){$('#plan-tags-status').textContent=`保存失败：${e.message}`;}finally{button.disabled=false;}
+}
+async function openTagDictionary() {
+  ensureLibraryDialogs();planLibraryUI.tagDocument=await api('/api/tags');
+  $('#dictionary-search').value='';renderDictionary();editTagDefinition(null);$('#tag-dictionary-dialog').showModal();
+}
+function renderDictionary() {
+  const q=$('#dictionary-search').value;
+  $('#dictionary-results').innerHTML=planLibraryUI.tagDocument.tags.filter(t=>tagMatches(t,q)).slice(0,40).map(t=>`<button data-edit-tag="${escape(t.id)}">${escape(t.name)}</button>`).join('')||'<p>未找到，可新增标签。</p>';
+}
+function editTagDefinition(tag) {
+  planLibraryUI.editingTag=tag;
+  $('#tag-canonical-name').value=tag?.name||'';$('#tag-aliases').value=tag?.aliases?.join('\n')||'';
+  $('#tag-definition-source').textContent=tag?`${tag.source}${tag.official_name?' · 官方正名：'+tag.official_name:''}`:'新增自定义标签（用于手动分类）';
+  $('#tag-definition-status').textContent='';
+}
+async function saveTagDefinition(event) {
+  event.preventDefault();const button=$('#tag-definition-form button[type=submit]');button.disabled=true;
+  try {
+    const body={id:planLibraryUI.editingTag?.id,revision:planLibraryUI.tagDocument.revision,name:$('#tag-canonical-name').value,aliases:$('#tag-aliases').value.split(/\r?\n/).map(s=>s.trim()).filter(Boolean)};
+    const saved=await api('/api/tags/save',body);
+    planLibraryUI.tagDocument=await api('/api/tags');editTagDefinition(saved.tag);renderDictionary();
+    if(planLibraryUI.info){planLibraryUI.info.tags=planLibraryUI.tagDocument.tags;renderChosenTags();renderTagOptions();}
+    await refreshPlans();
+    if(flow.selectedPlan){const selected=planLibraryUI.plans.find(p=>p.id===flow.selectedPlan);if(selected&&$('#saved-plan-tags'))$('#saved-plan-tags').innerHTML=tagChips(selected.tags);}
+    $('#tag-definition-status').textContent='已保存，正名和别名均可用于搜索。';
+  }catch(e){$('#tag-definition-status').textContent=`保存失败：${e.message}`;}finally{button.disabled=false;}
+}
+async function previewPlanImport() {
+  planLibraryUI.importDocument=null;planLibraryUI.preview=null;
+  $('#confirm-import-plan').disabled=true;$('#plan-import-preview').innerHTML='';$('#plan-import-status').textContent='';
+  const file=$('#plan-import-file').files[0];if(!file)return;
+  try {
+    if(!file.size||file.size>=20*1024*1024)throw new Error('文件必须小于 20 MB');
+    const document=JSON.parse((await file.text()).replace(/^\uFEFF/,''));
+    const preview=await api('/api/plans/import-preview',{document});
+    if($('#plan-import-file').files[0]!==file)return;
+    planLibraryUI.importDocument=document;planLibraryUI.preview=preview;
+    $('#plan-import-preview').innerHTML=`<h3>${escape(preview.name)}</h3><p>${preview.steps} 项操作 · 主卡组 ${preview.deck_count.main} · 额外 ${preview.deck_count.extra} · 副卡组 ${preview.deck_count.side}</p>${tagChips(preview.tags)}<p>${preview.duplicate_id?'这个文件已导入，将打开已有方案。':'将新建独立方案，保留现有同名方案。'}</p>${preview.notes.map(n=>`<p>${escape(n)}</p>`).join('')}${preview.missing_cards.length?`<p>本地缺少 ${preview.missing_cards.length} 张卡的资源，可先回看冻结资料；再次展开前需补齐资源。</p>`:''}`;
+    $('#confirm-import-plan').disabled=false;
+  }catch(e){if($('#plan-import-file').files[0]===file)$('#plan-import-status').textContent=`无法导入：${e.message}`;}
+}
+async function commitPlanImport() {
+  if(!planLibraryUI.preview)return;
+  const button=$('#confirm-import-plan');button.disabled=true;$('#plan-import-file').disabled=true;
+  try {
+    const result=await api('/api/plans/import',{document:planLibraryUI.importDocument,fingerprint:planLibraryUI.preview.fingerprint});
+    $('#plan-import-dialog').close();await showPlan(result.id);notice(result.duplicate?'已打开此前导入的方案。':'方案已导入，可回看、调整和分享。');
+  }catch(e){$('#plan-import-status').textContent=`导入失败：${e.message}`;}finally{button.disabled=false;$('#plan-import-file').disabled=false;}
+}
+$('#plan-search').oninput=()=>renderPlanList();$('#plan-tag-filter').onchange=()=>renderPlanList();$('#plan-primary-only').onchange=()=>renderPlanList();
+$('#manage-tags').onclick=run(openTagDictionary);
+$('#import-plan').onclick=()=>{
+  ensureLibraryDialogs();planLibraryUI.importDocument=null;planLibraryUI.preview=null;
+  $('#plan-import-file').value='';$('#plan-import-preview').innerHTML='';$('#plan-import-status').textContent='';$('#confirm-import-plan').disabled=true;$('#plan-import-dialog').showModal();
+};

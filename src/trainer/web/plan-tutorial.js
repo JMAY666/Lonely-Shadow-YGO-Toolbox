@@ -60,12 +60,12 @@ function tutorialAction(action,node,plan) {
   const stages=[],notes=[],add=(text,color='ink')=>{if(text)notes.push({text,color});};
   if(action.kind==='effect') {
     const num=Number(action.effect_number),label=num>0?('①②③④⑤⑥⑦⑧⑨⑩'[num-1]||String(num)):'效果';
-    stages.push({label:`发动${label}`,cards:tutorialFlowCards(action.cards,node,plan),text:action.cards?.length?'':'卡牌未记录'});
+    stages.push({label:cardActivation(action,plan)||`发动${label}`,cards:tutorialFlowCards(action.cards,node,plan),text:action.cards?.length?'':'卡牌未记录'});
     for(const cost of action.costs||[])stages.push(...tutorialOperationStages(cost,node,plan,'Cost'));
     if(action.targets?.length)stages.push({label:'对象',cards:tutorialFlowCards(action.targets,node,plan)});
     for(const result of action.results||[])stages.push(...tutorialOperationStages(result,node,plan));
     if(action.status!=='resolved')add(({negated:'发动被无效',disabled:'效果被无效',pending:'已发动，尚未确认结算'}[action.status])||action.status_label||'结算状态未记录','warning');
-    if(!action.results?.length)add('处理结果未记录','warning');
+    if(activationResultMissing(action,plan))add('处理结果未记录','warning');
     add(tutorialNote(plan.annotations?.effects?.[action.id]),'note');
   } else {
     stages.push(...tutorialOperationStages(action,node,plan,action.kind==='cost'?'Cost':''));

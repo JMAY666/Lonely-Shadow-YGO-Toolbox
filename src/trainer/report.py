@@ -9,7 +9,7 @@ from card_semantics import material_method, summon_method
 from timeline import route_rows
 from review import make_review
 
-REPORT_VERSION = 7
+REPORT_VERSION = 8
 
 LIMITS = [
     '事件时间为引擎批次采集时间；同批事件用字节偏移确定先后。',

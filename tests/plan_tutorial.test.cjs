@@ -7,7 +7,7 @@ function setup(extra={}) {
   const el={addEventListener(){}};
   const context=vm.createContext({Map,structuredClone,flow:{draft:null},app:{},$:()=>el,
     document:{addEventListener(){},querySelectorAll:()=>[]},escape:String,eventSummary:e=>e.result||e.type||'',zoneNames:{},...extra});
-  for(const file of ['review.js','plan-tutorial.js'])vm.runInContext(readFileSync(path.join(__dirname,'../src/trainer/web',file),'utf8'),context);
+  for(const file of ['activation.js','review.js','plan-tutorial.js'])vm.runInContext(readFileSync(path.join(__dirname,'../src/trainer/web',file),'utf8'),context);
   return vm.runInContext('({buildPlanTutorial,layoutPlanTutorial,renderPlanTutorialSvg,tutorialWrap,tutorialAssets,reviewUI})',context);
 }
 function fixture() {
@@ -34,6 +34,15 @@ test('tutorial reads the frozen plan only and preserves costs, targets, notes an
   assert.deepEqual(Array.from(model.steps[0].actions[0].stages,s=>s.label),['发动①','Cost · 支付 LP','对象','检索']);
   assert.match(svg,/路线 &lt;测试&gt;/);assert.match(svg,/用户备注 &amp; &lt;保留&gt;/);
   assert.match(svg,/fill="#b33737"/);assert.equal(JSON.stringify(plan),before);
+});
+test('field card activation without extra actions stays a simple card stage in old frozen plans',()=>{
+  const r=setup(),plan=fixture(),a=plan.actions[0];
+  plan.catalog[10].type=0x80002;a.cards[0].name='转生炎兽的圣域';a.engine_effect={effect_type:0x1a};a.results=[];a.costs=[];a.targets=[];
+  const before=JSON.stringify(plan),model=r.buildPlanTutorial(plan),svg=r.renderPlanTutorialSvg(model);
+  assert.equal(model.steps[0].actions[0].stages[0].label,'发动场地魔法卡');
+  assert(!svg.includes('处理结果未记录'));assert(!svg.includes('发动①'));assert.equal(JSON.stringify(plan),before);
+  a.status='negated';assert(r.renderPlanTutorialSvg(r.buildPlanTutorial(plan)).includes('发动被无效'));
+  a.status='resolved';a.engine_effect.effect_type=0x82;assert(r.renderPlanTutorialSvg(r.buildPlanTutorial(plan)).includes('处理结果未记录'));
 });
 test('negated and unrecorded outcomes and random dependencies remain explicit',()=>{
   const r=setup(),plan=fixture();plan.actions[0].status='negated';plan.actions[0].results=[];
