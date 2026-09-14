@@ -10,6 +10,45 @@ function opponent() {
   vm.runInContext(source+'\nglobalThis.parse=parseOpponentPrompt;',context);return context.parse;
 }
 const u32=n=>{const b=Buffer.alloc(4);b.writeUInt32LE(n);return b;};
+function menuFixture(extra={}) {
+  const elements=new Map();
+  const context=vm.createContext({Map,structuredClone,CSS:{escape:String},document:{querySelector:()=>null},
+    flow:{draft:{id:'plan',name:'当前方案'},busy:false},app:{view:'history',active:null},
+    reviewUI:{report:{id:'plan'},nodes:[{id:'step:a',number:2},{id:'step:b',number:23}],node:'step:a'},reviewTitle:n=>'Step '+n.number,
+    $:key=>{if(!elements.has(key))elements.set(key,{value:'42',parentElement:{},querySelectorAll:()=>[],open:false});return elements.get(key);},...extra});
+  const source=fs.readFileSync(path.join(web,'compromise.js'),'utf8').split("$('#nav-compromise').onclick")[0];
+  vm.runInContext(source+`\nbranchUI.root={id:'plan',name:'当前方案',branches_revision:3,review:{revision:'main-v1'},branches:[],branch_points:[{node_id:'step:b',checkpoint:42,timing:'发动后的响应窗口'}]};
+    globalThis.menu={branchUI,branchMenu,branchNodeContext,branchMenuPosition,createBranchFromMenu};`,context);
+  return {context,elements,...context.menu};
+}
+test('context actions belong to the right-clicked step, and unavailable, active and nested routes explain why creation is disabled',()=>{
+  const m=menuFixture();
+  assert.equal(m.branchNodeContext('step:b').nodeId,'step:b');assert.equal(m.branchNodeContext('step:b').points[0].checkpoint,42);
+  assert.match(m.branchNodeContext('step:a').reason,/没有可准确恢复/);
+  m.context.app.active={id:'running'};assert.match(m.branchNodeContext('step:b').reason,/先结束/);
+  m.context.app.active=null;m.branchUI.viewing=true;assert.match(m.branchNodeContext('step:b').reason,/子分支/);
+});
+test('context popup is clamped to all viewport edges without depending on document scroll',()=>{
+  const {branchMenuPosition:position}=menuFixture();
+  for(const [x,y]of [[-5,-5],[12,12],[1279,899],[600,899]]) {
+    const p=position(x,y,370,300,1280,900);assert(p.left>=8&&p.top>=8);assert(p.left+370<=1272&&p.top+300<=892);
+  }
+  const narrow=position(319,239,304,224,320,240);assert.equal(narrow.left,8);assert.equal(narrow.top,8);
+});
+test('context submission rejects a changed route before sending a mutation',async()=>{
+  let calls=0;const m=menuFixture({api:async()=>{calls++;}});
+  m.branchMenu.context=m.branchNodeContext('step:b');m.branchUI.root.branches_revision++;
+  await m.createBranchFromMenu();assert.equal(calls,0);assert.equal(m.elements.get('#create-compromise').disabled,true);
+});
+test('context creation sends its captured node and checkpoint exactly once even if another step was selected',async()=>{
+  let finish;const bodies=[];
+  const m=menuFixture({api:async(url,body)=>{bodies.push({url,body});return new Promise(resolve=>{finish=resolve;});}});
+  vm.runInContext('openBranchDesign=async()=>{};',m.context);
+  m.branchMenu.context=m.branchNodeContext('step:b');
+  const pending=m.createBranchFromMenu();await m.createBranchFromMenu();
+  assert.equal(bodies.length,1);assert.equal(bodies[0].body.node_id,'step:b');assert.equal(bodies[0].body.checkpoint,42);assert.equal(bodies[0].body.revision,3);
+  finish({id:'plan',branches:[{id:'created',valid:true}]});await pending;assert.equal(m.branchUI.selected,'created');
+});
 test('first review starts with no draft and does not cache or dereference a null draft',()=>{
   const context=vm.createContext({Map,flow:{draft:null}});
   const source=fs.readFileSync(path.join(web,'compromise.js'),'utf8').split("$('#nav-compromise').onclick")[0];

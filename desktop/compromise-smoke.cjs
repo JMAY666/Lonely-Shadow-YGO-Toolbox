@@ -44,9 +44,11 @@ module.exports=async function({application,page,nativeState,nativeWait,hostWait,
   assert.equal(main.statistics['效果抽卡'],2);
   const point=main.branch_points.find(p=>p.timing==='发动后的响应窗口'&&p.cards.some(c=>c.code===pot));assert(point,'Avarice must have a recorded legal response checkpoint');
   assert.equal(await page.locator('#nav-compromise').isDisabled(),true);
+  await require('./branch-menu-smoke.cjs')({page,application,main,point,pass,evidence});
   const choosePoint=async()=>{
     await page.evaluate(id=>showReport(id),mainId);
-    await page.locator(`#review-steps [data-review-node="${point.node_id}"]`).click();
+    await page.locator(`#review-steps [data-review-node="${point.node_id}"]`).click({button:'right'});
+    await page.locator('#branch-context-menu').waitFor({state:'visible'});
     await page.locator('#branch-point').selectOption(String(point.checkpoint));
     await page.locator('#create-compromise').click();
     await page.waitForFunction(()=>app.view==='compromise'&&!branchUI.busy);
@@ -122,6 +124,10 @@ module.exports=async function({application,page,nativeState,nativeWait,hostWait,
   await page.locator('#finish-training').click();await page.waitForFunction(()=>!app.active&&!flow.busy&&branchUI.root?.id===app.reportId,null,{timeout:20000});
   await secondWindow.close();
   assert.equal(await page.evaluate(()=>branchUI.viewing),true);
+  await page.locator('#review-steps [data-review-node="final"]').click({button:'right'});
+  assert.equal(await page.locator('#create-compromise').isDisabled(),true);
+  assert((await page.locator('#branch-context-status').innerText()).includes('子分支'));
+  await page.locator('#branch-context-cancel').click();
   await page.locator('#review-steps [data-review-node="final"]').click();
   await page.locator('#review-step-notes').fill('灰流丽无效后改用强欲之壶续展。');
   await page.locator('#draft-name').fill('贪欲之壶：主线与妥协场');

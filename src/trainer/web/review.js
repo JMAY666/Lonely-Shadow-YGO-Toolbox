@@ -125,6 +125,7 @@ function reviewCard(c, node=reviewUI.node, options={}) {
 }
 function selectReviewNode(id) {
   if(!reviewUI.nodes.some(n=>n.id===id))return;
+  if(typeof closeBranchMenu==='function')closeBranchMenu(false);
   closeReviewDetail();
   reviewUI.node=id;reviewUI.selected=null;reviewUI.materialTab=false;reviewUI.zone=null;
   renderReviewSidebar();

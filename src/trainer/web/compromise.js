@@ -1,6 +1,7 @@
 'use strict';
 
 const branchUI={root:null,key:null,selected:null,viewing:false,resources:false,drafts:new Map(),cards:new Map(),config:null,window:null,busy:false};
+const branchMenu={context:null,anchor:null};
 const selectedBranch=()=>branchUI.root?.branches?.find(b=>b.id===branchUI.selected);
 function branchConfigurationDirty() {
   const d=branchUI.config,b=d&&branchUI.root?.branches?.find(b=>b.id===d.id);
@@ -22,6 +23,7 @@ function stashBranchDraft() {
   }
 }
 function adoptBranchRoot(root) {
+  closeBranchMenu(false);
   if(root.compromise)return;
   stashBranchDraft();
   if(branchUI.root?.id!==root.id) {
@@ -61,6 +63,7 @@ function branchPremises(branch, edit=false) {
     ${branch.report?`<details><summary>接管原始操作 · ${(branch.report.control_records||[]).length} 条</summary><ol>${(branch.report.control_records||[]).map(r=>`<li>记录 ${r.seq} · ${r.kind==='response'?`对手手动选择（规则窗口 ${r.prompt}）`:`${r.manual?'接管对手':'交还 AI 托管'}`}</li>`).join('')}</ol></details>`:'<p>尚未进入妥协场，无分支终场。</p>'}</section>`;
 }
 function displayBranchRoute() {
+  closeBranchMenu(false);
   stashBranchDraft();
   const root=branchUI.root,b=selectedBranch();
   const common=branchUI.drafts.get('main')||branchUI.drafts.get(branchUI.key)||{};
@@ -82,19 +85,90 @@ function mountBranchSidebar() {
   const b=selectedBranch();
   if(root.branches?.length)$('#review-steps').insertAdjacentHTML('afterend',branchResourceHtml(root,b,branchUI.resources));
   if(branchUI.viewing&&b)$('#review-steps').insertAdjacentHTML('afterend',branchPremises(b,true));
-  const points=branchUI.viewing?[]:(root.branch_points||[]).filter(p=>p.node_id===reviewUI.node);
-  $('#review-steps').insertAdjacentHTML('afterend',`<div class="branch-create"><label>分支时点<select id="branch-point" ${points.length?'':'disabled'}>${points.map(p=>`<option value="${p.checkpoint}">${escape(p.timing)}${p.chain_depth?' · 连锁 '+p.chain_depth:''} · #${p.checkpoint}</option>`).join('')}</select></label><button id="create-compromise" ${points.length&&flow.draft&&!app.active?'':'disabled'}>从此处创建妥协分支</button><small>${branchUI.viewing?'分支内部暂不支持创建子分支。':points.length?'准确恢复到所选规则窗口；原主线完整保留。':'此步骤没有可恢复时点；旧记录缺少重放数据时只能回看。'}</small></div>`);
-  $('#create-compromise').onclick=run(async()=>{
-    if(branchUI.busy)return;branchUI.busy=true;
-    try {
-      stashBranchDraft();
-      const result=await api('/api/branches/create',{id:root.id,revision:root.branches_revision||0,checkpoint:Number($('#branch-point').value),node_id:reviewUI.node});
-      branchUI.root=result;branchUI.selected=result.branches.at(-1).id;branchUI.config=null;updateBranchNav();await openBranchDesign();
-    } finally {branchUI.busy=false;}
+  $('#review-steps').insertAdjacentHTML('beforebegin','<p class="branch-context-hint">右键步骤查看分支操作 · Shift+F10</p>');
+  document.querySelectorAll('#review-steps [data-review-node]').forEach(button=>{
+    button.setAttribute('aria-haspopup','dialog');button.setAttribute('aria-controls','branch-context-menu');
+    button.setAttribute('aria-keyshortcuts','Shift+F10');button.title='右键打开分支操作（Shift+F10）';
   });
   document.querySelectorAll('[data-branch-associate]').forEach(button=>button.onclick=run(()=>editBranchAssociation(button.dataset.branchAssociate)));
   if(branchUI.viewing&&$('#delete-draft'))$('#delete-draft').onclick=run(deleteSelectedBranch);
   if($('#draft-conditions')&&branchUI.viewing)$('#draft-conditions').onclick=run(openBranchDesign);
+}
+function branchNodeContext(nodeId) {
+  const root=branchUI.root,node=reviewUI.nodes.find(n=>n.id===nodeId);
+  if(!root||root.id!==reviewUI.report?.id||!node)return null;
+  const points=(root.branch_points||[]).filter(p=>p.node_id===nodeId);
+  const reason=branchUI.viewing||reviewUI.report.compromise?'妥协分支内部暂不支持创建子分支。':
+    app.active?'请先结束当前展开，再从主线创建妥协分支。':
+    flow.busy||flow.saving||branchUI.busy?'正在处理当前操作，请稍后再试。':
+    !flow.draft?'此记录只读，不能创建妥协分支。':
+    !points.length?'此步骤没有可准确恢复的时点；缺少重放资料的旧记录只能回看。':'';
+  return {rootId:root.id,revision:root.branches_revision||0,mainRevision:root.review?.revision,
+    route:branchUI.key,nodeId,number:node.number,title:reviewTitle(node),name:flow.draft?.name||root.name,points,reason};
+}
+function branchMenuPosition(x,y,width,height,viewportWidth,viewportHeight) {
+  return {left:Math.max(8,Math.min(x+4,viewportWidth-width-8)),top:Math.max(8,Math.min(y+4,viewportHeight-height-8))};
+}
+function branchMenuTrigger(context) {
+  return context&&branchUI.root?.id===context.rootId?
+    document.querySelector(`#review-steps [data-review-node="${CSS.escape(context.nodeId)}"]`):null;
+}
+function closeBranchMenu(focus=true) {
+  const context=branchMenu.context;
+  if(!context)return;
+  branchMenu.context=null;branchMenu.anchor=null;
+  const dialog=$('#branch-context-menu'),trigger=branchMenuTrigger(context);
+  trigger?.removeAttribute('aria-expanded');
+  if(dialog?.open)dialog.close();
+  if(focus)trigger?.focus({preventScroll:true});
+}
+function openBranchMenu(nodeId,x,y) {
+  closeBranchMenu(false);
+  if(app.view!=='history'||!branchNodeContext(nodeId))return;
+  selectReviewNode(nodeId);
+  const context=branchNodeContext(nodeId),dialog=$('#branch-context-menu');
+  if(!context)return;
+  branchMenu.context=context;
+  const trigger=branchMenuTrigger(context);
+  branchMenu.anchor=trigger?.getBoundingClientRect();trigger?.setAttribute('aria-expanded','true');
+  dialog.innerHTML=`<header><h2 id="branch-context-title">创建妥协分支</h2><button id="branch-context-close" aria-label="关闭分支操作">×</button></header>
+    <p class="branch-context-source">${escape(context.name)}<br><strong>Step ${context.number}${context.title===`Step ${context.number}`?'':' · '+escape(context.title)}</strong></p>
+    <label for="branch-point">分支时点</label><select id="branch-point" ${context.reason?'disabled':''}>${context.points.map(p=>`<option value="${p.checkpoint}">${escape(p.timing)}${p.chain_depth?' · 连锁 '+p.chain_depth:''}</option>`).join('')||'<option>无可用时点</option>'}</select>
+    <p id="branch-context-operation"></p><p id="branch-context-status" role="status">${escape(context.reason||'准确恢复到所选时点，主线后续步骤和终场保持完整。')}</p>
+    <footer><button id="branch-context-cancel">取消</button><button id="create-compromise" class="primary" ${context.reason?'disabled':''}>从此处创建妥协分支</button></footer>`;
+  const describe=()=>{$('#branch-context-operation').textContent=context.points.find(p=>p.checkpoint===Number($('#branch-point').value))?.operation||'';};
+  $('#branch-point').onchange=describe;describe();
+  $('#branch-context-close').onclick=$('#branch-context-cancel').onclick=()=>{if(!branchMenu.context?.submitting)closeBranchMenu();};
+  $('#create-compromise').onclick=run(createBranchFromMenu);
+  // Show at a safe initial position, then measure and place before this frame paints.
+  dialog.style.left='8px';dialog.style.top='8px';dialog.showModal();
+  const box=dialog.getBoundingClientRect(),position=branchMenuPosition(x,y,box.width,box.height,innerWidth,innerHeight);
+  dialog.style.left=position.left+'px';dialog.style.top=position.top+'px';
+  (context.reason?$('#branch-context-close'):$('#branch-point')).focus({preventScroll:true});
+}
+async function createBranchFromMenu() {
+  const context=branchMenu.context;
+  if(!context||branchUI.busy)return;
+  const fresh=branchNodeContext(context.nodeId),point=Number($('#branch-point').value);
+  if(!fresh||fresh.rootId!==context.rootId||fresh.revision!==context.revision||fresh.mainRevision!==context.mainRevision||fresh.route!==context.route||fresh.reason||!context.points.some(p=>p.checkpoint===point)) {
+    $('#branch-context-status').textContent=fresh?.reason||'路线或分支时点已变化，请关闭后重新右键选择。';
+    $('#create-compromise').disabled=true;return;
+  }
+  branchUI.busy=true;context.submitting=true;
+  $('#branch-context-menu').querySelectorAll('button,select').forEach(el=>el.disabled=true);
+  $('#branch-context-status').textContent='正在创建分支……';
+  try {
+    stashBranchDraft();
+    const result=await api('/api/branches/create',{id:context.rootId,revision:context.revision,checkpoint:point,node_id:context.nodeId});
+    closeBranchMenu(false);
+    if(branchUI.root?.id!==context.rootId)return;
+    branchUI.root=result;branchUI.selected=result.branches.at(-1).id;branchUI.config=null;updateBranchNav();await openBranchDesign();
+  } catch(error) {
+    if(branchMenu.context===context) {
+      $('#branch-context-status').textContent=`创建失败：${error.message}。当前时点仍保留，可重试或取消。`;
+      $('#branch-context-menu').querySelectorAll('button,select').forEach(el=>el.disabled=false);
+    } else throw error;
+  } finally {branchUI.busy=false;context.submitting=false;}
 }
 async function openBranchDesign() {
   const b=selectedBranch();if(!b||b.valid===false)return notice('请先在展开时间轴中创建或选择妥协分支');
@@ -257,6 +331,35 @@ function mountSavedBranches(plan) {
   };render();
 }
 $('#nav-compromise').onclick=run(openBranchDesign);
+document.addEventListener('contextmenu',run(event=>{
+  const node=event.target.closest?.('#review-steps [data-review-node]');
+  if(!node||app.view!=='history')return;
+  event.preventDefault();
+  const box=node.getBoundingClientRect();
+  openBranchMenu(node.dataset.reviewNode,event.clientX||box.right,event.clientY||box.top+24);
+}));
+document.addEventListener('keydown',run(event=>{
+  if(event.key!=='ContextMenu'&&!(event.key==='F10'&&event.shiftKey&&!event.ctrlKey&&!event.altKey&&!event.metaKey))return;
+  const node=event.target.closest?.('#review-steps [data-review-node]');
+  if(!node||app.view!=='history')return;
+  event.preventDefault();if(event.repeat)return;
+  const box=node.getBoundingClientRect();openBranchMenu(node.dataset.reviewNode,box.right,box.top+24);
+}));
+const branchDialog=$('#branch-context-menu');
+branchDialog.addEventListener('cancel',event=>{event.preventDefault();if(!branchMenu.context?.submitting)closeBranchMenu();});
+branchDialog.addEventListener('keydown',event=>{
+  if(event.key==='Escape'){event.preventDefault();event.stopPropagation();if(!branchMenu.context?.submitting)closeBranchMenu();}
+});
+branchDialog.addEventListener('pointerdown',event=>{
+  const box=branchDialog.getBoundingClientRect();
+  if(!branchMenu.context?.submitting&&event.target===branchDialog&&(event.clientX<box.left||event.clientX>box.right||event.clientY<box.top||event.clientY>box.bottom))closeBranchMenu();
+});
+document.addEventListener('scroll',event=>{
+  if(!branchMenu.context||branchDialog.contains(event.target))return;
+  const box=branchMenuTrigger(branchMenu.context)?.getBoundingClientRect(),anchor=branchMenu.anchor;
+  if(!box||!anchor||Math.abs(box.left-anchor.left)>.5||Math.abs(box.top-anchor.top)>.5)closeBranchMenu(false);
+},true);
+window.addEventListener('resize',()=>closeBranchMenu(false));
 const opponentBar=document.createElement('div');opponentBar.id='opponent-control-bar';opponentBar.className='opponent-control-bar';opponentBar.hidden=true;
 opponentBar.innerHTML='<strong id="opponent-control-label">妥协对局</strong><button id="take-opponent">接管对手</button><button id="release-opponent">交还 AI 托管</button>';
 $('#native-stage').parentElement.insertBefore(opponentBar,$('#native-stage'));

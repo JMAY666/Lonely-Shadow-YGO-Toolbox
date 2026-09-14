@@ -34,6 +34,7 @@ function switchView(view) {
     else if (app.view === 'history' && flow.draft) notice('草稿尚未保存为正式方案，可返回继续调整；退出前请保存名称和备注修改。');
   }
   app.view = view;
+  if(typeof closeBranchMenu==='function')closeBranchMenu(false);
   if(typeof closeReviewDetail==='function')closeReviewDetail();
   if (view !== 'decks') setLibraryOpen(false, false);
   $('#editor').hidden = view !== 'decks';
