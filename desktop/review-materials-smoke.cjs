@@ -115,14 +115,20 @@ module.exports=async function({page,nativeState,nativeWait,hostWait,waitHistory,
   await page.locator('#review-material-tab').click();assert.equal(await page.locator('.material-list .review-card').count(),2);
   await page.locator('.material-list .review-card').first().click();
   assert.match(await page.locator('.card-provenance').innerText(),/成为素材/);
+  await page.locator('#review-detail-close').click();
   await page.evaluate(id=>selectReviewNode(id),detachNode.id);
   await page.locator('.shared-zones .review-card').click();
   await page.locator('#review-material-tab').click();assert.equal(await page.locator('.material-list .review-card').count(),1);
+  await page.locator('#review-detail-close').click();
   for(const zone of [16,32,64]) {
     await page.locator(`[data-review-zone="0:${zone}"]`).click();
     assert.equal(await page.locator('.zone-contents .review-card').count(),detachNode.state.cards.filter(c=>c.controller===0&&c.location===zone).length);
   }
   await page.locator('#review-log-toggle').click();
+  await page.locator('[data-log-mode="compact"]').click();
+  assert.equal(await page.locator('.log-materials').count(),0);
+  assert(await page.locator('.compact-summon').count()>0);
+  await page.locator('[data-log-mode="detailed"]').click();
   assert.match(await page.locator('#review-log').innerText(),/费用 Cost/);
   assert.match(await page.locator('#review-log').innerText(),/连接召唤/);
   assert.match(await page.locator('#review-log').innerText(),/素材去向/);

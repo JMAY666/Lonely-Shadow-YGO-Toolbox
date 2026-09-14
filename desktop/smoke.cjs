@@ -29,8 +29,8 @@ async function launch(first = false, testControl = true) {
     env: {...env, YGO_DESKTOP_TEST: testControl ? '1' : '0'}, timeout: 120000 });
   page = await application.firstWindow();
   // Capture the app's renderer while its window stays hidden. CDP screenshots can stall on a hidden HWND.
-  page.screenshot = async ({path:target}) => {
-    await page.evaluate(()=>window.scrollTo(0,0));
+  page.screenshot = async ({path:target,preserveScroll=false}) => {
+    if(!preserveScroll)await page.evaluate(()=>window.scrollTo(0,0));
     const png = await application.evaluate(async ({BrowserWindow}) => {
       const contents=BrowserWindow.getAllWindows().find(w=>!w.getParentWindow()).webContents;
       await contents.capturePage(undefined,{stayHidden:true}); // Wake the hidden compositor before the final frame.
@@ -318,6 +318,7 @@ async function activatePot(sid) {
   assert.equal(report.actions.length,2);
   assert.equal(await page.locator('#review-steps > li').count(), report.review.nodes.length);
   await page.locator('#review-log-toggle').click();
+  await page.locator('[data-log-mode="detailed"]').click();
   assert.equal(await page.locator('.log-action').count(), 2);
   assert.equal(await page.locator('.log-action h4').filter({hasText: /攻击宣言|伤害步骤|战斗结果|受到.*伤害/}).count(), 0);
   await page.screenshot({ path: path.join(evidence, 'report.png') });

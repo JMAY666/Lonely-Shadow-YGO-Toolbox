@@ -156,7 +156,7 @@
   </section>
   <section id="history" hidden>
     <header><div><div class="eyebrow">03 / REVIEW & SAVE</div><h1>当前展开方案调整</h1><p>逐步回看真实场面，补充说明后确认保存。</p></div><button id="refresh-history">刷新记录</button></header>
-    <div id="review-workspace" class="review-layout" hidden><aside id="draft-editor" class="review-sidebar"></aside><article id="review-center" class="review-center"></article><aside id="review-log" class="review-log" aria-label="简版展开日志" hidden></aside></div>
+    <div id="review-workspace" class="review-layout" hidden><aside id="draft-editor" class="review-sidebar"></aside><article id="review-center" class="review-center"></article><aside id="review-log" class="review-log" aria-label="展开日志" hidden></aside><button id="review-log-edge-toggle" class="review-log-edge-toggle" aria-controls="review-log" aria-expanded="false">展开日志</button></div>
     <article id="report" class="panel report"><div class="empty">完成当前展开后，在这里调整方案。已有记录可从展开管理打开。</div></article>
   </section>
   <section id="save-confirmation" class="save-confirmation" hidden aria-label="保存前二次确认"></section>
@@ -166,6 +166,7 @@
     <details id="history-archive"><summary>历史记录与未保存草稿</summary><div id="history-list" class="panel history-list"></div></details>
   </section>
 </main>
+<section id="review-card-popover" class="review-card-popover" role="dialog" aria-label="卡牌详情" tabindex="-1" hidden><header><strong>卡牌详情</strong><button id="review-detail-close" aria-label="关闭卡牌详情">×</button></header><div id="review-card-detail" class="review-card-detail"></div></section>
 <script src="/report-view.js"></script><script src="/app.js"></script><script src="/expansion.js"></script><script src="/timeline.js"></script><script src="/review.js"></script>
 </body>
 </html>
