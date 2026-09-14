@@ -28,7 +28,7 @@ test('first frame alone cannot dismiss the loading message over an obscured fiel
     assert.equal(e.loading.hidden, false);
     return states.shift();
   };
-  await e.waitNativeFrame('current');
+  assert.equal(await e.waitNativeFrame('current'),true);
   assert.equal(states.length, 0);
   assert.equal(e.loading.hidden, true);
 });
@@ -36,7 +36,7 @@ test('first frame alone cannot dismiss the loading message over an obscured fiel
 test('persistent composition failure keeps a visible recovery message', async () => {
   const e = setup();
   e.context.api = async () => ({...ready, composition_compatible: false});
-  await e.waitNativeFrame('current');
+  assert.equal(await e.waitNativeFrame('current'),false);
   assert.equal(e.loading.hidden, false);
   assert.match(e.loading.textContent, /未能显示.*重新启动/);
 });

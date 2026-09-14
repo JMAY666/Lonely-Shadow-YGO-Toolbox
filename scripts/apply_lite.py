@@ -276,7 +276,7 @@ def main():
     save("gframe/replay.cpp",t)
 
     t=read("gframe/single_mode.cpp")
-    t=replace(t, '#include "single_mode.h"', '#include "single_mode.h"\n#include "training_support.h"\n#include "deck_manager.h"\n#include <fstream>\n#include <algorithm>\n#include <set>')
+    t=replace(t, '#include "single_mode.h"', '#include "single_mode.h"\n#include "training_support.h"\n#include "deck_manager.h"\n#include "../ocgcore/duel.h"\n#include "../ocgcore/field.h"\n#include <fstream>\n#include <algorithm>\n#include <set>')
     t=replace(t, 'bool SingleMode::StartPlay() {', '''static std::thread trainingThread;
 void SingleMode::WaitForExit() {
     if(trainingThread.joinable()) trainingThread.join();
@@ -293,6 +293,49 @@ bool SingleMode::StartPlay() {''')
     t=read("gframe/single_mode.h")
     t=replace(t, '\tstatic bool StartPlay();', '\tstatic bool StartPlay();\n\tstatic void WaitForExit();')
     save("gframe/single_mode.h",t)
+
+    # Opt-in training policy; normal callers keep the pinned engine's defaults and player identities.
+    t=read('ocgcore/field.h')
+    t=replace(t, '\tuint32_t duel_options{ 0 };', '\tuint32_t duel_options{ 0 };\n\tuint8_t first_player{ 0 };\n\tbool simple_ai_responses{ true };')
+    save('ocgcore/field.h', t)
+    t=read('ocgcore/ocgapi.cpp')
+    t=replace(t, 'pd->game_field->add_process(PROCESSOR_TURN, 0, 0, 0, 0, 0);',
+              'pd->game_field->add_process(PROCESSOR_TURN, 0, 0, 0, pd->game_field->core.first_player, 0);')
+    save('ocgcore/ocgapi.cpp', t)
+    t=read('ocgcore/playerop.cpp')
+    t=replace(t, '#include <stack>', '''#include <stack>
+
+// Suppress optional activations in response to the player's turn, chain or triggering action.
+// Costs, targets, mandatory triggers and rule processing continue through the existing core.
+static bool skip_ai_response(const field& f, const chain* candidate = nullptr) {
+    if(f.core.simple_ai_responses) return false;
+    return f.infos.turn_player == 0
+        || (!f.core.current_chain.empty() && f.core.current_chain.back().triggering_player == 0)
+        || (candidate && candidate->evt.reason_effect && candidate->evt.reason_player == 0);
+}''')
+    anchor='int32_t field::select_effect_yes_no(uint16_t step, uint8_t playerid, uint32_t description, card* pcard) {'
+    start=t.index(anchor); end=t.index('int32_t field::select_yes_no', start)
+    part=t[start:end]
+    part=replace(part, 'returns.ivalue[0] = 1;', '''returns.ivalue[0] = skip_ai_response(*this, core.select_chains.empty() ? nullptr : &core.select_chains[0]) ? 0 : 1;''')
+    t=t[:start]+part+t[end:]
+    anchor='int32_t field::select_chain(uint16_t step, uint8_t playerid, uint8_t spe_count) {'
+    start=t.index(anchor); end=t.index('int32_t field::select_place', start)
+    part=t[start:end]
+    part=replace(part, '\t\t\treturn TRUE;\n\t\t}\n\t\tpduel->write_buffer8(MSG_SELECT_CHAIN);', '''            if(!core.simple_ai_responses) {
+                // Forced links win even when optional responses are disabled. Never assume index 0 is forced.
+                int32_t forced = -1, allowed = -1;
+                for(size_t i = 0; i < core.select_chains.size(); ++i) {
+                    const auto& candidate = core.select_chains[i];
+                    if(candidate.flag & CHAIN_FORCED) { forced = static_cast<int32_t>(i); break; }
+                    if(allowed < 0 && !skip_ai_response(*this, &candidate)) allowed = static_cast<int32_t>(i);
+                }
+                returns.ivalue[0] = forced >= 0 ? forced : (returns.ivalue[0] >= 0 ? allowed : -1);
+            }
+            return TRUE;
+        }
+        pduel->write_buffer8(MSG_SELECT_CHAIN);''')
+    t=t[:start]+part+t[end:]
+    save('ocgcore/playerop.cpp', t)
 
     t=read("gframe/premake5.lua")
     t=replace(t,'    files { "*.cpp", "*.h" }','    files { "*.cpp", "*.h" }\n    removefiles { "replay_mode.cpp" }')

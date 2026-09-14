@@ -442,6 +442,7 @@ async function activatePot(sid) {
   assert.equal(banAfter.statistics['效果抽卡'],2);
   await page.locator('#finish-training').click();await waitHistory('completed');
   pass('Whole-hand ban occupies no slot, leaves all banned copies in the deck, and real effect draws can draw them later');
+  await require('./expansion-settings-smoke.cjs')({page,nativeWait,nativeState,hostWait,waitHistory,pass,evidence});
   await page.locator('#nav-decks').click();
   await page.evaluate(async id=>{const current=await api(`/api/deck?id=${encodeURIComponent(id)}`);await api('/api/decks',{...current,deck:{...current.deck,side:[]}});},deckId);
   assert.deepEqual(await (await fetch(`${service.url}/api/plan/${sessionId}`)).json(),report);
@@ -467,6 +468,8 @@ async function activatePot(sid) {
   console.error(error);
   fs.writeFileSync(path.join(evidence, 'failure.json'), JSON.stringify({ error: error.stack, checks, errors }, null, 2));
   if (application) {
+    const state=await page.evaluate(()=>({view:app.view,active:app.active,draft:flow.draft,busy:flow.busy,notice:document.querySelector('#notice').textContent,designError:document.querySelector('#design-error').textContent})).catch(()=>null);
+    fs.writeFileSync(path.join(evidence,'failure-state.json'),JSON.stringify(state,null,2));
     // Only this isolated test profile: never leave a failed test at an unsaved-edits dialog.
     await application.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().forEach(w => w.destroy())).catch(() => {});
     await application.close().catch(() => {});

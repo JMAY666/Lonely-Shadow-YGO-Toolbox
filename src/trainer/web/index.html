@@ -21,6 +21,7 @@
 <main>
   <div id="notice" role="status" aria-live="polite" hidden></div>
   <section id="editor" aria-label="卡组编辑工作区">
+    <div id="design-deck-edit" class="training-banner" hidden><strong id="design-deck-edit-title"></strong><span>应用后只更新本次前置设计。也可以打开或导入其他卡组。</span><button id="cancel-design-deck-edit">取消编辑并返回</button></div>
     <header class="editor-toolbar">
       <div class="deck-identity">
         <label for="deck-name">构筑名称</label>
@@ -28,7 +29,7 @@
         <span id="deck-status">新构筑 · 尚未保存</span>
       </div>
       <div class="toolbar-actions">
-        <div class="deck-picker">
+      <div class="deck-picker">
           <select id="compact-deck" aria-label="选择已有构筑"><option value="">选择已有构筑</option></select>
           <button id="compact-open">打开</button>
           <button id="delete-deck" class="danger" disabled>删除构筑</button>
@@ -105,15 +106,28 @@
     </div>
   </section>
   <section id="design" class="design-page" hidden aria-label="展开前置设计">
-    <header><div><div class="eyebrow">01 / PREPARATION</div><h1>展开前置设计</h1><p id="design-deck"></p></div><button id="design-back">返回卡组编辑</button></header>
+    <header><div><div class="eyebrow">01 / PREPARATION</div><h1>展开前置设计</h1><p id="design-deck"></p></div><button id="design-back">编辑玩家卡组</button></header>
     <div class="design-content panel">
       <label for="plan-name">方案名称 <small>必填 · 先命名，再设置起手</small></label>
       <input id="plan-name" maxlength="80" placeholder="例如：同一起手的稳定展开">
       <fieldset id="design-conditions" disabled>
         <legend>起手条件</legend><p>指定卡牌保证包含对应副本；留空的位置从剩余主卡组中随机补齐。</p>
+        <div class="hand-count-row"><label for="hand-count">玩家初始手牌数量（张）</label><div class="number-options"><button data-hand-count="1">1 张</button><button data-hand-count="2">2 张</button><button data-hand-count="3">3 张</button><input id="hand-count" type="number" min="1" max="60" step="1" value="5"></div><small id="hand-count-hint"></small></div>
         <div id="opening-slots" class="opening-slots"></div>
-        <h2>起手禁用卡牌</h2><p>对整副初始手牌生效，不占槽位；仍留在牌组中供后续抽取、检索和使用。</p><div id="banned-cards" class="banned-cards"></div>
+        <h2>起手禁用卡牌</h2><p>对整副初始手牌生效，不占槽位；仍留在牌组中供后续抽取、检索和使用。</p><button id="add-opening-ban">添加禁止卡牌</button><div id="banned-cards" class="banned-cards"></div>
         <label class="ai-option"><input id="opponent-ai" type="checkbox"> 启用对手 AI</label><p id="opponent-description"></p>
+        <fieldset id="opponent-settings" hidden>
+          <legend>对手卡组与起手</legend><div class="config-row"><label for="opponent-deck">选择对手卡组</label><select id="opponent-deck"></select><button id="edit-opponent-deck">编辑对手卡组</button></div><p id="opponent-deck-info"></p>
+          <label for="opponent-hand-count">对手初始手牌数量（张）</label><input id="opponent-hand-count" type="number" min="1" max="60" step="1" value="5">
+          <div id="opponent-slots" class="opening-slots"></div>
+          <label class="ai-option"><input id="opponent-responses" type="checkbox" checked> 允许对手 AI 响应玩家操作</label><p>关闭时放弃对玩家操作的可选响应；强制效果、规则结算与 AI 自身回合行动照常执行。</p>
+        </fieldset>
+        <div class="config-grid">
+          <div><label for="turn-order">玩家先后手</label><select id="turn-order"><option value="first">先手（对手后手）</option><option value="second">后手（对手先手）</option></select></div>
+          <div><label for="player-lp">玩家初始 LP</label><input id="player-lp" type="number" min="1" max="2147483647" step="1" value="8000"></div>
+          <div><label for="opponent-lp">对手初始 LP</label><input id="opponent-lp" type="number" min="1" max="2147483647" step="1" value="8000"></div>
+        </div><p>初始 LP 范围：1–2,147,483,647。后手先收到所设数量的初始手牌，到自己的抽卡阶段再按规则抽 1 张。</p>
+        <div class="config-grid"><div><label for="timer-mode">本次展开计时</label><select id="timer-mode"><option value="off">关闭</option><option value="up">正计时</option><option value="down">倒计时</option></select></div><div id="timer-duration" hidden><label id="timer-seconds-label" for="timer-seconds">起始时长（秒）</label><input id="timer-seconds" type="number" min="0" max="2147483647" step="1" value="0"></div></div><p>进入可操作场地后开始计时；返回条件或结束时停止。倒计时归零会提示，场地仍可继续操作。</p>
       </fieldset>
       <label for="plan-notes">备注 <small>可选</small></label><textarea id="plan-notes" maxlength="4000" rows="3" placeholder="起手条件、展开目的或需要注意的事项"></textarea>
       <p id="design-error" class="form-error" role="alert"></p>
@@ -127,7 +141,7 @@
   </dialog>
   <dialog id="flow-dialog" class="delete-dialog" aria-labelledby="flow-message"><form method="dialog"><h2 id="flow-message"></h2><p id="flow-warning"></p><div class="delete-actions"><button id="flow-cancel" value="cancel" autofocus>取消</button><button id="flow-confirm" value="confirm">确认</button></div></form></dialog>
   <section id="training" hidden aria-label="展开场地">
-    <header class="training-toolbar"><div><h2 id="training-title">展开场地</h2><p id="training-description">过程正在记录，展开结束后检查草稿并保存方案。</p></div><button id="training-report">查看记录</button><button id="restart-expansion">重新展开</button><button id="finish-training" class="danger">展开结束</button></header>
+    <header class="training-toolbar"><div><h2 id="training-title">展开场地</h2><p id="training-description">过程正在记录，展开结束后检查草稿并保存方案。</p><span id="expansion-timer" hidden></span><span id="timer-expired" role="status" hidden>倒计时已结束，场地可继续操作。</span></div><button id="training-report">查看记录</button><button id="return-conditions">返回修改条件</button><button id="restart-expansion">重新展开</button><button id="finish-training" class="danger">展开结束</button></header>
     <div id="native-stage"><p id="native-loading">正在准备展开场地……</p></div>
   </section>
   <section id="history" hidden>

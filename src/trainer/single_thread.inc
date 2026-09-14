@@ -23,25 +23,60 @@
     std::mt19937 shuffle(shuffleSeed);
     std::shuffle(deck.main.begin(), deck.main.end(), shuffle);
     std::vector<uint32_t> drawOrder;
+    std::vector<uint32_t> opponentOrder, opponentExtra;
+    uint32_t handCount = 5, opponentHand = 5, responses = 1, firstPlayer = 0;
+    int32_t playerLP = 8000, opponentLP = 8000;
+    bool configuredOpponent = false;
     std::ifstream openingConfig(TrainingPath("opening.cfg"));
     if(openingConfig) {
         uint32_t version, ai, seed, count, code;
-        if(!(openingConfig >> version >> ai >> seed >> count) || version != 1 || count != deck.main.size()) {
+        if(!(openingConfig >> version >> ai >> seed >> count) || (version != 1 && version != 2) || ai > 1 || count != deck.main.size()) {
             TrainingFinish(0, "opening_invalid"); mainGame->device->closeDevice(); return;
         }
         std::multiset<uint32_t> expected, actual;
         for(auto c : deck.main) expected.insert(c->code);
         for(uint32_t i = 0; i < count && openingConfig >> code; ++i) { drawOrder.push_back(code); actual.insert(code); }
         if(expected != actual) { TrainingFinish(0, "opening_invalid"); mainGame->device->closeDevice(); return; }
+        if(version == 2) {
+            uint32_t opponentCount, extraCount;
+            bool valid = bool(openingConfig >> handCount >> responses >> firstPlayer >> playerLP >> opponentLP >> opponentHand >> opponentCount);
+            valid = valid && handCount > 0 && handCount <= count && responses <= 1 && firstPlayer <= 1
+                && playerLP > 0 && opponentLP > 0 && opponentCount <= 60 && opponentHand <= opponentCount
+                && (!ai || (opponentCount >= 40 && opponentHand > 0));
+            if(valid) {
+                for(uint32_t i = 0; i < opponentCount && openingConfig >> code; ++i) opponentOrder.push_back(code);
+                valid = bool(openingConfig >> extraCount) && extraCount <= 15 && opponentOrder.size() == opponentCount;
+                if(valid) for(uint32_t i = 0; i < extraCount && openingConfig >> code; ++i) opponentExtra.push_back(code);
+                valid = valid && opponentExtra.size() == extraCount;
+            }
+            if(valid && ai) {
+                std::ifstream opponentInput(TrainingPath("opponent.ydk"));
+                std::stringstream opponentText;
+                opponentText << opponentInput.rdbuf();
+                std::istringstream opponentStream(opponentText.str());
+                Deck opponentDeck;
+                valid = bool(opponentInput) && !DeckManager::LoadDeckFromStream(opponentDeck, opponentStream);
+                std::multiset<uint32_t> mainCodes, extraCodes;
+                for(auto c : opponentDeck.main) mainCodes.insert(c->code);
+                for(auto c : opponentDeck.extra) extraCodes.insert(c->code);
+                valid = valid && mainCodes == std::multiset<uint32_t>(opponentOrder.begin(), opponentOrder.end())
+                    && extraCodes == std::multiset<uint32_t>(opponentExtra.begin(), opponentExtra.end());
+            }
+            if(!valid) { TrainingFinish(0, "opening_invalid"); mainGame->device->closeDevice(); return; }
+            configuredOpponent = true;
+        }
         std::fill(std::begin(seeds), std::end(seeds), seed); // Random per expansion, reused only for its retries.
     }
     set_script_reader(DataManager::ScriptReaderEx);
     set_card_reader(DataManager::CardReader);
     set_message_handler(SingleMode::MessageHandler);
     pduel = create_duel_v2(seeds);
-    set_player_info(pduel, 0, 8000, 5, 1);
+    set_player_info(pduel, 0, playerLP, handCount, 1);
     const bool opponentAI = TrainingOpponentAI();
-    set_player_info(pduel, 1, 8000, opponentAI ? 5 : 0, opponentAI ? 1 : 0);
+    set_player_info(pduel, 1, opponentLP, opponentAI ? opponentHand : 0, opponentAI ? 1 : 0);
+    auto field = reinterpret_cast<duel*>(pduel)->game_field;
+    field->core.first_player = firstPlayer;
+    field->core.simple_ai_responses = responses != 0;
     if(drawOrder.empty()) {
         for(auto c : deck.main) new_card(pduel, c->code, 0, 0, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
     } else {
@@ -49,7 +84,11 @@
             new_card(pduel, *it, 0, 0, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
     }
     for(auto c : deck.extra) new_card(pduel, c->code, 0, 0, LOCATION_EXTRA, 0, POS_FACEDOWN_DEFENSE);
-    if(opponentAI) {
+    if(opponentAI && configuredOpponent) {
+        for(auto it = opponentOrder.rbegin(); it != opponentOrder.rend(); ++it)
+            new_card(pduel, *it, 1, 1, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
+        for(auto code : opponentExtra) new_card(pduel, code, 1, 1, LOCATION_EXTRA, 0, POS_FACEDOWN_DEFENSE);
+    } else if(opponentAI) {
         // basic-ash-v1: 3 Ash Blossom + 37 normal monsters; Ash + 4 normals in the initial hand.
         for(int i = 0; i < 2; ++i) new_card(pduel, 14558127, 1, 1, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
         for(int i = 0; i < 37; ++i) new_card(pduel, 1184620, 1, 1, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
@@ -58,10 +97,12 @@
     TrainingCapture(pduel, "loaded");
     mainGame->gMutex.lock();
     mainGame->dInfo.Clear();
-    mainGame->dInfo.lp[0] = mainGame->dInfo.lp[1] = mainGame->dInfo.start_lp = 8000;
-    for(auto& lp : mainGame->dInfo.strLP) myswprintf(lp, L"8000");
+    mainGame->dInfo.lp[0] = mainGame->dInfo.start_lp = playerLP;
+    mainGame->dInfo.lp[1] = opponentLP;
+    myswprintf(mainGame->dInfo.strLP[0], L"%d", playerLP);
+    myswprintf(mainGame->dInfo.strLP[1], L"%d", opponentLP);
     BufferIO::CopyWideString(L"展开场地", mainGame->dInfo.hostname);
-    BufferIO::CopyWideString(opponentAI ? L"基础干扰对手" : L"", mainGame->dInfo.clientname);
+    BufferIO::CopyWideString(opponentAI ? L"对手 AI" : L"", mainGame->dInfo.clientname);
     mainGame->dInfo.player_type = 0;
     mainGame->dInfo.isFirst = true;
     mainGame->dInfo.isStarted = true;

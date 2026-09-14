@@ -25,6 +25,7 @@ async function card(code) {
   return app.pendingCards.get(code);
 }
 function switchView(view) {
+  if (typeof flow !== 'undefined' && flow.deckEdit && view !== 'decks') return notice('请先应用本次卡组编辑，或取消编辑并返回条件。');
   if (typeof flow !== 'undefined' && app.view !== view) {
     if (app.view === 'design' && flow.design && view !== 'training') notice('前置设计尚未开始，填写内容保留在“展开前置设计”中；退出应用会丢失这些设置。');
     else if (app.view === 'training' && app.active) notice('当前展开尚未保存为方案，记录继续进行，可返回展开场地。');
@@ -57,10 +58,11 @@ async function waitNativeFrame(id) {
   for (let attempt=0; attempt<80 && app.active?.id===id; attempt++) {
     const state=await api(`/api/native/status?id=${id}`);
     if(app.active?.id!==id)return;
-    if(state.frame_ready && state.visible && state.owns_stage_hit_test && state.composition_compatible){$('#native-loading').hidden=true;return;}
+    if(state.frame_ready && state.visible && state.owns_stage_hit_test && state.composition_compatible){$('#native-loading').hidden=true;return true;}
     await new Promise(resolve=>setTimeout(resolve,100));
   }
   if(app.active?.id===id) $('#native-loading').textContent='训练场地未能显示，请结束本次训练并重新启动应用。';
+  return false;
 }
 function deckState() { return JSON.stringify({name:$('#deck-name').value.trim(), deck:app.deck}); }
 function dirty() {
@@ -81,6 +83,9 @@ function updateStart() {
   $('#finish-training').disabled = !app.active || app.active.status === 'stopping' || flowBusy;
   $('#end-training').disabled = $('#finish-training').disabled;
   $('#restart-expansion').disabled = !app.active?.plan_stage || app.active.status === 'stopping' || flowBusy;
+  $('#return-conditions').disabled = $('#restart-expansion').disabled;
+  if (typeof flow !== 'undefined' && flow.deckEdit) {$('#start-training').disabled=true;$('#delete-deck').disabled=true;}
+  if (typeof flow !== 'undefined' && flow.timer && (!app.active || app.active.status==='stopping') && flow.timer.started!==null) stopTimer();
   $('#training-title').textContent = app.active ? `${app.active.name} · ${statusNames[app.active.status]}` : '展开场地';
 }
 function setLibraryOpen(open, focus = true) {
@@ -148,6 +153,7 @@ function confirmDeckDeletion(selected, clearing) {
   });
 }
 async function deleteDeck() {
+  if (typeof flow !== 'undefined' && flow.deckEdit) return;
   const id = $('#compact-deck').value;
   if (app.busy || !id) return;
   app.busy = true;
@@ -541,6 +547,7 @@ async function applyImportedDeck() {
   } finally { app.busy = false; updateStart(); updateDetailCounts(); setImportBusy(false); }
 }
 async function saveDeck() {
+  if (typeof flow !== 'undefined' && flow.deckEdit) return finishDesignDeckEdit(true);
   if (app.busy) return;
   let name = $('#deck-name').value.trim();
   if (app.id?.startsWith('existing/') && name === app.id.split('/').at(-1).replace(/\.ydk$/,'')) name += ' - 练习';

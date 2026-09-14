@@ -33,7 +33,7 @@ bool TrainingOpponentAI() {
     static const bool enabled = [] {
         std::ifstream config(TrainingPath("opening.cfg"));
         int version = 0, ai = 0;
-        return (config >> version >> ai) && version == 1 && ai == 1;
+        return (config >> version >> ai) && (version == 1 || version == 2) && ai == 1;
     }();
     return enabled;
 }
@@ -214,6 +214,13 @@ void TrainingResponse(const unsigned char* bytes, size_t len, const char* actor,
     TrainingWrite("\"kind\":\"response\",\"actor\":\"" + std::string(actor) + "\",\"prompt\":" + std::to_string(prompt >= 0 ? prompt : mainGame->dInfo.curMsg) + ",\"raw\":\"" + hex(bytes, len) + "\"");
 }
 bool TrainingAnalyze(intptr_t engine, unsigned char* bytes, size_t len) {
+    // Read-only readiness marker in every runtime, never an input/control endpoint.
+    static bool ready = false;
+    if(!ready && TrainingActive() && len > 1 && bytes[1] == 0 && bytes[0] >= MSG_SELECT_BATTLECMD && bytes[0] <= MSG_SELECT_UNSELECT_CARD) {
+        std::ofstream marker(TrainingPath("ready.json"));
+        marker << "{\"ready\":true}";
+        ready = true;
+    }
     if(TrainingOpening() && len && bytes[0] == MSG_SELECT_IDLECMD) {
         opening = false;
         std::lock_guard<std::mutex> lock(mainGame->gMutex);

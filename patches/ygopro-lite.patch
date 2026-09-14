@@ -1369,19 +1369,21 @@
 +}
 --- a/gframe/single_mode.cpp
 +++ b/gframe/single_mode.cpp
-@@ -1,6 +1,11 @@
+@@ -1,6 +1,13 @@
  #include <random>
  #include <thread>
  #include "single_mode.h"
 +#include "training_support.h"
 +#include "deck_manager.h"
++#include "../ocgcore/duel.h"
++#include "../ocgcore/field.h"
 +#include <fstream>
 +#include <algorithm>
 +#include <set>
  #include "duelclient.h"
  #include "game.h"
  #include "data_manager.h"
-@@ -14,11 +19,17 @@
+@@ -14,11 +21,17 @@
  Replay SingleMode::last_replay;
  size_t SingleMode::last_replay_response_size = 0;
  
@@ -1400,7 +1402,7 @@
  	is_closing = is_exiting;
  	is_continuing = false;
  	mainGame->actionSignal.Set();
-@@ -27,160 +38,118 @@
+@@ -27,160 +40,159 @@
  void SingleMode::SetResponse(unsigned char* resp, unsigned int len) {
  	if(!pduel)
  		return;
@@ -1585,25 +1587,60 @@
 +    std::mt19937 shuffle(shuffleSeed);
 +    std::shuffle(deck.main.begin(), deck.main.end(), shuffle);
 +    std::vector<uint32_t> drawOrder;
++    std::vector<uint32_t> opponentOrder, opponentExtra;
++    uint32_t handCount = 5, opponentHand = 5, responses = 1, firstPlayer = 0;
++    int32_t playerLP = 8000, opponentLP = 8000;
++    bool configuredOpponent = false;
 +    std::ifstream openingConfig(TrainingPath("opening.cfg"));
 +    if(openingConfig) {
 +        uint32_t version, ai, seed, count, code;
-+        if(!(openingConfig >> version >> ai >> seed >> count) || version != 1 || count != deck.main.size()) {
++        if(!(openingConfig >> version >> ai >> seed >> count) || (version != 1 && version != 2) || ai > 1 || count != deck.main.size()) {
 +            TrainingFinish(0, "opening_invalid"); mainGame->device->closeDevice(); return;
 +        }
 +        std::multiset<uint32_t> expected, actual;
 +        for(auto c : deck.main) expected.insert(c->code);
 +        for(uint32_t i = 0; i < count && openingConfig >> code; ++i) { drawOrder.push_back(code); actual.insert(code); }
 +        if(expected != actual) { TrainingFinish(0, "opening_invalid"); mainGame->device->closeDevice(); return; }
++        if(version == 2) {
++            uint32_t opponentCount, extraCount;
++            bool valid = bool(openingConfig >> handCount >> responses >> firstPlayer >> playerLP >> opponentLP >> opponentHand >> opponentCount);
++            valid = valid && handCount > 0 && handCount <= count && responses <= 1 && firstPlayer <= 1
++                && playerLP > 0 && opponentLP > 0 && opponentCount <= 60 && opponentHand <= opponentCount
++                && (!ai || (opponentCount >= 40 && opponentHand > 0));
++            if(valid) {
++                for(uint32_t i = 0; i < opponentCount && openingConfig >> code; ++i) opponentOrder.push_back(code);
++                valid = bool(openingConfig >> extraCount) && extraCount <= 15 && opponentOrder.size() == opponentCount;
++                if(valid) for(uint32_t i = 0; i < extraCount && openingConfig >> code; ++i) opponentExtra.push_back(code);
++                valid = valid && opponentExtra.size() == extraCount;
++            }
++            if(valid && ai) {
++                std::ifstream opponentInput(TrainingPath("opponent.ydk"));
++                std::stringstream opponentText;
++                opponentText << opponentInput.rdbuf();
++                std::istringstream opponentStream(opponentText.str());
++                Deck opponentDeck;
++                valid = bool(opponentInput) && !DeckManager::LoadDeckFromStream(opponentDeck, opponentStream);
++                std::multiset<uint32_t> mainCodes, extraCodes;
++                for(auto c : opponentDeck.main) mainCodes.insert(c->code);
++                for(auto c : opponentDeck.extra) extraCodes.insert(c->code);
++                valid = valid && mainCodes == std::multiset<uint32_t>(opponentOrder.begin(), opponentOrder.end())
++                    && extraCodes == std::multiset<uint32_t>(opponentExtra.begin(), opponentExtra.end());
++            }
++            if(!valid) { TrainingFinish(0, "opening_invalid"); mainGame->device->closeDevice(); return; }
++            configuredOpponent = true;
++        }
 +        std::fill(std::begin(seeds), std::end(seeds), seed); // Random per expansion, reused only for its retries.
 +    }
 +    set_script_reader(DataManager::ScriptReaderEx);
 +    set_card_reader(DataManager::CardReader);
 +    set_message_handler(SingleMode::MessageHandler);
 +    pduel = create_duel_v2(seeds);
-+    set_player_info(pduel, 0, 8000, 5, 1);
++    set_player_info(pduel, 0, playerLP, handCount, 1);
 +    const bool opponentAI = TrainingOpponentAI();
-+    set_player_info(pduel, 1, 8000, opponentAI ? 5 : 0, opponentAI ? 1 : 0);
++    set_player_info(pduel, 1, opponentLP, opponentAI ? opponentHand : 0, opponentAI ? 1 : 0);
++    auto field = reinterpret_cast<duel*>(pduel)->game_field;
++    field->core.first_player = firstPlayer;
++    field->core.simple_ai_responses = responses != 0;
 +    if(drawOrder.empty()) {
 +        for(auto c : deck.main) new_card(pduel, c->code, 0, 0, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
 +    } else {
@@ -1611,7 +1648,11 @@
 +            new_card(pduel, *it, 0, 0, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
 +    }
 +    for(auto c : deck.extra) new_card(pduel, c->code, 0, 0, LOCATION_EXTRA, 0, POS_FACEDOWN_DEFENSE);
-+    if(opponentAI) {
++    if(opponentAI && configuredOpponent) {
++        for(auto it = opponentOrder.rbegin(); it != opponentOrder.rend(); ++it)
++            new_card(pduel, *it, 1, 1, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
++        for(auto code : opponentExtra) new_card(pduel, code, 1, 1, LOCATION_EXTRA, 0, POS_FACEDOWN_DEFENSE);
++    } else if(opponentAI) {
 +        // basic-ash-v1: 3 Ash Blossom + 37 normal monsters; Ash + 4 normals in the initial hand.
 +        for(int i = 0; i < 2; ++i) new_card(pduel, 14558127, 1, 1, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
 +        for(int i = 0; i < 37; ++i) new_card(pduel, 1184620, 1, 1, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
@@ -1620,10 +1661,12 @@
 +    TrainingCapture(pduel, "loaded");
 +    mainGame->gMutex.lock();
 +    mainGame->dInfo.Clear();
-+    mainGame->dInfo.lp[0] = mainGame->dInfo.lp[1] = mainGame->dInfo.start_lp = 8000;
-+    for(auto& lp : mainGame->dInfo.strLP) myswprintf(lp, L"8000");
++    mainGame->dInfo.lp[0] = mainGame->dInfo.start_lp = playerLP;
++    mainGame->dInfo.lp[1] = opponentLP;
++    myswprintf(mainGame->dInfo.strLP[0], L"%d", playerLP);
++    myswprintf(mainGame->dInfo.strLP[1], L"%d", opponentLP);
 +    BufferIO::CopyWideString(L"展开场地", mainGame->dInfo.hostname);
-+    BufferIO::CopyWideString(opponentAI ? L"基础干扰对手" : L"", mainGame->dInfo.clientname);
++    BufferIO::CopyWideString(opponentAI ? L"对手 AI" : L"", mainGame->dInfo.clientname);
 +    mainGame->dInfo.player_type = 0;
 +    mainGame->dInfo.isFirst = true;
 +    mainGame->dInfo.isStarted = true;
@@ -1670,7 +1713,7 @@
  }
  bool SingleMode::SinglePlayAnalyze(unsigned char* msg, unsigned int len) {
  	unsigned char* offset, * pbuf = msg;
-@@ -196,7 +165,7 @@
+@@ -196,7 +208,7 @@
  				last_replay.RemoveData(last_replay_response_size);
  				last_replay_response_size = 0;
  			}
@@ -1679,7 +1722,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -207,12 +176,12 @@
+@@ -207,12 +219,12 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			/*int data = */BufferIO::Read<int32_t>(pbuf);
  			if(player == 0)
@@ -1694,7 +1737,7 @@
  			return false;
  		}
  		case MSG_SELECT_BATTLECMD: {
-@@ -222,7 +191,7 @@
+@@ -222,7 +234,7 @@
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 8 + 2;
  			SinglePlayRefresh();
@@ -1703,7 +1746,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -243,7 +212,7 @@
+@@ -243,7 +255,7 @@
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 11 + 3;
  			SinglePlayRefresh();
@@ -1712,7 +1755,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -252,7 +221,7 @@
+@@ -252,7 +264,7 @@
  		case MSG_SELECT_EFFECTYN: {
  			player = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 12;
@@ -1721,7 +1764,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -261,7 +230,7 @@
+@@ -261,7 +273,7 @@
  		case MSG_SELECT_YESNO: {
  			player = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 4;
@@ -1730,7 +1773,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -271,7 +240,7 @@
+@@ -271,7 +283,7 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 4;
@@ -1739,7 +1782,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -283,7 +252,7 @@
+@@ -283,7 +295,7 @@
  			pbuf += 3;
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 8;
@@ -1748,7 +1791,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -296,7 +265,7 @@
+@@ -296,7 +308,7 @@
  			pbuf += count * 8;
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 8;
@@ -1757,7 +1800,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -306,7 +275,7 @@
+@@ -306,7 +318,7 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 9 + count * 14;
@@ -1766,7 +1809,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -316,7 +285,7 @@
+@@ -316,7 +328,7 @@
  		case MSG_SELECT_DISFIELD: {
  			player = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 5;
@@ -1775,7 +1818,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -325,7 +294,7 @@
+@@ -325,7 +337,7 @@
  		case MSG_SELECT_POSITION: {
  			player = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 5;
@@ -1784,7 +1827,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -336,7 +305,7 @@
+@@ -336,7 +348,7 @@
  			pbuf += 4;
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 9;
@@ -1793,7 +1836,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -350,7 +319,7 @@
+@@ -350,7 +362,7 @@
  			pbuf += count * 11;
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 11;
@@ -1802,7 +1845,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -360,7 +329,7 @@
+@@ -360,7 +372,7 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 7;
@@ -1811,7 +1854,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -370,14 +339,14 @@
+@@ -370,14 +382,14 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 7;
@@ -1828,7 +1871,7 @@
  			break;
  		}
  		case MSG_CONFIRM_CARDS: {
-@@ -385,12 +354,12 @@
+@@ -385,12 +397,12 @@
  			pbuf += 1;
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 7;
@@ -1843,7 +1886,7 @@
  			SinglePlayRefreshDeck(player);
  			break;
  		}
-@@ -398,53 +367,53 @@
+@@ -398,53 +410,53 @@
  			/*int oplayer = */BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 4;
@@ -1906,7 +1949,7 @@
  			SinglePlayRefresh();
  			break;
  		}
-@@ -458,85 +427,85 @@
+@@ -458,85 +470,85 @@
  			int cs = pbuf[10];
  			/*int cp = pbuf[11];*/
  			pbuf += 16;
@@ -2008,7 +2051,7 @@
  			SinglePlayRefresh();
  			SinglePlayRefreshDeck(0);
  			SinglePlayRefreshDeck(1);
-@@ -544,12 +513,12 @@
+@@ -544,12 +556,12 @@
  		}
  		case MSG_CHAIN_NEGATED: {
  			pbuf++;
@@ -2023,7 +2066,7 @@
  			break;
  		}
  		case MSG_CARD_SELECTED:
-@@ -557,118 +526,118 @@
+@@ -557,118 +569,118 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 4;
@@ -2164,7 +2207,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -676,13 +645,13 @@
+@@ -676,13 +688,13 @@
  		}
  		case MSG_HAND_RES: {
  			pbuf += 1;
@@ -2180,7 +2223,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -691,7 +660,7 @@
+@@ -691,7 +703,7 @@
  		case MSG_ANNOUNCE_ATTRIB: {
  			player = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 5;
@@ -2189,7 +2232,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -702,7 +671,7 @@
+@@ -702,7 +714,7 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 4 * count;
@@ -2198,7 +2241,7 @@
  				mainGame->singleSignal.Reset();
  				mainGame->singleSignal.Wait();
  			}
-@@ -710,18 +679,18 @@
+@@ -710,18 +722,18 @@
  		}
  		case MSG_CARD_HINT: {
  			pbuf += 9;
@@ -2220,7 +2263,7 @@
  			SinglePlayRefreshDeck(player);
  			SinglePlayRefreshExtra(player);
  			break;
-@@ -748,7 +717,7 @@
+@@ -748,7 +760,7 @@
  			}
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 15;
@@ -2229,7 +2272,7 @@
  			SinglePlayReload();
  			mainGame->gMutex.lock();
  			mainGame->dField.RefreshAllCards();
-@@ -849,7 +818,8 @@
+@@ -849,7 +861,8 @@
  uint32_t SingleMode::MessageHandler(intptr_t fduel, uint32_t type) {
  	char msgbuf[1024];
  	get_log_message(fduel, msgbuf);
@@ -2251,7 +2294,7 @@
  	static void SinglePlayThread();
 --- a/gframe/training_support.cpp
 +++ b/gframe/training_support.cpp
-@@ -0,0 +1,307 @@
+@@ -0,0 +1,314 @@
 +// Local recorder for the pinned YGOPro core. No rule decisions are inferred from text.
 +#include "training_support.h"
 +#include "game.h"
@@ -2287,7 +2330,7 @@
 +    static const bool enabled = [] {
 +        std::ifstream config(TrainingPath("opening.cfg"));
 +        int version = 0, ai = 0;
-+        return (config >> version >> ai) && version == 1 && ai == 1;
++        return (config >> version >> ai) && (version == 1 || version == 2) && ai == 1;
 +    }();
 +    return enabled;
 +}
@@ -2468,6 +2511,13 @@
 +    TrainingWrite("\"kind\":\"response\",\"actor\":\"" + std::string(actor) + "\",\"prompt\":" + std::to_string(prompt >= 0 ? prompt : mainGame->dInfo.curMsg) + ",\"raw\":\"" + hex(bytes, len) + "\"");
 +}
 +bool TrainingAnalyze(intptr_t engine, unsigned char* bytes, size_t len) {
++    // Read-only readiness marker in every runtime, never an input/control endpoint.
++    static bool ready = false;
++    if(!ready && TrainingActive() && len > 1 && bytes[1] == 0 && bytes[0] >= MSG_SELECT_BATTLECMD && bytes[0] <= MSG_SELECT_UNSELECT_CARD) {
++        std::ofstream marker(TrainingPath("ready.json"));
++        marker << "{\"ready\":true}";
++        ready = true;
++    }
 +    if(TrainingOpening() && len && bytes[0] == MSG_SELECT_IDLECMD) {
 +        opening = false;
 +        std::lock_guard<std::mutex> lock(mainGame->gMutex);
@@ -2670,3 +2720,75 @@
  	{
  		SetActiveWindow(HWnd);
  		SetForegroundWindow(HWnd);
+--- a/ocgcore/field.h
++++ b/ocgcore/field.h
+@@ -307,6 +307,8 @@
+ 	int32_t spe_effect[2]{};
+ 	int32_t last_select_hint[2]{ 0 };
+ 	uint32_t duel_options{ 0 };
++	uint8_t first_player{ 0 };
++	bool simple_ai_responses{ true };
+ 	int32_t duel_rule{ CURRENT_RULE };
+ 	uint32_t copy_reset{ 0 };
+ 	int32_t copy_reset_count{ 0 };
+--- a/ocgcore/ocgapi.cpp
++++ b/ocgcore/ocgapi.cpp
+@@ -119,7 +119,7 @@
+ 			pcard->current.position = POS_FACEDOWN;
+ 		}
+ 	}
+-	pd->game_field->add_process(PROCESSOR_TURN, 0, 0, 0, 0, 0);
++	pd->game_field->add_process(PROCESSOR_TURN, 0, 0, 0, pd->game_field->core.first_player, 0);
+ }
+ void end_duel(intptr_t pduel) {
+ 	duel* pd = (duel*)pduel;
+--- a/ocgcore/playerop.cpp
++++ b/ocgcore/playerop.cpp
+@@ -14,6 +14,15 @@
+ #include <algorithm>
+ #include <stack>
+ 
++// Suppress optional activations in response to the player's turn, chain or triggering action.
++// Costs, targets, mandatory triggers and rule processing continue through the existing core.
++static bool skip_ai_response(const field& f, const chain* candidate = nullptr) {
++    if(f.core.simple_ai_responses) return false;
++    return f.infos.turn_player == 0
++        || (!f.core.current_chain.empty() && f.core.current_chain.back().triggering_player == 0)
++        || (candidate && candidate->evt.reason_effect && candidate->evt.reason_player == 0);
++}
++
+ bool field::check_response(size_t vector_size, int32_t min_len, int32_t max_len) const {
+ 	const int32_t len = returns.bvalue[0];
+ 	if (len < min_len || len > max_len)
+@@ -175,7 +184,7 @@
+ int32_t field::select_effect_yes_no(uint16_t step, uint8_t playerid, uint32_t description, card* pcard) {
+ 	if(step == 0) {
+ 		if((playerid == 1) && (core.duel_options & DUEL_SIMPLE_AI)) {
+-			returns.ivalue[0] = 1;
++			returns.ivalue[0] = skip_ai_response(*this, core.select_chains.empty() ? nullptr : &core.select_chains[0]) ? 0 : 1;
+ 			return TRUE;
+ 		}
+ 		pduel->write_buffer8(MSG_SELECT_EFFECTYN);
+@@ -349,9 +358,19 @@
+ 				else
+ 					returns.ivalue[0] = -1;
+ 			}
+-			return TRUE;
+-		}
+-		pduel->write_buffer8(MSG_SELECT_CHAIN);
++            if(!core.simple_ai_responses) {
++                // Forced links win even when optional responses are disabled. Never assume index 0 is forced.
++                int32_t forced = -1, allowed = -1;
++                for(size_t i = 0; i < core.select_chains.size(); ++i) {
++                    const auto& candidate = core.select_chains[i];
++                    if(candidate.flag & CHAIN_FORCED) { forced = static_cast<int32_t>(i); break; }
++                    if(allowed < 0 && !skip_ai_response(*this, &candidate)) allowed = static_cast<int32_t>(i);
++                }
++                returns.ivalue[0] = forced >= 0 ? forced : (returns.ivalue[0] >= 0 ? allowed : -1);
++            }
++            return TRUE;
++        }
++        pduel->write_buffer8(MSG_SELECT_CHAIN);
+ 		pduel->write_buffer8(playerid);
+ 		pduel->write_buffer8((uint8_t)core.select_chains.size());
+ 		pduel->write_buffer8(spe_count);

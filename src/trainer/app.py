@@ -23,7 +23,7 @@ import uuid
 import webbrowser
 
 from report import REPORT_VERSION, build_report, read_journal
-from expansion import OPPONENT, draw_opening, plan_text, validate_conditions
+from expansion import OPPONENT, draw_opening, plan_text, validate_conditions, training_settings
 
 WORKSPACE = Path(__file__).resolve().parents[2]
 RUNTIME = WORKSPACE / '.local/YGOPro-Lite'
@@ -255,7 +255,9 @@ class Store:
                 meta = read_json(p)
                 if meta.get('plan_stage') == 'discarded' and meta['status'] not in ('starting','running','stopping'): continue
                 if (self.plans / 'deleted' / (meta['id'] + '.json')).exists(): meta['plan_stage'] = 'deleted'
-                elif (self.plans / (meta['id'] + '.json')).exists(): meta['plan_stage'] = 'saved'
+                elif (self.plans / (meta['id'] + '.json')).exists():
+                    meta['plan_stage'] = 'saved'
+                    meta['name'] = read_json(self.plans / (meta['id'] + '.json'))['name']
                 result.append({k: meta.get(k) for k in ('id', 'name', 'started_ms', 'ended_ms', 'status', 'end_reason', 'plan_stage', 'deck_name')})
             except (ValueError, OSError, KeyError, TypeError):
                 result.append({'id': p.parent.name, 'name': '记录元数据损坏（原文件保留）', 'status': 'damaged', 'started_ms': 0})
@@ -270,6 +272,10 @@ class Store:
                 raise ValueError('请先结束当前展开，等待场地退出')
             if retry_meta:
                 selected = {'id': identifier, 'name': retry_meta['deck_name'], 'deck': deepcopy(retry_meta['deck'])}
+            elif design is not None and 'deck' in design:
+                # A design owns a working snapshot; source changes/deletion cannot change it mid-attempt.
+                deck_name, _ = plan_text({'name': design.get('deck_name')})
+                selected = {'id': identifier, 'name': deck_name, 'deck': deepcopy(design['deck'])}
             else:
                 selected = self.get_deck(identifier)
                 if design and design.get('revision') != selected['revision']:
@@ -281,12 +287,20 @@ class Store:
             elif design is not None:
                 name, notes = plan_text(design)
                 conditions = validate_conditions(deck['main'], design.get('conditions'))
-                ai = design.get('opponent_ai', False)
-                if type(ai) is not bool: raise ValueError('对手 AI 设置无效')
-                if ai: self.validate(OPPONENT['deck'], training=True)
+                settings = training_settings(design)
+                opponent = deepcopy(design.get('opponent_config') or OPPONENT)
+                if not isinstance(opponent, dict): raise ValueError('对手卡组配置无效')
+                opponent['name'], _ = plan_text({'name': opponent.get('name')})
+                # Disabled AI retains its settings; validate/draw the opponent only when enabled.
+                if settings['opponent_ai']:
+                    self.validate(opponent.get('deck'), training=True)
+                    opponent['conditions'] = validate_conditions(opponent['deck']['main'], opponent.get('conditions',
+                        {'slots': opponent.get('opening', [None]*5), 'banned': []}))
+                    opponent_hand, opponent_rest = draw_opening(opponent['deck']['main'], opponent['conditions'])
+                    opponent.update(actual_opening=opponent_hand, draw_order=opponent_hand + opponent_rest)
                 hand, remaining = draw_opening(deck['main'], conditions)
-                expansion = {'name': name, 'notes': notes, 'conditions': conditions, 'opponent_ai': ai,
-                             'opponent_config': deepcopy(OPPONENT) if ai else None,
+                expansion = {'name': name, 'notes': notes, 'conditions': conditions, **settings,
+                             'opponent_config': opponent,
                              'actual_opening': hand, 'draw_order': hand + remaining,
                              'engine_seed': 42 if self.host and self.host.test_control else secrets.randbits(32)}
             sid = str(uuid.uuid4()); path = self.session_path(sid); path.mkdir()
@@ -305,12 +319,26 @@ class Store:
                         meta[key] = deepcopy(retry_meta[key])
                 meta.update(name=expansion['name'], deck_name=selected['name'], expansion=expansion, plan_stage='recording')
                 ai = expansion['opponent_ai']
+                opponent = expansion.get('opponent_config') or deepcopy(OPPONENT)
                 if ai:
-                    for code in set(OPPONENT['deck']['main']):
+                    for code in set(sum(opponent['deck'].values(), [])):
                         meta['catalog'].setdefault(str(code), self.catalog.cards[code])
-                    meta['opponent'] = OPPONENT['name'] + ' / ' + OPPONENT['id']
+                    meta['opponent'] = opponent['name']
                 # Native adapter reads a numeric config; original YDK and JSONL formats stay intact.
-                values = [1, int(ai), expansion['engine_seed'], len(expansion['draw_order']), *expansion['draw_order']]
+                settings = training_settings(expansion)
+                opponent_order = opponent.get('draw_order')
+                if ai and opponent_order is None:  # Old saved attempts used the fixed basic opponent.
+                    opening = opponent.get('opening', OPPONENT['opening'])
+                    opponent_order = draw_opening(opponent['deck']['main'], {'slots': opening, 'banned': []})
+                    opponent_order = opponent_order[0] + opponent_order[1]
+                opponent_order = opponent_order if ai else []
+                opponent_hand = len(opponent.get('actual_opening', opponent.get('opening', OPPONENT['opening']))) if ai else 0
+                extra = opponent['deck']['extra'] if ai else []
+                if ai: atomic_bytes(path / 'opponent.ydk', self.ydk(opponent['deck']))
+                values = [2, int(ai), expansion['engine_seed'], len(expansion['draw_order']), *expansion['draw_order'],
+                          len(expansion['actual_opening']), int(settings['opponent_responses']),
+                          int(settings['turn_order'] == 'second'), settings['player_lp'], settings['opponent_lp'],
+                          opponent_hand, len(opponent_order), *opponent_order, len(extra), *extra]
                 atomic_bytes(path / 'opening.cfg', (' '.join(map(str, values)) + '\n').encode('ascii'))
             atomic_json(path / 'session.json', meta)
             env = os.environ.copy(); env['YGO_TRAIN_SESSION'] = sid
@@ -326,6 +354,44 @@ class Store:
                 raise ValueError(f'模拟器启动失败：{exc}') from exc
             atomic_json(path / 'session.json', meta)
             return {'id': sid, 'status': meta['status']}
+
+    def design_from(self, identifier):
+        report = self.report(identifier)
+        if not report.get('expansion'): raise ValueError('此旧记录没有前置设计配置')
+        expansion = deepcopy(report['expansion'])
+        expansion.update(training_settings(expansion))
+        expansion['conditions'] = validate_conditions(report['deck']['main'], expansion['conditions'])
+        opponent = expansion.get('opponent_config') or deepcopy(OPPONENT)
+        opponent.setdefault('conditions', {'hand_count': 5, 'slots': opponent.get('opening', [None]*5), 'banned': []})
+        expansion['opponent_config'] = opponent
+        return {**expansion, 'id': report['selected_deck'], 'deck_name': report.get('deck_name', report['name']),
+                'deck': deepcopy(report['deck']), 'catalog': deepcopy(report['catalog'])}
+
+    def return_to_design(self, identifier):
+        with self.lock:
+            design = self.design_from(identifier)  # Prepare recoverable configuration before stopping.
+            path = self.session_path(identifier)
+            meta = read_json(path / 'session.json')
+            self.stop(identifier)
+            deadline = time.monotonic() + 10
+            while self.alive(meta) and time.monotonic() < deadline: time.sleep(0.05)
+            if self.alive(meta): raise ValueError('场地仍在退出，配置与记录保留，请稍后重试')
+            self.refresh()
+            if not self.plan_path(identifier).exists(): self.discard_draft({'id': identifier})
+            return design
+
+    def discard_draft(self, body):
+        with self.lock:
+            identifier = body.get('id', '')
+            if self.plan_path(identifier).exists(): raise ValueError('此内容已正式保存，请使用删除方案')
+            self.refresh()
+            path = self.session_path(identifier)
+            meta = read_json(path / 'session.json')
+            if self.alive(meta) or meta.get('plan_stage') not in ('draft', 'abandoned'):
+                raise ValueError('请先结束展开，再放弃草稿')
+            meta['plan_stage'] = 'abandoned'
+            atomic_json(path / 'session.json', meta)
+            return {'id': identifier, 'discarded': True}
 
     def restart(self, identifier):
         with self.lock:
@@ -397,6 +463,19 @@ class Store:
                 result.append({'id': path.stem, 'name': '方案文件损坏（原文件保留）', 'deck_name': '', 'saved_ms': 0})
         return sorted(result, key=lambda p: p['saved_ms'], reverse=True)
 
+    def update_plan(self, body):
+        with self.lock:
+            target = self.plan_path(body.get('id', ''))
+            plan = read_json(target)
+            name, notes = plan_text(body)
+            if (plan['name'], plan['expansion']['notes']) == (name, notes): return plan
+            if (body.get('original_name'), body.get('original_notes')) != (plan['name'], plan['expansion']['notes']):
+                raise ValueError('方案已在其他页面修改，请重新打开后再编辑；当前文字仍保留')
+            plan['name'] = name
+            plan['expansion'].update(name=name, notes=notes)
+            atomic_json(target, plan)
+            return plan
+
     def delete_plan(self, body):
         with self.lock:
             target = self.plan_path(body.get('id', ''))
@@ -456,7 +535,9 @@ class Store:
         # Projection upgrades are separate files; never replace the old report, raw journal or deck snapshot.
         derived = p / f'report-v{REPORT_VERSION}.json'
         if derived.exists() and meta['status'] in ('completed', 'interrupted'):
-            return read_json(derived)
+            result = read_json(derived)
+            if meta.get('plan_stage'): result['plan_stage'] = meta['plan_stage']
+            return result
         rows, issues = read_journal(p / 'native.jsonl', identifier)
         report = build_report(meta, rows, issues)
         if meta['status'] in ('completed', 'interrupted'): atomic_json(derived, report)
@@ -495,7 +576,10 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/start': return self.send(store.start(body['deck_id'], body.get('design')))
                 if path == '/api/stop': return self.send(store.stop(body['id']))
                 if path == '/api/restart': return self.send(store.restart(body['id']))
+                if path == '/api/return-to-design': return self.send(store.return_to_design(body['id']))
+                if path == '/api/drafts/discard': return self.send(store.discard_draft(body))
                 if path == '/api/plans/save': return self.send(store.save_plan(body))
+                if path == '/api/plans/update': return self.send(store.update_plan(body))
                 if path == '/api/plans/delete': return self.send(store.delete_plan(body))
                 if path == '/api/shutdown':
                     self.send({'ok': True}); threading.Thread(target=self.server.shutdown, daemon=True).start(); return
@@ -513,6 +597,9 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/deck': return self.send(store.get_deck(query['id'][0]))
                 if path == '/api/history': return self.send(store.history())
                 if path == '/api/opponent': return self.send(OPPONENT)
+                if path.startswith('/api/design/'): return self.send(store.design_from(path.rsplit('/', 1)[1]))
+                if path.startswith('/api/ready/'):
+                    return self.send({'ready': (store.session_path(path.rsplit('/', 1)[1]) / 'ready.json').exists()})
                 if path == '/api/plans': return self.send(store.list_plans())
                 if path.startswith('/api/plan/'): return self.send(read_json(store.plan_path(path.rsplit('/', 1)[1])))
                 if path.startswith('/api/report/'): return self.send(store.report(path.rsplit('/', 1)[1]))

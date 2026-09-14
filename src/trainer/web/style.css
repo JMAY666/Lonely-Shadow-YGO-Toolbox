@@ -349,13 +349,26 @@ textarea { resize: vertical; line-height: 1.7; }
 .design-content fieldset:disabled { opacity: .5; }
 .design-content legend { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
 .design-content p, .design-content small { color: #a2b4bf; }
-.opening-slots { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 14px; margin: 20px 0 26px; }
+.opening-slots { display: grid; grid-template-columns: repeat(auto-fill,minmax(175px,1fr)); gap: 14px; margin: 20px 0 26px; }
 .opening-slot { display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 8px; min-height: 234px; padding: 14px 8px; color: #dce5e9; background: #20333d; border: 1px dashed #62797f; }
 .opening-slot:hover { background: #2b414b; }
 .opening-slot > span:first-child { color: #a4b8c0; font-size: 11px; }
 .opening-slot img { height: 124px; max-width: 100%; object-fit: contain; }
 .opening-slot strong { font-size: 13px; }
 .opening-slot small { font-size: 10px; }
+.opening-slot.overflow-slot { border: 2px solid #f0a18d; background: #493139; }
+.config-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 18px; }
+.config-row, .number-options { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.design-content .number-options input { width: 110px; }
+.number-options button, #add-opening-ban, #edit-opponent-deck { background: #24343f; border-color: #506571; color: #e2ecf1; }
+.number-options button.primary { background: #bde589; border-color: #bde589; color: #15221e; }
+.design-content select { max-width: 100%; padding: 10px; background: #101d25; color: #e5edef; border: 1px solid #53646b; border-radius: 6px; font: inherit; }
+.design-content #opponent-settings { padding: 18px; border: 1px solid #53646b; border-radius: 8px; }
+#opponent-hand-count { max-width: 140px; }
+#expansion-timer { display: inline-block; font-variant-numeric: tabular-nums; font-weight: 600; margin-right: 14px; }
+#timer-expired { color: #964534; font-size: 12px; }
+.training-toolbar > button { white-space: nowrap; }
+#design-deck-edit { margin: 0; padding: 12px 20px; }
 .slot-plus { font-size: 46px; font-weight: 200; color: #bde589; }
 .banned-cards { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 22px; }
 .banned-cards button { background: #3c3030; border-color: #765551; color: #f2d6cf; }
