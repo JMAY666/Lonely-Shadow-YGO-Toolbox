@@ -242,6 +242,9 @@ function reviewOperation(item,node,role='处理结果') {
     <p class="log-summary">${escape(reviewDisplayText(item.text||eventSummary({...e,cards}),[...cards,...materials],node))}</p>${materials.length?`<p class="log-summary">${method==='超量召唤'?'参与卡牌成为结果怪兽的素材；当前数量以本步场面为准。':'参与卡牌的去向依下方记录，不能视作叠放素材。'}</p>`:''}</div>`;
 }
 function reviewLogCard(c,node,options={}) { return reviewCard(c,node,{name:true,face:reviewKnown(c),...options}); }
+function compactLocation(l) {
+  return l&&![4,8].includes(l.location)?`<span class="compact-location">${escape(reviewPlace(l))}</span>`:'';
+}
 function compactOperation(item,node,role='') {
   const e=(reviewUI.report.events||[]).find(e=>e.id===(item.event_ref||item.id))||item;
   const cards=item.cards||e.cards||[], dest=e.destination, origin=e.origin;
@@ -249,8 +252,9 @@ function compactOperation(item,node,role='') {
   const materials=cards.flatMap(c=>c.materials||[]), opts={name:true,zone:false,position:false};
   const pictures=cs=>cs.map(c=>reviewLogCard(c,node,opts)).join('<b>＋</b>');
   const destination=dest?reviewPlace(dest):[61,63,65,54].includes(e.message)&&cards[0]?reviewPlace(cards[0]):e.message===90?'我方手牌':'';
-  if(materials.length)return `<div class="compact-summon"><div class="compact-cards">${pictures(materials)}</div><span class="chain-arrow">→</span><div class="chain-stage"><small class="log-role">${escape(method)}</small><div class="compact-cards">${cards.map(c=>reviewLogCard(c,node,{...opts,materials:reviewMaterials(reviewUI.nodes.find(n=>n.id===node),c).length})).join('')}</div>${cards.map(c=>reviewLocationIcon(c)).join('')}</div></div>`;
-  return `<div class="chain-stage"><small class="log-role">${escape(role?`${role} · ${method}`:method)}</small><div class="compact-cards">${pictures(cards)}</div>${destination?`<small class="compact-destination">${origin?reviewLocationIcon(origin)+'<span class="chain-arrow">→</span>':''}${reviewLocationIcon(dest||cards[0]||{controller:0,location:2})}</small>`:''}${!cards.length?`<p>${escape(item.text||e.result||eventSummary(e)||'处理结果未记录')}</p>`:''}</div>`;
+  if(materials.length)return `<div class="compact-summon"><div class="compact-cards">${pictures(materials)}</div><span class="chain-arrow">→</span><div class="chain-stage"><small class="log-role">${escape(method)}</small><div class="compact-cards">${cards.map(c=>reviewLogCard(c,node,{...opts,materials:reviewMaterials(reviewUI.nodes.find(n=>n.id===node),c).length})).join('')}</div>${cards.map(c=>compactLocation(c)).join('')}</div></div>`;
+  const places=destination?[compactLocation(origin),compactLocation(dest||cards[0]||{controller:0,location:2})].filter(Boolean):[];
+  return `<div class="chain-stage"><small class="log-role">${escape(role?`${role} · ${method}`:method)}</small><div class="compact-cards">${pictures(cards)}</div>${places.length?`<small class="compact-destination">${places.join('<span class="chain-arrow">→</span>')}</small>`:''}${!cards.length?`<p>${escape(item.text||e.result||eventSummary(e)||'处理结果未记录')}</p>`:''}</div>`;
 }
 function compactLogAction(a,n) {
   const stages=[], opts={name:true,zone:false,position:false};
@@ -293,7 +297,7 @@ function reviewLogAction(a,n) {
 }
 function renderReviewLog() {
   const actions=new Map((reviewUI.report.actions||[]).map(a=>[a.id,a]));
-  $('#review-log').innerHTML=`<header><h3>展开日志</h3><div class="log-mode" role="group" aria-label="日志显示方式"><button data-log-mode="compact" aria-pressed="${reviewUI.logMode==='compact'}">简略</button><button data-log-mode="detailed" aria-pressed="${reviewUI.logMode==='detailed'}">详细</button></div><button id="review-log-close">收起</button></header><div class="log-scroll">${reviewUI.nodes.map(n=>`<section class="log-node" data-log-node="${escape(n.id)}"><button class="log-node-heading" data-review-node="${escape(n.id)}"><small>Step ${n.number}</small><strong class="log-node-title">${escape(reviewTitle(n))}</strong></button>${n.kind==='initial'?`<div class="compact-cards">${(reviewUI.report.initial_hand||boardCards(n,0,2)).map(c=>reviewLogCard(c,n.id,{zone:false})).join('')}</div>`:n.kind==='final'?reviewFinalCards(n):''}${n.action_ids.map(id=>actions.get(id)).filter(Boolean).map(a=>reviewLogAction(a,n)).join('')||`<p>${n.kind==='initial'?'开始展开时的实际手牌。':n.kind==='final'?'结束后的最终状态与逐卡说明。':'本节点无额外操作。'}</p>`}</section>`).join('')}
+  $('#review-log').innerHTML=`<header><h3>展开日志</h3><div class="log-mode" role="group" aria-label="日志显示方式"><button data-log-mode="compact" aria-pressed="${reviewUI.logMode==='compact'}">简略</button><button data-log-mode="detailed" aria-pressed="${reviewUI.logMode==='detailed'}">详细</button></div><button id="review-log-close">收起</button></header><div class="log-scroll">${reviewUI.nodes.map(n=>`<section class="log-node" data-log-node="${escape(n.id)}"><button class="log-node-heading" data-review-node="${escape(n.id)}"><small>Step ${n.number}</small><strong class="log-node-title">${escape(reviewTitle(n))}</strong></button>${n.kind==='initial'?`<div class="compact-cards">${(reviewUI.report.initial_hand||boardCards(n,0,2)).map(c=>reviewLogCard(c,n.id,{zone:false})).join('')}</div>`:n.kind==='final'?reviewFinalCards(n,reviewUI.report,reviewEdits(),{compact:reviewUI.logMode==='compact'}):''}${n.action_ids.map(id=>actions.get(id)).filter(Boolean).map(a=>reviewLogAction(a,n)).join('')||`<p>${n.kind==='initial'?'开始展开时的实际手牌。':n.kind==='final'?'结束后的最终状态与逐卡说明。':'本节点无额外操作。'}</p>`}</section>`).join('')}
     <details class="review-evidence"><summary>完整报告与原始事件</summary><label><input id="all-events" type="checkbox">查看原始事件</label><a href="/api/raw/${escape(reviewUI.report.id)}" target="_blank">原始记录 JSONL</a><div id="review-raw-events"></div></details></div>`;
   $('#review-log-close').onclick=()=>setReviewDrawer(false);
   $('#review-log-edge-toggle').onclick=()=>setReviewDrawer(!reviewUI.drawer);
@@ -412,7 +416,8 @@ async function confirmReviewSave() {
   }
 }
 function renderSavedPlan(plan) {
-  $('#plan-report').innerHTML=`<div class="plan-actions"><span>保存于 ${dt(plan.saved_ms)}</span><button id="edit-plan" class="primary">查看步骤与调整说明</button><button id="plan-conditions">以此条件再次展开</button><button id="delete-plan" class="danger">删除方案</button></div><h2>${escape(plan.name)}</h2><p class="preserve-lines">${escape(plan.expansion?.notes||'')}</p>${plan.requirements?summaryHtml(plan.requirements,plan):'<p>旧方案未保存条件摘要，原始报告仍完整保留。</p>'}<details><summary>原始冻结报告</summary><div id="saved-raw-report"></div></details>`;
+  $('#plan-report').innerHTML=`<div class="plan-actions"><span>保存于 ${dt(plan.saved_ms)}</span><button id="generate-plan-tutorial" class="primary">生成一图流</button><button id="edit-plan">查看步骤与调整说明</button><button id="plan-conditions">以此条件再次展开</button><button id="delete-plan" class="danger">删除方案</button></div><h2>${escape(plan.name)}</h2><p class="preserve-lines">${escape(plan.expansion?.notes||'')}</p>${plan.requirements?summaryHtml(plan.requirements,plan):'<p>旧方案未保存条件摘要，原始报告仍完整保留。</p>'}<details><summary>原始冻结报告</summary><div id="saved-raw-report"></div></details>`;
+  $('#generate-plan-tutorial').onclick=()=>openPlanTutorial(plan);
   const rawView=raw=>{
     $('#saved-raw-report').innerHTML=renderTrainingReport(plan,{raw}).replaceAll('all-events','plan-all-events');
     $('#plan-all-events').onchange=e=>rawView(e.target.checked);
@@ -491,9 +496,9 @@ function reviewLocationIcon(l) {
 }
 // Only explicit rule cleanup (including lost overlay target) is omitted. Costs, effect
 // movements and uncertain reasons remain visible; detailed evidence is intact.
-function compactCleanup(a) {
+function compactCleanup(a,report=reviewUI.report) {
   if(a.kind==='effect'||a.kind==='cost')return false;
-  const events=(a.evidence_refs||[a.id]).map(id=>(reviewUI.report.events||[]).find(e=>e.id===id)).filter(Boolean);
+  const events=(a.evidence_refs||[a.id]).map(id=>(report.events||[]).find(e=>e.id===id)).filter(Boolean);
   return events.length>0&&events.every(e=>e.message===50&&(e.origin?.location&128)&&e.destination?.location===16&&[0x400,0x20000400].includes(e.reason)&&!e.cost&&!e.cause);
 }
 function reviewEffectParts(desc='') {
@@ -510,9 +515,9 @@ function bindReviewMarks(c,edits,editable) {
   document.querySelectorAll('[data-final-effect]').forEach(b=>b.onchange=()=>{const mark=get();if(b.checked){mark.effects[b.dataset.finalEffect]={note:''};mark.marked=true;}else delete mark.effects[b.dataset.finalEffect];reviewUI.pending=null;refreshFinalMarks();renderReviewDetail();});
   document.querySelectorAll('[data-final-effect-note]').forEach(b=>b.oninput=()=>{get().effects[b.dataset.finalEffectNote].note=b.value;reviewUI.pending=null;refreshFinalMarks();});
 }
-function reviewFinalCards(n,report=reviewUI.report,edits=reviewEdits()) {
+function reviewFinalCards(n,report=reviewUI.report,edits=reviewEdits(),{compact=true}={}) {
   const cards=(n.state?.cards||[]).filter(c=>edits.final_marks?.[String(c.instance_id)]?.marked).sort((a,b)=>a.controller-b.controller||a.location-b.location||a.sequence-b.sequence);
-  return `<h3>终场有效卡牌</h3><div class="marked-final-cards">${cards.map(c=>{const mark=edits.final_marks[String(c.instance_id)],parts=reviewEffectParts(report.catalog?.[c.code]?.desc);return `<article>${reviewCard(c,n.id,{report,name:true,face:true,zone:false})}${reviewLocationIcon(c)}<small>${escape(reviewPlace(c))}</small>${edits.cards?.[String(c.instance_id)]?`<p>${escape(edits.cards[String(c.instance_id)])}</p>`:''}${parts.filter(p=>mark.effects?.[p.key]).map(p=>`<div class="marked-effect"><strong>✓ ${escape(p.label)}效果</strong><p>${escape(p.text)}</p>${mark.effects[p.key].note?`<p>${escape(mark.effects[p.key].note)}</p>`:''}</div>`).join('')}</article>`;}).join('')||'<p>点击终场卡牌（含墓地、除外区）勾选标记与有效效果。</p>'}</div>`;
+  return `<h3>终场有效卡牌</h3><div class="marked-final-cards">${cards.map(c=>{const mark=edits.final_marks[String(c.instance_id)],parts=reviewEffectParts(report.catalog?.[c.code]?.desc);return `<article>${reviewCard(c,n.id,{report,name:true,face:true,zone:false})}${!compact?reviewLocationIcon(c):''}${!compact||![4,8].includes(c.location)?`<small class="marked-location">${escape(reviewPlace(c))}</small>`:''}${edits.cards?.[String(c.instance_id)]?.trim()?`<p class="marked-note">${escape(edits.cards[String(c.instance_id)])}</p>`:''}${parts.filter(p=>mark.effects?.[p.key]).map(p=>`<div class="marked-effect"><strong>✓ ${escape(p.label)}效果</strong>${!compact?`<p class="marked-effect-original">${escape(p.text)}</p>`:''}${mark.effects[p.key].note?.trim()?`<p class="marked-note">${escape(mark.effects[p.key].note)}</p>`:''}</div>`).join('')}</article>`;}).join('')||'<p>点击终场卡牌（含墓地、除外区）勾选标记与有效效果。</p>'}</div>`;
 }
 function refreshFinalMarks() {
   const n=reviewUI.nodes.find(n=>n.kind==='final');if(!n)return;

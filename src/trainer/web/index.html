@@ -6,6 +6,7 @@
   <title>YGO 展开练习室</title>
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/review.css">
+  <link rel="stylesheet" href="/plan-tutorial.css">
 </head>
 <body>
 <div class="app-bar">
@@ -167,6 +168,11 @@
   </section>
 </main>
 <section id="review-card-popover" class="review-card-popover" role="dialog" aria-label="卡牌详情" tabindex="-1" hidden><header><strong>卡牌详情</strong><button id="review-detail-close" aria-label="关闭卡牌详情">×</button></header><div id="review-card-detail" class="review-card-detail"></div></section>
-<script src="/report-view.js"></script><script src="/app.js"></script><script src="/expansion.js"></script><script src="/timeline.js"></script><script src="/review.js"></script>
+<dialog id="plan-tutorial-dialog" class="plan-tutorial-dialog" aria-labelledby="plan-tutorial-title">
+  <header><h2 id="plan-tutorial-title">一图流展开教程</h2><button id="plan-tutorial-zoom">原始大小</button><button data-tutorial-export="png" class="primary">导出 PNG</button><button data-tutorial-export="svg">导出 SVG</button><button id="plan-tutorial-close">关闭</button></header>
+  <div id="plan-tutorial-scroll"><div id="plan-tutorial-canvas"></div></div>
+  <p id="plan-tutorial-status" role="status"></p>
+</dialog>
+<script src="/report-view.js"></script><script src="/app.js"></script><script src="/expansion.js"></script><script src="/timeline.js"></script><script src="/review.js"></script><script src="/plan-tutorial.js"></script>
 </body>
 </html>

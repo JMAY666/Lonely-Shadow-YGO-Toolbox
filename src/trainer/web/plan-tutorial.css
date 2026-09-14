@@ -1,0 +1,14 @@
+.plan-actions { flex-wrap:wrap; gap:12px; }
+.plan-tutorial-dialog { width:min(1500px,96vw); max-width:96vw; height:92dvh; max-height:92dvh; padding:0; border:1px solid #a8bbb0; border-radius:14px; color:#203d36; background:#f3f7f2; box-shadow:0 18px 80px #071a1550; }
+.plan-tutorial-dialog[open] { display:flex; flex-direction:column; }
+.plan-tutorial-dialog > header { display:flex; align-items:center; flex-wrap:wrap; gap:12px; padding:16px 22px; background:white; border-bottom:1px solid #dae5dd; }
+.plan-tutorial-dialog h2 { font-size:19px; margin:0 auto 0 0; }
+.plan-tutorial-dialog button { padding:9px 14px; flex-shrink:0; }
+#plan-tutorial-scroll { flex:1; min-height:0; overflow:auto; overscroll-behavior:contain; }
+#plan-tutorial-canvas { width:100%; line-height:0; }
+#plan-tutorial-canvas > svg { display:block; width:100%; height:auto; }
+#plan-tutorial-canvas.actual-size { width:1440px; }
+.tutorial-step { cursor:pointer; outline:none; }
+.tutorial-step:hover > rect:first-of-type,.tutorial-step:focus > rect:first-of-type { stroke:#2c745e; stroke-width:2.5px; }
+#plan-tutorial-status { margin:0; padding:12px 22px; font-size:12px; line-height:1.6; background:white; border-top:1px solid #dae5dd; }
+@media(max-width:900px) { .plan-tutorial-dialog > header { gap:8px; padding:12px; }.plan-tutorial-dialog h2 { width:100%; } }

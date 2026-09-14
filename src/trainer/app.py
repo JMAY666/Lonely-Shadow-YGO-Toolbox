@@ -645,7 +645,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('Content-Length', str(len(data)))
         self.send_header('Cache-Control', 'no-store')
         self.send_header('X-Content-Type-Options', 'nosniff')
-        self.send_header('Content-Security-Policy', "default-src 'self'; img-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'")
+        self.send_header('Content-Security-Policy', "default-src 'self'; img-src 'self' data: blob:; style-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'")
         self.end_headers(); self.wfile.write(data)
 
     def dispatch(self, post=False):
@@ -710,7 +710,7 @@ class Handler(BaseHTTPRequestHandler):
                             p = root / f'{code}{ext}'
                             if p.is_file(): return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0])
                     p = WEB / 'card-back.svg'; return self.send(p.read_bytes(), 'image/svg+xml')
-                files = {'/': 'index.html', '/app.js': 'app.js', '/expansion.js': 'expansion.js', '/timeline.js': 'timeline.js', '/report-view.js': 'report-view.js', '/review.js': 'review.js', '/review.css': 'review.css', '/review-back.svg': 'review-back.svg', '/style.css': 'style.css', '/card-back.svg': 'card-back.svg'}
+                files = {'/': 'index.html', '/app.js': 'app.js', '/expansion.js': 'expansion.js', '/timeline.js': 'timeline.js', '/report-view.js': 'report-view.js', '/review.js': 'review.js', '/review.css': 'review.css', '/plan-tutorial.js': 'plan-tutorial.js', '/plan-tutorial.css': 'plan-tutorial.css', '/review-back.svg': 'review-back.svg', '/style.css': 'style.css', '/card-back.svg': 'card-back.svg'}
                 if path in files:
                     p = WEB / files[path]; return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0] + '; charset=utf-8')
             self.send({'error': '内容不存在'}, status=404)

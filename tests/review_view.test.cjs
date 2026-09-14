@@ -141,6 +141,33 @@ test('final summaries show marked grave and banished instances only and retain e
   const html=r.summaryHtml({},report);assert(!html.includes('>场上<'));assert.match(html,/墓地同名/);assert.match(html,/除外/);assert.match(html,/②效果/);assert.match(html,/阻抗/);assert(!html.includes('未填写终场'));
   assert.equal(r.reviewEffectParts(report.catalog[10].desc).length,3);
 });
+
+test('compact final marks keep numbers and red notes, omit field maps, and detailed mode retains the source text',()=>{
+  const r=setup(),cards=[{instance_id:1,code:10,name:'场上怪兽',controller:0,location:4,sequence:5},
+    {instance_id:2,code:10,name:'场地魔法',controller:0,location:8,sequence:5},
+    {instance_id:3,code:10,name:'墓地卡牌',controller:0,location:16}];
+  const plan={catalog:{10:{desc:'①：效果原文。②：另一效果原文。'}},annotations:{final_marks:Object.fromEntries(cards.map(c=>[c.instance_id,{marked:true,effects:{0:{note:'红色备注 <内容>'},1:{note:'  '}}}]))}};
+  const before=JSON.stringify(plan),node={id:'final',kind:'final',state:{cards}};
+  const compact=r.reviewFinalCards(node,plan,plan.annotations);
+  assert.equal((compact.match(/data-review-card=/g)||[]).length,3);
+  assert.match(compact,/①效果/);assert.match(compact,/②效果/);
+  assert.match(compact,/class="marked-note">红色备注 &lt;内容>/);
+  assert(!compact.includes('效果原文'));assert(!compact.includes('location-icon'));
+  assert.equal((compact.match(/class="marked-location"/g)||[]).length,1);
+  assert.match(compact,/>我方墓地</);
+  const detail=r.reviewFinalCards(node,plan,plan.annotations,{compact:false});
+  assert.match(detail,/效果原文/);assert.match(detail,/location-icon/);
+  assert.equal(JSON.stringify(plan),before);
+});
+
+test('compact operations omit field mini maps but retain graveyard and overlay cost locations',()=>{
+  const r=setup(),card={instance_id:1,code:10,name:'效果怪兽',location:4,controller:0,sequence:0};
+  const cost={id:'2:0',message:50,cards:[card],origin:{location:128,controller:0},destination:{location:16,controller:0}};
+  const summon={id:'3:0',message:63,cards:[card]};r.reviewUI.report={events:[cost,summon],catalog:{}};
+  const html=r.reviewLogAction({id:'1:0',kind:'effect',cards:[card],costs:[cost],results:[summon],status:'resolved'},{id:'step',number:2});
+  assert(!html.includes('location-icon'));assert(!html.includes('<svg'));
+  assert.match(html,/我方素材/);assert.match(html,/我方墓地/);assert.match(html,/特殊召唤/);
+});
 test('compact cleanup omits only explicit rule material disposal and never a cost or effect',()=>{
   const r=setup(), e={id:'1:0',message:50,origin:{location:128},destination:{location:16},reason:1024};
   r.reviewUI.report={events:[e]};const a={id:e.id,kind:'action',evidence_refs:[e.id]};

@@ -154,6 +154,14 @@ module.exports=async function({page,nativeState,nativeWait,hostWait,waitHistory,
   await page.locator('#review-detail-close').click();
   await page.locator('#review-zone-close').click();
   await page.locator('#review-log-toggle').click();
+  await page.locator('[data-log-mode="compact"]').click();
+  assert.equal(await page.locator('[data-log-node="final"] .marked-effect-original').count(),0);
+  assert.equal(await page.locator('[data-log-node="final"] .location-icon').count(),0);
+  assert.match(await page.locator('[data-log-node="final"] .marked-location').innerText(),/墓地/);
+  assert.equal(await page.locator('[data-log-node="final"] .marked-note').evaluate(el=>getComputedStyle(el).color),'rgb(179, 55, 55)');
+  await page.locator('[data-log-mode="detailed"]').click();
+  assert(await page.locator('[data-log-node="final"] .marked-effect-original').count()>0);
+  await page.locator('[data-log-mode="compact"]').click();
   await page.locator('[data-log-node="final"] .marked-final-cards .review-card').click();
   await page.locator('[data-final-effect-note]').fill('墓地有效效果验收');
   await page.waitForTimeout(100);
