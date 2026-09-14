@@ -3,12 +3,12 @@ const {readFileSync}=require('node:fs');
 const path=require('node:path');
 const vm=require('node:vm');
 const test=require('node:test');
-function setup() {
+function setup(extra={}) {
   const el={addEventListener(){}};
   const context=vm.createContext({Map,structuredClone,flow:{draft:null},app:{},$:()=>el,
-    document:{addEventListener(){},querySelectorAll:()=>[]},escape:String,eventSummary:e=>e.result||e.type||'',zoneNames:{}});
+    document:{addEventListener(){},querySelectorAll:()=>[]},escape:String,eventSummary:e=>e.result||e.type||'',zoneNames:{},...extra});
   for(const file of ['review.js','plan-tutorial.js'])vm.runInContext(readFileSync(path.join(__dirname,'../src/trainer/web',file),'utf8'),context);
-  return vm.runInContext('({buildPlanTutorial,layoutPlanTutorial,renderPlanTutorialSvg,tutorialWrap,reviewUI})',context);
+  return vm.runInContext('({buildPlanTutorial,layoutPlanTutorial,renderPlanTutorialSvg,tutorialWrap,tutorialAssets,reviewUI})',context);
 }
 function fixture() {
   const a={instance_id:1,code:10,name:'起手怪兽',controller:0,location:4,sequence:0};
@@ -27,9 +27,11 @@ test('tutorial reads the frozen plan only and preserves costs, targets, notes an
   const r=setup(),plan=fixture(),before=JSON.stringify(plan);
   r.reviewUI.report={annotations:{nodes:{'step:2:0':{name:'无关草稿'}}}};
   const model=r.buildPlanTutorial(plan),svg=r.renderPlanTutorialSvg(model);
-  for(const label of ['起手条件','终场展示','任意手牌 ×1','发动①','Cost · 支付 1000 LP','对象 ·','检索 ·','无效一次','我方墓地','Step 2'])assert(svg.includes(label),label);
+  for(const label of ['起手条件','终场展示','任意手牌 ×1','发动①','Cost · 支付 LP','支付 1000 LP','对象','检索','无效一次','我方墓地','Step 2'])assert(svg.includes(label),label);
   for(const label of ['效果原文','展开使用资源','不应列出的使用资源','无关草稿','我方 1 号主怪兽区'])assert(!svg.includes(label),label);
   assert.equal(model.finalCards.length,2);assert.equal(model.steps.length,1);
+  assert.equal((svg.match(/class="tutorial-flow-card"/g)||[]).length,3,'Actor, target and result each have their own card image');
+  assert.deepEqual(Array.from(model.steps[0].actions[0].stages,s=>s.label),['发动①','Cost · 支付 LP','对象','检索']);
   assert.match(svg,/路线 &lt;测试&gt;/);assert.match(svg,/用户备注 &amp; &lt;保留&gt;/);
   assert.match(svg,/fill="#b33737"/);assert.equal(JSON.stringify(plan),before);
 });
@@ -38,7 +40,7 @@ test('negated and unrecorded outcomes and random dependencies remain explicit',(
   plan.requirements.random=[{name:'需要随机命中',count:1}];
   const svg=r.renderPlanTutorialSvg(r.buildPlanTutorial(plan));
   assert.match(svg,/发动被无效/);assert.match(svg,/处理结果未记录/);assert.match(svg,/Cost/);assert.match(svg,/随机依赖：需要随机命中 ×1/);
-  assert(!svg.includes('检索 ·'));
+  assert(!svg.includes('data-tutorial-role="检索"'));
 });
 test('random drawn instance is masked while identical searched copy and actual opening remain distinguishable',()=>{
   const r=setup(),plan=fixture(),drawn={instance_id:8,code:99,name:'抽中身份',controller:0,location:2};
@@ -60,7 +62,11 @@ test('serpentine rows retain chronological order, distinct arrows and readable b
     for(let i=0;i<count;i++) {
       const box=layout.boxes[i],row=Math.floor(i/layout.columns);
       assert.equal(box.number,i+2);assert(box.x>=layout.pad&&box.x+box.width<=layout.width-layout.pad+.1);
-      assert(box.y+box.height<layout.height-40);assert(box.header+box.lines.length*21<box.height);
+      assert(box.y+box.height<layout.height-40);assert(box.notesY+box.notes.length*20<box.height);
+      for(const action of box.actions)for(const stage of action.stages) {
+        assert(stage.x>=0&&stage.x+stage.width<=box.width-36+.1);
+        assert(action.y+stage.y+stage.height<box.height);
+      }
       if(i%layout.columns&&i>0)assert.equal(box.x>layout.boxes[i-1].x,row%2===0);
     }
     if(count===16)assert(layout.height/layout.width<2.2,'16 steps should fold into a compact sheet');
@@ -88,11 +94,51 @@ test('export SVG embeds only supplied card images and escapes names, IDs and not
 
 test('long step titles leave enough room for artwork and missing opening text does not overlap condition notes',()=>{
   const r=setup(),model=r.buildPlanTutorial(fixture());
-  const step={...model.steps[0],title:'自定义步骤名称'.repeat(11),lines:[{text:'通常召唤',color:'ink'}]};
+  const step={...model.steps[0],title:'自定义步骤名称'.repeat(11)};
   model.steps=Array.from({length:25},(_,i)=>({...step,id:'long:'+i,number:i+2}));
   model.opening=[];model.conditionsNote='需要保留一张手牌作为后续费用';
   const layout=r.layoutPlanTutorial(model);
   for(const box of layout.boxes)assert(box.height>box.header+73,'Full card artwork fits below a multi-line title');
   assert(layout.openingNoteY+16>98,'Condition note follows the empty-opening message with readable spacing');
   assert(layout.openingNoteY+layout.conditionLines.length*20<layout.overviewHeight);
+});
+
+test('summon materials, card costs and results are pictured in order without repeating operation sentences',()=>{
+  const r=setup(),plan=fixture(),[actor]=plan.actions[0].cards;
+  const material={...actor,instance_id:4,code:12,name:'素材怪兽'},summoned={...actor,instance_id:5,code:13,name:'连接怪兽',summon_method:'连接召唤',materials:[actor,material]};
+  plan.actions[0].costs=[{message:50,cards:[material],origin:{controller:0,location:128},destination:{controller:0,location:16},reason:128}];
+  plan.actions[0].results=[{message:63,cards:[summoned]}];
+  const model=r.buildPlanTutorial(plan),stages=model.steps[0].actions[0].stages,svg=r.renderPlanTutorialSvg(model);
+  assert.deepEqual(Array.from(stages,s=>s.label),['发动①','Cost · 送墓','对象','素材','连接召唤']);
+  assert.equal((svg.match(/class="tutorial-flow-card"/g)||[]).length,6);
+  assert.equal(stages[1].hint,'我方素材 → 我方墓地');
+  assert.deepEqual(Array.from(stages[3].cards,c=>c.src),['/pics/10.jpg','/pics/12.jpg']);
+  assert.equal(stages[4].cards[0].src,'/pics/13.jpg');
+  assert(!svg.includes('连接召唤 · 连接怪兽'));
+});
+
+test('many materials and long card names wrap within a stage without dropping any copies',()=>{
+  const r=setup(),model=r.buildPlanTutorial(fixture());
+  const cards=Array.from({length:7},(_,i)=>({name:'很长的卡牌名称'.repeat(4)+i,src:`/pics/${100+i}.jpg`,location:'对方墓地'}));
+  model.steps=Array.from({length:25},(_,i)=>({id:'large:'+i,number:i+2,title:'',actions:[{id:'summon',stages:[{label:'素材',cards},{label:'连接召唤',cards:cards.slice(0,1)}],notes:[]}],notes:[]}));
+  const layout=r.layoutPlanTutorial(model);
+  for(const box of layout.boxes) {
+    const stages=box.actions[0].stages;assert.equal(stages[0].cards.length,7);
+    assert(stages[1].y>=stages[0].height+24,'The result follows the wrapped material group');
+    for(const stage of stages)for(const card of stage.cards) {
+      assert(card.x>=0&&card.x+70<=stage.width);
+      assert(card.y+72+card.lines.length*14+card.places.length*13<=stage.height);
+    }
+  }
+});
+
+test('export embeds cards used only as costs, targets, materials or results and deduplicates requests',async()=>{
+  const requested=[],r=setup({fetch:async src=>{requested.push(src);return {ok:true,blob:async()=>({type:'image/jpeg',arrayBuffer:async()=>new Uint8Array([1,2]).buffer})};},btoa:s=>Buffer.from(s,'binary').toString('base64')});
+  const plan=fixture(),actor=plan.actions[0].cards[0];
+  plan.actions[0].costs=[{message:50,cards:[{...actor,code:12}],destination:{controller:0,location:16}}];
+  plan.actions[0].targets=[{...actor,code:13}];
+  plan.actions[0].results=[{message:63,cards:[{...actor,code:14,summon_method:'连接召唤',materials:[{...actor,code:15}]}]}];
+  const model=r.buildPlanTutorial(plan),assets=await r.tutorialAssets(model),svg=r.renderPlanTutorialSvg(model,undefined,assets);
+  assert.deepEqual(requested.slice().sort(),['/pics/10.jpg','/pics/12.jpg','/pics/13.jpg','/pics/14.jpg','/pics/15.jpg','/review-back.svg'].sort());
+  assert(!svg.includes('href="/pics/'));assert(!svg.includes('href="/review-back.svg'));
 });

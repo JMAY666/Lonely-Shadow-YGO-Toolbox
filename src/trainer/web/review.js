@@ -338,7 +338,7 @@ function summaryHtml(summary, savedPlan=null) {
   return `<section class="confirmation-section"><h2>起手条件</h2>${requirementRows(summary.opening,nodes)}<p>任意牌的必要数量必须满足；身份不限不代表可以省略。</p></section>
     <section class="confirmation-section"><h2>展开使用资源</h2><h3>主卡组</h3>${requirementRows(summary.main,nodes)}<h3>EX 额外卡组</h3>${requirementRows(summary.extra,nodes)}</section>
     <section class="confirmation-section"><h2>随机依赖</h2>${summary.random?.length?`${requirementRows(summary.random,nodes)}<p class="review-warning">本路线依赖途中抽到指定卡牌，不属于已验证的稳定展开。</p>`:'<p>未识别到已使用的指定随机命中。</p>'}</section>
-    <section class="confirmation-section"><h2>终场摘要</h2>${reviewFinalCards({id:'final',state:(savedPlan||reviewUI.report).review?.nodes?.find(n=>n.kind==='final')?.state||(savedPlan||reviewUI.report).final_state},savedPlan||reviewUI.report,edits)}${summary.final?.notes?`<p class="preserve-lines">${escape(summary.final.notes)}</p>`:''}</section>
+    <section class="confirmation-section"><h2>终场摘要</h2>${reviewFinalCards({id:'final',state:(savedPlan||reviewUI.report).review?.nodes?.find(n=>n.kind==='final')?.state||(savedPlan||reviewUI.report).final_state},savedPlan||reviewUI.report,edits,{compact:!savedPlan})}${summary.final?.notes?`<p class="preserve-lines">${escape(summary.final.notes)}</p>`:''}</section>
     <p class="review-warning">${escape(summary.basis||'按本次实际记录统计')}${(summary.warnings||[]).map(w=>'<br>'+escape(w)).join('')}</p>${summary.note?`<p class="preserve-lines">用户核对说明：${escape(summary.note)}</p>`:''}`;
 }
 async function previewReview() {

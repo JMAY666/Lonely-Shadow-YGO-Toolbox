@@ -160,6 +160,22 @@ test('compact final marks keep numbers and red notes, omit field maps, and detai
   assert.equal(JSON.stringify(plan),before);
 });
 
+test('saved management summaries retain full marked effects, positions and notes while confirmation stays compact',()=>{
+  const r=setup(),cards=[{instance_id:1,code:10,name:'终场怪兽',controller:0,location:4,sequence:5,position:1}];
+  const description='①：这是需要在展开管理完整保留的效果原文。②：未勾选的另一效果。';
+  const note='完整保留的逐效果备注。'.repeat(35);
+  const plan={catalog:{10:{desc:description}},final_state:{cards},annotations:{cards:{1:'此卡的完整实例说明'},final_marks:{1:{marked:true,effects:{0:{note}}}}}};
+  r.reviewUI.report=plan;
+  const before=JSON.stringify(plan),summary={final:{notes:'终场整体说明'}};
+  const saved=r.summaryHtml(summary,plan),confirmation=r.summaryHtml(summary);
+  assert.match(saved,/①：这是需要在展开管理完整保留的效果原文。/);
+  assert(saved.includes(note));assert.match(saved,/此卡的完整实例说明/);assert.match(saved,/终场整体说明/);
+  assert.match(saved,/location-icon/);assert.match(saved,/>我方 额外怪兽区 1</);
+  assert(!saved.includes('②：未勾选的另一效果。'));
+  assert(!confirmation.includes('效果原文'));assert(!confirmation.includes('location-icon'));
+  assert.equal(JSON.stringify(plan),before);
+});
+
 test('compact operations omit field mini maps but retain graveyard and overlay cost locations',()=>{
   const r=setup(),card={instance_id:1,code:10,name:'效果怪兽',location:4,controller:0,sequence:0};
   const cost={id:'2:0',message:50,cards:[card],origin:{location:128,controller:0},destination:{location:16,controller:0}};

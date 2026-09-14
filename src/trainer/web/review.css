@@ -220,3 +220,5 @@ textarea:focus-visible { outline: 2px solid #619fc2; outline-offset: 2px; }
 .marked-final-cards p { white-space:pre-wrap; overflow-wrap:anywhere; font-size:12px; }
 .marked-effect { background:#eaf4df; padding:8px; margin-top:8px; border-radius:5px; }
 .marked-final-cards .marked-note { color:#b33737; font-weight:600; margin:5px 0 0; }
+#plan-report .marked-final-cards { grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); }
+#plan-report .marked-effect-original { font-size:13px; line-height:1.7; }

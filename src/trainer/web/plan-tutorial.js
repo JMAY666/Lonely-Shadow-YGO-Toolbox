@@ -27,50 +27,50 @@ function tutorialCard(c,node,plan) {
   const known=reviewKnown(c)&&!reviewRandomDraw(c,node,plan);
   return {name:reviewCardLabel(c,node,plan),src:known?`/pics/${Number(c.code)}.jpg`:'/review-back.svg'};
 }
-function tutorialNames(cards,node,plan) {
-  const names=new Map();
-  for(const c of cards||[]) {
-    const name=(c.controller===1?'对方·':'')+tutorialCard(c,node,plan).name;
-    names.set(name,(names.get(name)||0)+1);
-  }
-  return [...names].map(([name,count])=>name+(count>1?` ×${count}`:'')).join(' + ');
+function tutorialFlowCards(cards,node,plan,locations=true) {
+  return (cards||[]).map(c=>({...tutorialCard(c,node,plan),
+    location:locations&&c.location&&![4,8].includes(c.location)?reviewPlace(c):c.controller===1?'对方':''}));
 }
-function tutorialOperation(item,node,plan) {
+function tutorialOperationStages(item,node,plan,role='') {
   const event=(plan.events||[]).find(e=>e.id===(item.event_ref||item.id))||item;
-  const cards=item.cards||event.cards||[],names=tutorialNames(cards,node,plan);
+  const cards=item.cards||event.cards||[];
   const dest=event.destination,origin=event.origin;
-  if(event.message===90)return `抽 ${cards.length} 张卡（随机）`;
+  const stage=(label,cs=cards,hint='',locations=true)=>({label:role?`${role} · ${label}`:label,role,cards:tutorialFlowCards(cs,node,plan,locations),hint});
+  if(event.message===90)return [stage(`抽 ${cards.length} 张卡（随机）`,cards,'',false)];
   const method=cards.find(c=>c.summon_method)?.summon_method||({61:'通常召唤',63:'特殊召唤',65:'反转召唤',54:'盖放'}[event.message]);
   if(method) {
     const materials=cards.flatMap(c=>c.materials||[]);
-    return `${materials.length?tutorialNames(materials,node,plan)+' → ':''}${method} · ${names}`;
+    return [...(materials.length?[stage('素材',materials)]:[]),stage(method)];
   }
   if(event.message===50&&dest) {
     const deckOp={move_to_bottom:'放回卡组底部',move_to_top:'放回卡组顶部',reorder:'调整卡组顺序',position_refresh:'更新卡组位置'}[event.deck_operation];
     const operation=deckOp||(dest.location===16?(origin?.location===2&&(event.reason&0x4000)?'丢弃':'送墓'):dest.location===32?((dest.position&10)?'里侧除外':'除外'):dest.location&128?'成为素材':dest.location===2?(origin?.location===1?'检索':'回到手牌'):dest.location===1?'回到卡组':`移至${reviewPlace(dest)}`);
-    const from=origin&&![4,8].includes(origin.location)?`${reviewPlace(origin)} · `:'';
     const changedSide=origin?.controller!=null&&dest.controller!=null&&origin.controller!==dest.controller;
-    return `${from}${operation}${changedSide?' → '+reviewPlace(dest):''} · ${names||'卡牌未记录'}`;
+    const places=[origin&&![4,8].includes(origin.location)?reviewPlace(origin):'',
+      changedSide||![4,8].includes(dest.location)?reviewPlace(dest):''].filter(Boolean);
+    const result=stage(operation,cards,places.join(' → '),false);
+    if(!cards.length)result.text='卡牌未记录';
+    return [result];
   }
   let text=item.text||item.summary||event.result||eventSummary(event)||'操作未记录';
-  for(const c of cards)if(c.name&&reviewRandomDraw(c,node,plan))text=text.replaceAll(c.name,'随机抽牌');
-  return text;
+  for(const c of cards)if(c.name&&(!reviewKnown(c)||reviewRandomDraw(c,node,plan)))text=text.replaceAll(c.name,tutorialCard(c,node,plan).name);
+  return [{...stage(({53:'改变表示',100:'支付 LP'}[event.message])||'处理结果'),text}];
 }
-function tutorialActionLines(action,node,plan) {
-  const lines=[],add=(text,color='ink')=>{if(text)lines.push({text,color});};
+function tutorialAction(action,node,plan) {
+  const stages=[],notes=[],add=(text,color='ink')=>{if(text)notes.push({text,color});};
   if(action.kind==='effect') {
     const num=Number(action.effect_number),label=num>0?('①②③④⑤⑥⑦⑧⑨⑩'[num-1]||String(num)):'效果';
-    add(`发动${label} · ${tutorialNames(action.cards,node,plan)||'卡牌未记录'}`);
-    for(const cost of action.costs||[])add('Cost · '+tutorialOperation(cost,node,plan));
-    if(action.targets?.length)add('对象 · '+tutorialNames(action.targets,node,plan));
-    for(const result of action.results||[])add(tutorialOperation(result,node,plan));
+    stages.push({label:`发动${label}`,cards:tutorialFlowCards(action.cards,node,plan),text:action.cards?.length?'':'卡牌未记录'});
+    for(const cost of action.costs||[])stages.push(...tutorialOperationStages(cost,node,plan,'Cost'));
+    if(action.targets?.length)stages.push({label:'对象',cards:tutorialFlowCards(action.targets,node,plan)});
+    for(const result of action.results||[])stages.push(...tutorialOperationStages(result,node,plan));
     if(action.status!=='resolved')add(({negated:'发动被无效',disabled:'效果被无效',pending:'已发动，尚未确认结算'}[action.status])||action.status_label||'结算状态未记录','warning');
     if(!action.results?.length)add('处理结果未记录','warning');
     add(tutorialNote(plan.annotations?.effects?.[action.id]),'note');
   } else {
-    add((action.kind==='cost'?'Cost · ':'')+tutorialOperation(action,node,plan));
+    stages.push(...tutorialOperationStages(action,node,plan,action.kind==='cost'?'Cost':''));
   }
-  return lines;
+  return {id:action.id,stages,notes};
 }
 function buildPlanTutorial(plan) {
   const nodes=plan.review?.nodes||reviewFallback(plan),edits=plan.annotations||{};
@@ -80,11 +80,10 @@ function buildPlanTutorial(plan) {
     const active=(n.action_ids||[]).map(id=>actions.get(id)).filter(a=>a&&!compactCleanup(a,plan));
     const edit=edits.nodes?.[n.id]||{};
     if(!active.length&&!edit.name&&!edit.notes)continue;
-    const lines=active.flatMap(a=>tutorialActionLines(a,n,plan));
-    if(edit.notes?.trim())lines.push({text:tutorialNote(edit.notes),color:'note'});
-    if(!lines.length)lines.push({text:'本节点没有已记录操作',color:'muted'});
-    const card=active.flatMap(a=>a.cards||[])[0];
-    steps.push({id:n.id,number:n.number,title:tutorialNote(edit.name||''),lines,art:card?tutorialCard(card,n,plan):null});
+    const notes=[];
+    if(edit.notes?.trim())notes.push({text:tutorialNote(edit.notes),color:'note'});
+    if(!active.length)notes.push({text:'本节点没有已记录操作',color:'muted'});
+    steps.push({id:n.id,number:n.number,title:tutorialNote(edit.name||''),actions:active.map(a=>tutorialAction(a,n,plan)),notes});
   }
   let opening=plan.requirements?.opening;
   const openingKnown=Array.isArray(opening);
@@ -119,15 +118,55 @@ function buildPlanTutorial(plan) {
     conditionsNote:tutorialNote(plan.requirements?.note||edits.conditions_note),note:tutorialNote(plan.expansion?.notes)};
 }
 
+function layoutTutorialStage(stage,maxWidth) {
+  const labelWidth=Math.ceil(Array.from(stage.label).reduce((sum,c)=>sum+12*(/[\x20-\x7e]/.test(c)?.6:1),16));
+  const width=Math.min(maxWidth,stage.cards.length?Math.max(84,Math.min(132,labelWidth),stage.cards.length*76+8):stage.text?.length>60?240:100);
+  const labels=tutorialWrap(stage.label,width-12,12),columns=Math.max(1,Math.floor((width-8)/76));
+  const cards=stage.cards.map(c=>({...c,lines:tutorialWrap(c.name,70,11),places:c.location?tutorialWrap(c.location,70,10):[]}));
+  let y=labels.length*17+12;
+  for(let i=0;i<cards.length;i+=columns) {
+    const row=cards.slice(i,i+columns),height=Math.max(...row.map(c=>72+c.lines.length*14+c.places.length*13));
+    row.forEach((c,col)=>Object.assign(c,{x:(width-row.length*76+6)/2+col*76,y}));
+    y+=height+6;
+  }
+  const lines=stage.text?tutorialWrap(stage.text,width-16,12):[],hints=stage.hint?tutorialWrap(stage.hint,width-12,10):[];
+  const textY=y;y+=lines.length*17;
+  const hintY=y;y+=hints.length*14;
+  return {...stage,width,height:Math.max(48,y+8),labels,cards,lines,hints,textY,hintY};
+}
+function layoutTutorialAction(action,width) {
+  const stages=action.stages.map(s=>layoutTutorialStage(s,width)),rows=[[]];
+  let x=0,y=0;
+  for(const stage of stages) {
+    if(x&&x+stage.width>width){x=0;rows.push([]);}
+    stage.x=x;x+=stage.width+14;rows.at(-1).push(stage);
+  }
+  for(const row of rows.filter(r=>r.length)) {
+    const labelLines=Math.max(...row.map(s=>s.labels.length));
+    for(const stage of row) {
+      const extra=(labelLines-stage.labels.length)*17;
+      stage.cards.forEach(c=>c.y+=extra);stage.textY+=extra;stage.hintY+=extra;stage.height+=extra;
+    }
+    const height=Math.max(...row.map(s=>s.height));
+    row.forEach(s=>Object.assign(s,{y,height}));y+=height+24;
+  }
+  if(stages.length)y-=24;
+  const notes=action.notes.flatMap(l=>tutorialWrap(l.text,width,14).map(text=>({...l,text})));
+  const notesY=y+(notes.length?8:0);
+  return {...action,stages,notes,notesY,height:notesY+notes.length*20};
+}
 function layoutPlanTutorial(model) {
   const width=1440,pad=32,gap=32,columns=model.steps.length>24?4:3;
   const nodeWidth=(width-pad*2-gap*(columns-1))/columns;
   const boxes=model.steps.map(s=>{
-    const bodyWidth=nodeWidth-(s.art?94:36);
-    const lines=s.lines.flatMap(l=>tutorialWrap(l.text,bodyWidth,15).map(text=>({...l,text})));
+    const bodyWidth=nodeWidth-36;
     const title=s.title?tutorialWrap(s.title,nodeWidth-132,14):[];
     const header=Math.max(48,26+title.length*18);
-    return {...s,lines,title,header,width:nodeWidth,height:Math.max(140,header+(s.art?86:0),header+lines.length*21+22)};
+    const actions=s.actions.map(a=>layoutTutorialAction(a,bodyWidth));
+    let y=header;
+    actions.forEach(a=>{a.y=y;y+=a.height+16;});
+    const notes=s.notes.flatMap(l=>tutorialWrap(l.text,bodyWidth,14).map(text=>({...l,text})));
+    return {...s,actions,notes,notesY:y,title,header,width:nodeWidth,height:Math.max(140,y+notes.length*20+18)};
   });
   const openingColumns=model.opening.length>3?2:1,openingWidth=openingColumns===2?570:370;
   const finalWidth=width-pad*2-openingWidth-24,finalColumns=finalWidth>900&&model.finalCards.length>=4?4:3;
@@ -177,7 +216,7 @@ function layoutPlanTutorial(model) {
 function renderPlanTutorialSvg(model,layout=layoutPlanTutorial(model),assets={}) {
   const out=[],esc=tutorialEscape;
   const rect=(x,y,w,h,fill,stroke='#d9e5df',radius=12)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${radius}" fill="${fill}" stroke="${stroke}"/>`;
-  const text=(value,x,y,size=15,color='ink',weight=400)=>`<text x="${x}" y="${y}" font-size="${size}" font-weight="${weight}" fill="${tutorialColors[color]||color}">${esc(value)}</text>`;
+  const text=(value,x,y,size=15,color='ink',weight=400,anchor='start')=>`<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="${size}" font-weight="${weight}" fill="${tutorialColors[color]||color}">${esc(value)}</text>`;
   const picture=(src,x,y,w=48,h=70)=>`<image href="${esc(assets[src]||src)}" x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="xMidYMid meet"/>`;
   const {width,height,pad,overviewY,overviewHeight,openingWidth,finalWidth}=layout;
   out.push(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="${esc(model.name)} · 展开一图流" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif"><title>${esc(model.name)} · 展开一图流</title><defs><marker id="tutorial-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="#2c745e" stroke-width="1.7"/></marker></defs>`);
@@ -202,7 +241,7 @@ function renderPlanTutorialSvg(model,layout=layoutPlanTutorial(model),assets={})
   }
   if(!layout.finalCards.length)out.push(text('未标记终场卡牌；可在终场步骤中勾选。',pad+openingWidth+44,overviewY+83,15,'muted'));
   if(model.finalNote)layout.finalNotes.forEach((l,i)=>out.push(text(l,pad+openingWidth+44,overviewY+overviewHeight-20-(layout.finalNotes.length-1-i)*20,14,'note')));
-  out.push(text('展开流程',pad,overviewY+overviewHeight+44,21,'ink',700),text('按 Step 序号依次展开',pad+116,overviewY+overviewHeight+43,14,'muted'));
+  out.push(text('展开流程',pad,overviewY+overviewHeight+44,21,'ink',700),text('卡图 + 关键词 · 按 Step 序号依次展开',pad+116,overviewY+overviewHeight+43,14,'muted'));
   // Each row reverses direction. Row turns travel outside the boxes so that
   // arrows cannot cross text, including an incomplete final row.
   layout.boxes.forEach((box,i)=>{
@@ -221,8 +260,36 @@ function renderPlanTutorialSvg(model,layout=layoutPlanTutorial(model),assets={})
     out.push(`<g class="tutorial-step" data-tutorial-node="${esc(box.id)}" role="button" tabindex="0" aria-label="Step ${box.number}，查看原步骤"><title>Step ${box.number} · 查看原步骤与完整说明</title>`,rect(box.x,box.y,box.width,box.height,'#fff'));
     out.push(rect(box.x+16,box.y+14,76,25,'#e8f1e9','#e8f1e9',7),text(`Step ${box.number}`,box.x+27,box.y+32,13,'accent',700));
     box.title.forEach((l,i)=>out.push(text(l,box.x+105,box.y+32+i*18,14,'ink',600)));
-    if(box.art)out.push(picture(box.art.src,box.x+16,box.y+box.header+3));
-    box.lines.forEach((l,i)=>out.push(text(l.text,box.x+(box.art?78:18),box.y+box.header+17+i*21,15,l.color,l.color==='note'?600:400)));
+    for(const [index,action] of box.actions.entries()) {
+      const ax=box.x+18,ay=box.y+action.y;
+      out.push(`<g class="tutorial-action" data-tutorial-action="${esc(action.id)}">`);
+      if(index)out.push(`<path d="M ${ax} ${ay-8} H ${box.x+box.width-18}" stroke="#e3ebe5"/>`);
+      action.stages.forEach((s,i)=>{
+        const next=action.stages[i+1];if(!next)return;
+        const d=s.y===next.y?`M ${ax+s.x+s.width+2} ${ay+s.y+s.height/2} L ${ax+next.x-3} ${ay+next.y+next.height/2}`:
+          `M ${ax+s.x+s.width/2} ${ay+s.y+s.height+2} V ${ay+next.y-12} H ${ax+next.x+next.width/2} V ${ay+next.y-3}`;
+        out.push(`<path class="tutorial-flow-arrow" d="${d}" fill="none" stroke="#2c745e" stroke-width="1.3" marker-end="url(#tutorial-arrow)"/>`);
+      });
+      for(const stage of action.stages) {
+        const x=ax+stage.x,y=ay+stage.y;
+        out.push(`<g class="tutorial-stage" data-tutorial-role="${esc(stage.label)}">`,rect(x,y,stage.width,stage.height,stage.role==='Cost'?'#fff6e9':'#f4f8f5','#e3ebe5',7));
+        stage.labels.forEach((l,i)=>out.push(text(l,x+stage.width/2,y+18+i*17,12,stage.role==='Cost'?'warning':'accent',600,'middle')));
+        stage.cards.forEach((c,i)=>{
+          const cx=x+c.x,cy=y+c.y;
+          out.push(`<g class="tutorial-flow-card"><title>${esc(c.name+(c.location?' · '+c.location:''))}</title>`,picture(c.src,cx+12.5,cy,45,65));
+          c.lines.forEach((l,i)=>out.push(text(l,cx+35,cy+78+i*14,11,'ink',400,'middle')));
+          c.places.forEach((l,i)=>out.push(text(l,cx+35,cy+78+c.lines.length*14+i*13,10,'muted',400,'middle')));
+          out.push('</g>');
+          if(stage.cards[i+1]?.y===c.y)out.push(text('+',cx+73,cy+35,11,'muted',600,'middle'));
+        });
+        stage.lines.forEach((l,i)=>out.push(text(l,x+stage.width/2,y+stage.textY+13+i*17,12,'ink',400,'middle')));
+        stage.hints.forEach((l,i)=>out.push(text(l,x+stage.width/2,y+stage.hintY+12+i*14,10,'muted',400,'middle')));
+        out.push('</g>');
+      }
+      action.notes.forEach((l,i)=>out.push(text(l.text,ax,ay+action.notesY+14+i*20,14,l.color,l.color==='note'?600:400)));
+      out.push('</g>');
+    }
+    box.notes.forEach((l,i)=>out.push(text(l.text,box.x+18,box.y+box.notesY+14+i*20,14,l.color,l.color==='note'?600:400)));
     out.push('</g>');
   }
   if(!layout.boxes.length)out.push(text('本方案没有可展示的展开动作。',pad,overviewY+overviewHeight+105,16,'muted'));
@@ -245,7 +312,7 @@ function openPlanTutorial(plan) {
   $('#plan-tutorial-scroll').scrollTo(0,0);
 }
 async function tutorialAssets(model) {
-  const sources=[...new Set([...model.opening,...model.finalCards,...model.steps.map(s=>s.art).filter(Boolean)].map(c=>c.src))];
+  const sources=[...new Set([...model.opening,...model.finalCards,...model.steps.flatMap(s=>s.actions.flatMap(a=>a.stages.flatMap(stage=>stage.cards)))].map(c=>c.src))];
   const assets={};
   let next=0;
   await Promise.all(Array.from({length:Math.min(6,sources.length)},async()=>{
