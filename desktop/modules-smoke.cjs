@@ -7,8 +7,8 @@ module.exports = async function ({page,application,deckId,deck,pass,evidence}) {
     await page.waitForFunction(name=>moduleUI.current===name&&!moduleUI.switching,name);
   };
   const open = async () => {
-    await page.locator('#compact-deck').selectOption(deckId);
-    await page.locator('#compact-open').click();
+    if (await page.locator('#deck-workbench').isVisible()) await page.locator('#back-to-decks').click();
+    await page.locator('[data-open-deck='+JSON.stringify(deckId)+']').click();
     await page.waitForFunction(id=>app.id===id&&!app.busy,deckId);
   };
   const originalName = await page.locator('#deck-name').inputValue();
@@ -27,7 +27,7 @@ module.exports = async function ({page,application,deckId,deck,pass,evidence}) {
   await page.locator('#home-expansion').click();
   await page.waitForFunction(()=>moduleUI.current==='expansion'&&!moduleUI.switching);
   assert.equal(await page.locator('#module-expansion').getAttribute('aria-current'),'page');
-  assert.equal(await page.locator('#start-training').isVisible(),true);
+  assert.equal(await page.locator('#deck-manager').isVisible(),true);
   assert.equal(await page.locator('#nav-design').isDisabled(),true);
   assert.equal(await page.locator('#nav-training').isDisabled(),true);
   assert.deepEqual(await page.evaluate(()=>app.deck),{main:[],extra:[],side:[]});
@@ -48,10 +48,12 @@ module.exports = async function ({page,application,deckId,deck,pass,evidence}) {
   await page.waitForFunction(()=>!app.busy&&document.querySelector('#notice').textContent.includes('已被修改'));
   assert.equal(await page.evaluate(()=>app.dirty),true);
   assert.deepEqual(await page.evaluate(()=>app.deck),expansion.deck);
-  page.once('dialog',dialog=>dialog.dismiss());
-  await open();
+  await page.locator('#back-to-decks').click();
+  await page.locator('#leave-deck-dialog [value="cancel"]').click();
   assert.deepEqual(await page.evaluate(()=>app.deck),expansion.deck);
-  page.once('dialog',dialog=>dialog.accept());
+  await page.locator('#back-to-decks').click();
+  await page.locator('#leave-deck-dialog [value="discard"]').click();
+  await page.waitForFunction(()=>!app.busy&&!app.dirty);
   await open();
   assert.deepEqual(await page.evaluate(()=>app.deck),standalone.deck);
   // Restore the shared fixture before running the original complete expansion flow.
@@ -96,7 +98,6 @@ module.exports = async function ({page,application,deckId,deck,pass,evidence}) {
   for (const [width,height] of [[900,650],[1100,800],[1600,1000]]) {
     await application.evaluate(({BrowserWindow},size)=>BrowserWindow.getAllWindows().find(w=>!w.getParentWindow()).setContentSize(...size),[width,height]);
     await page.waitForFunction(width=>innerWidth===width,width);
-    await page.locator('#library-toggle').click();
     await page.screenshot({path:path.join(evidence,`module-editor-${width}.png`)});
     const layout = await page.evaluate(()=>{
       const rail=document.querySelector('.primary-rail').getBoundingClientRect();
@@ -109,7 +110,15 @@ module.exports = async function ({page,application,deckId,deck,pass,evidence}) {
     assert(layout.drawer.left>=layout.rail.right&&layout.drawer.right<=width&&layout.drawer.top>=0&&layout.drawer.bottom<=height,JSON.stringify(layout));
     assert.equal(layout.rail.left,0);
     assert(layout.allZones);
-    await page.locator('#library-close').click();
+    const compact=await page.evaluate(()=>{
+      const panels=[...document.querySelectorAll('.workspace>.panel')].map(p=>p.getBoundingClientRect());
+      const back=document.querySelector('#back-to-decks').getBoundingClientRect();
+      const header=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--app-bar-height'));
+      return {aligned:panels.every(p=>Math.abs(p.top-panels[0].top)<1),top:panels[0].top,header,
+        inline:back.top>=panels[1].top&&back.left>=panels[1].left&&back.right<=panels[1].right,
+        buttonsFit:[...document.querySelectorAll('.editor-tools button')].every(b=>b.scrollWidth<=b.clientWidth+1)};
+    });
+    assert(compact.aligned&&compact.inline&&compact.buttonsFit&&compact.top<=compact.header+16,JSON.stringify(compact));
     const editor=await page.locator('#editor').boundingBox();
     const state=await page.evaluate(()=>JSON.stringify({deck:app.deck,undo:app.undo,design:flow.design}));
     await page.locator('#navigation-toggle').click();
@@ -123,5 +132,5 @@ module.exports = async function ({page,application,deckId,deck,pass,evidence}) {
   }
   await application.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().find(w=>!w.getParentWindow()).setContentSize(1280,900));
   await page.waitForFunction(()=>innerWidth===1280&&innerHeight===900);
-  pass('900/1100/1600 px editor layouts retain all zones and search drawer; left navigation collapses to release width without changing edits');
+  pass('900/1100/1600 px editor layouts retain all zones and card library; left navigation collapses to release width without changing edits');
 };

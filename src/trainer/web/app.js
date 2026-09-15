@@ -7,7 +7,7 @@ const reasons = {manual:'手动结束',client_closed:'关闭了模拟器窗口',
 const zones = ['main', 'extra', 'side'];
 const zoneLimits = {main:60, extra:15, side:15};
 const app = {token:'',deck:{main:[],extra:[],side:[]},id:null,revision:null,dirty:false,cache:new Map(),pendingCards:new Map(),offset:0,total:0,history:[],active:null,reportId:null,allEvents:false,searchGeneration:0,renderGeneration:0,detailGeneration:0,deckEpoch:0,selected:null,undo:[],savedState:null,busy:false};
-const importState = {generation:0, preview:null, text:'', busy:false};
+const importState = {generation:0, preview:null, text:'', busy:false, creating:false, mode:'import'};
 const dt = (v) => v ? new Date(v).toLocaleString('zh-CN',{hour12:false}) : '未知';
 const duration = (v) => `${Math.floor(v/60000)} 分 ${Math.floor(v/1000)%60} 秒`;
 let noticeTimer;
@@ -47,6 +47,7 @@ function activeDesignDeckEdit() {
 }
 function displayView(view) {
   app.view = view;
+  if (typeof setDeckPage === 'function') setDeckPage(app.deckPage || 'manager');
   if(typeof closeBranchMenu==='function')closeBranchMenu(false);
   if(typeof closeReviewDetail==='function')closeReviewDetail();
   if (view !== 'decks') setLibraryOpen(false, false);
@@ -94,10 +95,10 @@ function dirty() {
 }
 function updateStart() {
   $('#start-training').disabled = !app.id || app.dirty || !!app.active || app.busy;
-  for (const id of ['save-deck', 'compact-open', 'compact-deck', 'new-deck', 'deck-name', 'import-deck']) $(`#${id}`).disabled = app.busy;
+  for (const id of ['save-deck', 'deck-name', 'back-to-decks']) $(`#${id}`).disabled = app.busy;
+  document.querySelectorAll('[data-open-deck],[data-deck-menu],[data-create-deck]').forEach(button => { button.disabled = app.busy; });
   $('#undo-deck').disabled = app.busy || !app.undo.length;
   $('#sort-deck').disabled = app.busy || !zones.some(zone => app.deck[zone].length);
-  $('#delete-deck').disabled = app.busy || !$('#compact-deck').value;
   $('#nav-training').hidden = false;
   $('#nav-training').disabled = !app.active;
   const flowBusy = (typeof flow !== 'undefined' && flow.busy) || (typeof rewindState !== 'undefined' && rewindState.busy);
@@ -105,26 +106,26 @@ function updateStart() {
   $('#end-training').disabled = $('#finish-training').disabled;
   $('#restart-expansion').disabled = !app.active?.plan_stage || app.active.status === 'stopping' || flowBusy;
   $('#return-conditions').disabled = $('#restart-expansion').disabled;
-  if (activeDesignDeckEdit()) {$('#start-training').disabled=true;$('#delete-deck').disabled=true;}
+  if (activeDesignDeckEdit()) $('#start-training').disabled=true;
   if (typeof updateModuleChrome === 'function') updateModuleChrome();
   if (typeof flow !== 'undefined' && flow.timer && (!app.active || app.active.status==='stopping') && flow.timer.started!==null) stopTimer();
   $('#training-title').textContent = app.active ? `${app.active.name} · ${statusNames[app.active.status]}` : '展开场地';
 }
 function setLibraryOpen(open, focus = true) {
-  $('#card-library').hidden = !open;
-  $('#library-toggle').setAttribute('aria-expanded', String(open));
-  if (focus) (open ? $('#search') : $('#library-toggle')).focus();
+  // The shared editor now always shows its third column.
+  $('#card-library').hidden = false;
+  if (open && focus) $('#search').focus();
 }
 async function deckList() {
+  const generation = typeof deckManager === 'undefined' ? 0 : ++deckManager.listGeneration;
   const decks = await api('/api/decks');
-  $('#compact-deck').innerHTML = '<option value="">选择已有构筑</option>' + ['library', 'existing'].map(source => {
-    const items = decks.filter(d => d.source === source);
-    return items.length ? `<optgroup label="${source === 'library' ? '我的构筑' : '副本中已有构筑'}">${items.map(d => `<option value="${escape(d.id)}" ${d.id === app.id ? 'selected' : ''}>${escape(d.name)}</option>`).join('')}</optgroup>` : '';
-  }).join('');
+  if (typeof deckManager !== 'undefined' && generation !== deckManager.listGeneration) return;
+  if (typeof renderDeckBoxes === 'function') renderDeckBoxes(decks);
 }
 async function openDeck(id) {
   if (app.busy) return;
-  if (app.dirty && !confirm('当前修改尚未保存。打开另一构筑会放弃这些修改，是否继续？')) return;
+  if (!await allowDeckReplacement()) return;
+  if (app.busy) return;
   ++app.deckEpoch;
   app.busy = true;
   updateStart();
@@ -133,10 +134,15 @@ async function openDeck(id) {
     app.deck = d.deck;
     app.id = d.id;
     app.revision = d.revision;
+    app.sourceName = d.name;
     app.undo = [];
+    app.selected = null;
+    ++app.detailGeneration;
+    $('#card-detail').innerHTML = '<div class="detail-placeholder"><strong>选择一张卡牌</strong><p>从右侧卡牌库添加卡牌</p></div>';
     $('#deck-name').value = d.name;
     app.savedState = deckState();
     dirty();
+    setDeckPage('editor');
     switchView('decks');
     await renderDeck();
     $('#deck-cards').scrollTop = 0;
@@ -174,9 +180,8 @@ function confirmDeckDeletion(selected, clearing) {
     dialog.showModal();
   });
 }
-async function deleteDeck() {
+async function deleteDeck(id) {
   if (activeDesignDeckEdit()) return;
-  const id = $('#compact-deck').value;
   if (app.busy || !id) return;
   app.busy = true;
   updateStart();
@@ -190,10 +195,13 @@ async function deleteDeck() {
       app.deck = {main:[], extra:[], side:[]};
       app.id = app.revision = null;
       app.undo = [];
+      app.selected = null;
+      ++app.detailGeneration;
       $('#deck-name').value = '新构筑';
       app.savedState = deckState();
       dirty();
       await renderDeck();
+      setDeckPage('manager');
     }
     await deckList();
     notice(`已删除“${selected.name}”，备份已保留。`);
@@ -201,30 +209,14 @@ async function deleteDeck() {
     app.busy = false;
     updateStart();
     updateDetailCounts();
-    $('#compact-deck').focus({preventScroll:true});
+    $('#refresh-decks').focus({preventScroll:true});
   }
 }
 function rememberDeck() {
   app.undo.push(structuredClone(app.deck));
   if (app.undo.length > 50) app.undo.shift();
 }
-async function newDeck() {
-  if (app.busy || (app.dirty && !confirm('当前修改尚未保存。是否放弃并新建？'))) return;
-  ++app.deckEpoch;
-  app.busy = true;
-  try {
-    app.deck = {main:[], extra:[], side:[]};
-    app.id = null;
-    app.revision = null;
-    app.undo = [];
-    $('#deck-name').value = '新构筑';
-    app.savedState = deckState();
-    dirty();
-    switchView('decks');
-    await renderDeck();
-    await deckList();
-  } finally { app.busy = false; updateStart(); updateDetailCounts(); }
-}
+async function newDeck() { openCreateDeck('blank'); }
 async function addCard(code, zone) {
   if (app.busy) return;
   const epoch = app.deckEpoch;
@@ -295,7 +287,7 @@ async function renderDeck() {
     grid.innerHTML = codes.map((code,index) => {
       const c = app.cache.get(code) || {name:`未知卡牌 ${code}`};
       return `<button class="card-tile deck-card" data-detail="${code}" data-from="${zone}" data-index="${index}" aria-label="${escape(zoneNames[zone])}第 ${index+1} 张：${escape(c.name)}" title="${escape(c.name)} · 右键移除一张"><img src="/pics/${code}.jpg" alt="" draggable="false"></button>`;
-    }).join('') || `<div class="zone-empty">${zone === 'main' ? '<button data-open-import="true">导入 YDK 卡组</button><small>也可以从右侧搜索卡牌</small>' : `<span>＋</span>尚未加入${zoneNames[zone]}`}</div>`;
+    }).join('') || `<div class="zone-empty"><span>＋</span>尚未加入${zoneNames[zone]}${zone === 'main' ? '<small>从右侧卡牌库选择卡牌</small>' : ''}</div>`;
   }
   $('#deck-total').textContent = `${zones.reduce((sum,zone) => sum + app.deck[zone].length, 0)} 张`;
   fitDeckGrid();
@@ -305,18 +297,10 @@ async function renderDeck() {
   if (focused && app.deck[focusZone]?.length) $(`#cards-${focusZone} [data-index="${Math.min(focusIndex, app.deck[focusZone].length-1)}"]`)?.focus({preventScroll:true});
 }
 function fitDeckGrid() {
-  const grid = $('#cards-main'), board = $('#deck-cards');
+  const board = $('#deck-cards');
   if (!board.clientHeight) return;
-  if (window.innerWidth <= 1060) {
-    grid.style.setProperty('--columns', Math.max(10, Math.ceil(app.deck.main.length / 4)));
-    return;
-  }
-  // Use the available workbench height, including the other two zones.
-  // Images keep their aspect ratio; smaller windows can fit more cards per row.
-  for (let columns = 10; columns <= 20; columns++) {
-    grid.style.setProperty('--columns', columns);
-    if (board.scrollHeight <= board.clientHeight) break;
-  }
+  const columns = Math.max(3, Math.floor((board.clientWidth - 28) / 66));
+  for (const zone of zones) $(`#cards-${zone}`).style.setProperty('--columns', columns);
 }
 function updateSelection() {
   document.querySelectorAll('.card-tile[data-detail]').forEach(tile => {
@@ -338,28 +322,32 @@ function updateDetailCounts() {
     const label = $(`#detail-count-${zone}`);
     if (label) label.textContent = count;
     const add = $(`#card-detail [data-to="${zone}"]`), remove = $(`#card-detail [data-from="${zone}"]`);
-    if (add) add.disabled = app.busy || !!(c?.type & 0x4000) || app.deck[zone].length >= zoneLimits[zone];
+    if (add) add.disabled = app.busy || !!(c?.type & 0x4000) || (zone !== 'side' && !!c?.extra !== (zone === 'extra')) || app.deck[zone].length >= zoneLimits[zone];
     if (remove) remove.disabled = app.busy || count === 0;
   }
+  const target = app.targetZone || (c?.extra ? 'extra' : 'main');
+  const quantity = app.deck[target].filter(code => code === app.selected).length;
+  if ($('#selected-zone-count')) $('#selected-zone-count').textContent = `${zoneNames[target]}中已有 ${quantity} 张`;
 }
-async function showCard(code) {
+async function showCard(code, sourceZone) {
   const generation = ++app.detailGeneration;
   const c = await card(code);
   if (generation !== app.detailGeneration) return;
   app.selected = code;
+  app.targetZone = zones.includes(sourceZone) ? sourceZone : c.extra ? 'extra' : 'main';
   const monster = c.type & 1;
   const stat = value => value === undefined || value < 0 ? '?' : value;
   const attribute = ({1:'地',2:'水',4:'炎',8:'风',16:'光',32:'暗',64:'神'})[c.attribute] || '';
-  const defaultZone = c.extra ? 'extra' : 'main';
   $('#card-detail').innerHTML = `
-    <h3 class="detail-name">${escape(c.name)}</h3>
     <div class="detail-top"><img class="hero" src="/pics/${code}.jpg" alt="${escape(c.name)}卡图"><div class="card-meta">
       <span class="attribute">${escape(attribute || (c.type & 2 ? '魔法' : c.type & 4 ? '陷阱' : '卡牌'))}</span>
       ${monster ? `<dl><dt>${c.type & 0x4000000 ? 'LINK' : c.type & 0x800000 ? '阶级' : '等级'}</dt><dd>${c.level & 255}</dd><dt>ATK</dt><dd>${stat(c.atk)}</dd>${c.type & 0x4000000 ? '' : `<dt>DEF</dt><dd>${stat(c.def)}</dd>`}</dl>` : ''}
       <small>${String(code).padStart(8,'0')}</small></div></div>
-    <div class="card-type">${escape(cardType(c))}</div>
+    <h3 class="detail-name">${escape(c.name)}</h3>
+    <div class="card-type">${escape(cardType(c))}${monster && typeof cardRaces !== 'undefined' && cardRaces.some((_,i)=>c.race === 2**i) ? ` · ${cardRaces.find((_,i)=>c.race === 2**i)}族` : ''}</div>
     <div class="effect" tabindex="0" aria-label="卡片效果">${escape(c.desc || '无效果说明')}</div>
-    <div class="detail-actions">${c.type & 0x4000 ? '<p class="token-hint">衍生物仅供查看，不能加入构筑。</p>' : ''}${[defaultZone,'side'].map(zone => `<div class="quantity-control"><span>${zoneNames[zone]} <b id="detail-count-${zone}">0</b></span><button data-remove="${code}" data-from="${zone}" aria-label="从${zoneNames[zone]}移除一张${escape(c.name)}">−1</button><button data-add="${code}" data-to="${zone}" aria-label="加入一张${escape(c.name)}到${zoneNames[zone]}">＋1</button></div>`).join('')}</div>`;
+    <div class="detail-actions"><button id="favorite-card" aria-pressed="false">☆ 收藏卡牌</button>${c.type & 0x4000 ? '<p class="token-hint">衍生物仅供查看，不能加入构筑。</p>' : ''}<label class="target-zone">操作分区<select id="selected-zone">${zones.map(zone => `<option value="${zone}" ${app.targetZone === zone ? 'selected' : ''}>${zoneNames[zone]}</option>`).join('')}</select></label><small id="selected-zone-count"></small><div class="quantity-control"><button data-add="${code}" data-to="${app.targetZone}">增加一张</button><button data-remove="${code}" data-from="${app.targetZone}">减少一张</button></div></div>`;
+  updateFavoriteButton();
   updateSelection();
   updateDetailCounts();
 }
@@ -370,7 +358,7 @@ async function search() {
   $('#search-count').textContent = '搜索中…';
   $('#prev-page').disabled = $('#next-page').disabled = true;
   try {
-    const result = await api(`/api/cards?q=${encodeURIComponent($('#search').value)}&kind=${$('#filter').value}&offset=${offset}`);
+    const result = await api(`/api/cards?q=${encodeURIComponent($('#search').value)}&scope=name&kind=${$('#filter').value}&offset=${offset}&favorites=${app.libraryTab === 'favorites' ? '1' : '0'}&attribute=${$('#filter-attribute').value}&race=${$('#filter-race').value}&level=${$('#filter-level').value}`);
     if (generation !== app.searchGeneration) return;
     app.total = result.total;
     result.cards.forEach(c => app.cache.set(c.id, c));
@@ -455,8 +443,8 @@ async function previewYdk(text) {
 function setImportBusy(busy) {
   importState.busy = busy;
   $('#import-preview').disabled = busy || !$('#import-text').value.trim();
-  $('#import-apply').disabled = busy || !importState.preview?.can_import;
-  for (const id of ['import-file','import-text','import-name','import-close','import-cancel']) $(`#${id}`).disabled = app.busy;
+  $('#import-apply').disabled = app.busy || busy || (importState.mode !== 'blank' && !importState.preview?.can_import);
+  for (const id of ['import-file','import-text','import-name','import-close','import-cancel','create-blank-mode','create-import-mode']) $(`#${id}`).disabled = app.busy || importState.creating;
 }
 function invalidateImport(message = '内容已修改，请点击“解析内容”重新检查。') {
   ++importState.generation;
@@ -467,11 +455,7 @@ function invalidateImport(message = '内容已修改，请点击“解析内容�
   $('#import-status').textContent = message;
   setImportBusy(false);
 }
-function openImport() {
-  if (app.busy) return;
-  if (!$('#import-dialog').open) $('#import-dialog').showModal();
-  setImportBusy(false);
-}
+function openImport() { openCreateDeck('import'); }
 function importError(message) {
   importState.preview = null;
   $('#import-result').innerHTML = '';
@@ -483,7 +467,6 @@ async function loadYdkFile(file) {
   if (app.busy || !file) return;
   invalidateImport('正在读取文件…');
   const generation = importState.generation;
-  $('#import-text').value = '';
   $('#import-file-info').textContent = file.name;
   if (!/\.ydk$/i.test(file.name)) return importError('请选择 .ydk 卡组文件。卡组截图、压缩包和网页链接不能作为 YDK 文件导入。');
   if (file.size > 32 * 1024) return importError('YDK 文件不能超过 32 KB。');
@@ -492,7 +475,7 @@ async function loadYdkFile(file) {
     const text = await file.text();
     if (generation !== importState.generation || !$('#import-dialog').open) return;
     $('#import-text').value = text;
-    $('#import-name').value = file.name.replace(/\.ydk$/i, '').slice(0,80) || '导入构筑';
+    if (!$('#import-name').value.trim()) $('#import-name').value = file.name.replace(/\.ydk$/i, '').slice(0,80) || '导入构筑';
     await previewImport();
   } catch (e) {
     if (generation === importState.generation) importError(`无法读取文件：${e.message}`);
@@ -524,22 +507,12 @@ async function previewImport() {
     if (generation === importState.generation) setImportBusy(false);
   }
 }
-function availableImportName(name, decks) {
-  let base = name.replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_').trim().slice(0,60).replace(/[. ]+$/g, '') || '导入构筑';
-  if (/^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\.|$)/i.test(base)) base = '导入-' + base;
-  const existing = new Set(decks.filter(d => d.source === 'library').map(d => d.name.toLowerCase()));
-  let candidate = base, number = 1;
-  while (existing.has(candidate.toLowerCase())) {
-    candidate = `${base} - 导入${number === 1 ? '' : ` (${number})`}`;
-    number++;
-  }
-  return candidate;
-}
 async function applyImportedDeck() {
   const preview = importState.preview;
   if (app.busy || importState.busy || !preview?.can_import) return;
   if (importState.text !== $('#import-text').value) return invalidateImport();
-  if (app.dirty && !confirm('当前构筑有未保存修改。导入会把编辑区切换为新构筑，是否放弃当前未保存修改并继续？')) return;
+  if (!await allowDeckReplacement()) return;
+  if (app.busy) return;
   const generation = importState.generation;
   app.busy = true;
   updateStart();
@@ -547,16 +520,19 @@ async function applyImportedDeck() {
   try {
     const decks = await api('/api/decks');
     if (generation !== importState.generation || !$('#import-dialog').open) return;
-    const name = availableImportName($('#import-name').value, decks);
+    const name = $('#import-name').value.trim();
+    validateNewDeckName(name, decks);
     ++app.deckEpoch;
     app.deck = structuredClone(preview.deck);
     app.id = null;
     app.revision = null;
     app.undo = [];
+    app.selected = null;
+    ++app.detailGeneration;
     app.savedState = null;
     $('#deck-name').value = name;
-    $('#compact-deck').value = '';
     dirty();
+    setDeckPage('editor');
     switchView('decks');
     await renderDeck();
     $('#deck-cards').scrollTop = 0;
@@ -572,7 +548,7 @@ async function saveDeck() {
   if (activeDesignDeckEdit()) return finishDesignDeckEdit(true);
   if (app.busy) return;
   let name = $('#deck-name').value.trim();
-  if (app.id?.startsWith('existing/') && name === app.id.split('/').at(-1).replace(/\.ydk$/,'')) name += ' - 练习';
+  if (app.id?.startsWith('existing/') && name === (app.sourceName || app.id.split('/').at(-1).replace(/\.ydk$/,''))) name += ' - 练习';
   $('#deck-name').value = name;
   const savedState = deckState();
   const body = {name, deck:structuredClone(app.deck), id:app.id, revision:app.revision};
@@ -583,6 +559,7 @@ async function saveDeck() {
     const saved = await api('/api/decks', body);
     app.id = saved.id;
     app.revision = saved.revision;
+    app.sourceName = saved.name || name;
     app.savedState = savedState;
     dirty();
     await deckList();
@@ -651,7 +628,7 @@ document.addEventListener('click', run(async e => {
   const b = e.target.closest('button');
   if (!b || b.disabled) return;
   if (b.dataset.openImport) return openImport();
-  if (b.dataset.detail) return showCard(Number(b.dataset.detail));
+  if (b.dataset.detail) return showCard(Number(b.dataset.detail), b.dataset.from);
   if (b.dataset.add) return addCard(Number(b.dataset.add), b.dataset.to);
   if (b.dataset.remove) return removeCard(Number(b.dataset.remove), b.dataset.from);
   if (b.dataset.report) return showReport(b.dataset.report);
@@ -667,7 +644,7 @@ document.addEventListener('contextmenu', run(async e => {
   await removeCard(Number(tile.dataset.detail), tile.dataset.from, Number(tile.dataset.index));
 }));
 document.addEventListener('keydown', run(async e => {
-  if ($('#editor').hidden || $('#import-dialog').open || e.target.closest('input,select,textarea,[contenteditable="true"]')) return;
+  if ($('#editor').hidden || $('#deck-workbench').hidden || document.querySelector('dialog[open]') || e.target.closest('input,select,textarea,[contenteditable="true"]')) return;
   if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
     e.preventDefault();
     await undoDeck();
@@ -677,8 +654,6 @@ $('#nav-decks').onclick=()=>switchView('decks');$('#nav-history').onclick=run(as
 $('#save-deck').onclick=run(saveDeck);$('#deck-name').oninput=dirty;
 $('#undo-deck').onclick = run(undoDeck);
 $('#sort-deck').onclick = run(sortDeck);
-$('#new-deck').onclick = run(newDeck);
-$('#import-deck').onclick = openImport;
 $('#import-file').onchange = run(async e => {
   const file = e.target.files[0];
   e.target.value = '';
@@ -689,10 +664,10 @@ $('#import-text').oninput = () => {
   invalidateImport();
 };
 $('#import-preview').onclick = run(previewImport);
-$('#import-apply').onclick = run(applyImportedDeck);
+$('#import-apply').onclick = run(createDeckFromDialog);
 $('#import-close').onclick = $('#import-cancel').onclick = () => $('#import-dialog').close();
 $('#import-dialog').onclose = () => invalidateImport('选择文件或点击“解析内容”重新检查。');
-$('#import-dialog').oncancel = e => { if (app.busy) e.preventDefault(); };
+$('#import-dialog').oncancel = e => { if (app.busy || importState.creating) e.preventDefault(); };
 document.addEventListener('dragover', e => {
   if (!$('#editor').hidden && Array.from(e.dataTransfer?.types || []).includes('Files')) e.preventDefault();
 });
@@ -726,10 +701,8 @@ $('#next-page').onclick = run(async () => { app.offset += 60; await search(); })
 $('#end-training').onclick=run(async()=>{if(!app.active)return;await api('/api/stop',{id:app.active.id});await refreshHistory();});$('#view-live').onclick=run(()=>showReport(app.active.id));$('#refresh-history').onclick=run(refreshHistory);
 window.addEventListener('beforeunload',e=>{if(typeof unsavedSummary==='function'?unsavedSummary():app.dirty){e.preventDefault();e.returnValue='';}});
 new ResizeObserver(fitDeckGrid).observe($('#deck-cards'));
-run(async()=>{app.savedState=deckState();const data=await api('/api/bootstrap');app.token=data.token;$('#resource-count').textContent=`${data.cards.toLocaleString()} 张卡牌`;await Promise.all([deckList(),search(),refreshHistory(),renderDeck()]);updateStart();setInterval(()=>{if(typeof flow!=='undefined'&&flow.busy)return;refreshHistory().catch(()=>{});},1500);})();
+run(async()=>{app.savedState=deckState();const data=await api('/api/bootstrap');app.token=data.token;$('#resource-count').textContent=`${data.cards.toLocaleString()} 张卡牌`;await initDeckManager().catch(e=>notice(e.message));await Promise.all([deckList(),search(),refreshHistory(),renderDeck()]);updateStart();setInterval(()=>{if(typeof flow!=='undefined'&&flow.busy)return;refreshHistory().catch(()=>{});},1500);})();
 
-$('#compact-open').onclick=run(()=>{const id=$('#compact-deck').value;if(id)return openDeck(id);notice('请先选择构筑。');});
-$('#compact-deck').onchange = updateStart;
 $('#nav-training').onclick = () => {switchView('training');if(app.active && window.trainerDesktop)void waitNativeFrame(app.active.id).catch(e=>notice(e.message));};
 $('#training-report').onclick = run(() => app.active && showReport(app.active.id));
 $('#finish-training').onclick = run(async () => {if(app.active){await api('/api/stop',{id:app.active.id});await refreshHistory();}});
@@ -739,12 +712,3 @@ new ResizeObserver(([entry]) => {
   if (typeof updateShellHeight === 'function') updateShellHeight();
   else document.documentElement.style.setProperty('--app-bar-height', `${entry.target.getBoundingClientRect().height}px`);
 }).observe($('.app-bar'));
-$('#delete-deck').onclick = run(deleteDeck);
-$('#library-toggle').onclick = () => setLibraryOpen($('#card-library').hidden);
-$('#library-close').onclick = () => setLibraryOpen(false);
-document.addEventListener('keydown', event => {
-  if (event.key === 'Escape' && !$('#card-library').hidden && !$('#import-dialog').open && !$('#delete-dialog').open) {
-    event.preventDefault();
-    setLibraryOpen(false);
-  }
-});

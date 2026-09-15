@@ -7,6 +7,7 @@ const test = require('node:test');
 // Exercise the editor state and asynchronous requests without a browser dependency.
 // Real rendering and pointer interactions are checked separately in the local UI.
 const source = readFileSync(path.join(__dirname, '../src/trainer/web/app.js'), 'utf8');
+const managerSource = readFileSync(path.join(__dirname, '../src/trainer/web/deck-manager.js'), 'utf8');
 const editorSource = source.slice(0, source.indexOf("document.addEventListener('click'"));
 const cards = [
   {id:101, name:'测试怪兽甲', type:0x21, level:4, atk:1000, def:500, extra:false},
@@ -35,9 +36,10 @@ function setup() {
     window:{innerWidth:1280}, structuredClone, TextEncoder, setTimeout:() => 1, clearTimeout() {}, confirm:() => true,
     fetch:async () => { throw new Error('Unexpected network request'); },
   });
-  vm.runInContext(editorSource + '\nglobalThis.editor = {app, card, addCard, removeCard, undoDeck, sortDeck, renderDeck, showCard, search, saveDeck, openDeck, newDeck, deleteDeck, confirmDeckDeletion, setLibraryOpen, deckState, dirty, importState, invalidateImport, previewImport, previewYdk, loadYdkFile, applyImportedDeck, availableImportName};', context);
+  vm.runInContext(editorSource + managerSource + '\nglobalThis.editor = {app, card, addCard, removeCard, undoDeck, sortDeck, renderDeck, showCard, search, saveDeck, openDeck, newDeck, deleteDeck, confirmDeckDeletion, setLibraryOpen, deckState, dirty, importState, invalidateImport, previewImport, previewYdk, loadYdkFile, applyImportedDeck, validateNewDeckName, allowDeckReplacement, returnToDeckManager, createDeckFromDialog, toggleFavorite, favoriteUI, renderDeckBoxes, deckManager, confirmLeaveDeck, handleDeckManagerScroll};', context);
   const editor = context.editor;
   context.confirmDeckDeletion = async () => true;
+  context.confirmLeaveDeck = async () => 'discard';
   for (const c of cards) editor.app.cache.set(c.id, {...c,script_available:true});
   editor.app.savedState = editor.deckState();
   return {...editor, node, context};
@@ -63,7 +65,6 @@ test('delete confirmation settles on submit/cancel without waiting for a renderi
 test('deleting a selected deck preserves a different unsaved construct and sends its revision', async () => {
   const e = setup();
   e.app.id = 'library/current.ydk'; e.app.deck.main = [101]; e.dirty();
-  e.node('#compact-deck').value = 'library/delete.ydk';
   const requests = [];
   e.context.api = async (url, body) => {
     requests.push([url, body]);
@@ -72,7 +73,7 @@ test('deleting a selected deck preserves a different unsaved construct and sends
     if (url === '/api/decks') return [];
     throw new Error(url);
   };
-  await e.deleteDeck();
+  await e.deleteDeck('library/delete.ydk');
   assert.deepEqual(plain(requests[1][1]), {id:'library/delete.ydk',revision:'revision-a'});
   assert.deepEqual(plain(e.app.deck.main), [101]);
   assert.equal(e.app.id, 'library/current.ydk');
@@ -82,25 +83,21 @@ test('deleting a selected deck preserves a different unsaved construct and sends
 test('canceling deck deletion keeps current edits and does not send a mutation', async () => {
   const e = setup();
   e.app.id = 'library/test.ydk'; e.app.deck.main = [101]; e.dirty();
-  e.node('#compact-deck').value = e.app.id;
   e.context.confirmDeckDeletion = async () => false;
   let requests = 0;
   e.context.api = async (_url, body) => { requests++; assert.equal(body, undefined); return {id:e.app.id,name:'测试',revision:'r'}; };
-  await e.deleteDeck();
+  await e.deleteDeck(e.app.id);
   assert.equal(requests, 1); assert.equal(e.app.busy, false);
   assert.deepEqual(plain(e.app.deck.main), [101]); assert.equal(e.app.dirty, true);
 });
 
-test('drawer open and close preserve edits and return keyboard focus', () => {
+test('the card library stays visible and focus does not change deck edits', () => {
   const e = setup(); e.app.deck.main = [101]; e.dirty();
   e.setLibraryOpen(true);
   assert.equal(e.node('#card-library').hidden, false);
-  assert.equal(e.node('#library-toggle')['aria-expanded'], 'true');
   assert.equal(e.node('#search').focused, true);
   e.setLibraryOpen(false);
-  assert.equal(e.node('#card-library').hidden, true);
-  assert.equal(e.node('#library-toggle')['aria-expanded'], 'false');
-  assert.equal(e.node('#library-toggle').focused, true);
+  assert.equal(e.node('#card-library').hidden, false);
   assert.deepEqual(plain(e.app.deck.main), [101]); assert.equal(e.app.dirty, true);
 });
 function deferred() {
@@ -192,21 +189,21 @@ test('a delayed card request cannot add a card after switching constructs', asyn
   assert.equal(e.app.undo.length, 0);
 });
 
-test('new construct holds the picker until its list refresh finishes', async () => {
-  const e = setup(), list = deferred();
-  e.app.deck.main = [101];
-  e.context.api = () => list.promise;
-  const pending = e.newDeck();
-  assert.equal(e.app.busy, true);
-  assert.equal(e.node('#compact-deck').disabled, true);
-  assert.equal(e.node('#compact-open').disabled, true);
-  await e.addCard(102);
+test('opening create dialog leaves existing edits untouched and requires an explicit name', async () => {
+  const e = setup(); e.app.deck.main = [101]; e.dirty();
+  await e.newDeck();
+  assert.equal(e.node('#import-dialog').open, true);
+  assert.equal(e.importState.mode, 'blank');
+  assert.deepEqual(plain(e.app.deck.main), [101]);
+  e.context.api = async () => [];
+  await e.createDeckFromDialog();
+  assert.deepEqual(plain(e.app.deck.main), [101]);
+  assert.match(e.node('#import-status').textContent, /名称/);
+  e.node('#import-name').value = '空白';
+  await e.createDeckFromDialog();
   assert.deepEqual(plain(e.app.deck.main), []);
-  list.resolve([]);
-  await pending;
-  assert.equal(e.app.busy, false);
-  assert.equal(e.node('#compact-deck').disabled, false);
-  assert.equal(e.node('#compact-open').disabled, false);
+  assert.equal(e.app.id, null); assert.equal(e.app.dirty, true);
+  assert.equal(e.app.deckPage, 'editor');
 });
 
 test('rapid selection keeps the newest detail and shares concurrent card requests', async () => {
@@ -279,6 +276,60 @@ function importPreview(overrides = {}) {
     errors:[], warnings:[], ...overrides};
 }
 
+test('all three leave choices retain or save the correct editor and failures never discard', async () => {
+  for (const choice of ['cancel','discard','save']) {
+    const e = setup(); e.app.view = 'decks'; e.app.id = 'library/current.ydk';
+    e.app.deck.main = [101]; e.dirty();
+    let writes = 0;
+    e.context.confirmLeaveDeck = async () => choice;
+    e.context.api = async (url, body) => {
+      assert.equal(url,'/api/decks');
+      if (body) { writes++; return {id:e.app.id,revision:'new'}; }
+      return [];
+    };
+    await e.returnToDeckManager();
+    assert.equal(writes,choice==='save'?1:0);
+    if (choice==='cancel') {
+      assert.deepEqual(plain(e.app.deck.main),[101]); assert.equal(e.app.dirty,true);
+    } else { assert.equal(e.app.deckPage,'manager'); assert.equal(e.app.dirty,false); }
+  }
+  const e=setup();e.app.view='decks';e.app.deck.main=[101];e.dirty();
+  e.context.confirmLeaveDeck=async()=>'save';
+  e.context.api=async()=>{throw Error('保存失败');};
+  await assert.rejects(e.returnToDeckManager(),/保存失败/);
+  assert.deepEqual(plain(e.app.deck.main),[101]);assert.equal(e.app.dirty,true);assert.equal(e.app.busy,false);
+  e.context.confirmLeaveDeck=async()=>'discard';
+  await assert.rejects(e.returnToDeckManager(),/保存失败/);
+  assert.deepEqual(plain(e.app.deck.main),[101]);assert.equal(e.app.busy,false);
+});
+
+test('favorite retry captures the clicked card and failed persistence keeps saved state', async () => {
+  const e=setup(), pending=deferred();e.app.selected=101;
+  const requests=[];
+  e.context.api=async(url,body)=>{
+    assert.equal(url,'/api/card-favorites');
+    if (!body) return pending.promise;
+    requests.push(body);return {cards:[101]};
+  };
+  const change=e.toggleFavorite();
+  e.app.selected=102;
+  pending.resolve({cards:[]});await change;
+  assert.deepEqual(plain(requests),[{id:101,favorite:true}]);
+  assert.equal(e.favoriteUI.cards.has(101),true);assert.equal(e.favoriteUI.cards.has(102),false);
+  e.context.api=async()=>{throw Error('写入失败');};
+  await assert.rejects(e.toggleFavorite(),/写入失败/);
+  assert.equal(e.favoriteUI.cards.has(101),true);assert.equal(e.favoriteUI.cards.has(102),false);
+  assert.equal(e.favoriteUI.busy,false);
+});
+
+test('deck boxes escape saved names and keep identities distinct', () => {
+  const e=setup();
+  e.renderDeckBoxes([{id:'library/a.ydk',name:'<script>same</script>',source:'library'},{id:'existing/a.ydk',name:'<script>same</script>',source:'existing'}]);
+  const html=e.node('#deck-boxes').innerHTML;
+  assert.equal((html.match(/data-open-deck=/g)||[]).length,2);
+  assert.match(html,/新建卡组/);assert.match(html,/&lt;script&gt;/);assert.doesNotMatch(html,/<script>/);
+});
+
 test('import preview does not change the current construct and escapes diagnostics', async () => {
   const e = setup();
   e.app.deck.main = [102];
@@ -335,14 +386,14 @@ test('applying an import starts a new unsaved construct and keeps every copy and
   e.importState.preview = importPreview();
   e.context.api = async url => {
     assert.equal(url, '/api/decks');
-    return [{source:'library',name:'existing'}];
+    return [{source:'library',name:'another'}];
   };
   await e.applyImportedDeck();
   assert.deepEqual(plain(e.app.deck), {main:[101,102,101],extra:[201],side:[101]});
   assert.equal(e.app.id, null);
   assert.equal(e.app.revision, null);
   assert.equal(e.app.dirty, true);
-  assert.equal(e.node('#deck-name').value, 'Existing - 导入');
+  assert.equal(e.node('#deck-name').value, 'Existing');
   assert.equal(e.node('#start-training').disabled, true);
 });
 
@@ -350,7 +401,7 @@ test('canceling replacement preserves unsaved edits and never fetches or saves',
   const e = setup();
   e.app.deck.main = [102];
   e.app.dirty = true;
-  e.context.confirm = () => false;
+  e.context.confirmLeaveDeck = async () => 'cancel';
   e.node('#import-text').value = e.importState.text = '#main\n101';
   e.importState.preview = importPreview();
   e.context.api = () => { throw new Error('must not request'); };
@@ -359,11 +410,11 @@ test('canceling replacement preserves unsaved edits and never fetches or saves',
   assert.equal(e.app.dirty, true);
 });
 
-test('import names handle Windows reserved names and multiple case-insensitive collisions', () => {
+test('new deck names reject collisions and reserved names without silently rewriting input', () => {
   const e = setup();
-  assert.equal(e.availableImportName('Deck', [{source:'library',name:'deck'},{source:'library',name:'DECK - 导入'}]), 'Deck - 导入 (2)');
-  assert.equal(e.availableImportName('CON', []), '导入-CON');
-  assert.equal(e.availableImportName('../bad:name', []), '.._bad_name');
+  assert.throws(() => e.validateNewDeckName('Deck', [{source:'library',name:'deck'}]), /同名/);
+  for (const name of ['CON', '../bad:name', '', 'name.']) assert.throws(() => e.validateNewDeckName(name, []), /名称/);
+  assert.doesNotThrow(() => e.validateNewDeckName('正常名称', []));
 });
 
 test('YDK preserves BOM/CRLF, passcode order, duplicate counts and all zones', async () => {
@@ -450,4 +501,19 @@ test('dropping a YDK file opens preview while multiple files are rejected withou
   assert.equal(e.node('#import-apply').disabled, true);
   assert.match(e.node('#import-status').textContent, /一次拖入一个/);
   assert.deepEqual(plain(e.app.deck.main), []);
+});
+
+
+test('queued box scroll events do not dismiss a newly opened pointer menu', () => {
+  const e=setup(), menu=e.node('#deck-context-menu');
+  e.context.positionDeckMenu=()=>{};
+  e.deckManager.menuId='library/a.ydk';e.deckManager.menuPoint={x:20,y:30};
+  e.deckManager.menuScroll=e.node('#deck-manager').scrollTop=100;menu.hidden=false;
+  e.handleDeckManagerScroll();
+  assert.equal(menu.hidden,false);assert.equal(e.deckManager.menuId,'library/a.ydk');
+  e.node('#deck-manager').scrollTop=120;e.handleDeckManagerScroll();
+  assert.equal(menu.hidden,true);
+  e.deckManager.menuId='library/a.ydk';e.deckManager.menuPoint=null;menu.hidden=false;
+  e.node('#deck-manager').scrollTop=200;e.handleDeckManagerScroll();
+  assert.equal(menu.hidden,false);
 });

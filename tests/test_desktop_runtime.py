@@ -24,6 +24,7 @@ class DesktopDataTests(unittest.TestCase):
         (self.source / '_trainer/decks').mkdir(parents=True)
         (self.source / '_trainer/decks/测试.ydk').write_bytes(b'#main\n55144522\n#extra\n!side\n')
         (self.source / 'system.conf').write_bytes(b'window_width = 1000\n')
+        (self.source / '_trainer/card-favorites.json').write_bytes(b'{"cards":[55144522]}\n')
 
     def tearDown(self):
         self.temp.cleanup()
@@ -91,6 +92,7 @@ class DesktopDataTests(unittest.TestCase):
         prepare_resources(bundle, self.runtime)
         self.assertEqual((self.runtime / 'YGOPro.exe').read_bytes(), b'engine2')
         self.assertEqual((self.runtime / 'system.conf').read_bytes(), b'window_width = 1000\n')
+        self.assertEqual((self.runtime / '_trainer/card-favorites.json').read_bytes(), b'{"cards":[55144522]}\n')
         self.assertEqual(digest(self.runtime / '_trainer/decks/测试.ydk'), before)
         (self.runtime / 'cards.cdb').unlink()
         prepare_resources(bundle, self.runtime)
@@ -105,7 +107,7 @@ class DesktopDataTests(unittest.TestCase):
         self.assertFalse((self.root / 'escape.txt').exists())
 
     def test_packaging_allowlist_excludes_private_or_unused_files(self):
-        for name in ('_trainer/sessions/x/session.json', '_profile/logs/stdout.log', 'deck/a.ydk', 'WindBot/a.exe', 'Bot.exe', 'replay/a.yrp', 'private.json'):
+        for name in ('_trainer/card-favorites.json', '_trainer/sessions/x/session.json', '_profile/logs/stdout.log', 'deck/a.ydk', 'WindBot/a.exe', 'Bot.exe', 'replay/a.yrp', 'private.json'):
             self.assertFalse(resource_allowed(name), name)
         for name in ('cards.cdb', 'script/c1.lua', 'pics/field/1.jpg', 'textures/cover.jpg'):
             self.assertTrue(resource_allowed(name), name)

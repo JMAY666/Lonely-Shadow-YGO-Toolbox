@@ -120,10 +120,12 @@ def migration_inventory(source):
             if not path.is_file() or path.suffix == '.tmp':
                 continue
             result[path.relative_to(source).as_posix()] = {'size': path.stat().st_size, 'sha256': digest(path)}
-    config = source / 'system.conf'
-    if config.is_symlink(): raise ValueError('迁移配置不能是符号链接')
-    if config.is_file():
-        result['system.conf'] = {'size': config.stat().st_size, 'sha256': digest(config)}
+    for relative in ('system.conf', '_trainer/card-favorites.json'):
+        config = source / relative
+        if config.is_symlink(): raise ValueError('迁移配置不能是符号链接')
+        if config.is_file():
+            local_child(source, relative)
+            result[relative] = {'size': config.stat().st_size, 'sha256': digest(config)}
     return result
 
 
@@ -137,7 +139,7 @@ def migrate_data(source, runtime):
         source = source.resolve(strict=True)
         if runtime.resolve().is_relative_to(source) or source.is_relative_to(runtime.resolve()):
             raise ValueError('迁移源和目标必须相互独立')
-        if (runtime / '.desktop-resources.json').exists() or any((runtime / p).exists() for p in ('_trainer/decks', '_trainer/sessions', '_trainer/plans', 'deck')):
+        if (runtime / '.desktop-resources.json').exists() or any((runtime / p).exists() for p in ('_trainer/decks', '_trainer/sessions', '_trainer/plans', '_trainer/card-favorites.json', 'deck')):
             raise ValueError('目标已有桌面数据。请保留现有目录，改用一个空的 --data-dir 迁移，避免覆盖。')
         source_lock = source / '_trainer/service.lock'
         with ServiceLock(source_lock, create=False) if source_lock.exists() else nullcontext():

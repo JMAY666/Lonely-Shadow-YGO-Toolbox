@@ -5,5 +5,6 @@ window.addEventListener('DOMContentLoaded', () => {
   if (process.platform === 'win32') document.documentElement.classList.add('desktop-shell');
 }, { once: true });
 contextBridge.exposeInMainWorld('trainerDesktop', {
-  updateLayout: bounds => ipcRenderer.invoke('trainer:layout', bounds)
+  updateLayout: bounds => ipcRenderer.invoke('trainer:layout', bounds),
+  copyDeckCode: id => ipcRenderer.invoke('trainer:copy-deck', id)
 });

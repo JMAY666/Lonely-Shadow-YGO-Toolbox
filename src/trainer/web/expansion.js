@@ -190,14 +190,14 @@ async function selectOpponent(id) {
 async function editDesignDeck(target) {
   if (!flow.design || flow.busy || flow.deckEdit) return;
   const d=target==='opponent'?flow.design.opponent_config:flow.design;
-  const keys=['deck','id','revision','undo','savedState','selected'];
+  const keys=['deck','id','revision','sourceName','undo','savedState','selected'];
   flow.deckEdit={target,restore:Object.fromEntries(keys.map(k=>[k,structuredClone(app[k])])),name:$('#deck-name').value};
   ++app.deckEpoch;app.deck=structuredClone(d.deck);app.id=null;app.revision=null;app.undo=[];app.selected=null;
   $('#deck-name').value=target==='opponent'?d.name:d.deck_name;
   app.savedState=deckState();dirty();
   $('#design-deck-edit').hidden=false;$('#design-deck-edit-title').textContent=`正在编辑本次${target==='opponent'?'对手':'玩家'}卡组`;
   $('#save-deck').textContent='应用卡组并返回条件';
-  switchView('decks');await renderDeck();await deckList();
+  setDeckPage('editor');switchView('decks');await renderDeck();await deckList();
 }
 async function finishDesignDeckEdit(apply) {
   if (!flow.deckEdit || app.busy) return;

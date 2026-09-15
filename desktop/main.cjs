@@ -1,5 +1,5 @@
 'use strict';
-const { app, BrowserWindow, dialog, Menu, screen, ipcMain } = require('electron');
+const { app, BrowserWindow, dialog, Menu, screen, ipcMain, clipboard } = require('electron');
 const { spawn } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -173,6 +173,16 @@ if (!app.requestSingleInstanceLock()) {
         titleBarOverlay: { color: '#152129', symbolColor: '#dce6ea', height: 60 } } : {}),
       show: process.env.YGO_DESKTOP_BACKGROUND !== '1',
       webPreferences: { ...webPreferences, preload: path.join(__dirname, 'preload.cjs'), backgroundThrottling: false } });
+    ipcMain.handle('trainer:copy-deck', async (event, id) => {
+      if (!ready || shuttingDown || event.sender !== mainWindow?.webContents || event.senderFrame !== mainWindow.webContents.mainFrame || new URL(event.senderFrame.url).origin !== ready.url) throw new Error('无效的卡组复制请求');
+      if (typeof id !== 'string' || id.length > 512) throw new Error('构筑标识无效');
+      const response = await fetch(`${ready.url}/api/decks/export?id=${encodeURIComponent(id)}`);
+      const exported = await response.json();
+      if (!response.ok) throw new Error(exported.error || '无法读取已保存卡组');
+      if (typeof exported.text !== 'string' || exported.text.length > 65536) throw new Error('YDK 内容过长，请使用文件导出');
+      clipboard.writeText(exported.text);
+      return {copied:true,name:exported.name};
+    });
     ipcMain.handle('trainer:layout', async (event, bounds) => {
       if (!ready || shuttingDown || event.sender !== mainWindow?.webContents || event.senderFrame !== mainWindow.webContents.mainFrame || new URL(event.senderFrame.url).origin !== ready.url) throw new Error('无效的训练区域请求');
       const handle = mainWindow.getNativeWindowHandle();

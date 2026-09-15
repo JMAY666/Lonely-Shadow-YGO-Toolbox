@@ -4,18 +4,20 @@
 // deck library, optimistic revisions and immutable session snapshots are shared.
 const moduleUI = {current:'home', editorOwner:'decks', expansionView:'decks', switching:false, railCollapsed:false,
   editors:{decks:null, expansion:null}, scroll:{home:0,decks:0,expansion:0,tags:0}};
-const editorKeys = ['deck','id','revision','dirty','undo','savedState','selected','offset'];
+const editorKeys = ['deck','id','revision','sourceName','dirty','undo','savedState','selected','offset','deckPage','libraryTab','targetZone'];
 const emptyDetail = $('#card-detail').innerHTML;
 function captureEditor() {
   return {state:structuredClone(Object.fromEntries(editorKeys.map(key=>[key,app[key]]))),
-    name:$('#deck-name').value, picker:$('#compact-deck').value,
+    name:$('#deck-name').value,
     query:$('#search').value, filter:$('#filter').value, libraryOpen:!$('#card-library').hidden,
+    filters:['attribute','race','level'].map(key=>$(`#filter-${key}`).value),
     detail:$('#card-detail').innerHTML, scroll:$('#deck-cards').scrollTop};
 }
-function emptyEditor() {
+function emptyEditor(owner) {
   return {state:{deck:{main:[],extra:[],side:[]},id:null,revision:null,dirty:false,undo:[],selected:null,offset:0,
+    deckPage:'manager',libraryTab:'all',targetZone:'main',
     savedState:JSON.stringify({name:'新构筑',deck:{main:[],extra:[],side:[]}})},
-    name:'新构筑',picker:'',query:'',filter:'',libraryOpen:false,detail:emptyDetail,scroll:0};
+    name:'新构筑',query:'',filter:'',libraryOpen:false,detail:emptyDetail,scroll:0};
 }
 function editorUnsavedSummary() {
   return ['decks','expansion'].filter(owner=>owner===moduleUI.editorOwner ? app.dirty : moduleUI.editors[owner]?.state.dirty)
@@ -70,15 +72,17 @@ async function switchModule(target) {
   moduleUI.current = target;
   try {
     if (destination !== moduleUI.editorOwner) {
-      const buffer = moduleUI.editors[destination] || emptyEditor();
+      const buffer = moduleUI.editors[destination] || emptyEditor(destination);
       moduleUI.editorOwner = destination;
       Object.assign(app, structuredClone(buffer.state));
       $('#deck-name').value = buffer.name;
       $('#search').value = buffer.query; $('#filter').value = buffer.filter;
+      ['attribute','race','level'].forEach((key,index)=>{$(`#filter-${key}`).value=buffer.filters?.[index] || '';});
       $('#card-detail').innerHTML = buffer.detail;
     }
     const view = target==='expansion' ? moduleUI.expansionView : target;
     updateModuleChrome();
+    updateLibraryTabs(); updateFavoriteButton();
     displayView(view);
     dirty();
     await renderDeck();
@@ -86,7 +90,6 @@ async function switchModule(target) {
     if (['decks','expansion'].includes(target)) {
       // A failed list refresh never rolls back or discards an editor workspace.
       await deckList().catch(error=>notice(error.message));
-      if (buffer?.picker && [...$('#compact-deck').options].some(option=>option.value===buffer.picker)) $('#compact-deck').value=buffer.picker;
       await search().catch(error=>notice(error.message));
       if (view==='decks') {
         setLibraryOpen(!!buffer?.libraryOpen, false);

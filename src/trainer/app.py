@@ -105,9 +105,13 @@ class Catalog:
         self.archive_warning = [p.name for p in (runtime / 'expansions').glob('*') if p.suffix.lower() in ('.zip', '.ypk')]
         if self.archive_warning: raise ValueError('检测到尚未支持的扩展资源包；请先明确其与引擎的加载顺序，避免构筑资料不一致')
 
-    def search(self, q, kind='', offset=0):
+    def search(self, q, kind='', offset=0, *, name_only=False, favorites=None, attribute='', race='', level=''):
         q = q.strip().casefold()
-        values = [c for c in self.cards.values() if (not q or q in c['name'].casefold() or q in c['desc'].casefold() or q == str(c['id']))
+        values = [c for c in self.cards.values() if (not q or q in c['name'].casefold() or (not name_only and (q in c['desc'].casefold() or q == str(c['id']))))
+                  and (favorites is None or c['id'] in favorites)
+                  and (not attribute or c.get('attribute') == int(attribute))
+                  and (not race or c.get('race') == int(race))
+                  and (level == '' or (c['type'] & 1 and (c.get('level', 0) & 255) == int(level)))
                   and (not kind or (kind == 'extra' and c['extra']) or (kind == 'monster' and c['type'] & 1)
                        or (kind == 'spell' and c['type'] & 2) or (kind == 'trap' and c['type'] & 4))]
         values.sort(key=lambda c: (c['name'], c['id']))
@@ -167,8 +171,40 @@ class Store:
             if missing: raise ValueError('缺少效果脚本，不能可靠训练：' + ', '.join(missing[:8]))
 
     @staticmethod
-    def ydk(deck):
-        return ('#created by YGO Trainer\n#main\n' + '\n'.join(map(str, deck['main'])) + '\n#extra\n' + '\n'.join(map(str, deck['extra'])) + '\n!side\n' + '\n'.join(map(str, deck['side'])) + '\n').encode('utf-8')
+    def ydk(deck, name=None):
+        title = '#name: ' + json.dumps(name, ensure_ascii=False) + '\n' if name is not None else ''
+        return ('#created by YGO Trainer\n' + title + '#main\n' + '\n'.join(map(str, deck['main'])) + '\n#extra\n' + '\n'.join(map(str, deck['extra'])) + '\n!side\n' + '\n'.join(map(str, deck['side'])) + '\n').encode('utf-8')
+
+    @staticmethod
+    def deck_name(data, fallback):
+        # A YDK comment keeps display names and stable deck identifiers together.
+        for line in data.decode('utf-8-sig', errors='replace').splitlines():
+            if line.startswith('#name: '):
+                try: name = json.loads(line[7:])
+                except ValueError: continue
+                if isinstance(name, str) and name.strip() and len(name) <= 80: return name
+        return fallback
+
+    def favorites(self):
+        with self.lock:
+            path = self.root / 'card-favorites.json'
+            if not path.exists(): return {'cards': []}
+            data = read_json(path)
+            if not isinstance(data, dict) or not isinstance(data.get('cards'), list) or any(type(code) is not int or code <= 0 for code in data['cards']):
+                raise ValueError('收藏文件无法读取，原文件已保留，请从备份恢复后重试')
+            return {'cards': sorted(set(data['cards']))}
+
+    def set_favorite(self, body):
+        with self.lock:
+            code, enabled = body.get('id'), body.get('favorite')
+            if type(code) is not int or code not in self.catalog.cards or type(enabled) is not bool:
+                raise ValueError('收藏卡牌或状态无效')
+            cards = set(self.favorites()['cards'])
+            if enabled: cards.add(code)
+            else: cards.discard(code)
+            document = {'cards': sorted(cards)}
+            atomic_json(self.root / 'card-favorites.json', document)
+            return document
 
     def list_decks(self):
         result = []
@@ -176,7 +212,7 @@ class Store:
             for p in sorted(root.rglob('*.ydk')):
                 if p.is_symlink(): continue
                 identifier = source + '/' + p.relative_to(root).as_posix()
-                result.append({'id': identifier, 'name': p.stem, 'source': source})
+                result.append({'id': identifier, 'name': self.deck_name(p.read_bytes(), p.stem), 'source': source})
         return result
 
     def get_deck(self, identifier):
@@ -185,22 +221,74 @@ class Store:
         p = safe_child(self.decks if source == 'library' else self.runtime / 'deck', relative)
         if p.suffix != '.ydk': raise ValueError('需要 YDK 文件')
         data = p.read_bytes()
-        return {'id': identifier, 'name': p.stem, 'deck': self.parse_deck(data), 'revision': hashlib.sha256(data).hexdigest(), 'source': source}
+        return {'id': identifier, 'name': self.deck_name(data, p.stem), 'deck': self.parse_deck(data), 'revision': hashlib.sha256(data).hexdigest(), 'source': source}
+
+    def export_deck(self, identifier):
+        saved = self.get_deck(identifier)
+        return {'name':saved['name'], 'text':self.ydk(saved['deck'], saved['name']).decode('utf-8')}
+
+    @staticmethod
+    def checked_deck_name(value):
+        name = str(value).strip()
+        if not re.fullmatch(r'[^<>:"/\\|?*\x00-\x1f]{1,80}', name) or name.endswith(('.', ' ')) or name.upper().split('.')[0] in {'CON','PRN','AUX','NUL', *(f'COM{i}' for i in range(1,10)), *(f'LPT{i}' for i in range(1,10))}:
+            raise ValueError('构筑名称含不可用字符')
+        return name
+
+    def check_deck_name_available(self, name, own_id=None):
+        if any(d['name'].casefold() == name.casefold() and d['id'] != own_id for d in self.list_decks()):
+            raise ValueError('同名构筑已存在，请使用其他名称；已有卡组不会被覆盖')
+
+    def rename_deck(self, body):
+        with self.lock:
+            selected = self.get_deck(body.get('id', ''))
+            name = self.checked_deck_name(body.get('name', ''))
+            if body.get('revision') != selected['revision']:
+                raise ValueError('构筑已被修改，请重新打开改名窗口后重试')
+            self.check_deck_name_available(name, selected['id'])
+            if name == selected['name']: return selected
+            source, _, relative = selected['id'].partition('/')
+            path = safe_child(self.decks if source == 'library' else self.runtime / 'deck', relative)
+            original = path.read_bytes()
+            if hashlib.sha256(original).hexdigest() != selected['revision']:
+                raise ValueError('构筑已被修改，请重新打开改名窗口后重试')
+            # Update the display-name comment only. Keep BOM, line endings, card
+            # order, unknown cards and other comments byte-for-byte intact.
+            bom = b'\xef\xbb\xbf' if original.startswith(b'\xef\xbb\xbf') else b''
+            lines = original[len(bom):].splitlines(keepends=True)
+            def is_name_line(line):
+                if not line.startswith(b'#name: '): return False
+                try: return isinstance(json.loads(line[7:]), str)
+                except (ValueError, UnicodeError): return False
+            content = b''.join(line for line in lines if not is_name_line(line))
+            newline = b'\r\n' if b'\r\n' in original else b'\n'
+            title = ('#name: ' + json.dumps(name, ensure_ascii=False)).encode('utf-8') + newline
+            atomic_bytes(self.root / 'backups' / (uuid.uuid4().hex + '.ydk'), original)
+            atomic_bytes(path, bom + title + content)
+            return self.get_deck(selected['id'])
 
     def save_deck(self, body):
         with self.lock:
-            name = str(body.get('name', '')).strip()
-            if not re.fullmatch(r'[^<>:"/\\|?*\x00-\x1f]{1,80}', name) or name.endswith(('.', ' ')) or name.upper().split('.')[0] in {'CON','PRN','AUX','NUL', *(f'COM{i}' for i in range(1,10)), *(f'LPT{i}' for i in range(1,10))}: raise ValueError('构筑名称含不可用字符')
+            name = self.checked_deck_name(body.get('name', ''))
             deck = body.get('deck'); self.validate(deck)
-            p = safe_child(self.decks, name + '.ydk')
+            identifier = body.get('id') or ''
+            current = self.get_deck(identifier) if identifier else None
+            if current and current['revision'] != body.get('revision'):
+                raise ValueError('构筑已被修改，请重新打开后再保存')
+            own_id = identifier if identifier.startswith('library/') else None
+            self.check_deck_name_available(name, own_id)
+            p = safe_child(self.decks, identifier.partition('/')[2] if own_id else name + '.ydk')
+            if not own_id and p.exists():
+                # A renamed deck may still own this filename. Its stable id stays
+                # intact while the new, distinct display name gets another file.
+                p = safe_child(self.decks, uuid.uuid4().hex + '.ydk')
             if p.exists():
                 old = p.read_bytes()
-                if body.get('revision') != hashlib.sha256(old).hexdigest() or body.get('id') != 'library/' + p.name:
+                if not own_id or body.get('revision') != hashlib.sha256(old).hexdigest():
                     raise ValueError('同名构筑已存在或已被修改，请重新打开或使用新名称保存')
                 backup = self.root / 'backups' / (uuid.uuid4().hex + '.ydk')
                 atomic_bytes(backup, old)
-            atomic_bytes(p, self.ydk(deck))
-            return self.get_deck('library/' + p.name)
+            atomic_bytes(p, self.ydk(deck, name))
+            return self.get_deck('library/' + p.relative_to(self.decks).as_posix())
 
     def session_path(self, identifier):
         if str(uuid.UUID(identifier)) != identifier: raise ValueError('训练标识无效')
@@ -706,7 +794,9 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/plans/import-preview': return self.send(store.library.import_document(body, preview=True))
                 if path == '/api/plans/import': return self.send(store.library.import_document(body))
                 if path == '/api/decks': return self.send(store.save_deck(body))
+                if path == '/api/card-favorites': return self.send(store.set_favorite(body))
                 if path == '/api/decks/delete': return self.send(store.delete_deck(body))
+                if path == '/api/decks/rename': return self.send(store.rename_deck(body))
                 if path == '/api/desktop/layout' and store.host: return self.send(store.host.layout(body, store))
                 if path == '/api/native/test' and store.host: return self.send(store.host.test_event(store, body))
                 if path == '/api/start': return self.send(store.start(body['deck_id'], body.get('design')))
@@ -732,10 +822,16 @@ class Handler(BaseHTTPRequestHandler):
                     sid, frame = path.removeprefix('/api/native/frame/').split('/')
                     if not re.fullmatch(r'[0-9a-f]{32}\.png', frame): raise ValueError('场地截图标识无效')
                     return self.send((store.session_path(sid) / ('native-' + frame)).read_bytes(), 'image/png')
-                if path == '/api/cards': return self.send(store.catalog.search(query.get('q', [''])[0], query.get('kind', [''])[0], max(0, int(query.get('offset', ['0'])[0]))))
+                if path == '/api/card-favorites': return self.send(store.favorites())
+                if path == '/api/cards':
+                    return self.send(store.catalog.search(query.get('q', [''])[0], query.get('kind', [''])[0], max(0, int(query.get('offset', ['0'])[0])),
+                        name_only=query.get('scope', [''])[0] == 'name',
+                        favorites=set(store.favorites()['cards']) if query.get('favorites', [''])[0] == '1' else None,
+                        **{key: query.get(key, [''])[0] for key in ('attribute', 'race', 'level')}))
                 if path.startswith('/api/card/'):
                     code = int(path.rsplit('/', 1)[1]); return self.send(store.catalog.cards[code])
                 if path == '/api/decks': return self.send(store.list_decks())
+                if path == '/api/decks/export': return self.send(store.export_deck(query['id'][0]))
                 if path == '/api/deck': return self.send(store.get_deck(query['id'][0]))
                 if path == '/api/history': return self.send(store.history())
                 if path == '/api/opponent': return self.send(OPPONENT)
@@ -774,7 +870,7 @@ class Handler(BaseHTTPRequestHandler):
                             if p.is_file(): return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0])
                     p = WEB / 'card-back.svg'; return self.send(p.read_bytes(), 'image/svg+xml')
                 files = {'/': 'index.html', '/app.js': 'app.js', '/expansion.js': 'expansion.js', '/timeline.js': 'timeline.js', '/report-view.js': 'report-view.js', '/review.js': 'review.js', '/review.css': 'review.css', '/plan-tutorial.js': 'plan-tutorial.js', '/plan-tutorial.css': 'plan-tutorial.css', '/review-back.svg': 'review-back.svg', '/style.css': 'style.css', '/card-back.svg': 'card-back.svg'}
-                files.update({'/modules.js': 'modules.js', '/modules.css': 'modules.css', '/app-icon.svg': 'brand/app.svg'})
+                files.update({'/modules.js': 'modules.js', '/modules.css': 'modules.css', '/app-icon.svg': 'brand/app.svg', '/deck-manager.js': 'deck-manager.js', '/deck-manager.css': 'deck-manager.css'})
                 if path in files:
                     p = WEB / files[path]; return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0] + '; charset=utf-8')
                 if path in ('/activation.js', '/plan-library.js', '/plan-library.css', '/tag-manager.js', '/tag-manager.css', '/compromise.js', '/compromise.css', '/compromise-tutorial.js', '/opponent.html', '/opponent.js'):

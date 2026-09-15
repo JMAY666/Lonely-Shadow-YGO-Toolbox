@@ -40,7 +40,8 @@ module.exports = async function settingsAcceptance({page, nativeWait, nativeStat
   const opponent=await request('/api/decks',{name:`对手验收-${Date.now()}`,deck:{main:[14558127,...Array(39).fill(1184620)],extra:[],side:[55144522]}});
   const mandatory=await request('/api/decks',{name:`强制效果验收-${Date.now()}`,deck:{main:[26202165,...Array(39).fill(1184620)],extra:[],side:[]}});
   await page.locator('#nav-decks').click();await page.evaluate(()=>deckList());
-  await page.locator('#compact-deck').selectOption(source.id);await page.locator('#compact-open').click();
+  if (await page.locator('#deck-workbench').isVisible()) await page.locator('#back-to-decks').click();
+  await page.locator('[data-open-deck='+JSON.stringify(source.id)+']').click();
   await page.waitForFunction(id=>app.id===id&&!app.busy,source.id);
   await page.locator('#start-training').click();await page.waitForFunction(()=>!!flow.design);
   await page.locator('#plan-name').fill('数量与条件保留验收');

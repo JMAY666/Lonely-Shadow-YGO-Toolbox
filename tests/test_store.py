@@ -50,8 +50,104 @@ class StoreTests(unittest.TestCase):
         (self.root/'deck').mkdir()
         path=self.root/'deck/original.ydk'; path.write_bytes(self.store.ydk(self.deck))
         before=path.read_bytes()
-        self.store.save_deck({'name':'original','deck':{**self.deck,'side':[]}})
+        with self.assertRaisesRegex(ValueError, '同名'):
+            self.store.save_deck({'name':'original','deck':{**self.deck,'side':[]}})
+        self.store.save_deck({'name':'original - 练习','deck':{**self.deck,'side':[]}})
         self.assertEqual(path.read_bytes(),before)
+
+    def test_rename_keeps_identifier_order_backup_and_revision(self):
+        first = self.store.save_deck({'name': '原名称', 'deck': self.deck})
+        original = (self.store.decks / '原名称.ydk').read_bytes()
+        edited = {**self.deck, 'side': [1184620, 55144522, 1184620]}
+        saved = self.store.save_deck({**first, 'name': '新名称', 'deck': edited})
+        self.assertEqual(saved['id'], first['id'])
+        reopened = Store(self.root)
+        self.assertEqual(reopened.get_deck(first['id']), saved)
+        self.assertEqual(saved['name'], '新名称')
+        self.assertEqual(saved['deck'], edited)
+        self.assertEqual(reopened.list_decks(), [{'id':first['id'], 'name':'新名称', 'source':'library'}])
+        self.assertEqual(next((self.store.root/'backups').glob('*.ydk')).read_bytes(), original)
+        self.assertEqual(self.store.parse_deck(self.store.ydk(edited, '新名称')), edited)
+        with self.assertRaises(ValueError): self.store.save_deck({**first, 'name':'其他名称'})
+        other = self.store.save_deck({'name':'其他名称', 'deck':self.deck})
+        with self.assertRaisesRegex(ValueError, '同名'): self.store.save_deck({**saved, 'name':other['name']})
+        self.assertEqual(self.store.get_deck(saved['id']), saved)
+        replacement = self.store.save_deck({'name':'原名称', 'deck':self.deck})
+        self.assertNotEqual(replacement['id'], first['id'])
+        self.assertEqual(replacement['name'], '原名称')
+        self.assertEqual(self.store.get_deck(first['id']), saved)
+
+    def test_favorites_persist_and_failed_writes_keep_original(self):
+        self.assertEqual(self.store.favorites(), {'cards':[]})
+        self.store.set_favorite({'id':55144522, 'favorite':True})
+        self.store.set_favorite({'id':1184620, 'favorite':True})
+        expected = {'cards':[1184620,55144522]}
+        self.assertEqual(Store(self.root).favorites(), expected)
+        self.store.set_favorite({'id':1184620, 'favorite':True})
+        self.assertEqual(self.store.favorites(), expected)
+        with patch('app.atomic_json', side_effect=OSError('disk full')):
+            with self.assertRaises(OSError): self.store.set_favorite({'id':55144522, 'favorite':False})
+        self.assertEqual(self.store.favorites(), expected)
+        self.store.set_favorite({'id':55144522, 'favorite':False})
+        self.assertEqual(Store(self.root).favorites(), {'cards':[1184620]})
+        for body in ({'id':True,'favorite':True}, {'id':999,'favorite':True}, {'id':1184620,'favorite':'false'}):
+            with self.assertRaises(ValueError): self.store.set_favorite(body)
+        path = self.store.root/'card-favorites.json'
+        path.write_text('corrupt', encoding='utf8')
+        with self.assertRaises(ValueError): self.store.set_favorite({'id':1184620,'favorite':False})
+        self.assertEqual(path.read_text(), 'corrupt')
+
+    def test_management_rename_preserves_existing_bytes_id_unknown_cards_and_backup(self):
+        (self.root/'deck').mkdir()
+        path = self.root/'deck/原有.ydk'
+        data = b'\xef\xbb\xbf#keep this comment\r\n#main\r\n1184620\r\n55144522\r\n#extra\r\n23995346\r\n!side\r\n99999999\r\n'
+        path.write_bytes(data)
+        original = self.store.get_deck('existing/原有.ydk')
+        renamed = self.store.rename_deck({**original, 'name':'改名的旧卡组'})
+        self.assertEqual(renamed['id'], original['id'])
+        self.assertEqual(renamed['deck'], original['deck'])
+        self.assertEqual(renamed['name'], '改名的旧卡组')
+        self.assertEqual(b'\xef\xbb\xbf'+b''.join(path.read_bytes()[3:].splitlines(keepends=True)[1:]), data)
+        self.assertEqual(next((self.store.root/'backups').glob('*.ydk')).read_bytes(), data)
+        self.assertEqual(Store(self.root).get_deck(renamed['id']), renamed)
+        self.assertEqual(Store(self.root).list_decks()[0]['name'], renamed['name'])
+        before = path.read_bytes()
+        with self.assertRaises(ValueError): self.store.rename_deck({**original, 'name':'过期改名'})
+        with patch('app.atomic_bytes', side_effect=OSError('disk full')):
+            with self.assertRaises(OSError): self.store.rename_deck({**renamed, 'name':'失败改名'})
+        self.assertEqual(path.read_bytes(), before)
+        other = self.store.save_deck({'name':'其他卡组', 'deck':self.deck})
+        with self.assertRaisesRegex(ValueError, '同名'): self.store.rename_deck({**renamed, 'name':other['name']})
+        final = self.store.rename_deck({**renamed, 'name':'再次改名'})
+        self.assertEqual(path.read_bytes().count(b'#name: '),1)
+        self.assertEqual(final['deck'], original['deck'])
+
+    def test_name_search_filters_and_favorites_intersect_before_pagination(self):
+        catalog = self.store.catalog
+        catalog.cards[1184620].update(attribute=32, race=1, level=4)
+        self.assertEqual(catalog.search('测试资料')['total'], 3)  # legacy API remains searchable by effect
+        self.assertEqual(catalog.search('测试资料', name_only=True)['total'], 0)
+        result = catalog.search('魔物', 'monster', name_only=True, favorites={1184620}, attribute='32', race='1', level='4')
+        self.assertEqual([c['id'] for c in result['cards']], [1184620])
+        self.assertEqual(catalog.search('魔物','spell',favorites={1184620})['total'], 0)
+        self.assertEqual(catalog.search('',favorites=set())['total'], 0)
+        self.assertEqual(catalog.search('魔物',attribute='16')['total'], 0)
+        self.assertEqual(catalog.search('魔物',race='2')['total'], 0)
+        self.assertEqual(catalog.search('魔物',level='8')['total'], 0)
+        self.assertEqual(catalog.search('魔物',offset=60,favorites={1184620})['total'], 1)
+        self.assertEqual(catalog.search('魔物',offset=60,favorites={1184620})['cards'], [])
+
+    def test_export_ydk_roundtrip_preserves_saved_name_zones_order_and_source(self):
+        saved = self.store.save_deck({'name':'导出测试', 'deck':self.deck})
+        before = (self.store.decks/'导出测试.ydk').read_bytes()
+        exported = self.store.export_deck(saved['id'])
+        self.assertEqual(exported['name'], saved['name'])
+        self.assertEqual(self.store.parse_deck(exported['text'].encode('utf8')), self.deck)
+        self.assertIn('#main\n', exported['text'])
+        self.assertIn('#extra\n', exported['text'])
+        self.assertIn('!side\n', exported['text'])
+        self.assertEqual((self.store.decks/'导出测试.ydk').read_bytes(), before)
+        with self.assertRaises(ValueError): self.store.export_deck('library/../../outside.ydk')
 
     def test_path_unknown_id_and_extra_zone_validation(self):
         with self.assertRaises(ValueError): safe_child(self.root,'../outside')

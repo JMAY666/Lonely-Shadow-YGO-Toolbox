@@ -44,7 +44,10 @@ async function launch(first = false, testControl = true) {
     const buffer=Buffer.from(png,'base64');fs.writeFileSync(target,buffer);return buffer;
   };
   page.on('pageerror', error => errors.push(error.message));
-  await page.waitForFunction(() => document.querySelector('#resource-count')?.textContent.includes('张卡牌'), null, { timeout: 300000 });
+  await Promise.race([
+    page.waitForFunction(() => document.querySelector('#resource-count')?.textContent.includes('张卡牌'), null, { timeout: 300000 }),
+    page.waitForEvent('pageerror').then(error => { throw error; }),
+  ]);
   await application.evaluate(({BrowserWindow})=>{const main=BrowserWindow.getAllWindows().find(w=>!w.getParentWindow());main.webContents.setZoomFactor(1);main.setContentSize(1280,900);});
   await page.waitForFunction(()=>innerWidth===1280&&innerHeight===900);
   service = JSON.parse(fs.readFileSync(path.join(root, 'runtime', '_trainer', 'service.json'), 'utf8'));
@@ -78,6 +81,11 @@ async function launch(first = false, testControl = true) {
   await page.locator('#module-expansion').click();
   await page.waitForFunction(()=>moduleUI.current==='expansion'&&!moduleUI.switching);
   return page;
+}
+async function openSavedDeck(id) {
+  if (await page.locator('#deck-workbench').isVisible()) await page.locator('#back-to-decks').click();
+  await page.locator('[data-open-deck='+JSON.stringify(id)+']').click();
+  await page.waitForFunction(id=>app.id===id&&!app.busy,id);
 }
 async function waitHistory(status) {
   await page.waitForFunction(expected => app.history.some(h => h.id === app.reportId && h.status === expected), status, { timeout: 20000 });
@@ -240,46 +248,17 @@ async function activatePot(sid) {
   pass('Desktop window, isolated renderer, embedded Python and local catalog');
   await page.locator('#module-decks').click();
   await page.waitForFunction(()=>moduleUI.current==='decks'&&!moduleUI.switching);
-  const deck = { main: Array.from({ length: 40 }, (_, i) => i % 2 ? 1184620 : 55144522), extra: [23995346], side: [55144522] };
-  const source = path.join(evidence, 'acceptance.ydk');
-  fs.writeFileSync(source, '\uFEFF#main\r\n' + deck.main.join('\r\n') + '\r\n#extra\r\n23995346\r\n!side\r\n55144522\r\n');
-  await page.locator('#import-deck').click();
-  await page.locator('#import-file').setInputFiles(source);
-  await page.locator('#import-apply').waitFor({ state: 'visible' });
-  await page.waitForFunction(() => !document.querySelector('#import-apply').disabled);
-  const name = `Electron-${label}-${Date.now()}`;
-  await page.locator('#import-name').fill(name);
-  await page.locator('#import-apply').click();
-  await page.waitForFunction(() => document.querySelector('#count-main').textContent === '40');
-  assert.deepEqual(await page.evaluate(() => app.deck), deck);
-  await page.locator('#save-deck').click();
-  await page.waitForFunction(() => !app.dirty && !!app.id && !app.busy);
-  const deckId = await page.evaluate(() => app.id);
-  assert.equal(await page.locator('#card-library').isVisible(), false);
-  assert.equal(await page.locator('#library-toggle').getAttribute('aria-expanded'), 'false');
-  await page.locator('#library-toggle').click();
-  await page.waitForFunction(() => !document.querySelector('#card-library').hidden);
-  await page.locator('#search').fill('55144522');
-  await page.locator('#search-button').click();
-  await page.waitForFunction(() => document.querySelectorAll('#search-results button').length === 1);
-  await page.locator('#search-results button').first().click();
-  await page.waitForFunction(() => [...document.querySelectorAll('#card-detail img')].some(i => i.complete && i.naturalWidth > 0));
-  await page.locator('#search-results button').first().dblclick();
-  await page.waitForFunction(() => document.querySelector('#count-main').textContent === '41');
-  await page.screenshot({ path: path.join(evidence, 'drawer.png') });
-  await page.locator('#library-close').click();
-  assert.equal(await page.locator('#card-library').isVisible(), false);
-  await page.locator('#undo-deck').click();
-  await page.waitForFunction(() => document.querySelector('#count-main').textContent === '40');
-  pass('Card drawer starts collapsed; opens, searches/adds, and closes without changing the deck');
-  await page.locator('#new-deck').click();
-  await page.locator('#compact-deck').selectOption(deckId);
-  await page.locator('#compact-open').click();
-  await page.waitForFunction(id => app.id === id && !app.busy, deckId);
-  assert.deepEqual(await page.evaluate(() => app.deck), deck);
-  await page.screenshot({ path: path.join(evidence, 'editor.png') });
-  pass('YDK file import, all zones/order, image/effect, add/undo, save and reopen');
+  const {deck,deckId} = await require('./deck-management-smoke.cjs')({page,application,evidence,label,pass});
   await require('./modules-smoke.cjs')({page,application,deckId,deck,pass,evidence});
+  if (process.argv.includes('--decks-only')) {
+    await close(); await launch(false,false);
+    assert.deepEqual((await page.evaluate(id=>api('/api/deck?id='+encodeURIComponent(id)),deckId)).deck,deck);
+    assert((await page.evaluate(()=>api('/api/card-favorites'))).cards.includes(55144522));
+    await close();assert.deepEqual(errors,[]);
+    pass('Decks and favorites survive a fresh desktop/backend restart');
+    fs.writeFileSync(path.join(evidence,'deck-result.json'),JSON.stringify({label,globalInput:false,clipboardWriter:'isolated',checks,errors},null,2));
+    return;
+  }
   await designExpansion('起手验收方案');
   let sessionId = await page.evaluate(() => app.active.id);
   let sessionPath = path.join(root, 'runtime', '_trainer', 'sessions', sessionId);
@@ -496,8 +475,7 @@ async function activatePot(sid) {
   await close();
   pass('Window close releases service, native process and listening port');
   await launch(false, false);
-  await page.locator('#compact-deck').selectOption(deckId);
-  await page.locator('#compact-open').click();
+  await openSavedDeck(deckId);
   await page.waitForFunction(id => app.id === id && !app.busy, deckId);
   assert.deepEqual(await page.evaluate(() => app.deck), deck);
   await page.locator('#nav-plans').click();
@@ -505,7 +483,8 @@ async function activatePot(sid) {
   await page.locator(`[data-report="${sessionId}"]`).click();
   await page.waitForFunction(id => app.reportId === id, sessionId);
   assert.deepEqual(await (await fetch(`${service.url}/api/report/${sessionId}`)).json(), report);
-  pass('Restart retains complete deck and exact report');
+  assert((await page.evaluate(()=>api('/api/card-favorites'))).cards.includes(55144522));
+  pass('Restart retains complete deck, favorites and exact report');
   await page.locator('#nav-decks').click();
   await designExpansion('正常随机模式');
   const interrupted = await page.evaluate(() => app.active.id);
@@ -529,8 +508,7 @@ async function activatePot(sid) {
   assert(fs.existsSync(path.join(interruptedPath, 'report.json')));
   pass('Closing the app during native training flushes an interrupted report and cleans up');
   await launch();
-  await page.locator('#compact-deck').selectOption(deckId);
-  await page.locator('#compact-open').click();
+  await openSavedDeck(deckId);
   await page.waitForFunction(id=>app.id===id&&!app.busy,deckId);
   await designExpansion('AI 干扰验收',true);
   let aiId=await page.evaluate(()=>app.active.id);
@@ -588,7 +566,7 @@ async function activatePot(sid) {
   pass('Real opponent AI activates and resolves Ash Blossom; retry restores both players; named deletion preserves other plans and source');
   await page.locator('#nav-decks').click();
   const banDeck=await page.evaluate(async()=>api('/api/decks',{name:`起手禁用-${Date.now()}`,deck:{main:[...Array(5).fill(55144522),...Array(35).fill(1184620)],extra:[],side:[]}}));
-  await page.evaluate(()=>deckList());await page.locator('#compact-deck').selectOption(banDeck.id);await page.locator('#compact-open').click();
+  await page.evaluate(()=>deckList());await openSavedDeck(banDeck.id);
   await page.waitForFunction(id=>app.id===id&&!app.busy,banDeck.id);
   await page.locator('#start-training').click();await page.waitForFunction(()=>!!flow.design);
   await page.locator('#plan-name').fill('禁用卡后续仍可抽取');
@@ -615,12 +593,14 @@ async function activatePot(sid) {
   assert.deepEqual(await (await fetch(`${service.url}/api/plan/${sessionId}`)).json(),report);
   assert.equal((await (await fetch(`${service.url}/api/deck?id=${encodeURIComponent(deckId)}`)).json()).deck.side.length,0);
   pass('Editing the source deck leaves the entire saved plan byte-for-byte equivalent at the API');
-  await page.locator('#compact-deck').selectOption(deckId);
-  await page.locator('#delete-deck').click();
+  await page.locator('#back-to-decks').click();
+  await page.locator('[data-open-deck='+JSON.stringify(deckId)+']').click({button:'right'});
+  await page.locator('[data-deck-command="delete"]').click();
   await page.locator('#delete-cancel').click();
   await page.waitForFunction(() => !app.busy);
   assert((await (await fetch(`${service.url}/api/decks`)).json()).some(d => d.id === deckId));
-  await page.locator('#delete-deck').click();
+  await page.locator('[data-open-deck='+JSON.stringify(deckId)+']').click({button:'right'});
+  await page.locator('[data-deck-command="delete"]').click();
   await page.locator('#delete-confirm').click();
   await page.waitForFunction(() => !app.busy && document.querySelector('#notice').textContent.startsWith('已删除'));
   assert(!(await (await fetch(`${service.url}/api/decks`)).json()).some(d => d.id === deckId));
@@ -636,6 +616,7 @@ async function activatePot(sid) {
   console.error(error);
   fs.writeFileSync(path.join(evidence, 'failure.json'), JSON.stringify({ error: error.stack, checks, errors }, null, 2));
   if (application) {
+    await page.screenshot({path:path.join(evidence,'failure.png')}).catch(()=>{});
     const state=await page.evaluate(()=>({view:app.view,active:app.active,draft:flow.draft,busy:flow.busy,notice:document.querySelector('#notice').textContent,designError:document.querySelector('#design-error').textContent})).catch(()=>null);
     fs.writeFileSync(path.join(evidence,'failure-state.json'),JSON.stringify(state,null,2));
     // Only this isolated test profile: never leave a failed test at an unsaved-edits dialog.
