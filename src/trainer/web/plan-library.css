@@ -22,8 +22,6 @@
 .chosen-tag button { font-size:12px; padding:5px 8px; }
 .chosen-tag [aria-pressed=true] { color:#225d43; background:#e0efe6; border-color:#8fb69e; }
 .library-dialog [role=status] { color:#546e62; min-height:20px; }
-#tag-definition-form { border-top:1px solid #d9e6de; margin-top:18px; }
-#tag-definition-source { color:#6a7c71; }
 @media(max-width:720px) { .plans-page>header { flex-wrap:wrap; gap:12px; }.library-dialog { padding:16px; }.chosen-tag { flex-wrap:wrap; } }
 .plan-browser-toolbar { display:flex; align-items:center; gap:12px; padding:12px; margin-bottom:16px; }
 #plan-folder-path { display:flex; flex:1; align-items:center; gap:12px; min-width:140px; font-size:13px; }

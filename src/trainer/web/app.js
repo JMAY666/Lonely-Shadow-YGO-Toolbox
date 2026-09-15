@@ -25,18 +25,32 @@ async function card(code) {
   return app.pendingCards.get(code);
 }
 function switchView(view) {
+  // Background completion updates the expansion's destination without taking
+  // the user away from a different module or replacing its editor buffer.
+  if (typeof moduleUI !== 'undefined' && moduleUI.current !== 'expansion' && view !== 'decks') {
+    moduleUI.expansionView = view;
+    return;
+  }
   if(view==='compromise' && typeof branchUI!=='undefined' && !selectedBranch()?.valid)return notice('请先在展开时间轴中创建或选择妥协分支');
   if (view === 'confirmation' && (typeof reviewUI === 'undefined' || !reviewUI.pending)) { notice('请从当前方案的保存操作进入确认。'); view = 'history'; }
-  if (typeof flow !== 'undefined' && flow.deckEdit && view !== 'decks') return notice('请先应用本次卡组编辑，或取消编辑并返回条件。');
+  if (activeDesignDeckEdit() && view !== 'decks') return notice('请先应用本次卡组编辑，或取消编辑并返回条件。');
   if (typeof flow !== 'undefined' && app.view !== view) {
     if (app.view === 'design' && flow.design && view !== 'training') notice('前置设计尚未开始，填写内容保留在“展开前置设计”中；退出应用会丢失这些设置。');
     else if (app.view === 'training' && app.active) notice('当前展开尚未保存为方案，记录继续进行，可返回展开场地。');
     else if (app.view === 'history' && flow.draft) notice('草稿尚未保存为正式方案，可返回继续调整；退出前请保存名称和备注修改。');
   }
+  if (typeof moduleUI !== 'undefined' && moduleUI.current === 'expansion') moduleUI.expansionView = view;
+  displayView(view);
+}
+function activeDesignDeckEdit() {
+  return typeof flow !== 'undefined' && flow.deckEdit && (typeof moduleUI === 'undefined' || moduleUI.editorOwner === 'expansion');
+}
+function displayView(view) {
   app.view = view;
   if(typeof closeBranchMenu==='function')closeBranchMenu(false);
   if(typeof closeReviewDetail==='function')closeReviewDetail();
   if (view !== 'decks') setLibraryOpen(false, false);
+  $('#home').hidden = view !== 'home';
   $('#editor').hidden = view !== 'decks';
   $('#history').hidden = view !== 'history';
   $('#training').hidden = view !== 'training';
@@ -46,7 +60,7 @@ function switchView(view) {
     $('#compromise-design').hidden = view !== 'compromise';
   $('#save-confirmation').hidden = view !== 'confirmation';
   document.body.classList.toggle('history-view', ['history','plans','confirmation','tags'].includes(view));
-    for (const name of ['decks', 'history', 'training', 'design', 'plans', 'tags', 'compromise']) {
+    for (const name of ['decks', 'history', 'training', 'design', 'plans', 'compromise']) {
     const button = $(`#nav-${name}`);
     button.classList.toggle('active', view === name);
     if (view === name) button.setAttribute('aria-current', 'page');
@@ -91,7 +105,8 @@ function updateStart() {
   $('#end-training').disabled = $('#finish-training').disabled;
   $('#restart-expansion').disabled = !app.active?.plan_stage || app.active.status === 'stopping' || flowBusy;
   $('#return-conditions').disabled = $('#restart-expansion').disabled;
-  if (typeof flow !== 'undefined' && flow.deckEdit) {$('#start-training').disabled=true;$('#delete-deck').disabled=true;}
+  if (activeDesignDeckEdit()) {$('#start-training').disabled=true;$('#delete-deck').disabled=true;}
+  if (typeof updateModuleChrome === 'function') updateModuleChrome();
   if (typeof flow !== 'undefined' && flow.timer && (!app.active || app.active.status==='stopping') && flow.timer.started!==null) stopTimer();
   $('#training-title').textContent = app.active ? `${app.active.name} · ${statusNames[app.active.status]}` : '展开场地';
 }
@@ -160,7 +175,7 @@ function confirmDeckDeletion(selected, clearing) {
   });
 }
 async function deleteDeck() {
-  if (typeof flow !== 'undefined' && flow.deckEdit) return;
+  if (activeDesignDeckEdit()) return;
   const id = $('#compact-deck').value;
   if (app.busy || !id) return;
   app.busy = true;
@@ -554,7 +569,7 @@ async function applyImportedDeck() {
   } finally { app.busy = false; updateStart(); updateDetailCounts(); setImportBusy(false); }
 }
 async function saveDeck() {
-  if (typeof flow !== 'undefined' && flow.deckEdit) return finishDesignDeckEdit(true);
+  if (activeDesignDeckEdit()) return finishDesignDeckEdit(true);
   if (app.busy) return;
   let name = $('#deck-name').value.trim();
   if (app.id?.startsWith('existing/') && name === app.id.split('/').at(-1).replace(/\.ydk$/,'')) name += ' - 练习';
@@ -583,7 +598,7 @@ async function refreshHistory(){
   app.active=app.history.find(h=>['running','starting','stopping'].includes(h.status))||null;
   if(typeof resetTimelineSession==='function')resetTimelineSession(app.active?.id || null);
   $('#history-count').textContent=app.history.filter(h=>h.plan_stage==='draft').length||'';
-  $('#active-training').hidden=!app.active;
+  $('#active-training').hidden=!app.active || (typeof moduleUI !== 'undefined' && moduleUI.current !== 'expansion');
   if(app.active){$('#active-title').textContent=`${app.active.name} · ${statusNames[app.active.status]}`;$('#active-info').textContent=`${dt(app.active.started_ms)} 开始 · 过程正在记录，尚未保存为方案。`;}
   updateStart();
   const historyKey=JSON.stringify(app.history);
@@ -721,7 +736,8 @@ $('#finish-training').onclick = run(async () => {if(app.active){await api('/api/
 new ResizeObserver(() => {void syncNativeHost().catch(() => {});}).observe($('#native-stage'));
 window.addEventListener('resize', () => {void syncNativeHost().catch(() => {});});
 new ResizeObserver(([entry]) => {
-  document.documentElement.style.setProperty('--app-bar-height', `${entry.target.getBoundingClientRect().height}px`);
+  if (typeof updateShellHeight === 'function') updateShellHeight();
+  else document.documentElement.style.setProperty('--app-bar-height', `${entry.target.getBoundingClientRect().height}px`);
 }).observe($('.app-bar'));
 $('#delete-deck').onclick = run(deleteDeck);
 $('#library-toggle').onclick = () => setLibraryOpen($('#card-library').hidden);

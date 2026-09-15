@@ -13,7 +13,7 @@ const onlyCompromise=process.argv.includes('--compromise-only');
 const root = path.join(workspace, '.local', `desktop-check-${label}${onlyCompromise?'-compromise':''}`);
 const evidence = path.join(workspace, '.local', 'evidence', `electron-${label}${onlyCompromise?'-compromise':''}`);
 fs.mkdirSync(evidence, { recursive: true });
-const executable = packaged ? path.join(workspace, require('../package.json').build.directories.output, 'win-unpacked', 'YGOTrainer.exe') : require('electron');
+const executable = packaged ? path.join(workspace, require('../package.json').build.directories.output, 'win-unpacked', require('../package.json').build.win.executableName + '.exe') : require('electron');
 const checks = [], errors = [];
 let application, page, service, nativePid;
 let compromiseSaved;
@@ -33,6 +33,8 @@ async function launch(first = false, testControl = true) {
   // Capture the app's renderer while its window stays hidden. CDP screenshots can stall on a hidden HWND.
   page.screenshot = async ({path:target,preserveScroll=false}) => {
     if(!preserveScroll)await page.evaluate(()=>window.scrollTo(0,0));
+    // Hidden compositors may suspend an entrance animation between captures.
+    await page.evaluate(()=>document.getAnimations().forEach(animation=>{if(Number.isFinite(animation.effect?.getComputedTiming().endTime))animation.finish();}));
     const png = await application.evaluate(async ({BrowserWindow}) => {
       const contents=BrowserWindow.getAllWindows().find(w=>!w.getParentWindow()).webContents;
       await contents.capturePage(undefined,{stayHidden:true}); // Wake the hidden compositor before the final frame.
@@ -47,6 +49,33 @@ async function launch(first = false, testControl = true) {
   await page.waitForFunction(()=>innerWidth===1280&&innerHeight===900);
   service = JSON.parse(fs.readFileSync(path.join(root, 'runtime', '_trainer', 'service.json'), 'utf8'));
   assert.equal(await page.evaluate(() => typeof require), 'undefined');
+  const brand = require('./branding.cjs');
+  assert.equal(await page.title(),brand.name);
+  const identity = await application.evaluate(({app,BrowserWindow})=>({name:app.getName(),title:BrowserWindow.getAllWindows().find(w=>!w.getParentWindow()).getTitle(),data:app.getPath('userData')}));
+  assert.equal(identity.name,brand.name); assert.equal(identity.title,brand.name);
+  assert.equal(identity.data,path.join(root,'electron'));
+  if(testControl)assert.deepEqual(await application.evaluate(()=>globalThis.brandingAcceptance),{windowIconExists:true,loadingImage:true});
+  assert.deepEqual(await page.locator('.primary-rail nav button>span').allTextContents(),['首页','卡组编辑','展开','TAG 管理']);
+  assert.equal(await page.locator('#expansion-navigation #nav-tags, #manage-tags').count(),0);
+  const tagPosition=await page.locator('#module-tags').boundingBox();
+  assert(tagPosition.y>700,'TAG management stays at the bottom of the 900px primary column');
+  assert.equal(await page.locator('#module-home').getAttribute('aria-current'),'page');
+  assert.equal(await page.locator('#home').isVisible(),true);
+  await page.locator('#navigation-toggle').click();
+  assert.equal(await page.locator('#primary-navigation').isVisible(),false);
+  await page.locator('#home-decks').click();
+  await page.waitForFunction(()=>moduleUI.current==='decks'&&!moduleUI.switching);
+  assert.equal(await page.locator('#primary-navigation').isVisible(),false);
+  await page.locator('#navigation-toggle').click();
+  await page.locator('#module-home').click();
+  await page.waitForFunction(()=>moduleUI.current==='home'&&!moduleUI.switching);
+  assert(await page.locator('.brand img').evaluate(image=>image.complete&&image.naturalWidth>0));
+  await page.screenshot({path:path.join(evidence,'home.png')});
+  await page.locator('#home-decks').click();
+  await page.waitForFunction(()=>moduleUI.current==='decks'&&!moduleUI.switching);
+  assert.equal(await page.locator('#module-decks').getAttribute('aria-current'),'page');
+  await page.locator('#module-expansion').click();
+  await page.waitForFunction(()=>moduleUI.current==='expansion'&&!moduleUI.switching);
   return page;
 }
 async function waitHistory(status) {
@@ -142,6 +171,15 @@ async function activatePot(sid) {
 
 (async () => {
   await launch(true);
+  if(process.argv.includes('--home-only')) {
+    await page.locator('#module-home').click();
+    await page.waitForFunction(()=>moduleUI.current==='home'&&!moduleUI.switching);
+    await page.screenshot({path:path.join(evidence,'home.png')});
+    await page.locator('#navigation-toggle').click();
+    await page.screenshot({path:path.join(evidence,'home-collapsed.png')});
+    await close();assert.deepEqual(errors,[]);
+    console.log('PASS Final packaged/development home, brand and collapsible navigation');return;
+  }
   if(process.argv.includes('--route-display-only')) {
     const plans=await page.evaluate(()=>api('/api/plans'));
     assert(plans.length,'Run the full smoke once to create an isolated saved plan');
@@ -199,6 +237,8 @@ async function activatePot(sid) {
   const bootstrap = await (await fetch(`${service.url}/api/bootstrap`)).json();
   assert.equal(bootstrap.cards, 14981);
   pass('Desktop window, isolated renderer, embedded Python and local catalog');
+  await page.locator('#module-decks').click();
+  await page.waitForFunction(()=>moduleUI.current==='decks'&&!moduleUI.switching);
   const deck = { main: Array.from({ length: 40 }, (_, i) => i % 2 ? 1184620 : 55144522), extra: [23995346], side: [55144522] };
   const source = path.join(evidence, 'acceptance.ydk');
   fs.writeFileSync(source, '\uFEFF#main\r\n' + deck.main.join('\r\n') + '\r\n#extra\r\n23995346\r\n!side\r\n55144522\r\n');
@@ -238,6 +278,7 @@ async function activatePot(sid) {
   assert.deepEqual(await page.evaluate(() => app.deck), deck);
   await page.screenshot({ path: path.join(evidence, 'editor.png') });
   pass('YDK file import, all zones/order, image/effect, add/undo, save and reopen');
+  await require('./modules-smoke.cjs')({page,application,deckId,deck,pass,evidence});
   await designExpansion('起手验收方案');
   let sessionId = await page.evaluate(() => app.active.id);
   let sessionPath = path.join(root, 'runtime', '_trainer', 'sessions', sessionId);
@@ -278,6 +319,37 @@ async function activatePot(sid) {
   assert.equal(host.frame_ready,true);
   await page.waitForFunction(()=>document.querySelector('#native-loading').hidden);
   assertComposition(host);
+  const sessionSnapshot = await page.evaluate(id=>api('/api/design/'+id),sessionId);
+  await page.locator('#module-home').click();
+  await page.waitForFunction(()=>moduleUI.current==='home'&&!moduleUI.switching);
+  await hostWait(sessionId,s=>!s.visible);
+  assert.equal(await page.evaluate(()=>app.active.id),sessionId);
+  await page.locator('#module-tags').click();
+  await page.waitForFunction(()=>moduleUI.current==='tags'&&!moduleUI.switching);
+  assert.equal(await page.locator('#expansion-navigation').isVisible(),false);
+  assert.equal(await page.locator('#tags').isVisible(),true);
+  assert.equal(await page.evaluate(()=>app.active.id),sessionId);
+  await page.locator('#module-decks').click();
+  await page.waitForFunction(()=>moduleUI.current==='decks'&&!moduleUI.switching);
+  assert.equal(await page.locator('#active-training').isVisible(),false);
+  // Save the shared source through the independent module while the engine runs.
+  await page.evaluate(async id=>{await openDeck(id);await addCard(55144522,'side');await saveDeck();},deckId);
+  assert.deepEqual(await page.evaluate(id=>api('/api/design/'+id),sessionId),sessionSnapshot);
+  await page.evaluate(async()=>{await undoDeck();await saveDeck();});
+  await page.locator('#module-expansion').click();
+  await page.waitForFunction(()=>moduleUI.current==='expansion'&&!moduleUI.switching);
+  assert.equal(await page.evaluate(()=>app.active.id),sessionId);
+  assert.equal(await page.evaluate(()=>app.view),'training');
+  assertComposition(await hostWait(sessionId,s=>s.visible&&s.owns_stage_hit_test&&s.composition_compatible));
+  pass('Live expansion survives primary module switching; editing shared source leaves its frozen design unchanged and native field resumes');
+  const expandedStage=await page.locator('#native-stage').boundingBox();
+  await page.locator('#navigation-toggle').click();
+  const collapsedHost=await hostWait(sessionId,s=>s.visible&&s.bounds.width>expandedStage.width&&s.owns_stage_hit_test&&s.composition_compatible);
+  assertComposition(collapsedHost);
+  assert.equal(await page.evaluate(()=>app.active.id),sessionId);
+  await page.locator('#navigation-toggle').click();
+  assertComposition(await hostWait(sessionId,s=>s.visible&&Math.abs(s.bounds.width-expandedStage.width)<3&&s.owns_stage_hit_test));
+  pass('Collapsing and reopening the left navigation resizes the live native stage and preserves its session');
   fs.writeFileSync(path.join(evidence, 'native-host.json'), JSON.stringify(host, null, 2));
   await page.screenshot({path: path.join(evidence, 'training-shell.png')});
   const stage = await page.locator('#native-stage').boundingBox();
@@ -417,6 +489,7 @@ async function activatePot(sid) {
   await page.screenshot({path:path.join(evidence,'saved-plan.png')});
   await require('./plan-tutorial-smoke.cjs')({page,application,plan:report,pass,evidence});
   await require('./plan-library-smoke.cjs')({page,application,plan:report,pass,evidence});
+  await require('./tag-manager-smoke.cjs')({page,plan:report,pass,evidence});
   await require('./route-display-smoke.cjs')({page,plan:report,pass,evidence});
   pass('Draft text adjustment, visible save failure with retained content, retry and idempotent formal save');
   await close();

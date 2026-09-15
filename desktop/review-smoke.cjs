@@ -38,6 +38,15 @@ module.exports=async function({page,report,pass,evidence}) {
   assert.match(await page.locator('#review-steps [aria-current=step]').innerText(),/Step 2/);
   await select('final');
   await page.locator('#review-step-notes').fill('终场验收：保留怪兽作为后续资源。');
+  const draftBefore=await page.evaluate(()=>JSON.stringify({draft:flow.draft,node:reviewUI.node}));
+  await page.locator('#module-home').click();
+  await page.waitForFunction(()=>moduleUI.current==='home'&&!moduleUI.switching);
+  await page.locator('#home-decks').click();
+  await page.waitForFunction(()=>moduleUI.current==='decks'&&!moduleUI.switching);
+  await page.locator('#module-expansion').click();
+  await page.waitForFunction(()=>moduleUI.current==='expansion'&&!moduleUI.switching);
+  assert.equal(await page.evaluate(()=>JSON.stringify({draft:flow.draft,node:reviewUI.node})),draftBefore);
+  assert.equal(await page.locator('#review-step-notes').inputValue(),'终场验收：保留怪兽作为后续资源。');
   const drawnIds=new Set(report.events.filter(e=>e.message===90&&e.id!==report.initial_hand_ref).flatMap(e=>e.cards.map(c=>c.instance_id)));
   const randomHand=report.final_state.cards.filter(c=>c.controller===0&&c.location===2&&drawnIds.has(c.instance_id));
   assert(randomHand.length>0,'Real effect draws must reach the final hand');

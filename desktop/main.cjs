@@ -4,6 +4,10 @@ const { spawn } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 const readline = require('node:readline');
+const branding = require('./branding.cjs');
+app.setName(branding.name);
+const brandAssets = app.isPackaged ? path.join(process.resourcesPath, 'trainer', 'web', 'brand') : path.dirname(branding.icon);
+const applicationIcon = path.join(brandAssets, 'app.ico');
 
 // Chromium's layered DirectComposition surface can cover the sibling OpenGL
 // child even when that child owns the hit test. Select HWND composition before
@@ -17,13 +21,12 @@ function argument(name) {
   return path.resolve(process.argv[index + 1]);
 }
 const workspace = path.resolve(__dirname, '..');
-const dataDir = argument('--data-dir') || (app.isPackaged
-  ? path.join(process.env.LOCALAPPDATA || app.getPath('appData'), 'YGOTrainer')
-  : path.join(workspace, '.local', 'desktop-dev'));
+const dataDir = argument('--data-dir') || branding.defaultDataDir({packaged:app.isPackaged,
+  workspace, localAppData:process.env.LOCALAPPDATA, appData:app.getPath('appData')});
 fs.mkdirSync(dataDir, { recursive: true });
 app.setPath('userData', path.join(dataDir, 'electron'));
 fs.mkdirSync(app.getPath('userData'), { recursive: true });
-app.setAppUserModelId('local.ygotrainer.desktop');
+app.setAppUserModelId(branding.appId);
 const webPreferences = { nodeIntegration: false, contextIsolation: true, sandbox: true };
 let mainWindow, backend, ready, shuttingDown = false, finished = false, log;
 let closeRequested = false;
@@ -37,7 +40,7 @@ async function stop() {
   shuttingDown = true;
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.setEnabled(false);
-    mainWindow.setTitle('游戏王工具箱 · 正在保存并退出');
+    mainWindow.setTitle(`${branding.name} · 正在保存并退出`);
   }
   if (backend && backend.exitCode === null && backend.signalCode === null) {
     const exited = new Promise(resolve => backend.once('exit', resolve));
@@ -75,7 +78,7 @@ function bindWindow(window, origin) {
     const parsed=new URL(url);
     const opponent=parsed.pathname==='/opponent.html'&&/^[0-9a-f-]{36}$/.test(parsed.searchParams.get('session')||'');
     if(!opponent&&!/^\/api\/(raw|ydk)\/[0-9a-f-]{36}$/.test(parsed.pathname))return { action: 'deny' };
-    return { action: 'allow', overrideBrowserWindowOptions: { parent: mainWindow, show:process.env.YGO_DESKTOP_BACKGROUND!=='1', width: 1050, height: 820, autoHideMenuBar: true, webPreferences } };
+    return { action: 'allow', overrideBrowserWindowOptions: { parent: mainWindow, icon:applicationIcon, show:process.env.YGO_DESKTOP_BACKGROUND!=='1', width: 1050, height: 820, autoHideMenuBar: true, webPreferences } };
   });
   contents.on('did-create-window', (child,details) => {
     bindWindow(child, origin);
@@ -165,7 +168,7 @@ if (!app.requestSingleInstanceLock()) {
         bounds = { width: Math.min(saved.width, display.width), height: Math.min(saved.height, display.height), x: display.x + 20, y: display.y + 20 };
       }
     } catch { /* First launch or damaged window settings: use defaults. */ }
-    mainWindow = new BrowserWindow({ ...bounds, minWidth: 900, minHeight: 650, title: '游戏王工具箱', autoHideMenuBar: true,
+    mainWindow = new BrowserWindow({ ...bounds, minWidth: 900, minHeight: 650, title: branding.name, icon:applicationIcon, autoHideMenuBar: true,
       show: process.env.YGO_DESKTOP_BACKGROUND !== '1',
       webPreferences: { ...webPreferences, preload: path.join(__dirname, 'preload.cjs'), backgroundThrottling: false } });
     ipcMain.handle('trainer:layout', async (event, bounds) => {
@@ -208,7 +211,13 @@ if (!app.requestSingleInstanceLock()) {
       for (const child of BrowserWindow.getAllWindows()) child.destroy();
       void stop();
     });
-    await mainWindow.loadFile(path.join(__dirname, 'loading.html'));
+    const loading = fs.readFileSync(path.join(__dirname, 'loading.html'), 'utf8')
+      .replace('__APP_ICON__', fs.readFileSync(path.join(brandAssets, 'app.svg')).toString('base64'));
+    await mainWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(loading));
+    if (process.env.YGO_DESKTOP_TEST === '1') globalThis.brandingAcceptance = {
+      windowIconExists:fs.existsSync(applicationIcon),
+      loadingImage:await mainWindow.webContents.executeJavaScript('document.images[0].complete && document.images[0].naturalWidth > 0')
+    };
     const importFrom = argument('--import-from') || (!app.isPackaged ? path.join(workspace, '.local', 'YGOPro-Lite') : null);
     const service = await launchBackend(importFrom);
     if (shuttingDown || !mainWindow) return;
@@ -217,7 +226,7 @@ if (!app.requestSingleInstanceLock()) {
     writeLog(`Ready: service ${service.pid}, ${service.url}, data ${dataDir}`);
   }).catch(error => {
     writeLog(error.stack || error.message);
-    if (!shuttingDown && process.env.YGO_DESKTOP_BACKGROUND !== '1') dialog.showErrorBox('游戏王工具箱启动失败', error.message);
+    if (!shuttingDown && process.env.YGO_DESKTOP_BACKGROUND !== '1') dialog.showErrorBox(`${branding.name} 启动失败`, error.message);
     if (mainWindow && !mainWindow.isDestroyed()) mainWindow.destroy();
     void stop();
   });

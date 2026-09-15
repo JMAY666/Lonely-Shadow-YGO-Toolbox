@@ -1,9 +1,5 @@
 'use strict';
 const tagManagerUI={loaded:false,tags:[],revision:0,selected:null,draft:null,members:new Map(),dirty:false,busy:false,serial:0,searchSerial:0,searchTimer:null,results:[],offset:0,total:0};
-async function openTagManager() {
-  switchView('tags');
-  if(!tagManagerUI.dirty)await refreshTagManager();
-}
 async function confirmTagChange() {
   return !tagManagerUI.dirty||await confirmFlow('放弃当前标签的未保存修改？','已保存的名称、别名和卡牌范围保持不变。','放弃修改');
 }
@@ -73,7 +69,6 @@ async function saveManagedTag(e) {
   }catch(error){$('#tag-manager-status').textContent=`保存失败：${error.message}。输入与卡牌选择仍保留。`;}
   finally{tagManagerUI.busy=false;$('#tag-manager-form').inert=false;}
 }
-$('#nav-tags').onclick=run(openTagManager);$('#manage-tags').onclick=run(openTagManager);
 $('#tag-manager-new').onclick=run(()=>selectManagedTag());$('#tag-manager-refresh').onclick=run(refreshTagManager);
 $('#tag-manager-search').oninput=renderTagManagerList;$('#tag-member-filter').oninput=()=>{closeReviewDetail();renderTagMembers();};
 $('#tag-manager-name').oninput=$('#tag-manager-aliases').oninput=markTagDirty;$('#tag-manager-form').onsubmit=saveManagedTag;

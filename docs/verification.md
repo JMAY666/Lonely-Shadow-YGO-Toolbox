@@ -206,3 +206,15 @@
 对照窗口信息及原生图像保存在 `.local/evidence/render-legacy.*`、`render-composition.*` 和 `render-baseline.*`；最终流程结果、宿主状态及原生场地图像保存在 `electron-development/` 与 `electron-packaged/`。`training-shell.png` 只包含网页渲染器，用于检查按钮和页面；`embedded-board.png` 来自原生渲染驱动，二者没有拼接为桌面截图。
 
 本轮全部窗口验收均在后台隔离实例中执行，没有移动系统鼠标、发送全局按键或接管其他窗口。没有进行前台物理键鼠验收，也没有复测其他显卡、Windows 版本或跨显示器 DPI。之前的“内部截图通过”不作为整窗合成已经可见的单独证据。
+
+## 1.11.0：统一品牌与独立模块
+
+- 应用名称、窗口标题、启动页及 Windows EXE 使用 `Lonely-Shadow-Yu-Gi-Oh-Toolbox`。SVG、PNG 与七档 ICO 共用月影卡牌图形；打包窗口从 `resources/trainer/web/brand/` 读取图标，启动页内嵌同一 SVG。实际 Electron 验收检查启动页图像已解码、窗口图标路径存在；EXE 资源检查核对名称与全部七档图标字节。
+- 左侧主栏目为首页、卡组编辑、展开，TAG 管理固定在最下方。无文字的箭头位于栏目边缘中间，收起后保留在窗口左侧中间；原生场地避开箭头，并在展开导航后恢复原尺寸。首页采用用户指定的标语，只提供功能跳转。
+- 两处卡组编辑共用后端卡组库，分别保留未保存构筑、撤销栈、搜索和选择状态。独立页面移除后续流程入口；展开模块保留完整流程。TAG 的全局维护集中在主栏目，方案自己的标签选择与自动分类保留。切换确认的异步间隔与失败恢复有单独回归，防止确认期间换到另一份编辑内容。
+- `npm test`：Python 136 项、JavaScript 101 项通过。
+- `npm run test:packaged` 全流程通过；最终居中箭头通过 `--timeline-only` 复测，最终启动页和图标资源路径通过 `--home-only` 复测。覆盖卡组编辑、源卡组与展开快照隔离、布局缩放、原生输入与合成、回退、草稿／正式方案、TAG、导入导出、真实超量／连接、妥协分支、对手接管和重启。
+- 开发版验收中修正了测试对异步标签载入的等待。另一次全量运行在活跃时间轴读取时收到一次 HTTP 500；时间轴逻辑未在本次修改中改写，定向 `--timeline-only` 复测通过。`--materials-only`、`--compromise-only`、`--home-only` 与 `npm run test:deletion` 均通过。最终 `npm run test:desktop` 串行全量复测通过，读取异常未复现。
+- `npm run test:upgrade -- --legacy-exe "release/1.10.0/win-unpacked/YGOTrainer.exe"`：在隔离的 `LOCALAPPDATA` 下先后运行旧版与新版，使用明确标记 `test_control: true` 的验收记录。默认 `YGOTrainer` 目录、卡组、方案、历史、窗口尺寸和备份可继续读取，152 个受检文件的哈希保持一致；不访问生产用户数据。
+- `npm run build` 通过。最终包的 4 个主进程／启动页文件及 42 个后端、网页和图标文件与源码字节一致；生产 `package.json` 的运行身份字段一致，开发字段由打包器正常裁剪。ZIP 共 172 个条目，完整 CRC 检查通过，包内 `app.asar` 与已验收目录一致。
+- 证据保留在 `.local/evidence/electron-development/`、`electron-packaged/`、`electron-development-compromise/`、`upgrade-1.11.0.json`、`brand-package-match.json` 与 `brand-zip-verification.json`。截图来自本应用渲染器或引擎，未移动系统鼠标、发送全局按键或操作用户的其他窗口。仅在当前 Windows 主机验证，未扩展为其他 Windows 版本、显卡或跨显示器 DPI 的兼容性承诺。

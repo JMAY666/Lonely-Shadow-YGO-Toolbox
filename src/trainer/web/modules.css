@@ -1,0 +1,81 @@
+/* The collapsible left rail is the only primary navigation. */
+:root { --rail-size:100px; --rail-width:var(--rail-size); --app-bar-height:60px; }
+body { padding-left:var(--rail-width); }
+body.rail-collapsed { --rail-width:0px; }
+.app-bar { height:60px; min-height:60px; padding:0 22px; gap:20px; flex-wrap:nowrap; }
+.rail-collapsed main { padding-left:32px; }
+.navigation-toggle { position:fixed; left:calc(var(--rail-width) - 11px); top:50%; transform:translateY(-50%); z-index:46; width:22px; height:34px; display:grid; place-items:center; padding:0; background:#293f43; color:#d0e7aa; border:1px solid #6b8565; border-radius:6px; }
+.navigation-toggle:hover { background:#30463d; border-color:#96ba7d; }
+.navigation-toggle svg { width:18px; height:18px; stroke:currentColor; stroke-width:1.7; fill:none; stroke-linecap:round; }
+.rail-collapsed .navigation-toggle { left:0; border-left:0; border-radius:0 6px 6px 0; }
+.rail-collapsed .navigation-toggle svg { transform:rotate(180deg); }
+.app-bar .brand { min-width:0; gap:12px; }
+.brand img { width:34px; height:34px; flex-shrink:0; }
+.app-bar .brand span { display:block; font-size:15px; font-weight:650; letter-spacing:.2px; color:#dce6ea; white-space:normal; overflow-wrap:anywhere; }
+.app-bar .local { display:flex; }
+.primary-rail { position:fixed; inset:0 auto 0 0; width:var(--rail-size); z-index:45; display:flex; flex-direction:column; align-items:center; gap:30px; padding:18px 8px; background:#17262f; border-right:1px solid #35434a; color:#c3d0d5; }
+.rail-mark { width:40px; height:40px; }
+.primary-rail nav { display:flex; flex-direction:column; width:100%; gap:10px; flex:1; min-height:0; }
+#module-tags { margin-top:auto; }
+.module-link { display:flex; align-items:center; flex-direction:column; justify-content:center; gap:9px; min-height:80px; width:100%; padding:12px 4px; border:1px solid transparent; border-radius:9px; background:transparent; color:#93a8b3; font-size:12px; position:relative; }
+.module-link svg { width:23px; height:23px; stroke:currentColor; stroke-width:1.7; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+.module-link:hover { background:#243740; border-color:#47604e; }
+.module-link.active { background:#2d443b; border-color:#66805b; color:#d5efa9; }
+.module-link.active:before { content:''; position:absolute; left:-9px; top:18px; bottom:18px; width:3px; border-radius:3px; background:#c4e88c; }
+.module-link small { color:#c4e88c; font-size:9px; }
+#expansion-navigation { display:flex; align-items:center; gap:18px; padding:0 18px; min-height:50px; background:#182730; border-bottom:1px solid #30424c; }
+.module-caption { color:#dce7e9; font-size:12px; white-space:nowrap; }
+#expansion-navigation nav { display:flex; overflow-x:auto; min-width:0; gap:12px; min-height:50px; scrollbar-width:thin; }
+#expansion-navigation nav>span { display:flex; }
+#expansion-navigation .nav { padding:10px 5px; font-size:12px; }
+#editor { height:calc(100dvh - var(--app-bar-height) - 16px); min-height:0; }
+.editor-toolbar { flex-wrap:wrap; padding:12px 0; gap:10px 16px; }
+.toolbar-actions { gap:10px; margin-left:auto; }
+.toolbar-actions button { padding:8px 10px; }
+.deck-picker select { width:clamp(125px,15vw,205px); }
+.workspace { grid-template-columns:minmax(200px,270px) minmax(0,1fr); }
+.detail-content,.deck-cards { max-height:none; }
+#editor .library { right:16px; top:calc(var(--app-bar-height) + 14px); bottom:16px; width:min(360px,calc(100vw - var(--rail-width) - 28px)); max-height:calc(100dvh - var(--app-bar-height) - 30px); }
+.review-layout { --review-log-width:min(480px,calc(100vw - var(--rail-width) - 76px)); }
+.review-log,.review-log-edge-toggle { right:14px; }
+.log-open .review-log-edge-toggle { right:calc(var(--review-log-width) + 13px); }
+.review-zone-popover { right:24px; width:min(580px,calc(100vw - var(--rail-width) - 48px)); }
+#notice { left:calc((100% + var(--rail-width))/2); max-width:min(620px,calc(100vw - var(--rail-width) - 30px)); }
+.home-page { max-width:1130px; margin:auto; padding:clamp(35px,9vh,90px) clamp(8px,4vw,60px) 35px; color:#dce5e9; }
+.home-intro { display:flex; align-items:center; gap:25px; margin-bottom:48px; }
+.home-intro>img { width:100px; height:100px; flex-shrink:0; }
+.home-intro h1 { font-size:clamp(24px,2.8vw,36px); letter-spacing:0; margin:0 0 12px; }
+.home-intro p { color:#9fb1bb; max-width:62ch; font-size:13px; line-height:1.9; text-wrap:pretty; }
+.home-shortcuts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:22px; }
+.home-shortcut { display:flex; flex-direction:column; text-align:left; padding:30px; min-height:235px; background:#182832; border:1px solid #3c5156; border-radius:15px; color:#dce5e9; }
+.home-shortcut:hover { background:#22363c; border-color:#a3c582; }
+.shortcut-number { color:#91ab98; font-size:10px; letter-spacing:1.6px; }
+.home-shortcut strong { display:flex; justify-content:space-between; width:100%; font-size:24px; margin:22px 0 13px; }
+.home-shortcut strong span { color:#c4e88c; font-weight:400; }
+.home-shortcut p { color:#9eb0b9; font-size:13px; margin-bottom:30px; }
+.shortcut-action { color:#d2e9ac; font-size:12px; margin-top:auto; }
+.home-footnote { margin-top:24px; font-size:12px; color:#7f969e; }
+@media(max-width:1150px) {
+  :root { --rail-size:88px; }
+  .app-bar .local { display:none; }
+  .deck-identity { flex-basis:100%; max-width:none; grid-template-columns:auto minmax(0,1fr) auto; }
+  #deck-status { grid-column:auto; }
+  .toolbar-actions { width:100%; justify-content:space-between; }
+  .save-actions { padding-left:10px; }
+  .workspace { grid-template-columns:210px minmax(0,1fr); }
+}
+@media(max-width:700px) {
+  :root { --rail-size:76px; }
+  .app-bar { padding:0 12px; }
+  .app-bar .brand span { font-size:12px; }
+  #expansion-navigation { padding:0 10px; gap:8px; }
+  #editor { height:auto; min-height:calc(100dvh - var(--app-bar-height) - 16px); }
+  .workspace { display:flex; }
+  .home-intro { gap:14px; align-items:flex-start; margin-bottom:28px; }
+  .home-intro>img { width:60px; height:60px; }
+  .home-shortcuts { grid-template-columns:1fr; }
+  .home-shortcut { min-height:190px; padding:22px; }
+  .deck-identity { grid-template-columns:auto minmax(0,1fr); }
+  #deck-status { grid-column:2; }
+  .deck-picker { flex-wrap:wrap; }
+}

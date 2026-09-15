@@ -1,8 +1,8 @@
 {
-  "name": "ygo-trainer-desktop",
-  "version": "1.10.0",
+  "name": "lonely-shadow-yu-gi-oh-toolbox",
+  "version": "1.11.0",
   "private": true,
-  "description": "游戏王工具箱：牌组编辑、起手设计、展开记录与方案管理",
+  "description": "Lonely-Shadow-Yu-Gi-Oh-Toolbox：卡组编辑、展开练习与方案管理",
   "main": "desktop/main.cjs",
   "author": "YGO Trainer contributors",
   "license": "UNLICENSED",
@@ -13,8 +13,10 @@
     "build": "npm run desktop:prepare && electron-builder --win zip --x64",
     "test": "python -m unittest discover -s tests -q && node --test tests/*.test.cjs",
     "test:desktop": "node desktop/smoke.cjs",
-    "test:packaged": "node desktop/smoke.cjs --packaged",
-    "test:deletion": "node desktop/deletion-smoke.cjs"
+    "test:packaged": "node desktop/package-branding-check.cjs && node desktop/smoke.cjs --packaged",
+    "test:deletion": "node desktop/deletion-smoke.cjs",
+    "build:icons": "electron scripts/build-icons.cjs",
+    "test:upgrade": "node desktop/upgrade-smoke.cjs"
   },
   "devDependencies": {
     "electron": "44.3.0",
@@ -23,16 +25,17 @@
   },
   "build": {
     "appId": "local.ygotrainer.desktop",
-    "productName": "YGOTrainer",
+    "productName": "Lonely-Shadow-Yu-Gi-Oh-Toolbox",
     "asar": true,
     "directories": {
-      "output": "release/1.10.0"
+      "output": "release/1.11.0"
     },
     "files": [
       "desktop/main.cjs",
       "desktop/preload.cjs",
       "desktop/loading.html",
-      "package.json"
+      "package.json",
+      "desktop/branding.cjs"
     ],
     "extraResources": [
       {
@@ -60,10 +63,12 @@
     ],
     "win": {
       "target": "zip",
-      "signAndEditExecutable": false,
-      "executableName": "YGOTrainer"
+      "signAndEditExecutable": true,
+      "executableName": "Lonely-Shadow-Yu-Gi-Oh-Toolbox",
+      "signExecutable": false,
+      "icon": "src/trainer/web/brand/app.ico"
     },
-    "artifactName": "YGOTrainer-${version}-windows-${arch}.${ext}",
+    "artifactName": "Lonely-Shadow-Yu-Gi-Oh-Toolbox-${version}-windows-${arch}.${ext}",
     "compression": "normal",
     "publish": null
   }

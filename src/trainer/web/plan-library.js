@@ -1,6 +1,6 @@
 'use strict';
 
-const planLibraryUI={plans:[],folder:'',info:null,selection:null,editingTag:null,tagDocument:null,importDocument:null,preview:null};
+const planLibraryUI={plans:[],folder:'',info:null,selection:null,importDocument:null,preview:null};
 const tagSearchKey=value=>String(value||'').normalize('NFKC').trim().toLocaleLowerCase();
 const tagMatches=(tag,q)=>[tag.name,...tag.aliases||[]].some(value=>tagSearchKey(value).includes(tagSearchKey(q)));
 function filterPlans(plans,query='',tag='',primaryOnly=false) {
@@ -56,14 +56,10 @@ function ensureLibraryDialogs() {
   document.body.insertAdjacentHTML('beforeend',`
   <dialog id="plan-tags-dialog" class="library-dialog" aria-labelledby="plan-tags-title"><header><h2 id="plan-tags-title">方案标签</h2><button data-library-close="plan-tags-dialog">关闭</button></header>
     <p>★ 主标签用于分类；可手动指定多个。自动识别按实际使用浓度，只设置一个主标签。</p>
-    <div id="chosen-plan-tags"></div><div class="library-actions"><button id="auto-plan-tags">自动识别标签</button><button id="open-tag-dictionary">编辑名称与别名</button></div>
+    <div id="chosen-plan-tags"></div><div class="library-actions"><button id="auto-plan-tags">自动识别标签</button></div>
     <label>添加标签<input id="plan-tag-search" type="search" placeholder="输入系列正名或别名"></label><div id="tag-options" class="tag-options"></div>
     <details><summary>查看浓度与识别依据</summary><p>按实际参与路线的我方卡牌种类去重；至少 2 种且占比达到 20% 才自动添加。抽到但未使用的卡和对方卡牌不计入。</p><div id="tag-evidence"></div></details>
     <p id="plan-tags-status" role="status"></p><footer><button id="save-plan-tags" class="primary">保存标签</button></footer></dialog>
-  <dialog id="tag-dictionary-dialog" class="library-dialog" aria-labelledby="tag-dictionary-title"><header><h2 id="tag-dictionary-title">标签名称与别名</h2><button data-library-close="tag-dictionary-dialog">关闭</button></header>
-    <p>优先使用已核实的官方系列名；其余使用卡库系列表名称。别名只改变搜索方式，不会拆成多个标签。</p>
-    <label>查找标签<input id="dictionary-search" type="search" placeholder="正名或别名"></label><div id="dictionary-results" class="tag-options"></div><button id="new-library-tag">新增标签</button>
-    <form id="tag-definition-form"><p id="tag-definition-source"></p><label>标签正名<input id="tag-canonical-name" required maxlength="60"></label><label>其他叫法（每行一个）<textarea id="tag-aliases" rows="4" placeholder="别称、简称、其他中文译名或外文名"></textarea></label><p id="tag-definition-status" role="status"></p><button class="primary" type="submit">保存名称与别名</button></form></dialog>
   <dialog id="plan-import-dialog" class="library-dialog" aria-labelledby="plan-import-title"><header><h2 id="plan-import-title">导入展开方案</h2><button data-library-close="plan-import-dialog">关闭</button></header>
     <p>选择分享的 .ygoplan.json 文件（最多 20 MB）。导入后可回看、调整、生成一图流或按条件再次展开。同名方案独立保存，重复文件不会重复导入。</p>
     <label>方案文件<input id="plan-import-file" type="file" accept=".json,.ygoplan.json,application/json"></label><div id="plan-import-preview"></div><p id="plan-import-status" role="status"></p><footer><button id="confirm-import-plan" class="primary" disabled>导入方案</button></footer></dialog>`);
@@ -71,10 +67,6 @@ function ensureLibraryDialogs() {
   $('#plan-tag-search').oninput=renderTagOptions;
   $('#auto-plan-tags').onclick=()=>{planLibraryUI.selection=structuredClone(planLibraryUI.info.suggestions);renderChosenTags();renderTagOptions();$('#plan-tags-status').textContent='已按浓度重新识别，保存后生效。';};
   $('#save-plan-tags').onclick=savePlanTags;
-  $('#open-tag-dictionary').onclick=run(openTagDictionary);
-  $('#dictionary-search').oninput=renderDictionary;
-  $('#new-library-tag').onclick=()=>editTagDefinition(null);
-  $('#tag-definition-form').onsubmit=saveTagDefinition;
   $('#plan-import-file').onchange=previewPlanImport;
   $('#confirm-import-plan').onclick=commitPlanImport;
   $('#plan-tags-dialog').addEventListener('click',e=>{
@@ -85,7 +77,6 @@ function ensureLibraryDialogs() {
     if(tagPrimary)s.primary_ids=s.primary_ids.includes(tagPrimary)?s.primary_ids.filter(id=>id!==tagPrimary):[...s.primary_ids,tagPrimary];
     if(tagAdd||tagRemove||tagPrimary){s.mode='manual';renderChosenTags();renderTagOptions();$('#plan-tags-status').textContent='标签选择尚未保存。';}
   });
-  $('#dictionary-results').addEventListener('click',e=>{const button=e.target.closest('[data-edit-tag]');if(button)editTagDefinition(planLibraryUI.tagDocument.tags.find(t=>t.id===button.dataset.editTag));});
 }
 async function openPlanTags(id) {
   ensureLibraryDialogs();
@@ -109,7 +100,7 @@ function renderChosenTags() {
 function renderTagOptions() {
   const s=planLibraryUI.selection,q=$('#plan-tag-search').value;
   const options=planLibraryUI.info.tags.filter(t=>!s.tag_ids.includes(t.id)&&tagMatches(t,q));
-  $('#tag-options').innerHTML=options.slice(0,40).map(t=>`<button data-tag-add="${escape(t.id)}" ${s.tag_ids.length>=30?'disabled':''}>＋ ${escape(t.name)}</button>`).join('')||'<p>没有匹配的可添加标签，可在“编辑名称与别名”中新增。</p>';
+  $('#tag-options').innerHTML=options.slice(0,40).map(t=>`<button data-tag-add="${escape(t.id)}" ${s.tag_ids.length>=30?'disabled':''}>＋ ${escape(t.name)}</button>`).join('')||'<p>没有匹配的可添加标签。可先关闭此窗口，从主栏目底部的“TAG 管理”新增。</p>';
 }
 async function savePlanTags() {
   const button=$('#save-plan-tags');button.disabled=true;
@@ -118,32 +109,6 @@ async function savePlanTags() {
     const saved=await api('/api/plans/classify',{id:info.id,revision:info.edit_revision,classification:s,automatic:s.mode==='automatic'});
     await showPlan(saved.id);$('#plan-tags-dialog').close();notice('方案标签已保存。');
   }catch(e){$('#plan-tags-status').textContent=`保存失败：${e.message}`;}finally{button.disabled=false;}
-}
-async function openTagDictionary() {
-  ensureLibraryDialogs();planLibraryUI.tagDocument=await api('/api/tags');
-  $('#dictionary-search').value='';renderDictionary();editTagDefinition(null);$('#tag-dictionary-dialog').showModal();
-}
-function renderDictionary() {
-  const q=$('#dictionary-search').value;
-  $('#dictionary-results').innerHTML=planLibraryUI.tagDocument.tags.filter(t=>tagMatches(t,q)).slice(0,40).map(t=>`<button data-edit-tag="${escape(t.id)}">${escape(t.name)}</button>`).join('')||'<p>未找到，可新增标签。</p>';
-}
-function editTagDefinition(tag) {
-  planLibraryUI.editingTag=tag;
-  $('#tag-canonical-name').value=tag?.name||'';$('#tag-aliases').value=tag?.aliases?.join('\n')||'';
-  $('#tag-definition-source').textContent=tag?`${tag.source}${tag.official_name?' · 官方正名：'+tag.official_name:''}`:'新增自定义标签（用于手动分类）';
-  $('#tag-definition-status').textContent='';
-}
-async function saveTagDefinition(event) {
-  event.preventDefault();const button=$('#tag-definition-form button[type=submit]');button.disabled=true;
-  try {
-    const body={id:planLibraryUI.editingTag?.id,revision:planLibraryUI.tagDocument.revision,name:$('#tag-canonical-name').value,aliases:$('#tag-aliases').value.split(/\r?\n/).map(s=>s.trim()).filter(Boolean)};
-    const saved=await api('/api/tags/save',body);
-    planLibraryUI.tagDocument=await api('/api/tags');editTagDefinition(saved.tag);renderDictionary();
-    if(planLibraryUI.info){planLibraryUI.info.tags=planLibraryUI.tagDocument.tags;renderChosenTags();renderTagOptions();}
-    await refreshPlans();
-    if(flow.selectedPlan){const selected=planLibraryUI.plans.find(p=>p.id===flow.selectedPlan);if(selected&&$('#saved-plan-tags'))$('#saved-plan-tags').innerHTML=tagChips(selected.tags);}
-    $('#tag-definition-status').textContent='已保存，正名和别名均可用于搜索。';
-  }catch(e){$('#tag-definition-status').textContent=`保存失败：${e.message}`;}finally{button.disabled=false;}
 }
 async function previewPlanImport() {
   planLibraryUI.importDocument=null;planLibraryUI.preview=null;
@@ -168,7 +133,6 @@ async function commitPlanImport() {
   }catch(e){$('#plan-import-status').textContent=`导入失败：${e.message}`;}finally{button.disabled=false;$('#plan-import-file').disabled=false;}
 }
 $('#plan-search').oninput=()=>renderPlanList();
-$('#manage-tags').onclick=run(openTagDictionary);
 $('#import-plan').onclick=()=>{
   ensureLibraryDialogs();planLibraryUI.importDocument=null;planLibraryUI.preview=null;
   $('#plan-import-file').value='';$('#plan-import-preview').innerHTML='';$('#plan-import-status').textContent='';$('#confirm-import-plan').disabled=true;$('#plan-import-dialog').showModal();

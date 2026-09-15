@@ -3,31 +3,53 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>YGO 展开练习室</title>
+  <title>Lonely-Shadow-Yu-Gi-Oh-Toolbox</title>
+  <link rel="icon" href="/app-icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/review.css">
   <link rel="stylesheet" href="/plan-tutorial.css">
   <link rel="stylesheet" href="/plan-library.css">
   <link rel="stylesheet" href="/tag-manager.css">
   <link rel="stylesheet" href="/compromise.css">
+  <link rel="stylesheet" href="/modules.css">
 </head>
-<body>
+<body data-module="home">
 <div class="app-bar">
-  <a class="brand" href="/">YGO<span>展开练习室</span></a>
-  <nav aria-label="主要导航">
+  <div class="brand"><img src="/app-icon.svg" alt=""><span>Lonely-Shadow-Yu-Gi-Oh-Toolbox</span></div>
+  <div class="local"><span class="status-dot"></span>本地卡组库 <small id="resource-count"></small></div>
+</div>
+<aside id="primary-navigation" class="primary-rail" aria-label="主要导航">
+  <img class="rail-mark" src="/app-icon.svg" alt="月影卡牌图标">
+  <nav>
+    <button id="module-home" data-module-target="home" class="module-link active" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7M5 9v12h5v-7h4v7h5V9"/></svg><span>首页</span></button>
+    <button id="module-decks" data-module-target="decks" class="module-link"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="3" width="12" height="17" rx="2"/><path d="M5 6H3v15h12v-1m-3-13h4m-4 4h4"/></svg><span>卡组编辑</span></button>
+    <button id="module-expansion" data-module-target="expansion" class="module-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4v8h13M5 12v8m13-15v7m0-7-3 3m3-3 3 3"/><circle cx="5" cy="4" r="2"/><circle cx="5" cy="20" r="2"/><circle cx="18" cy="19" r="2"/><path d="M18 12v5"/></svg><span>展开</span><small id="module-expansion-status" hidden>进行中</small></button>
+    <button id="module-tags" data-module-target="tags" class="module-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h8l10 10-8 8L3 11Z"/><circle cx="8" cy="8" r="1.5"/></svg><span>TAG 管理</span></button>
+  </nav>
+</aside>
+<button id="navigation-toggle" class="navigation-toggle" aria-label="收起导航" title="收起导航" aria-controls="primary-navigation" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button>
+<div id="expansion-navigation" hidden>
+  <span class="module-caption">展开</span>
+  <nav aria-label="展开流程导航">
     <button id="nav-decks" class="nav active" aria-current="page">卡组编辑</button>
     <button id="nav-design" class="nav" disabled>展开前置设计</button>
     <button id="nav-training" class="nav" disabled>展开场地</button>
     <button id="nav-history" class="nav">展开方案调整与保存 <span id="history-count"></span></button>
     <span title="请先在展开时间轴中创建或选择妥协分支"><button id="nav-compromise" class="nav" disabled>妥协场构建前置</button></span>
     <button id="nav-plans" class="nav">展开管理</button>
-    <button id="nav-tags" class="nav">TAG 管理</button>
   </nav>
-  <div class="local"><span class="status-dot"></span>本地工作副本 <small id="resource-count"></small></div>
 </div>
 <main>
   <div id="notice" role="status" aria-live="polite" hidden></div>
-  <section id="editor" aria-label="卡组编辑工作区">
+  <section id="home" class="home-page" aria-label="首页">
+    <div class="home-intro"><img src="/app-icon.svg" alt="月影卡牌图标"><div><h1>开始你的决斗之路吧！决斗者！</h1><p>一个真正的决斗者，在决斗的道路上应该勇往直前永不止步。如果前面有神挡路，那就打倒神继续前进！</p></div></div>
+    <div class="home-shortcuts">
+      <button id="home-decks" data-module-target="decks" class="home-shortcut"><span class="shortcut-number">01 / DECK LIBRARY</span><strong>卡组编辑 <span aria-hidden="true">↗</span></strong><p>新建或导入构筑，搜索卡牌，整理主卡组、额外与副卡组。</p><span class="shortcut-action">打开卡组编辑 →</span></button>
+      <button id="home-expansion" data-module-target="expansion" class="home-shortcut"><span class="shortcut-number">02 / EXPANSION</span><strong>展开 <span aria-hidden="true">↗</span></strong><p>设计起手、进入场地、调整与保存方案，构建妥协分支。</p><span class="shortcut-action">进入展开 →</span></button>
+    </div>
+    <p class="home-footnote">两处卡组编辑共用本地卡组库。切换模块后，可以回来继续当前工作。</p>
+  </section>
+  <section id="editor" aria-label="卡组编辑工作区" hidden>
     <div id="design-deck-edit" class="training-banner" hidden><strong id="design-deck-edit-title"></strong><span>应用后只更新本次前置设计。也可以打开或导入其他卡组。</span><button id="cancel-design-deck-edit">取消编辑并返回</button></div>
     <header class="editor-toolbar">
       <div class="deck-identity">
@@ -167,7 +189,7 @@
   </section>
   <section id="save-confirmation" class="save-confirmation" hidden aria-label="保存前二次确认"></section>
   <section id="plans" hidden class="plans-page" aria-label="展开管理">
-    <header><div><div class="eyebrow">SAVED PLANS</div><h1>展开管理</h1><p>正式保存的方案，保留展开当时的牌组与记录。</p></div><div class="library-actions"><button id="import-plan">导入方案</button><button id="manage-tags">管理标签</button><button id="refresh-plans">刷新方案</button></div></header>
+    <header><div><div class="eyebrow">SAVED PLANS</div><h1>展开管理</h1><p>正式保存的方案，保留展开当时的牌组与记录。</p></div><div class="library-actions"><button id="import-plan">导入方案</button><button id="refresh-plans">刷新方案</button></div></header>
     <div class="plan-browser-toolbar panel"><button id="plan-folder-up" aria-label="返回上级文件夹" title="返回上级文件夹">↑</button><nav id="plan-folder-path" aria-label="当前文件夹"></nav><label class="plan-browser-search"><span class="sr-only">搜索方案或卡片</span><input id="plan-search" type="search" placeholder="搜索方案、标签别名或卡片名称 / 编号"></label><span id="plan-count" role="status"></span></div>
     <div class="history-layout"><div id="plan-list" class="panel history-list"></div><article id="plan-report" class="panel report"><div class="empty">选择已保存方案查看。</div></article></div>
     <details id="history-archive"><summary>历史记录与未保存草稿</summary><div id="history-list" class="panel history-list"></div></details>
@@ -184,8 +206,8 @@
         <section class="tag-add-section"><h3>添加卡牌</h3><label>搜索卡名、卡号或效果<input id="tag-add-search" type="search" placeholder="输入卡牌信息查找"></label><p id="tag-add-status" role="status"></p><div id="tag-add-results" class="tag-card-grid"></div><button id="tag-add-more" type="button" hidden>加载更多</button></section>
       </form></article></div>
   </section>
-</main>
 <section id="compromise-design" class="compromise-design" hidden aria-label="妥协场构建前置"></section>
+</main>
 <dialog id="branch-context-menu" class="branch-context-menu" role="dialog" aria-labelledby="branch-context-title"></dialog>
 <section id="review-card-popover" class="review-card-popover" role="dialog" aria-label="卡牌详情" tabindex="-1" hidden><header><button id="review-detail-back" hidden>返回上一级</button><strong>卡牌详情</strong><small id="review-detail-mode"></small><button id="review-detail-pin">固定查看</button><button id="review-detail-close" aria-label="关闭卡牌详情">×</button></header><div id="review-card-detail" class="review-card-detail"></div></section>
 <dialog id="plan-tutorial-dialog" class="plan-tutorial-dialog" aria-labelledby="plan-tutorial-title">
@@ -194,5 +216,6 @@
   <p id="plan-tutorial-status" role="status"></p>
 </dialog>
 <script src="/activation.js"></script><script src="/report-view.js"></script><script src="/app.js"></script><script src="/expansion.js"></script><script src="/timeline.js"></script><script src="/review.js"></script><script src="/plan-tutorial.js"></script><script src="/plan-library.js"></script><script src="/tag-manager.js"></script><script src="/compromise.js"></script><script src="/compromise-tutorial.js"></script>
+<script src="/modules.js"></script>
 </body>
 </html>

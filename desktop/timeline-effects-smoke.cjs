@@ -16,6 +16,17 @@ module.exports=async function({page,nativeState,nativeWait,hostWait,waitHistory,
   await page.evaluate(()=>refreshHistory());
   await hostWait(sid,s=>s.frame_ready&&s.timeline_accessible);
   await nativeWait(sid,s=>s.prompt===11);
+  const expanded=await page.locator('#native-stage').boundingBox();
+  await page.locator('#navigation-toggle').click();
+  await hostWait(sid,s=>s.visible&&s.bounds.width>expanded.width&&s.owns_stage_hit_test&&s.composition_compatible);
+  const handle=await page.locator('#navigation-toggle').boundingBox(),stage=await page.locator('#native-stage').boundingBox();
+  const height=await page.evaluate(()=>innerHeight);
+  assert(Math.abs(handle.y+handle.height/2-height/2)<1,'Navigation handle stays vertically centered');
+  assert(handle.x>=0&&handle.x+handle.width<=stage.x,'Collapsed handle stays outside the native field');
+  await page.screenshot({path:path.join(evidence,'centered-navigation-native.png')});
+  await page.locator('#navigation-toggle').click();
+  await hostWait(sid,s=>s.visible&&Math.abs(s.bounds.width-expanded.width)<3&&s.owns_stage_hit_test&&s.composition_compatible);
+  pass('Centered edge arrow expands/collapses outside the live native field and restores its original bounds');
   const report=()=>request(`/api/report/${sid}`);
   async function settled() {
     for(let i=0;i<60;i++) {

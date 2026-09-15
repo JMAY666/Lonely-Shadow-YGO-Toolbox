@@ -11,13 +11,15 @@ const env = {...process.env, YGO_DESKTOP_BACKGROUND:'1'};
 delete env.ELECTRON_RUN_AS_NODE;
 let application;
 (async () => {
-  const executablePath = packaged ? path.join(workspace, require('../package.json').build.directories.output, 'win-unpacked/YGOTrainer.exe') : require('electron');
+  const executablePath = packaged ? path.join(workspace, require('../package.json').build.directories.output, 'win-unpacked', require('../package.json').build.win.executableName + '.exe') : require('electron');
   application = await _electron.launch({executablePath,env,args:[...(packaged?[]:[workspace]),'--data-dir',path.join(workspace,'.local',`desktop-check-${label}`)]});
   const page = await application.firstWindow();
   let systemDialogs = 0;
   page.on('dialog', async dialog => {systemDialogs++;await dialog.dismiss();});
   await page.waitForFunction(()=>document.querySelector('#resource-count')?.textContent.includes('张卡牌'),null,{timeout:120000});
   await page.waitForFunction(()=>app.history.length>0);
+  await page.locator('#module-decks').click();
+  await page.waitForFunction(()=>moduleUI.current==='decks'&&!moduleUI.switching);
   const fixtures = await page.evaluate(async () => {
     const decks=await api('/api/decks'); let template;
     for(const item of decks.filter(d=>d.source==='existing')) {

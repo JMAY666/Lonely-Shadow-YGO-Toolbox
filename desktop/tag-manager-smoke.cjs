@@ -2,9 +2,11 @@
 const assert=require('node:assert/strict'),path=require('node:path');
 module.exports=async function({page,plan,pass,evidence}) {
   const before=JSON.stringify(await page.evaluate(id=>api(`/api/plan/${id}`),plan.id));
-  await page.locator('#nav-tags').click();await page.waitForFunction(()=>tagManagerUI.loaded);
+  const enter=async module=>{await page.locator('#module-'+module).click();await page.waitForFunction(module=>moduleUI.current===module&&!moduleUI.switching,module);};
+  await enter('tags');await page.waitForFunction(()=>tagManagerUI.loaded);
   assert(await page.evaluate(()=>document.body.classList.contains('history-view')));
-  assert.equal(await page.locator('#nav-plans + button').getAttribute('id'),'nav-tags');
+  assert.equal(await page.locator('.primary-rail nav button').last().getAttribute('id'),'module-tags');
+  assert.equal(await page.locator('#nav-tags, #manage-tags').count(),0);
   await page.locator('#tag-manager-new').click();
   const name='TAG 卡牌范围 '+Date.now(),alias='别名 '+Date.now();
   await page.locator('#tag-manager-name').fill(name);await page.locator('#tag-manager-aliases').fill(alias);
@@ -13,7 +15,12 @@ module.exports=async function({page,plan,pass,evidence}) {
     await page.locator(`[data-member-add="${code}"]`).waitFor();await page.locator(`[data-member-add="${code}"]`).click();
   }
   assert.equal(await page.locator('#tag-member-count').textContent(),'2 张');
-  await page.locator('#nav-plans').click();await page.locator('#nav-tags').click();
+  await enter('expansion');await page.locator('#nav-plans').click();await enter('tags');
+  assert.equal(await page.locator('#tag-manager-name').inputValue(),name);assert.equal(await page.locator('#tag-member-count').textContent(),'2 张');
+  await page.locator('#module-home').click();
+  await page.waitForFunction(()=>moduleUI.current==='home'&&!moduleUI.switching);
+  assert.match(await page.evaluate(()=>unsavedSummary()),/TAG 管理/);
+  await enter('tags');
   assert.equal(await page.locator('#tag-manager-name').inputValue(),name);assert.equal(await page.locator('#tag-member-count').textContent(),'2 张');
   await page.route('**/api/tags/save',route=>route.fulfill({status:500,contentType:'application/json',body:JSON.stringify({error:'isolated save failure'})}),{times:1});
   await page.locator('#tag-manager-save').click();await page.waitForFunction(()=>document.querySelector('#tag-manager-status').textContent.includes('保存失败'));
@@ -29,13 +36,15 @@ module.exports=async function({page,plan,pass,evidence}) {
   assert(!reduced.suggestions.tag_ids.includes(key),'Removing a card updates concentration and can fall below threshold');
   await page.screenshot({path:path.join(evidence,'tag-management-page.png')});
   await page.reload();await page.waitForFunction(()=>document.querySelector('#resource-count')?.textContent.includes('张卡牌'));
-  await page.locator('#nav-tags').click();await page.waitForFunction(()=>tagManagerUI.loaded);
+  await enter('tags');await page.waitForFunction(()=>tagManagerUI.loaded);
   await page.locator('#tag-manager-search').fill(alias);assert.equal(await page.locator('#tag-manager-list button').count(),1);
   await page.locator(`[data-managed-tag="${key}"]`).click();
+  await page.waitForFunction(key=>tagManagerUI.selected===key,key);
   assert.equal(await page.locator('#tag-member-count').textContent(),'1 张');assert.equal(await page.locator('#tag-manager-name').inputValue(),name+' 已修改');
   const card=page.locator('#tag-member-cards .review-card');await card.hover();await page.locator('#review-card-popover').waitFor({state:'visible'});
   assert.match(await page.locator('.detail-name h3').textContent(),/魔物狩人/);await page.keyboard.press('Escape');
   assert.equal(JSON.stringify(await page.evaluate(id=>api(`/api/plan/${id}`),plan.id)),before);
+  await enter('expansion');
   await page.evaluate(id=>showPlan(id),plan.id);
   pass('TAG management: separate navigation, new/name/aliases/card membership editing, unsaved page retention, recoverable save failure, reload persistence and card hover');
 };
