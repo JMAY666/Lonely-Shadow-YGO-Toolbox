@@ -954,7 +954,7 @@ class Handler(BaseHTTPRequestHandler):
                 files['/scrollbars.css'] = 'scrollbars.css'
                 for art in ('first', 'second', 'bo1', 'bo3'):
                     files[f'/brand/duel-{art}.svg'] = f'brand/duel-{art}.svg'
-                for name in ('duel.js', 'duel-model.js', 'duel.css', 'deck-tag-view.js', 'deck-appearance.js'):
+                for name in ('duel.js', 'duel-model.js', 'tutorial-bindings.js', 'duel.css', 'deck-tag-view.js', 'deck-appearance.js'):
                     files['/' + name] = name
                 if path in files:
                     p = WEB / files[path]; return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0] + '; charset=utf-8')

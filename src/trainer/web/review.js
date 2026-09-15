@@ -584,7 +584,7 @@ document.addEventListener('pointerout',e=>{
   scheduleReviewDetailClose();
 });
 document.addEventListener('keydown',e=>{
-  if(app.view==='history'&&['ArrowLeft','ArrowRight'].includes(e.key)&&!e.altKey&&!e.ctrlKey&&!e.metaKey&&!e.shiftKey&&!e.target.closest('input,textarea,select,[contenteditable=true],[role=dialog]')&&!reviewUI.selected&&$('#review-zone-content')?.hidden!==false) {
+  if(!e.defaultPrevented&&(typeof moduleUI==='undefined'||moduleUI.current==='expansion')&&app.view==='history'&&!document.querySelector('dialog[open]')&&['ArrowLeft','ArrowRight'].includes(e.key)&&!e.altKey&&!e.ctrlKey&&!e.metaKey&&!e.shiftKey&&!e.target.closest('input,textarea,select,[contenteditable=true],[role=dialog]')&&!reviewUI.selected&&$('#review-zone-content')?.hidden!==false) {
     const i=reviewUI.nodes.indexOf(reviewNode()),n=reviewUI.nodes[i+(e.key==='ArrowLeft'?-1:1)];
     if(n){e.preventDefault();selectReviewNode(n.id);}return;
   }

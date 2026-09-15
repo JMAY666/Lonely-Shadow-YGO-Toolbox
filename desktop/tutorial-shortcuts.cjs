@@ -1,23 +1,10 @@
 'use strict';
-const defaults = {back:'Left',forward:'Right',up:'Up',down:'Down',end:''};
-const legacyDefaults = {back:'Control+Shift+Left',forward:'Control+Shift+Right',up:'Control+Shift+Up',down:'Control+Shift+Down',end:''};
-const labels = {back:'后退',forward:'前进',up:'上一条路线',down:'下一条路线',end:'展开结束'};
-function normalize(bindings) {
-  if (!bindings || typeof bindings !== 'object') throw new Error('快捷键设置无效');
-  const result = {}, used = new Set();
-  for (const action of Object.keys(defaults)) {
-    const raw = bindings[action];
-    if (typeof raw !== 'string' || raw.length > 80) throw new Error(`${labels[action]}快捷键无效`);
-    if (!raw.trim()) { result[action] = ''; continue; }
-    const parts = raw.trim().split('+').map(v => v.trim().toUpperCase()), key = parts.pop();
-    const mods = ['CONTROL','ALT','SHIFT','SUPER'];
-    if (parts.some(v => !mods.includes(v)) || new Set(parts).size !== parts.length || !/^(LEFT|RIGHT|UP|DOWN|[A-Z0-9]|F(?:[1-9]|1[0-9]|2[0-4])|SPACE|ENTER|HOME|END|PAGEUP|PAGEDOWN)$/.test(key)) throw new Error(`${labels[action]}快捷键格式无效；示例 Control+Shift+Right`);
-    const normalized = [...mods.filter(v => parts.includes(v)),key].join('+');
-    if (used.has(normalized)) throw new Error('多个动作不能使用相同快捷键');
-    used.add(normalized); result[action] = normalized;
-  }
-  return result;
-}
+const path=require('node:path');
+const {app}=require('electron');
+// The renderer assets live outside app.asar in a packaged installation.
+const {defaults,legacyDefaults,labels,normalize}=require(app?.isPackaged
+  ?path.join(process.resourcesPath,'trainer','web','tutorial-bindings.js')
+  :path.join(__dirname,'../src/trainer/web/tutorial-bindings.js'));
 function createController({registry,send,isFocused,watchKeys,now=Date.now,onStatus}) {
   let state = {active:false,enabled:false,suspended:false,session:'',bindings:defaults}, registered = [], error = '';
   let stopWatching;

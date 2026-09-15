@@ -97,6 +97,34 @@ module.exports=async function({page,application,root,evidence,pass}) {
   assert.equal(await page.locator('.duel-candidates aside').count(),0);
   assert(!(await page.locator('#duel-body').textContent()).match(/等待选牌|加入起手|投入|已选/));
   assert.equal(await page.locator('.duel-candidate.is-marked').count(),1);
+  assert.deepEqual(await page.locator('[data-duel-add]').evaluateAll(nodes=>nodes.map(el=>Number(el.dataset.duelAdd))),[1184620,55144522]);
+  // A presentation-only 40-card fixture checks wrapping, centering and order;
+  // it never replaces the saved deck or the active match fixture.
+  await page.evaluate(async()=>{
+    const candidates=(await api('/api/cards?kind=monster')).cards.filter(c=>!c.extra&&!(c.type&0x4000)).slice(0,12);
+    for(const kind of ['spell','trap'])candidates.push(...(await api('/api/cards?kind='+kind)).cards.slice(0,6));
+    candidates.forEach(c=>app.cache.set(c.id,c));
+    const main=candidates.map(c=>c.id);main.push(...main.slice(0,16));main.reverse();
+    const s=duelState(),saved=s.deck;
+    try{s.deck={...saved,deck:{...saved.deck,main}};document.querySelector('#duel-body').innerHTML=duelHandPage();}
+    finally{s.deck=saved;}
+  });
+  const verifyHandLayout=async()=>{
+    const result=await page.evaluate(()=>{
+      const box=document.querySelector('.duel-candidates').getBoundingClientRect(),page=document.querySelector('#duel-body').getBoundingClientRect();
+      const slots=[...document.querySelectorAll('.duel-slot')].map(el=>el.getBoundingClientRect());
+      const cards=[...document.querySelectorAll('[data-duel-add]')];
+      return {center:Math.abs((slots[0].left+slots.at(-1).right)/2-(page.left+page.width/2)),deckCenter:Math.abs(box.left+box.width/2-(page.left+page.width/2)),width:box.width,pageWidth:page.width,
+        fits:cards.every(el=>{const r=el.getBoundingClientRect();return r.left>=box.left&&r.right<=box.right;}),
+        sorted:cards.every((el,i)=>!i||compareDeckCards(Number(cards[i-1].dataset.duelAdd),Number(el.dataset.duelAdd))<=0)};
+    });
+    assert(result.center<2&&result.deckCenter<2);assert(result.width<=940&&result.width<=result.pageWidth);assert(result.fits&&result.sorted);
+  };
+  await verifyHandLayout();await page.screenshot({path:path.join(evidence,'duel-hand-layout.png')});
+  await application.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().find(w=>!w.getParentWindow()).setContentSize(960,800));
+  await page.waitForFunction(()=>innerWidth===960);await verifyHandLayout();await page.screenshot({path:path.join(evidence,'duel-hand-narrow.png')});
+  await application.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().find(w=>!w.getParentWindow()).setContentSize(1280,900));
+  await page.waitForFunction(()=>innerWidth===1280);await page.evaluate(()=>renderDuel());
   assert(await page.locator('[data-duel-action="match"]').isDisabled());
   const add=async code=>page.locator(`[data-duel-add="${code}"]`).click();
   await add(55144522);assert.equal(await page.locator('.duel-candidate.is-marked .duel-stock').textContent(),'1');
@@ -136,11 +164,32 @@ module.exports=async function({page,application,root,evidence,pass}) {
 
   await page.locator('[data-duel-node="main/s1"]').hover();await page.waitForFunction(()=>!document.querySelector('#duel-preview').hidden);
   assert(await page.locator('#duel-preview .log-operation').count()>0);assert.equal(await page.locator('#duel-preview .log-compact').count(),0);
+  const cardInPreview=page.locator('#duel-preview [data-review-card]').first();
+  await cardInPreview.hover();await page.waitForFunction(()=>!document.querySelector('#review-card-popover').hidden);
+  await page.locator('#review-card-popover').hover();await page.waitForTimeout(500);
+  assert(await page.locator('#duel-preview').isVisible());assert(await page.locator('#review-card-popover').isVisible());
+  await page.evaluate(()=>closeReviewDetail());
   await page.locator('#duel-preview-close').click();
+  // Repeated child movement must not restart the step's opening delay or leave
+  // an old close timer that dismisses a newer step preview.
+  for(const key of ['main/s2','main/s1','main/s2','main/s1']) {
+    await page.locator('#duel-substeps').hover();
+    await page.locator(`[data-duel-node="${key}"]`).hover();
+    await page.waitForFunction(key=>!document.querySelector('#duel-preview').hidden&&duelUI.previewId===key,key,{timeout:1500});
+    await page.locator('#duel-preview').hover();await page.waitForTimeout(300);
+    assert.equal(await page.evaluate(()=>duelUI.previewId),key);assert(await page.locator('#duel-preview').isVisible());
+    await page.locator('#duel-preview-close').click();
+  }
   await page.keyboard.press(globalMods+'+'+globalKeys.down);assert.equal(await page.evaluate(()=>duelState().position.choice),1);
   await page.keyboard.press(globalMods+'+'+globalKeys.forward);assert.match(await page.evaluate(()=>duelState().position.key),/^allowed\//);
   await page.keyboard.press(globalMods+'+'+globalKeys.back);assert.equal(await page.evaluate(()=>duelState().position.key),'main/s1');
-  await page.locator('[data-duel-node="main/s2"]').click();await page.keyboard.press(globalMods+'+'+globalKeys.forward);assert.equal(await page.evaluate(()=>duelState().position.key),'main/s3');
+  const verifyGraphFocus=async()=>assert(await page.evaluate(()=>{
+    const viewport=document.querySelector('#duel-graph-scroll'),node=viewport.querySelector('.current'),scale=duelUI.graphScale;
+    const left=Math.max(0,Math.min(viewport.scrollWidth-viewport.clientWidth,node.offsetLeft*scale-(viewport.clientWidth-node.offsetWidth*scale)/2));
+    return Math.abs(viewport.scrollLeft-left)<2&&node.getBoundingClientRect().top>=viewport.getBoundingClientRect().top;
+  }),'The clicked step is centered within the graph scroll range');
+  await page.locator('[data-duel-node="main/s2"]').click();await verifyGraphFocus();
+  const pageY=await page.evaluate(()=>scrollY);await page.keyboard.press(globalMods+'+'+globalKeys.forward);assert.equal(await page.evaluate(()=>duelState().position.key),'main/s3');await verifyGraphFocus();assert.equal(await page.evaluate(()=>scrollY),pageY);
   assert.equal(await page.locator('.duel-node.current').count(),1);assert.equal(await page.locator('.duel-node:focus').count(),0);
   // CDP key repeats stay within this application's renderer.
   await page.keyboard.down('Control');await page.keyboard.down('Alt');await page.keyboard.down('Shift');await page.keyboard.down(globalKeys.back);await page.keyboard.down(globalKeys.back);await page.keyboard.up(globalKeys.back);await page.keyboard.up('Shift');await page.keyboard.up('Alt');await page.keyboard.up('Control');assert.equal(await page.evaluate(()=>duelState().position.key),'main/s1');
@@ -149,11 +198,24 @@ module.exports=async function({page,application,root,evidence,pass}) {
   await page.locator('[data-duel-close-zone]').click();
   assert.deepEqual(await page.evaluate(()=>({id:reviewUI.report?.id,node:reviewUI.node,draft:JSON.stringify(flow.draft)})),originalReview);
   await click('shortcuts');await page.waitForFunction(()=>document.querySelector('#duel-shortcut-dialog').open&&duelUI.shortcutStatus?.registered?.length===0);assert.equal((await application.evaluate(()=>globalThis.tutorialAcceptance.status().registered)).length,0);
+  assert.equal(await page.locator('#duel-shortcut-title').textContent(),'教程快捷键');
+  assert.equal(await page.locator('#duel-shortcut-dialog select,#duel-shortcut-dialog input[type="number"]').count(),0);
   await page.locator('[data-duel-binding="forward"]').focus();await page.keyboard.press(globalMods+'+'+globalKeys.custom);
   await page.locator('[data-duel-binding="end"]').focus();await page.keyboard.press(globalMods+'+'+globalKeys.custom);
   await page.locator('#duel-shortcut-save').click();await page.waitForFunction(()=>document.querySelector('#duel-shortcut-error').textContent.includes('相同快捷键'));
   await page.locator('[data-duel-clear-binding="end"]').click();await page.locator('#duel-shortcut-save').click();await page.waitForFunction(()=>!document.querySelector('#duel-shortcut-dialog').open);
   await page.waitForFunction(()=>duelUI.shortcutStatus?.registered?.length===4);
+  const savedBindings=await page.evaluate(()=>({...duelUI.bindings}));
+  const handCount=await page.evaluate(async()=>(await api('/api/duel/settings')).hand_count);assert.equal(handCount,5);
+  await page.locator('#app-settings').click();await page.waitForFunction(()=>duelUI.shortcutStatus?.registered?.length===0);
+  await page.locator('#duel-default-count').fill('6');await page.locator('#app-settings-shortcuts').click();
+  assert.deepEqual(await page.locator('#duel-shortcut-fields input').evaluateAll(nodes=>Object.fromEntries(nodes.map(n=>[n.dataset.duelBinding,n.value]))),savedBindings);
+  await page.screenshot({path:path.join(evidence,'duel-shortcuts.png')});
+  await page.locator('#duel-shortcut-save').click();await page.waitForFunction(()=>!document.querySelector('#duel-shortcut-dialog').open);
+  assert(await page.locator('#app-settings-dialog').isVisible());assert.equal(await page.locator('#duel-default-count').inputValue(),'6');
+  assert.equal((await application.evaluate(()=>globalThis.tutorialAcceptance.status().registered)).length,0);
+  assert.equal(await page.evaluate(async()=>(await api('/api/duel/settings')).hand_count),5);
+  await page.locator('#app-settings-cancel').click();await page.waitForFunction(()=>duelUI.shortcutStatus?.registered?.length===4);
   const keys=await application.evaluate(()=>globalThis.tutorialAcceptance.status().registered);assert.equal(keys.length,4);
   await page.keyboard.press('ArrowRight');assert.equal(await page.evaluate(()=>duelState().position.key),'main/s1');
   await page.keyboard.press(globalMods+'+'+globalKeys.custom);assert.equal(await page.evaluate(()=>duelState().position.key),'main/s2');
@@ -164,7 +226,7 @@ module.exports=async function({page,application,root,evidence,pass}) {
   await enter('home');assert.equal((await application.evaluate(()=>globalThis.tutorialAcceptance.status().registered)).length,0);
   await enter('duel');await stage(5);await click('end');await stage(6);assert.equal((await application.evaluate(()=>globalThis.tutorialAcceptance.status().registered)).length,0);
   await click('new');await stage(0);
-  await page.locator('#app-settings').click();await page.locator('#duel-default-count').fill('4');await page.locator('#duel-shortcut-save').click();await page.waitForFunction(()=>!document.querySelector('#duel-shortcut-dialog').open);
+  await page.locator('#app-settings').click();await page.locator('#duel-default-count').fill('4');await page.locator('#app-settings-save').click();await page.waitForFunction(()=>!document.querySelector('#app-settings-dialog').open);
   await click('bo1');await page.locator(`[data-duel-deck="${data.deck.id}"]`).click();await page.waitForFunction(()=>!duelUI.busy);await click('start-duel');await click('first');await stage(3);assert.equal(await page.locator('.duel-slot').count(),4);
   await add(55144522);await add(55144522);await add(1184620);await add(1184620);await click('match');await tile.click();await stage(5);
   await page.locator('#duel-substeps [data-duel-stage="3"]').click();await stage(3);await page.locator('[data-duel-slot="0"]').click({button:'right'});assert.equal(await page.evaluate(()=>duelState().plan),null);

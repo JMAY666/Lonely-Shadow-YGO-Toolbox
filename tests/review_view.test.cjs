@@ -235,6 +235,17 @@ test('hover opens only after its delay, stale targets are canceled and pinned de
   r.openReviewDetail(r.outside);r.scheduleReviewHover({...r.outside,dataset:{reviewCard:'material'}});r.advance(400);assert.equal(r.reviewUI.selected,r.host);
 });
 
+test('hidden review history cannot consume duel bindings, and modal settings suspend history navigation',()=>{
+  const listeners={},r=setup({moduleUI:{current:'duel'},document:{addEventListener:(name,fn)=>{(listeners[name]??=[]).push(fn);},querySelector:()=>null},$:()=>({hidden:true})});
+  r.context.app.view='history';r.reviewUI.nodes=[{id:'a'},{id:'b'}];r.reviewUI.node='a';
+  let selected=0;r.context.selectReviewNode=()=>selected++;
+  const event={key:'ArrowRight',target:{closest:()=>null},preventDefault(){this.defaultPrevented=true;}};
+  listeners.keydown.forEach(fn=>fn(event));assert.equal(selected,0);assert(!event.defaultPrevented);
+  r.context.moduleUI.current='expansion';r.context.document.querySelector=()=>({open:true});
+  listeners.keydown.forEach(fn=>fn(event));assert.equal(selected,0);
+  r.context.document.querySelector=()=>null;listeners.keydown.forEach(fn=>fn(event));assert.equal(selected,1);assert(event.defaultPrevented);
+});
+
 test('Balelynx replacement shows effect two and the prevention result only with matching native cause',()=>{
   const r=setup(),c={code:14812471,instance_id:54,name:'转生炎兽 烽火猞猁',controller:0,location:16};
   const e={id:'20:0',message:50,cards:[c],origin:{controller:0,location:16},destination:{controller:0,location:32,position:5},reason:64,

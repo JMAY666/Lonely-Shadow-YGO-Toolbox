@@ -285,12 +285,13 @@ function sortKey(code) {
   const kind = c.type & 0x40 ? 1 : c.type & 0x2000 ? 2 : c.type & 0x800000 ? 3 : c.type & 0x4000000 ? 4 : c.type & 1 ? 0 : c.type & 2 ? 5 : c.type & 4 ? 6 : 7;
   return [kind, -(c.level & 255), code];
 }
+function compareDeckCards(a,b) {
+  const ka=sortKey(a),kb=sortKey(b);
+  return ka[0]-kb[0]||ka[1]-kb[1]||ka[2]-kb[2];
+}
 async function sortDeck() {
   if (app.busy) return;
-  const sorted = Object.fromEntries(zones.map(zone => [zone, [...app.deck[zone]].sort((a,b) => {
-    const ka = sortKey(a), kb = sortKey(b);
-    return ka[0] - kb[0] || ka[1] - kb[1] || ka[2] - kb[2];
-  })]));
+  const sorted = Object.fromEntries(zones.map(zone => [zone, [...app.deck[zone]].sort(compareDeckCards)]));
   if (JSON.stringify(sorted) === JSON.stringify(app.deck)) return notice('当前构筑已按类型、等级和卡号排列。');
   rememberDeck();
   app.deck = sorted;

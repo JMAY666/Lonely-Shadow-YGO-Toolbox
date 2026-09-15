@@ -83,7 +83,10 @@ module.exports=async function({application,page,nativeState,nativeWait,hostWait,
   const enterStatus=await page.evaluate(()=>document.querySelector('#notice').textContent);
   assert(!enterStatus.includes('失败')&&!enterStatus.includes('无法'),enterStatus);
   const opponent=await opened;await opponent.waitForFunction(()=>typeof opponentState!=='undefined'&&opponentState.state?.manual&&opponentState.state?.player===1,null,{timeout:60000});
-  sid=await page.evaluate(()=>app.active.id);
+  // The opponent window can be ready before the main history poll publishes
+  // its active session. Wait for that exact session instead of reading null.
+  sid=await opponent.evaluate(()=>opponentState.id);
+  await page.waitForFunction(id=>app.active?.id===id&&!branchUI.busy,sid,{timeout:20000});
   assert.notEqual(sid,mainId);
   assert.equal(await opponent.evaluate(()=>opponentState.id),sid);
   await opponent.locator('[data-opponent-choice]').first().waitFor();

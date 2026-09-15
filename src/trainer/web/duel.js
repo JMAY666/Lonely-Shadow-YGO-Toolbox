@@ -1,10 +1,10 @@
 'use strict';
 
-const duelDefaults = {back:'Left',forward:'Right',up:'Up',down:'Down',end:''};
-const duelLabels = {back:'后退',forward:'前进',up:'上一条路线',down:'下一条路线',end:'展开结束'};
+const duelDefaults = TutorialBindings.defaults;
+const duelLabels = TutorialBindings.labels;
 const newDuel = () => ({stage:0,reached:0,mode:null,deck:null,deckPage:'list',decks:[],first:false,count:5,hand:Array(5).fill(null),
   marks:new Set(),target:null,result:null,plan:null,routes:null,graph:null,position:null,ended:false,enabled:false,session:crypto.randomUUID()});
-const duelUI = {state:newDuel(),busy:false,generation:0,message:'',detailPreview:false,handCount:5,bindings:{...duelDefaults},shortcutStatus:null,shortcutQueue:Promise.resolve(),hoverTimer:null,closeTimer:null,previewAnchor:null,previewKind:null,previewId:null,handHoverSuppressed:null};
+const duelUI = {state:newDuel(),busy:false,generation:0,message:'',detailPreview:false,handCount:5,bindings:{...duelDefaults},shortcutStatus:null,shortcutQueue:Promise.resolve(),hoverTimer:null,closeTimer:null,previewAnchor:null,previewRect:null,previewKind:null,previewId:null,previewSuppressed:null,handHoverSuppressed:null};
 const duelState = () => duelUI.state;
 const duelHandCount = () => duelUI.handCount;
 const blankDuelHand = count => Number.isSafeInteger(count)&&count>=1&&count<=(duelState().deck?.deck?.main?.length||0) ? Array(count).fill(null) : [];
@@ -104,9 +104,9 @@ function duelCandidate(code) {
 }
 function duelHandPage() {
   const s=duelState(),main=s.deck.deck.main;
-  return `<div class="duel-section-heading"><h2>准备起手 <small>${s.hand.filter(Boolean).length} / ${s.count}</small></h2></div>
+  return `<section class="duel-hand-setup"><div class="duel-section-heading"><h2>准备起手 <small>${s.hand.filter(Boolean).length} / ${s.count}</small></h2></div>
     <div class="duel-hand">${s.hand.map((code,i)=>`<article class="duel-slot ${s.target===i?'selected':''}">${code?duelReadCard(code).replace('<button ',`<button data-duel-slot="${i}" aria-pressed="${s.target===i}" `):`<button data-duel-slot="${i}" aria-label="起手 ${i+1} 空槽位" aria-pressed="${s.target===i}"><span class="duel-slot-plus">＋</span></button>`}</article>`).join('')}</div>
-    <section class="duel-candidates"><h3>主卡组 <small>${main.length} 张</small></h3><div class="duel-candidate-grid">${[...new Set(main)].map(duelCandidate).join('')}</div></section>`;
+    </section><section class="duel-candidates"><h3>主卡组 <small>${main.length} 张</small></h3><div class="duel-candidate-grid">${[...new Set(main)].sort(compareDeckCards).map(duelCandidate).join('')}</div></section>`;
 }
 function duelOpeningText(plan) {
   return (plan.requirements?.opening||[]).map(c=>`${c.name||c.constraint||duelName(c.code)} ×${c.count}`).join(' + ')||'无额外指定起手要求（已记录空条件）';
@@ -180,8 +180,7 @@ function resizeDuelGraph(height) {
   const viewport=$('#duel-graph-scroll');if(!viewport)return;
   duelUI.graphHeight=Math.max(200,Math.min(Math.max(1200,innerHeight*2),height));
   viewport.style.height=duelUI.graphHeight+'px';layoutDuelGraph();
-  const current=viewport.querySelector('.duel-node.current'),scale=duelUI.graphScale||1;
-  if(current){viewport.scrollLeft=Math.max(0,current.offsetLeft*scale-(viewport.clientWidth-current.offsetWidth*scale)/2);viewport.scrollTop=current.offsetTop*scale-8;}
+  focusDuelPosition();
 }
 function mountDuelGraphResize() {
   const viewport=$('#duel-graph-scroll'),separator=$('#duel-graph-resize');
@@ -209,6 +208,7 @@ function duelTutorialPage() {
   return `<div class="duel-section-heading"><h2>${escape(s.plan.name)}</h2><div class="duel-actions">${duelButton('toggle-shortcuts',s.enabled?'暂停快捷键':'启用快捷键')}${duelButton('shortcuts','快捷键设置')}</div></div><p id="duel-shortcut-status" role="status"></p>${duelGraphHtml()}<div id="duel-graph-resize" class="duel-graph-resize" role="separator" tabindex="0" aria-label="调整教程图高度" aria-orientation="horizontal" aria-valuemin="200" aria-valuemax="1800" title="拖动调整教程图高度；双击恢复默认"><span></span></div><div id="duel-route-choice" class="duel-route-choice"></div><article id="duel-current-detail" class="duel-current-detail"></article><div id="duel-zone-content" class="review-zone-popover" role="dialog" aria-label="区域卡牌" hidden></div>`;
 }
 function renderDuel() {
+  closeDuelPreview();
   const s=duelState(),mainStage=Math.min(s.stage,3),stages=['模式选择','卡组选择','决定先/后攻','卡组展开'];
   $('#duel').dataset.stage=String(s.stage);
   $('#duel-steps').innerHTML=stages.map((name,i)=>`<button data-duel-stage="${i}" ${i>s.reached||duelUI.busy?'disabled':''} ${i===mainStage?'aria-current="step"':''}><span>${i<mainStage?'✓':i+1}</span>${name}</button>`).join('');
@@ -240,13 +240,19 @@ function renderDuel() {
   }
   pruneReviewCards();
 }
+function focusDuelPosition() {
+  const viewport=$('#duel-graph-scroll'),current=viewport?.querySelector('.duel-node.current');if(!current)return;
+  const scale=duelUI.graphScale||1;
+  viewport.scrollLeft=Math.max(0,current.offsetLeft*scale-(viewport.clientWidth-current.offsetWidth*scale)/2);
+  viewport.scrollTop=Math.max(0,current.offsetTop*scale-8);
+}
 function paintDuelPosition(scroll=true) {
   const s=duelState();if(s.stage!==5||!s.position)return;
   const graph=$('#duel-graph-scroll');
   graph.querySelectorAll('[data-duel-node]').forEach(button=>{
     const active=button.dataset.duelNode===s.position.key;button.classList.toggle('current',active);button.setAttribute('aria-current',active?'step':'false');
-    if(active&&scroll){const scale=duelUI.graphScale||1;graph.scrollLeft=Math.max(0,button.offsetLeft*scale-(graph.clientWidth-button.offsetWidth*scale)/2);graph.scrollTop=button.offsetTop*scale-8;}
   });
+  if(scroll)focusDuelPosition();
   const outgoing=s.graph.edges.filter(e=>e.from===s.position.key);
   $('#duel-route-choice').hidden=outgoing.length<2;
   $('#duel-route-choice').innerHTML=outgoing.length>1?outgoing.map((edge,i)=>`<button data-duel-choice="${i}" aria-pressed="${i===(s.position.choice||0)}">${escape(edge.label)}</button>`).join(''):'';
@@ -259,7 +265,7 @@ function paintDuelPosition(scroll=true) {
   paintDuelShortcutStatus();pruneReviewCards();
 }
 function duelNavigate(action) {
-  const s=duelState();if(s.stage!==5||s.ended||duelUI.busy||$('#duel-shortcut-dialog').open||moduleUI.current!=='duel')return;
+  const s=duelState();if(s.stage!==5||s.ended||duelUI.busy||document.querySelector('dialog[open]')||moduleUI.current!=='duel')return;
   if(action==='end'){void endDuel();return;}
   closeDuelPreview();closeReviewDetail();
   if(document.activeElement?.closest('.duel-node'))document.activeElement.blur();
@@ -294,11 +300,17 @@ function chooseDuelPlan(id) {
   }
   s.enabled=true;closeDuelPreview();duelReach(5);renderDuel();void syncDuelShortcuts();
 }
-function closeDuelPreview() {
+function clearDuelPreviewTimers() {
   clearTimeout(duelUI.hoverTimer);clearTimeout(duelUI.closeTimer);
+  duelUI.hoverTimer=duelUI.closeTimer=null;
+}
+function closeDuelPreview(suppress=false) {
+  if(suppress)duelUI.previewSuppressed=duelUI.previewAnchor;
+  clearDuelPreviewTimers();
   const panel=$('#duel-preview');
   if(panel.contains(document.activeElement))document.activeElement.blur();
-  duelUI.previewAnchor=null;panel.hidden=true;
+  if(reviewUI.anchor?.element?.closest('#duel-preview'))closeReviewDetail();
+  duelUI.previewAnchor=duelUI.previewRect=duelUI.previewKind=duelUI.previewId=null;panel.hidden=true;
 }
 function paintDuelPreview() {
   const s=duelState(),plan=duelUI.previewKind==='plan'?s.result?.matches.find(p=>p.id===duelUI.previewId):null,node=duelUI.previewKind==='node'?s.graph?.nodes.find(n=>n.key===duelUI.previewId):null;
@@ -311,12 +323,29 @@ function paintDuelPreview() {
   pruneReviewCards();
 }
 function showDuelPreview(anchor) {
-  clearTimeout(duelUI.hoverTimer);clearTimeout(duelUI.closeTimer);duelUI.previewAnchor=anchor;
+  clearTimeout(duelUI.closeTimer);duelUI.closeTimer=null;
+  if(duelUI.previewSuppressed===anchor||duelUI.previewAnchor===anchor&&(duelUI.hoverTimer||!$('#duel-preview').hidden))return;
+  if(duelUI.previewAnchor!==anchor)closeDuelPreview();
+  clearDuelPreviewTimers();duelUI.previewAnchor=anchor;duelUI.previewRect=anchor.getBoundingClientRect();
   duelUI.hoverTimer=setTimeout(()=>{
-    if(!anchor.isConnected)return;
+    duelUI.hoverTimer=null;
+    if(duelUI.previewAnchor!==anchor||!anchor.isConnected||!anchor.matches(':hover')||document.querySelector('dialog[open]'))return;
     closeReviewDetail();duelUI.previewKind=anchor.dataset.duelPlan?'plan':'node';duelUI.previewId=anchor.dataset.duelPlan||anchor.dataset.duelNode;
     paintDuelPreview();
   },280);
+}
+function withinDuelPreview(target) {
+  return !!target&&(duelUI.previewAnchor?.contains(target)||$('#duel-preview').contains(target)||
+    !!reviewUI.anchor?.element?.closest('#duel-preview')&&$('#review-card-popover').contains(target));
+}
+function scheduleDuelPreviewClose() {
+  clearDuelPreviewTimers();
+  duelUI.closeTimer=setTimeout(()=>{
+    duelUI.closeTimer=null;
+    if(duelUI.previewAnchor?.matches(':hover')||$('#duel-preview').matches(':hover')||
+      reviewUI.anchor?.element?.closest('#duel-preview')&&$('#review-card-popover').matches(':hover'))return;
+    closeDuelPreview();
+  },220);
 }
 function paintDuelShortcutStatus() {
   const el=$('#duel-shortcut-status');if(!el)return;
@@ -325,30 +354,34 @@ function paintDuelShortcutStatus() {
 }
 function syncDuelShortcuts() {
   if(!window.trainerDesktop?.tutorialUpdate)return Promise.resolve();
-  const s=duelState(),payload={active:s.stage===5&&!s.ended&&moduleUI.current==='duel',enabled:s.enabled,suspended:$('#duel-shortcut-dialog').open,session:s.session,bindings:{...duelUI.bindings}};
+  const s=duelState(),payload={active:s.stage===5&&!s.ended&&moduleUI.current==='duel',enabled:s.enabled,suspended:!!document.querySelector('dialog[open]'),session:s.session,bindings:{...duelUI.bindings}};
   duelUI.shortcutQueue=duelUI.shortcutQueue.catch(()=>{}).then(()=>window.trainerDesktop.tutorialUpdate(payload)).then(status=>{
     if(status.session===duelState().session){duelUI.shortcutStatus=status;paintDuelShortcutStatus();}
   }).catch(error=>{duelUI.shortcutStatus={error:error.message};paintDuelShortcutStatus();});
   return duelUI.shortcutQueue;
 }
 function duelAccelerator(event) {
-  const aliases={ArrowLeft:'LEFT',ArrowRight:'RIGHT',ArrowUp:'UP',ArrowDown:'DOWN',' ':'SPACE'};
-  if(['Control','Alt','Shift','Meta'].includes(event.key))return '';
-  return [...(event.ctrlKey?['CONTROL']:[]),...(event.altKey?['ALT']:[]),...(event.shiftKey?['SHIFT']:[]),...(event.metaKey?['SUPER']:[]),aliases[event.key]||event.key.toUpperCase()].join('+');
+  return TutorialBindings.accelerator(event);
 }
 async function openDuelShortcuts() {
+  closeDuelPreview();closeReviewDetail();
   const dialog=$('#duel-shortcut-dialog');
-  const settings=await api('/api/duel/settings');duelUI.handCount=settings.hand_count;
-  $('#duel-default-count').value=settings.hand_count;
   if(window.trainerDesktop?.tutorialSettings)duelUI.bindings=(await window.trainerDesktop.tutorialSettings()).bindings;
   $('#duel-shortcut-fields').innerHTML=Object.entries(duelLabels).map(([key,label])=>`<label>${label}<input data-duel-binding="${key}" value="${escape(duelUI.bindings[key])}" aria-label="${label}快捷键" maxlength="80"><button type="button" data-duel-clear-binding="${key}">清除</button></label>`).join('');
   $('#duel-shortcut-error').textContent='';dialog.showModal();await syncDuelShortcuts();
 }
 async function closeDuelShortcuts() {$('#duel-shortcut-dialog').close();await syncDuelShortcuts();}
+async function openAppSettings() {
+  closeDuelPreview();closeReviewDetail();
+  const settings=await api('/api/duel/settings');duelUI.handCount=settings.hand_count;
+  $('#duel-default-count').value=settings.hand_count;$('#app-settings-error').textContent='';
+  $('#app-settings-dialog').showModal();await syncDuelShortcuts();
+}
+async function closeAppSettings() {$('#app-settings-dialog').close();await syncDuelShortcuts();}
 
 $('#duel').addEventListener('click',run(async event=>{
   if(duelUI.busy)return;const s=duelState(),node=event.target.closest('[data-duel-node]'),button=event.target.closest('button');
-  if(node){event.stopPropagation();closeDuelPreview();closeReviewDetail();s.position={key:node.dataset.duelNode,choice:0};paintDuelPosition(false);return;}
+  if(node){event.stopPropagation();closeDuelPreview(true);closeReviewDetail();s.position={key:node.dataset.duelNode,choice:0};node.focus({preventScroll:true});paintDuelPosition();return;}
   if(!button||button.disabled)return;
   if(button.dataset.duelDeckPage){s.deckPage=button.dataset.duelDeckPage;closeReviewDetail();closeDeckPreview();renderDuel();return;}
   if(button.dataset.reviewZone){event.stopPropagation();showDuelZone(button.dataset.reviewZone);return;}
@@ -367,7 +400,6 @@ $('#duel').addEventListener('click',run(async event=>{
     return;
   }
   if(button.dataset.duelPlan){chooseDuelPlan(button.dataset.duelPlan);return;}
-  if(button.dataset.duelNode){s.position={key:button.dataset.duelNode,choice:0};paintDuelPosition(false);return;}
   if(button.dataset.duelChoice!==undefined){s.position.choice=Number(button.dataset.duelChoice);paintDuelPosition(false);return;}
   const action=button.dataset.duelAction;if(!action)return;
   if(action==='back'){duelGo(s.stage-1);return;}
@@ -391,22 +423,31 @@ async function startNewDuel() {
   duelUI.state=newDuel();duelUI.message='';duelUI.detailPreview=false;closeDuelPreview();closeReviewDetail();renderDuel();
 }
 $('#duel').addEventListener('pointerover',run(async event=>{
+  if(event.pointerType==='touch'||event.buttons)return;
   const deck=event.target.closest('[data-duel-deck]');if(deck){await showDeckPreview(deck);return;}
   const anchor=event.target.closest('[data-duel-plan],[data-duel-node]');if(anchor&&!anchor.contains(event.relatedTarget))showDuelPreview(anchor);
 }));
 $('#duel').addEventListener('pointerout',event=>{
   if(!deckManager.anchor?.contains(event.relatedTarget)&&!$('#deck-preview').contains(event.relatedTarget))delayCloseDeckPreview();
-  if(duelUI.previewAnchor?.contains(event.relatedTarget)||$('#duel-preview').contains(event.relatedTarget))return;
-  clearTimeout(duelUI.hoverTimer);duelUI.closeTimer=setTimeout(closeDuelPreview,220);
+  if(duelUI.previewSuppressed&&!duelUI.previewSuppressed.contains(event.relatedTarget))duelUI.previewSuppressed=null;
+  if(!duelUI.previewAnchor||withinDuelPreview(event.relatedTarget))return;
+  scheduleDuelPreviewClose();
 });
-$('#duel-preview').onpointerenter=()=>clearTimeout(duelUI.closeTimer);
-$('#duel-preview').onpointerleave=()=>{duelUI.closeTimer=setTimeout(closeDuelPreview,220);};
-$('#duel-preview-close').onclick=closeDuelPreview;
-window.addEventListener('resize',()=>{closeDuelPreview();if(duelState().stage===5)layoutDuelGraph();});
+for(const panel of [$('#duel-preview'),$('#review-card-popover')]) {
+  panel.addEventListener('pointerenter',()=>{if(withinDuelPreview(panel)){clearTimeout(duelUI.closeTimer);duelUI.closeTimer=null;}});
+  panel.addEventListener('pointerleave',event=>{if(duelUI.previewAnchor&&!withinDuelPreview(event.relatedTarget))scheduleDuelPreviewClose();});
+}
+$('#duel-preview-close').onclick=()=>closeDuelPreview(true);
+window.addEventListener('resize',()=>{closeDuelPreview();if(duelState().stage===5){layoutDuelGraph();focusDuelPosition();}});
+document.addEventListener('scroll',event=>{
+  const anchor=duelUI.previewAnchor,rect=duelUI.previewRect;if(!anchor||!rect||event.target.closest?.('#duel-preview,#review-card-popover'))return;
+  const now=anchor.getBoundingClientRect();
+  if(!anchor.isConnected||Math.abs(now.left-rect.left)>.5||Math.abs(now.top-rect.top)>.5)closeDuelPreview();
+},true);
 document.addEventListener('keydown',event=>{
-  if(event.key==='Escape'){closeDuelPreview();return;}
+  if(event.key==='Escape'){closeDuelPreview(true);return;}
   if(event.defaultPrevented||event.isComposing||event.target.closest('input,textarea,select,[contenteditable=true]')||document.querySelector('dialog[open]'))return;
-  const action=Object.entries(duelUI.bindings).find(([,key])=>key&&key.toUpperCase()===duelAccelerator(event))?.[0];
+  const action=TutorialBindings.actionFor(duelUI.bindings,event);
   if(action&&moduleUI.current==='duel'&&duelState().stage===5&&duelState().enabled){event.preventDefault();duelNavigate(action);}
 });
 $('#duel-shortcut-dialog').addEventListener('keydown',event=>{
@@ -420,13 +461,9 @@ $('#duel-shortcut-dialog').oncancel=event=>{event.preventDefault();void closeDue
 $('#duel-shortcut-form').onsubmit=async event=>{
   event.preventDefault();const button=$('#duel-shortcut-save');button.disabled=true;
   try {
-    const bindings=Object.fromEntries([...$('#duel-shortcut-fields').querySelectorAll('input')].map(i=>[i.dataset.duelBinding,i.value]));
-    const count=Number($('#duel-default-count').value);
-    if(!Number.isInteger(count)||count<1||count>60)throw new Error('先攻起手张数必须是 1–60 之间的整数');
+    const bindings=TutorialBindings.normalize(Object.fromEntries([...$('#duel-shortcut-fields').querySelectorAll('input')].map(i=>[i.dataset.duelBinding,i.value])));
     const saved=window.trainerDesktop?.tutorialSaveSettings?await window.trainerDesktop.tutorialSaveSettings(bindings):{bindings};
     duelUI.bindings=saved.bindings;
-    await api('/api/duel/settings',{hand_count:count});duelUI.handCount=count;
-    const s=duelState();if(s.deck&&s.stage<=2&&s.count!==count){s.count=count;s.hand=Array(count).fill(null);s.target=null;invalidateDuel(2);}
     await closeDuelShortcuts();if(moduleUI.current==='duel')renderDuel();
   }catch(error){$('#duel-shortcut-error').textContent=error.message;}finally{button.disabled=false;}
 };
@@ -461,7 +498,23 @@ function showDuelZone(key) {
   panel.innerHTML=`<section class="zone-contents"><button data-duel-close-zone aria-label="关闭区域">×</button><h3>${escape(reviewPlace({controller:side,location:zone}))} · ${cards.length} 张</h3><div>${cards.map(c=>reviewCard(c,node.id,{report,name:true,face:reviewKnown(c)})).join('')||'当前区域为空'}</div></section>`;
 }
 
-$('#app-settings').onclick=run(openDuelShortcuts);
+$('#app-settings').onclick=run(openAppSettings);
+$('#app-settings-cancel').onclick=run(closeAppSettings);
+$('#app-settings-dialog').oncancel=event=>{event.preventDefault();void closeAppSettings();};
+$('#app-settings-shortcuts').onclick=run(async()=>{
+  // Keep the general settings dialog open underneath, including unsaved input.
+  await openDuelShortcuts();
+});
+$('#app-settings-form').onsubmit=async event=>{
+  event.preventDefault();const button=$('#app-settings-save');button.disabled=true;
+  try {
+    const count=Number($('#duel-default-count').value);
+    if(!Number.isInteger(count)||count<1||count>60)throw new Error('先攻起手张数必须是 1–60 之间的整数');
+    const saved=await api('/api/duel/settings',{hand_count:count});duelUI.handCount=saved.hand_count;
+    const s=duelState();if(s.deck&&s.stage<=2&&s.count!==saved.hand_count){s.count=saved.hand_count;s.hand=Array(s.count).fill(null);s.target=null;invalidateDuel(2);}
+    await closeAppSettings();if(moduleUI.current==='duel')renderDuel();
+  }catch(error){$('#app-settings-error').textContent=error.message;}finally{button.disabled=false;}
+};
 
 document.addEventListener('pointermove',event=>{
   const suppressed=duelUI.handHoverSuppressed;if(!suppressed)return;

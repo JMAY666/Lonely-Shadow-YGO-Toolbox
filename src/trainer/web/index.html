@@ -233,7 +233,17 @@
 </section>
 </main>
 <section id="duel-preview" class="duel-preview" role="dialog" aria-label="方案或步骤预览" hidden><button id="duel-preview-close" aria-label="关闭预览">×</button><div id="duel-preview-content"></div></section>
-<dialog id="duel-shortcut-dialog" class="duel-shortcut-dialog" aria-labelledby="duel-shortcut-title"><h2 id="duel-shortcut-title">全局设置</h2><form id="duel-shortcut-form"><div class="duel-global-options"><label>卡组选择<select disabled><option>手动选择</option><option disabled>自动识别 · 待开发</option></select></label><label>先后攻选择<select disabled><option>手动选择</option><option disabled>自动选择 · 待开发</option></select></label><label for="duel-default-count">先攻起手张数<input id="duel-default-count" type="number" min="1" max="60" step="1" value="5"></label></div><h3>教程快捷键</h3><p>软件内外使用同一组按键，按住可连续移动。进入教程时启用，结束或离开决斗时释放。</p><div id="duel-shortcut-fields"></div><p id="duel-shortcut-error" role="alert"></p><div class="duel-actions"><button id="duel-shortcut-cancel" type="button">取消</button><button id="duel-shortcut-save" class="primary" type="submit">保存</button></div></form></dialog>
+<dialog id="app-settings-dialog" class="duel-shortcut-dialog" aria-labelledby="app-settings-title">
+  <h2 id="app-settings-title">全局设置</h2>
+  <form id="app-settings-form">
+    <div class="duel-global-options"><label for="duel-default-count">先攻起手张数<input id="duel-default-count" type="number" min="1" max="60" step="1" value="5"></label></div>
+    <p>用于尚未准备起手的流程及后续对局。</p>
+    <button id="app-settings-shortcuts" type="button">教程快捷键</button>
+    <p id="app-settings-error" role="alert"></p>
+    <div class="duel-actions"><button id="app-settings-cancel" type="button">取消</button><button id="app-settings-save" class="primary" type="submit">保存</button></div>
+  </form>
+</dialog>
+<dialog id="duel-shortcut-dialog" class="duel-shortcut-dialog" aria-labelledby="duel-shortcut-title"><h2 id="duel-shortcut-title">教程快捷键</h2><form id="duel-shortcut-form"><p>所有入口、软件内外共用这一套按键。按住可连续移动，进入教程时启用，结束或离开决斗时释放。</p><div id="duel-shortcut-fields"></div><p id="duel-shortcut-error" role="alert"></p><div class="duel-actions"><button id="duel-shortcut-cancel" type="button">取消</button><button id="duel-shortcut-save" class="primary" type="submit">保存</button></div></form></dialog>
 <dialog id="branch-context-menu" class="branch-context-menu" role="dialog" aria-labelledby="branch-context-title"></dialog>
 <dialog id="deck-tags-dialog" class="deck-tags-dialog" aria-labelledby="deck-tags-title">
   <header><div><div class="eyebrow">DECK TAGS</div><h2 id="deck-tags-title">卡组 TAG 设置</h2><p id="deck-tags-name"></p></div><button id="deck-tags-cancel" type="button">取消</button></header>
@@ -257,6 +267,6 @@
 <script src="/deck-tag-view.js"></script><script src="/activation.js"></script><script src="/report-view.js"></script><script src="/deck-manager.js"></script><script src="/app.js"></script><script src="/expansion.js"></script><script src="/timeline.js"></script><script src="/review.js"></script><script src="/plan-tutorial.js"></script><script src="/plan-library.js"></script><script src="/tag-manager.js"></script><script src="/compromise.js"></script><script src="/compromise-tutorial.js"></script>
 <script src="/deck-selection.js"></script><script src="/modules.js"></script>
 <script src="/deck-tags.js"></script>
-<script src="/deck-appearance.js"></script><script src="/duel-model.js"></script><script src="/duel.js"></script>
+<script src="/deck-appearance.js"></script><script src="/duel-model.js"></script><script src="/tutorial-bindings.js"></script><script src="/duel.js"></script>
 </body>
 </html>
