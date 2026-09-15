@@ -172,9 +172,11 @@ class Store:
             if missing: raise ValueError('缺少效果脚本，不能可靠训练：' + ', '.join(missing[:8]))
 
     @staticmethod
-    def ydk(deck, name=None, tags=None):
+    def ydk(deck, name=None, tags=None, representatives=None):
         title = '#name: ' + json.dumps(name, ensure_ascii=False) + '\n' if name is not None else ''
         if tags is not None: title += deck_tags.comment(tags)
+        if representatives is not None:
+            title += '#representatives: ' + json.dumps(representatives) + '\n'
         return ('#created by YGO Trainer\n' + title + '#main\n' + '\n'.join(map(str, deck['main'])) + '\n#extra\n' + '\n'.join(map(str, deck['extra'])) + '\n!side\n' + '\n'.join(map(str, deck['side'])) + '\n').encode('utf-8')
 
     @staticmethod
@@ -187,6 +189,27 @@ class Store:
                 if isinstance(name, str) and name.strip() and len(name) <= 80: return name
         return fallback
 
+    @staticmethod
+    def deck_representatives(data, deck):
+        for line in data.decode('utf-8-sig', errors='replace').splitlines():
+            if line.startswith('#representatives: '):
+                try:
+                    value = json.loads(line[18:])
+                    if not isinstance(value, list) or len(value) != 3: return [None] * 3
+                    pool = {code for zone in ('main', 'extra', 'side') for code in deck[zone]}
+                    return [code if type(code) is int and code in pool else None for code in value]
+                except (ValueError, TypeError):
+                    return [None] * 3
+        return [None] * 3
+
+    @staticmethod
+    def validate_representatives(value, deck):
+        pool = {code for zone in ('main', 'extra', 'side') for code in deck[zone]}
+        if not isinstance(value, list) or len(value) != 3 or any(
+                code is not None and (type(code) is not int or code not in pool) for code in value):
+            raise ValueError('代表卡需要三个展示位，只能选择当前卡组中的卡牌')
+        return value[:]
+
     def favorites(self):
         with self.lock:
             path = self.root / 'card-favorites.json'
@@ -195,6 +218,17 @@ class Store:
             if not isinstance(data, dict) or not isinstance(data.get('cards'), list) or any(type(code) is not int or code <= 0 for code in data['cards']):
                 raise ValueError('收藏文件无法读取，原文件已保留，请从备份恢复后重试')
             return {'cards': sorted(set(data['cards']))}
+
+    def duel_settings(self, body=None):
+        with self.lock:
+            path = self.root / 'duel-settings.json'
+            value = body if body is not None else read_json(path) if path.exists() else {'hand_count': 5}
+            count = value.get('hand_count') if isinstance(value, dict) else None
+            if type(count) is not int or not 1 <= count <= 60:
+                raise ValueError('先攻起手张数必须是 1–60 之间的整数')
+            result = {'hand_count': count}
+            if body is not None: atomic_json(path, result)
+            return result
 
     def set_favorite(self, body):
         with self.lock:
@@ -221,7 +255,12 @@ class Store:
                     tag_error = ''
                 except ValueError:
                     selected, tag_error = deck_tags.empty_selection(), 'TAG 数据无法读取'
+                try:
+                    representatives = self.deck_representatives(data, self.parse_deck(data)) if b'#representatives: ' in data else [None] * 3
+                except ValueError:
+                    representatives = [None] * 3
                 result.append({'id': identifier, 'name': self.deck_name(data, p.stem), 'source': source,
+                               'representatives': representatives,
                                'tag_selection': selected, 'tag_error': tag_error,
                                'tag_names': {key: vocabulary[key]['name'] for key in selected['tag_ids'] if key in vocabulary}})
         return result
@@ -234,7 +273,9 @@ class Store:
         data = p.read_bytes()
         selected = deck_tags.read_selection(data)
         vocabulary = self.library.all_tags()
-        return {'id': identifier, 'name': self.deck_name(data, p.stem), 'deck': self.parse_deck(data),
+        deck = self.parse_deck(data)
+        return {'id': identifier, 'name': self.deck_name(data, p.stem), 'deck': deck,
+                'representatives': self.deck_representatives(data, deck),
                 'revision': hashlib.sha256(data).hexdigest(), 'source': source, 'tag_selection': selected,
                 'tag_names': {key: vocabulary[key]['name'] for key in selected['tag_ids'] if key in vocabulary}}
 
@@ -299,6 +340,12 @@ class Store:
             # Existing references survive catalog changes; clients cannot add unknown tags.
             retained = dict.fromkeys(current['tag_selection']['tag_ids']) if current else {}
             selected = deck_tags.selection(selected, {**retained, **vocabulary})
+            representatives = body.get('representatives')
+            if representatives is None:
+                pool = {code for zone in ('main', 'extra', 'side') for code in deck[zone]}
+                representatives = [code if code in pool else None for code in
+                                   (current['representatives'] if current else [None] * 3)]
+            representatives = self.validate_representatives(representatives, deck)
             own_id = identifier if identifier.startswith('library/') else None
             self.check_deck_name_available(name, own_id)
             p = safe_child(self.decks, identifier.partition('/')[2] if own_id else name + '.ydk')
@@ -312,7 +359,7 @@ class Store:
                     raise ValueError('同名构筑已存在或已被修改，请重新打开或使用新名称保存')
                 backup = self.root / 'backups' / (uuid.uuid4().hex + '.ydk')
                 atomic_bytes(backup, old)
-            atomic_bytes(p, self.ydk(deck, name, selected))
+            atomic_bytes(p, self.ydk(deck, name, selected, representatives))
             return self.get_deck('library/' + p.relative_to(self.decks).as_posix())
 
     def session_path(self, identifier):
@@ -821,6 +868,7 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/decks': return self.send(store.save_deck(body))
                 if path == '/api/decks/tag-options': return self.send(store.deck_tag_options(body))
                 if path == '/api/card-favorites': return self.send(store.set_favorite(body))
+                if path == '/api/duel/settings': return self.send(store.duel_settings(body))
                 if path == '/api/decks/delete': return self.send(store.delete_deck(body))
                 if path == '/api/duel/match':
                     from duel import match
@@ -852,6 +900,7 @@ class Handler(BaseHTTPRequestHandler):
                     if not re.fullmatch(r'[0-9a-f]{32}\.png', frame): raise ValueError('场地截图标识无效')
                     return self.send((store.session_path(sid) / ('native-' + frame)).read_bytes(), 'image/png')
                 if path == '/api/card-favorites': return self.send(store.favorites())
+                if path == '/api/duel/settings': return self.send(store.duel_settings())
                 if path == '/api/cards':
                     return self.send(store.catalog.search(query.get('q', [''])[0], query.get('kind', [''])[0], max(0, int(query.get('offset', ['0'])[0])),
                         name_only=query.get('scope', [''])[0] == 'name',
@@ -903,7 +952,9 @@ class Handler(BaseHTTPRequestHandler):
                 files.update({'/deck-selection.js': 'deck-selection.js', '/deck-selection.css': 'deck-selection.css'})
                 files.update({'/deck-tags.js': 'deck-tags.js', '/deck-tags.css': 'deck-tags.css', '/theme.css': 'theme.css'})
                 files['/scrollbars.css'] = 'scrollbars.css'
-                for name in ('duel.js', 'duel-model.js', 'duel.css', 'deck-tag-view.js'):
+                for art in ('first', 'second', 'bo1', 'bo3'):
+                    files[f'/brand/duel-{art}.svg'] = f'brand/duel-{art}.svg'
+                for name in ('duel.js', 'duel-model.js', 'duel.css', 'deck-tag-view.js', 'deck-appearance.js'):
                     files['/' + name] = name
                 if path in files:
                     p = WEB / files[path]; return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0] + '; charset=utf-8')

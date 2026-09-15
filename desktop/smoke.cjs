@@ -453,12 +453,12 @@ async function activatePot(sid) {
   assert.equal(await page.locator('#review-steps > li').count(), report.review.nodes.length);
   await page.locator('#review-log-toggle').click();
   await page.locator('[data-log-mode="detailed"]').click();
-  assert.equal(await page.locator('.log-action').count(), 2);
-  assert.equal(await page.locator('.log-action h4').filter({hasText: /攻击宣言|伤害步骤|战斗结果|受到.*伤害/}).count(), 0);
+  assert.equal(await page.locator('#review-log .log-action').count(), 2);
+  assert.equal(await page.locator('#review-log .log-action h4').filter({hasText: /攻击宣言|伤害步骤|战斗结果|受到.*伤害/}).count(), 0);
   await page.screenshot({ path: path.join(evidence, 'report.png') });
   if (report.actions.some(a => a.kind === 'effect')) {
-    assert(await page.locator('.effect-hint').count() > 0);
-    assert((await page.locator('.log-role').first().innerText()).includes('处理结果'));
+    assert(await page.locator('#review-log .effect-hint').count() > 0);
+    assert((await page.locator('#review-log .log-role').first().innerText()).includes('处理结果'));
   }
   await page.locator('.review-evidence > summary').click();
   await page.locator('#all-events').check();
@@ -466,7 +466,7 @@ async function activatePot(sid) {
   await page.waitForFunction(() => [...document.querySelectorAll('#review-raw-events summary')].some(e => e.textContent === '战斗结果'));
   assert.equal(await page.locator('#review-raw-events summary').filter({hasText: '战斗结果'}).count(), 1);
   await page.locator('#all-events').uncheck();
-  await page.waitForFunction(() => document.querySelectorAll('.log-action').length === 2);
+  await page.waitForFunction(() => document.querySelectorAll('#review-log .log-action').length === 2);
   const popupPromise = page.waitForEvent('popup');
   await page.locator('a[href^="/api/raw/"]').click();
   const rawWindow = await popupPromise;

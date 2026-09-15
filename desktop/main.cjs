@@ -35,8 +35,26 @@ let layoutQueue = Promise.resolve();
 let tutorialController;
 const tutorialSettingsFile = path.join(dataDir, 'tutorial-shortcuts.json');
 function readTutorialSettings() {
-  try {return {bindings:tutorialShortcuts.normalize(JSON.parse(fs.readFileSync(tutorialSettingsFile,'utf8')).bindings)};}
+  try {
+    const saved=JSON.parse(fs.readFileSync(tutorialSettingsFile,'utf8'));
+    const bindings=tutorialShortcuts.normalize(saved.bindings);
+    const legacy=tutorialShortcuts.normalize(tutorialShortcuts.legacyDefaults);
+    return {bindings:!saved.version&&Object.keys(legacy).every(key=>bindings[key]===legacy[key])?tutorialShortcuts.normalize(tutorialShortcuts.defaults):bindings};
+  }
   catch(error) {return {bindings:{...tutorialShortcuts.defaults},error:error.code==='ENOENT'?'':'快捷键设置无法读取，原文件已保留；当前使用默认组合键。'};}
+}
+
+function watchTutorialKeys(bindings, callback, failed) {
+  const resources=app.isPackaged?process.resourcesPath:path.join(workspace,'.local','desktop-bundle');
+  const program=app.isPackaged?path.join(resources,'trainer','tutorial_keys.py'):path.join(workspace,'src','trainer','tutorial_keys.py');
+  const child=spawn(path.join(resources,'python','python.exe'),['-I','-u',program,JSON.stringify(bindings),String(process.pid)],{windowsHide:true,stdio:['ignore','pipe','pipe']});
+  let stopped=false;
+  const lines=readline.createInterface({input:child.stdout});
+  lines.on('line',line=>{if(stopped)return;try {const actions=JSON.parse(line);if(Array.isArray(actions))callback(actions.filter(action=>Object.hasOwn(bindings,action)));}catch{ /* Ignore incomplete output on exit. */ }});
+  child.on('error',error=>{if(!stopped)failed(error.message);});
+  child.on('exit',()=>{if(!stopped)failed('按键状态辅助进程已退出，请重新启用快捷键');});
+  child.stderr.on('data',data=>writeLog('Tutorial repeat: '+data.toString()));
+  return ()=>{stopped=true;lines.close();child.kill();};
 }
 
 function writeLog(message) {
@@ -181,7 +199,8 @@ if (!app.requestSingleInstanceLock()) {
         titleBarOverlay: { color: '#152129', symbolColor: '#dce6ea', height: 60 } } : {}),
       show: process.env.YGO_DESKTOP_BACKGROUND !== '1',
       webPreferences: { ...webPreferences, preload: path.join(__dirname, 'preload.cjs'), backgroundThrottling: false } });
-    tutorialController = tutorialShortcuts.createController({registry:globalShortcut,
+    tutorialController = tutorialShortcuts.createController({registry:globalShortcut,watchKeys:process.platform==='win32'?watchTutorialKeys:undefined,
+      onStatus:value=>mainWindow?.webContents.send('trainer:tutorial-status',value),
       isFocused:()=>!!mainWindow?.isFocused(),send:value=>mainWindow?.webContents.send('trainer:tutorial-action',value)});
     const shortcutSender = event => {
       if (!ready || shuttingDown || event.sender !== mainWindow?.webContents || event.senderFrame !== mainWindow.webContents.mainFrame || new URL(event.senderFrame.url).origin !== ready.url) throw new Error('无效的教程快捷键请求');
@@ -189,7 +208,7 @@ if (!app.requestSingleInstanceLock()) {
     ipcMain.handle('trainer:tutorial-settings', event => {shortcutSender(event);return readTutorialSettings();});
     ipcMain.handle('trainer:tutorial-save-settings', (event, bindings) => {
       shortcutSender(event);
-      const settings={bindings:tutorialShortcuts.normalize(bindings)};
+      const settings={version:2,bindings:tutorialShortcuts.normalize(bindings)};
       const temporary=tutorialSettingsFile+'.tmp';
       if(fs.existsSync(tutorialSettingsFile))fs.copyFileSync(tutorialSettingsFile,tutorialSettingsFile+'.backup');
       fs.writeFileSync(temporary,JSON.stringify(settings,null,2)+'\n');fs.renameSync(temporary,tutorialSettingsFile);

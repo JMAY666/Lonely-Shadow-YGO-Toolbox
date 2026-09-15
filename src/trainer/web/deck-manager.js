@@ -1,6 +1,6 @@
 'use strict';
 
-const deckManager = {decks:[], listGeneration:0, previewGeneration:0, anchor:null, closeTimer:null, leaving:null, menuId:null, menuAnchor:null, menuPoint:null, menuScroll:0, renameTarget:null};
+const deckManager = {decks:[], listGeneration:0, previewGeneration:0, previewScroll:0, anchor:null, closeTimer:null, leaving:null, menuId:null, menuAnchor:null, menuPoint:null, menuScroll:0, renameTarget:null};
 const favoriteUI = {cards:new Set(), ready:false, busy:false};
 const cardAttributes = {1:'地',2:'水',4:'炎',8:'风',16:'光',32:'暗',64:'神'};
 const cardRaces = ['战士','魔法使','天使','恶魔','不死','机械','水','炎','岩石','鸟兽','植物','昆虫','雷','龙','兽','兽战士','恐龙','鱼','海龙','爬虫类','念动力','幻神兽','创造神','幻龙','电子界','幻想魔'];
@@ -22,8 +22,7 @@ function renderDeckBoxes(decks) {
   $('#deck-list-count').textContent = `${decks.length} 副`;
   $('#deck-boxes').innerHTML = '<button class="deck-box new-deck-box" data-create-deck="true"><span class="deck-plus" aria-hidden="true">＋</span><strong>新建卡组</strong><small>空白卡组 / 导入 YDK</small></button>' + decks.map(d => `
     <article class="deck-box-item"><button class="deck-box" data-open-deck="${escape(d.id)}" aria-label="编辑卡组：${escape(d.name)}">
-      <span class="deck-case" aria-hidden="true"><span>DECK</span><i>◇</i></span>
-      <strong>${escape(d.name)}</strong><small>${d.source === 'library' ? '我的卡组' : '已有副本 · 保存为练习卡组'}</small>${deckTagHtml(d)}
+      ${deckBoxArt(d)}<strong>${escape(d.name)}</strong>
     </button><button class="deck-box-menu" data-deck-menu="${escape(d.id)}" aria-label="卡组操作：${escape(d.name)}" title="卡组操作" aria-haspopup="menu">···</button></article>`).join('');
 }
 function closeDeckPreview() {
@@ -38,7 +37,7 @@ function delayCloseDeckPreview() {
 }
 function positionDeckPreview() {
   const preview = $('#deck-preview'), anchor = deckManager.anchor;
-  if (!anchor || preview.hidden || !anchor.isConnected) return closeDeckPreview();
+  if (!anchor || preview.hidden || !anchor.isConnected || !anchor.getClientRects().length) return closeDeckPreview();
   const box = anchor.getBoundingClientRect(), width = preview.offsetWidth, height = preview.offsetHeight;
   let left = box.right + 10;
   if (left + width > window.innerWidth - 12) left = box.left - width - 10;
@@ -52,6 +51,7 @@ async function showDeckPreview(anchor) {
   if (deckManager.anchor === anchor) return;
   const generation = ++deckManager.previewGeneration, preview = $('#deck-preview');
   deckManager.anchor = anchor;
+  deckManager.previewScroll = $('#deck-manager').scrollTop;
   preview.innerHTML = '<p>正在读取已保存卡组…</p>';
   preview.hidden = false;
   positionDeckPreview();
@@ -124,9 +124,12 @@ function showDeckMenu(anchor, point) {
   menu.querySelector('button').focus({preventScroll:true});
 }
 function handleDeckManagerScroll() {
-  closeDeckPreview();
-  if (!deckManager.menuId) return;
   const current = $('#deck-manager').scrollTop;
+  // Revealing a compact tile may queue its scroll event before pointerover.
+  // Keep a preview opened at that same position; a later user scroll closes it.
+  if (current !== deckManager.previewScroll) closeDeckPreview();
+  else positionDeckPreview();
+  if (!deckManager.menuId) return;
   // A queued scroll event from revealing the box may arrive after its context
   // menu opens. Only a subsequent, real scroll should dismiss a pointer menu.
   if (current === deckManager.menuScroll || !deckManager.menuPoint) {
@@ -213,6 +216,7 @@ async function returnToDeckManager() {
   ++app.deckEpoch; ++app.detailGeneration;
   app.deck = {main:[],extra:[],side:[]};
   setDeckTags();
+  setDeckRepresentatives();
   app.id = app.revision = app.selected = null;
   app.undo = [];
   $('#deck-name').value = '新构筑';
@@ -255,6 +259,7 @@ async function createDeckFromDialog() {
     ++app.deckEpoch; ++app.detailGeneration;
     app.deck = {main:[],extra:[],side:[]};
     setDeckTags();
+    setDeckRepresentatives();
     app.id = app.revision = app.selected = null;
     app.undo = [];
     app.savedState = null;

@@ -5,3 +5,8 @@ function deckTagHtml(saved) {
   const ids = saved?.tag_selection?.tag_ids || [], primary = saved?.tag_selection?.primary_ids || [];
   return `<span class="shared-deck-tags">${saved?.tag_error ? escape(saved.tag_error) : ids.length ? ids.map(id => `<span class="deck-tag-chip ${primary.includes(id) ? 'primary' : 'secondary'}" data-tag-id="${escape(id)}">${primary.includes(id) ? '主' : '副'} · ${escape(saved.tag_names?.[id] || '未安装 TAG')}</span>`).join('') : '<small>尚未设置 Tag</small>'}</span>`;
 }
+
+function deckBoxArt(deck) {
+  const representatives = deck.representatives || [null,null,null];
+  return `<span class="deck-box-art" aria-hidden="true"><span class="deck-case"><span>DECK</span><i>◇</i></span><span class="deck-representatives">${representatives.map(code=>code?`<img src="/pics/${Number(code)}.jpg" alt="" loading="lazy">`:'<span></span>').join('')}</span></span>`;
+}

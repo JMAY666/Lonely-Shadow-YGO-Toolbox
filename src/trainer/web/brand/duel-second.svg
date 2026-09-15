@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
+<defs><linearGradient id="panel" x2="1" y2="1"><stop stop-color="#243a41"/><stop offset="1" stop-color="#14252d"/></linearGradient><radialGradient id="glow"><stop stop-color="#91b974" stop-opacity=".18"/><stop offset="1" stop-color="#91b974" stop-opacity="0"/></radialGradient><linearGradient id="card" x2="0.8" y2="1"><stop stop-color="#385547"/><stop offset="1" stop-color="#203b39"/></linearGradient><linearGradient id="accent" x2="1" y2="1"><stop stop-color="#d3e7af"/><stop offset="1" stop-color="#7ea179"/></linearGradient></defs>
+<rect width="600" height="600" fill="url(#panel)"/><circle cx="300" cy="232" r="260" fill="url(#glow)"/>
+<g fill="none" stroke="#6e8a82" opacity=".14"><path d="M0 100H600M0 200H600M0 300H600M0 400H600M100 0V600M200 0V600M300 0V600M400 0V600M500 0V600"/><circle cx="300" cy="250" r="185"/><circle cx="300" cy="250" r="201"/></g>
+<path d="M26 98V26H98M502 26H574V98M26 502V574H98M502 574H574V502" fill="none" stroke="#89a77f" stroke-width="2" opacity=".45"/>
+<g fill="#20343a" stroke="#7d9492" stroke-width="2"><rect x="131" y="122" width="90" height="116" rx="8" transform="rotate(-9 176 180)"/><rect x="379" y="122" width="90" height="116" rx="8" transform="rotate(9 424 180)"/></g>
+<path d="M252 108h43l-19 57 30 29-26 37 16 42c-41-17-62-44-64-82v-61Zm55 0h41l20 22v61c-2 38-23 65-64 82l17-40-28-38 29-31Z" fill="#293d3f" stroke="#9aac9e" stroke-width="2"/>
+<g fill="none" stroke="url(#accent)" stroke-linecap="round" stroke-linejoin="round"><path d="M181 380 382 179m-43 5 43-5-5 43" stroke-width="9"/><path d="m221 378-31-31m37 19-25-25" stroke-width="6"/><path d="m256 234-26-9m101 64 18 21m-9-67 26-7m-137 78-16 13" stroke-width="3" opacity=".65"/></g>
+<path d="m398 286 33 36-33 36-33-36Z" fill="url(#card)" stroke="#a7c592" stroke-width="2"/>
+<path d="m407 348 38 38" stroke="#829985" stroke-width="3" opacity=".4"/>
+<path d="M70 462H530" stroke="#8cab82" opacity=".22"/><path d="m292 461 8-8 8 8-8 8Z" fill="#a5c688" opacity=".8"/>
+</svg>

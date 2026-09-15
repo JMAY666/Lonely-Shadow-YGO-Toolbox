@@ -89,11 +89,17 @@ async function waitNativeFrame(id) {
   if(app.active?.id===id) $('#native-loading').textContent='训练场地未能显示，请结束本次训练并重新启动应用。';
   return false;
 }
+function setDeckRepresentatives(value) { app.representatives = [...(value || [null,null,null])]; }
+function validDeckRepresentatives() {
+  const pool = new Set(zones.flatMap(zone=>app.deck[zone]));
+  return (app.representatives || [null,null,null]).map(code=>pool.has(code)?code:null);
+}
+
 function setDeckTags(value, names = {}) {
   app.deckTags = structuredClone(value || {tag_ids:[],primary_ids:[]});
   app.deckTagNames = {...names};
 }
-function deckState() { return JSON.stringify({name:$('#deck-name').value.trim(), deck:app.deck, tags:app.deckTags}); }
+function deckState() { return JSON.stringify({name:$('#deck-name').value.trim(), deck:app.deck, tags:app.deckTags, representatives:validDeckRepresentatives()}); }
 function dirty() {
   app.dirty = deckState() !== app.savedState;
   $('#deck-status').textContent = app.dirty ? '● 有未保存的修改' : !app.id ? '新构筑 · 尚未保存' : app.id.startsWith('existing/') ? '已有构筑 · 保存时创建练习室副本' : '已保存 · 本地构筑';
@@ -117,6 +123,7 @@ function updateStart() {
   if (typeof updateModuleChrome === 'function') updateModuleChrome();
   if (typeof updateDeckSelectionControls === 'function') updateDeckSelectionControls();
   if (typeof updateDeckTagSummary === 'function') updateDeckTagSummary();
+  if (typeof updateDeckRepresentatives === 'function') updateDeckRepresentatives();
   if (typeof flow !== 'undefined' && flow.timer && (!app.active || app.active.status==='stopping') && flow.timer.started!==null) stopTimer();
   $('#training-title').textContent = app.active ? `${app.active.name} · ${statusNames[app.active.status]}` : '展开场地';
 }
@@ -154,6 +161,7 @@ async function openDeck(id) {
     const d = await api(`/api/deck?id=${encodeURIComponent(id)}`);
     app.deck = d.deck;
     setDeckTags(d.tag_selection, d.tag_names);
+    setDeckRepresentatives(d.representatives);
     app.id = d.id;
     app.revision = d.revision;
     app.sourceName = d.name;
@@ -216,6 +224,7 @@ async function deleteDeck(id) {
       ++app.deckEpoch;
       app.deck = {main:[], extra:[], side:[]};
       setDeckTags();
+      setDeckRepresentatives();
       app.id = app.revision = null;
       app.undo = [];
       app.selected = null;
@@ -548,6 +557,7 @@ async function applyImportedDeck() {
     ++app.deckEpoch;
     app.deck = structuredClone(preview.deck);
     setDeckTags();
+    setDeckRepresentatives();
     app.id = null;
     app.revision = null;
     app.undo = [];
@@ -575,7 +585,7 @@ async function saveDeck() {
   if (app.id?.startsWith('existing/') && name === (app.sourceName || app.id.split('/').at(-1).replace(/\.ydk$/,''))) name += ' - 练习';
   $('#deck-name').value = name;
   const savedState = deckState();
-  const body = {name, deck:structuredClone(app.deck), id:app.id, revision:app.revision, tag_selection:structuredClone(app.deckTags)};
+  const body = {name, deck:structuredClone(app.deck), id:app.id, revision:app.revision, tag_selection:structuredClone(app.deckTags), representatives:validDeckRepresentatives()};
   app.busy = true;
   updateStart();
   updateDetailCounts();
@@ -585,6 +595,7 @@ async function saveDeck() {
     app.revision = saved.revision;
     app.sourceName = saved.name || name;
     if (saved.tag_names) app.deckTagNames = saved.tag_names;
+    setDeckRepresentatives(saved.representatives || body.representatives);
     app.savedState = savedState;
     dirty();
     await deckList();

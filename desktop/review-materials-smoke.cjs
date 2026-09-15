@@ -127,19 +127,19 @@ module.exports=async function({page,nativeState,nativeWait,hostWait,waitHistory,
   }
   await page.locator('#review-log-toggle').click();
   await page.locator('[data-log-mode="compact"]').click();
-  assert.equal(await page.locator('.log-materials').count(),0);
+  assert.equal(await page.locator('#review-log .log-materials').count(),0);
   const cleanup=review.events.filter(e=>e.message===50&&(e.origin?.location&128)&&e.reason===0x20000400)||[];
   assert(cleanup.length>0,'Real engine must record attached material rule cleanup');
-  for(const e of cleanup)assert.equal(await page.locator(`[data-review-action="${e.id}"]`).count(),0);
+  for(const e of cleanup)assert.equal(await page.locator(`#review-log [data-review-action="${e.id}"]`).count(),0);
 
-  assert(await page.locator('.compact-summon').count()>0);
+  assert(await page.locator('#review-log .compact-summon').count()>0);
   await page.locator('[data-log-mode="detailed"]').click();
   assert.match(await page.locator('#review-log').innerText(),/费用 Cost/);
   assert.match(await page.locator('#review-log').innerText(),/连接召唤/);
   assert.match(await page.locator('#review-log').innerText(),/素材去向/);
-  const effectHint=page.locator('.effect-hint > button').first();
-  await effectHint.hover();assert(await page.locator('[role="tooltip"]').first().isVisible());
-  await effectHint.focus();assert(await page.locator('[role="tooltip"]').first().isVisible());
+  const effectHint=page.locator('#review-log .effect-hint > button').first();
+  await effectHint.hover();assert(await page.locator('#review-log [role="tooltip"]').first().isVisible());
+  await effectHint.focus();assert(await page.locator('#review-log [role="tooltip"]').first().isVisible());
   await page.screenshot({path:path.join(evidence,'review-xyz-materials.png')});
   await page.locator('#review-log-close').click();
   await page.evaluate(()=>selectReviewNode('final'));

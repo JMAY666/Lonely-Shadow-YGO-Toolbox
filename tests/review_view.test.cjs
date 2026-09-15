@@ -20,6 +20,21 @@ test('XYZ host shows its own body plus material count, while attached copies do 
   assert.match(html,/素材 ×2/);assert.equal((html.match(/data-review-card=/g)||[]).length,1);
   assert(!html.includes('opponent-board'));
 });
+
+test('a separate tutorial report renders its own cards and board without changing the review buffer',()=>{
+  const r=setup(),original={id:'editing',catalog:{10:{type:1}},actions:[],events:[]};
+  r.reviewUI.report=original;r.reviewUI.node='editing-node';r.context.flow.draft={id:'editing',annotations:{...{nodes:{},cards:{},effects:{},final_marks:{}},effects:{'1:0':'私人编辑缓冲'}}};
+  const card={instance_id:42,code:20,name:'教程卡牌',identity_known:true,controller:0,location:4,sequence:3,position:1};
+  const n={id:'tutorial-node',kind:'step',number:2,action_ids:['1:0'],state:{cards:[card],lp:[8000,8000]}};
+  const report={id:'tutorial',catalog:{20:{type:1}},review:{nodes:[n]},events:[{id:'1:0',message:61,cards:[card]}],actions:[{id:'1:0',kind:'operation',cards:[card],evidence_refs:['1:0']}],annotations:{nodes:{},cards:{},effects:{},final_marks:{}}};
+  const before=JSON.stringify({original,draft:r.context.flow.draft,report});
+  const html=r.context.renderRecordedStep(report,n,'compact'),board=r.renderBoard(n,report);
+  assert.match(html,/教程卡牌/);assert.match(html,/通常召唤/);assert.match(board,/4 号主怪兽区/);
+  assert(!html.includes('私人编辑缓冲'));
+  assert([...r.reviewUI.cards.values()].every(entry=>entry.report===report));
+  assert.equal(r.reviewUI.report,original);assert.equal(r.reviewUI.node,'editing-node');
+  assert.equal(JSON.stringify({original,draft:r.context.flow.draft,report}),before);
+});
 test('costs, targets, failed effects and horizontal materials have distinct image-based representations',()=>{
   const r=setup();const c={code:10,name:'<注入>',instance_id:1,controller:0,location:2};
   r.reviewUI.logMode='detailed';

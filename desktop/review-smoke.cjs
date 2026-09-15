@@ -77,8 +77,8 @@ module.exports=async function({page,report,pass,evidence}) {
   await page.locator('#review-log-edge-toggle').click();
   assert.equal(await page.evaluate(()=>scrollY),scrolled,'The edge toggle opens without jumping back to the top');
   await page.locator('[data-log-mode="compact"]').click();
-  assert(await page.locator('.log-action .review-card').count()>0);
-  const logCard=page.locator('.log-action .review-card').first();await logCard.scrollIntoViewIfNeeded();
+  assert(await page.locator('#review-log .log-action .review-card').count()>0);
+  const logCard=page.locator('#review-log .log-action .review-card').first();await logCard.scrollIntoViewIfNeeded();
   const logContext=await page.evaluate(()=>({node:reviewUI.node,scroll:scrollY,log:document.querySelector('.log-scroll').scrollTop}));
   await logCard.click();
   assert.deepEqual(await page.evaluate(()=>({node:reviewUI.node,scroll:scrollY,log:document.querySelector('.log-scroll').scrollTop})),logContext);

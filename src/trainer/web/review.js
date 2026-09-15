@@ -36,8 +36,8 @@ function reviewRandomDraw(c,node=reviewNode(),report=reviewUI.report) {
 function reviewCardLabel(c,node,report=reviewUI.report) {
   return reviewRandomDraw(c,node,report)?'随机抽牌':reviewKnown(c)?c.name||report?.catalog?.[c.code]?.name||String(c.code):'未知卡牌';
 }
-function reviewDisplayText(text,cards,node) {
-  for(const c of cards||[])if(c.name&&reviewRandomDraw(c,node))text=String(text||'').replaceAll(c.name,'随机抽牌');
+function reviewDisplayText(text,cards,node,report=reviewUI.report) {
+  for(const c of cards||[])if(c.name&&reviewRandomDraw(c,node,report))text=String(text||'').replaceAll(c.name,'随机抽牌');
   return text||'';
 }
 const reviewPlace = l => {
@@ -138,30 +138,30 @@ function selectReviewNode(id) {
 function boardCards(n, side, zone, seq) {
   return (n.state?.cards||[]).filter(c=>c.controller===side&&c.location===zone&&!c.overlay_target&&(seq===undefined||c.sequence===seq)).sort((a,b)=>a.sequence-b.sequence);
 }
-function boardSlot(n, side, zone, seq, label) {
+function boardSlot(n, side, zone, seq, label, report=reviewUI.report) {
   const cards=boardCards(n,side,zone,seq);
-  return `<div class="board-slot ${zone===4?'monster-slot':'spell-slot'}"><span class="slot-label">${escape(label)}</span>${cards.map(c=>reviewCard(c,n.id,{zone:false,materials:reviewMaterials(n,c).length})).join('')||'<span class="vacant">—</span>'}</div>`;
+  return `<div class="board-slot ${zone===4?'monster-slot':'spell-slot'}"><span class="slot-label">${escape(label)}</span>${cards.map(c=>reviewCard(c,n.id,{report,zone:false,materials:reviewMaterials(n,c).length})).join('')||'<span class="vacant">—</span>'}</div>`;
 }
-function zoneStack(n, side, zone, label) {
+function zoneStack(n, side, zone, label, report=reviewUI.report) {
   const cards=boardCards(n,side,zone);
-  return `<button class="zone-stack side-${side===1?'opponent':'self'}" data-review-zone="${side}:${zone}"><span>${escape(label)}</span><span class="stack-art">${cards.length?`<img src="${zone===1||!reviewKnown(cards.at(-1))||reviewRandomDraw(cards.at(-1),n)?'/review-back.svg':`/pics/${Number(cards.at(-1).code)}.jpg`}" alt="">`:''}<strong>${n.state?.partial?'?':cards.length}</strong></span><small>查看区域</small></button>`;
+  return `<button class="zone-stack side-${side===1?'opponent':'self'}" data-review-zone="${side}:${zone}"><span>${escape(label)}</span><span class="stack-art">${cards.length?`<img src="${zone===1||!reviewKnown(cards.at(-1))||reviewRandomDraw(cards.at(-1),n,report)?'/review-back.svg':`/pics/${Number(cards.at(-1).code)}.jpg`}" alt="">`:''}<strong>${n.state?.partial?'?':cards.length}</strong></span><small>查看区域</small></button>`;
 }
-function boardSide(n, side) {
+function boardSide(n, side, report=reviewUI.report) {
   const opponent=side===1, related=n.opponent?.zones||[], show=z=>!opponent||related.includes(z);
   if(opponent && !related.some(z=>boardCards(n,side,z).length))return `<div class="opponent-board"><div class="board-side-label side-opponent">对方相关状态 <span>LP ${n.state?.lp?.[1]??'未知'}</span></div><p>已记录的相关区域为空。</p></div>`;
   return `<div class="board-side ${opponent?'opponent-board':'own-board'}"><div class="board-side-label side-${opponent?'opponent':'self'}">${opponent?'对方相关区域':'我方场面'} ${n.state?.lp?`<span>LP ${n.state.lp[side]}</span>`:''}</div>
-    ${show(4)||show(8)?`<div class="board-row">${boardSlot(n,side,8,5,'场地区')}${Array.from({length:5},(_,i)=>boardSlot(n,side,4,i,`主怪兽 ${i+1}`)).join('')}${zoneStack(n,side,16,'墓地')}</div>
-    <div class="board-row">${zoneStack(n,side,64,'EX 额外')}${Array.from({length:5},(_,i)=>boardSlot(n,side,8,i,i===0?'魔陷 1 / 左灵摆':i===4?'魔陷 5 / 右灵摆':`魔陷 ${i+1}`)).join('')}${zoneStack(n,side,1,'主卡组')}</div>`:''}
-    <div class="board-resources">${show(32)?zoneStack(n,side,32,'除外区'):''}${!show(4)&&!show(8)?[16,64,1].filter(show).map(z=>zoneStack(n,side,z,zoneNames[z])).join(''):''}
-    ${show(2)?`<div class="review-hand"><strong>${opponent?'对方':'当前'}手牌 · ${boardCards(n,side,2).length}</strong><div>${boardCards(n,side,2).map(c=>reviewCard(c,n.id,{zone:false,name:true,face:!opponent})).join('')||'<span class="vacant">空</span>'}</div></div>`:''}</div>
-    ${boardCards(n,side,8).some(c=>c.sequence>=6)?`<div class="legacy-pendulum">${[6,7].map(i=>boardSlot(n,side,8,i,i===6?'记录中的左灵摆位':'记录中的右灵摆位')).join('')}</div>`:''}</div>`;
+    ${show(4)||show(8)?`<div class="board-row">${boardSlot(n,side,8,5,'场地区',report)}${Array.from({length:5},(_,i)=>boardSlot(n,side,4,i,`主怪兽 ${i+1}`,report)).join('')}${zoneStack(n,side,16,'墓地',report)}</div>
+    <div class="board-row">${zoneStack(n,side,64,'EX 额外',report)}${Array.from({length:5},(_,i)=>boardSlot(n,side,8,i,i===0?'魔陷 1 / 左灵摆':i===4?'魔陷 5 / 右灵摆':`魔陷 ${i+1}`,report)).join('')}${zoneStack(n,side,1,'主卡组',report)}</div>`:''}
+    <div class="board-resources">${show(32)?zoneStack(n,side,32,'除外区',report):''}${!show(4)&&!show(8)?[16,64,1].filter(show).map(z=>zoneStack(n,side,z,zoneNames[z],report)).join(''):''}
+    ${show(2)?`<div class="review-hand"><strong>${opponent?'对方':'当前'}手牌 · ${boardCards(n,side,2).length}</strong><div>${boardCards(n,side,2).map(c=>reviewCard(c,n.id,{report,zone:false,name:true,face:!opponent})).join('')||'<span class="vacant">空</span>'}</div></div>`:''}</div>
+    ${boardCards(n,side,8).some(c=>c.sequence>=6)?`<div class="legacy-pendulum">${[6,7].map(i=>boardSlot(n,side,8,i,i===6?'记录中的左灵摆位':'记录中的右灵摆位',report)).join('')}</div>`:''}</div>`;
 }
-function renderBoard(n) {
+function renderBoard(n, report=reviewUI.report) {
   if(!n.state)return '<div class="review-unavailable">此节点未记录完整状态。原始动作仍可查看，不能用终场代替本步场面。</div>';
   const extra=(n.state.cards||[]).filter(c=>c.location===4&&c.sequence>=5&&!c.overlay_target);
-  const shared=[0,1].map(i=>`<div class="board-slot shared-slot"><span class="slot-label">共享额外怪兽区 ${i+1}</span>${extra.filter(c=>(c.controller===0?c.sequence-5:6-c.sequence)===i).map(c=>reviewCard(c,n.id,{materials:reviewMaterials(n,c).length})).join('')||'<span class="vacant">—</span>'}</div>`).join('');
+  const shared=[0,1].map(i=>`<div class="board-slot shared-slot"><span class="slot-label">共享额外怪兽区 ${i+1}</span>${extra.filter(c=>(c.controller===0?c.sequence-5:6-c.sequence)===i).map(c=>reviewCard(c,n.id,{report,materials:reviewMaterials(n,c).length})).join('')||'<span class="vacant">—</span>'}</div>`).join('');
   const before=n.opponent?.before;
-  return `${n.state.partial?'<p class="review-warning">旧记录只保存了初始手牌，其他区域数量未知。</p>':''}${n.opponent?.visible?`<div class="opponent-context">${n.opponent.reasons.map(escape).join('；')}${before?`<details><summary>本步动作前的对方状态 · 快照 ${before.state_ref}</summary><p>LP ${before.lp??'未知'}</p><div class="opponent-before-cards">${before.cards.map(c=>`<span>${reviewKnown(c)?`<img src="/pics/${Number(c.code)}.jpg" alt="">`:''}${escape(c.name)} · ${escape(reviewPlace(c))}</span>`).join('')||'相关区域当时为空。'}</div></details>`:''}</div>${boardSide(n,1)}`:''}<div class="shared-zones">${shared}</div>${boardSide(n,0)}`;
+  return `${n.state.partial?'<p class="review-warning">旧记录只保存了初始手牌，其他区域数量未知。</p>':''}${n.opponent?.visible?`<div class="opponent-context">${n.opponent.reasons.map(escape).join('；')}${before?`<details><summary>本步动作前的对方状态 · 快照 ${before.state_ref}</summary><p>LP ${before.lp??'未知'}</p><div class="opponent-before-cards">${before.cards.map(c=>`<span>${reviewKnown(c)?`<img src="/pics/${Number(c.code)}.jpg" alt="">`:''}${escape(c.name)} · ${escape(reviewPlace(c))}</span>`).join('')||'相关区域当时为空。'}</div></details>`:''}</div>${boardSide(n,1,report)}`:''}<div class="shared-zones">${shared}</div>${boardSide(n,0,report)}`;
 }
 function renderReviewNode() {
   const n=reviewNode();if(!n)return;
@@ -223,6 +223,7 @@ function renderReviewDetail() {
   if($('#review-detail-pin'))$('#review-detail-pin').hidden=reviewUI.detailPinned;
   if($('#copy-preview-card-name'))$('#copy-preview-card-name').hidden=!known || $('#deck-selection')?.hidden!==false;
   if(typeof updatePreviewMarkButton==='function')updatePreviewMarkButton();
+  if(typeof updateDuelMarkButton==='function')updateDuelMarkButton();
   $('#review-card-detail').innerHTML=`<img class="detail-card-art" src="${known?`/pics/${Number(c.code)}.jpg`:'/review-back.svg'}" alt="${escape(reviewCardLabel(c,n,r))}"><div class="detail-card-copy"><div class="detail-name"><h3>${escape(reviewCardLabel(c,n,r))}</h3><small>${known?`卡号 ${c.code}`:random?'随机抽到的 1 张牌':'身份未记录'}</small></div><p>${escape(stats.join(' · '))}</p>
     ${materials.length||d.type&0x800000?`<div class="detail-tabs"><button id="review-body-tab" aria-pressed="${!reviewUI.materialTab}">本体</button><button id="review-material-tab" aria-pressed="${reviewUI.materialTab}">素材 ×${materials.length}</button></div>`:''}
     ${reviewUI.materialTab?`<div class="material-list">${materials.map(m=>reviewCard(m,n.id,{name:true,face:reviewKnown(m),report:r})).join('')||'<p>当前没有素材。</p>'}</div>`:`<p class="detail-effect">${escape(known?d.desc||'本次记录未保存完整效果文本。':random?'本次由抽卡获得，路线中以随机卡背表示，不作为指定检索结果。实际使用的指定随机命中仍会列入随机依赖。':'当前节点未记录可公开的卡牌身份。')}</p><div class="card-provenance"><strong>截至本步的来源与移动</strong>${sources.length?sources.map(s=>`<p>${app.view==='history'&&r===reviewUI.report?`<button data-review-node="${escape(s.node.id)}">Step ${s.node.number}</button>`:`Step ${s.node.number}`} ${escape(s.text)}</p>`).join(''):'<p>来源未记录</p>'}</div>`}
@@ -306,83 +307,95 @@ function closeReviewDetail(focus=false) {
   if(focus&&reviewUI.anchor?.element?.isConnected)reviewUI.anchor.element.focus({preventScroll:true});
   reviewUI.selected=null;reviewUI.anchor=null;reviewUI.detailNode=null;reviewUI.detailReport=null;reviewUI.detailHistory=[];reviewUI.detailPinned=false;
 }
-function reviewOperation(item,node,role='处理结果') {
-  const e=(reviewUI.report.events||[]).find(e=>e.id===(item.event_ref||item.id))||item;
+function reviewLogContext(report=reviewUI.report, mode=reviewUI.logMode) {
+  return {report,mode,nodes:report.review?.nodes||(report===reviewUI.report?reviewUI.nodes:reviewFallback(report)),
+    edits:report===reviewUI.report?reviewEdits():{...emptyEdits(),...report.annotations},
+    editable:report===reviewUI.report&&app.view==='history'&&!!flow.draft};
+}
+function renderRecordedStep(report,n,mode='compact') {
+  const context={...reviewLogContext(report,mode),editable:false,edits:{...emptyEdits(),...report.annotations}};
+  if(n.kind==='initial')return `<div class="compact-cards">${(report.initial_hand?.length?report.initial_hand:boardCards(n,0,2)).map(c=>reviewLogCard(c,n.id,{report,zone:false})).join('')}</div>`;
+  if(n.kind==='final')return reviewFinalCards(n,report,context.edits,{compact:mode==='compact'});
+  const actions=(n.action_ids||[]).map(id=>(report.actions||[]).find(a=>a.id===id)).filter(Boolean);
+  return (mode==='compact'?groupedLogActions(actions,report):actions).map(a=>reviewLogAction(a,n,context)).join('');
+}
+function reviewOperation(item,node,role='处理结果',context=reviewLogContext()) {
+  const e=(context.report.events||[]).find(e=>e.id===(item.event_ref||item.id))||item;
   const cards=item.cards||e.cards||[], dest=e.destination, origin=e.origin;
   const names={50:dest?.location===16?'送墓':dest?.location===32?'除外':dest?.location&128?'成为素材':dest?.location===2&&origin?.location===1?'检索':dest?.location===2?'回收':'移动',53:'改变表示',54:'盖放',61:'通常召唤',63:'特殊召唤',65:'反转召唤',90:'抽卡',100:'支付 LP'};
   const method=cards.find(c=>c.summon_method)?.summon_method||({75:'发动被无效',76:'效果被无效'}[e.message])||names[e.message]||'操作';
   const materials=cards.flatMap(c=>c.materials||[]);
-  return `<div class="log-operation"><small class="log-role">${escape(role)}</small><div class="log-flow">${materials.length?materials.map(c=>reviewLogCard(c,node,{name:true})).join('<b>＋</b>'):cards.map(c=>reviewLogCard(c,node,{name:true,location:origin||c.summon_origin||c})).join('')}<span class="log-arrow">→<em>${escape(method)}</em>→</span>${materials.length?cards.map(c=>reviewLogCard(c,node,{name:true,materials:reviewMaterials(reviewUI.nodes.find(n=>n.id===node),c).length})).join(''):`<span class="log-destination">${escape(dest?reviewPlace(dest):[61,63,65].includes(e.message)&&cards[0]?reviewPlace(cards[0]):e.message===90?'手牌':reviewDisplayText(item.text||e.result,cards,node)||'见实际记录')}</span>`}</div>
-    <p class="log-summary">${escape(reviewDisplayText(item.text||eventSummary({...e,cards}),[...cards,...materials],node))}</p>${materials.length?`<p class="log-summary">${method==='超量召唤'?'参与卡牌成为结果怪兽的素材；当前数量以本步场面为准。':'参与卡牌的去向依下方记录，不能视作叠放素材。'}</p>`:''}</div>`;
+  return `<div class="log-operation"><small class="log-role">${escape(role)}</small><div class="log-flow">${materials.length?materials.map(c=>reviewLogCard(c,node,{report:context.report,name:true})).join('<b>＋</b>'):cards.map(c=>reviewLogCard(c,node,{report:context.report,name:true,location:origin||c.summon_origin||c})).join('')}<span class="log-arrow">→<em>${escape(method)}</em>→</span>${materials.length?cards.map(c=>reviewLogCard(c,node,{report:context.report,name:true,materials:reviewMaterials(context.nodes.find(n=>n.id===node),c).length})).join(''):`<span class="log-destination">${escape(dest?reviewPlace(dest):[61,63,65].includes(e.message)&&cards[0]?reviewPlace(cards[0]):e.message===90?'手牌':reviewDisplayText(item.text||e.result,cards,node,context.report)||'见实际记录')}</span>`}</div>
+    <p class="log-summary">${escape(reviewDisplayText(item.text||eventSummary({...e,cards}),[...cards,...materials],node,context.report))}</p>${materials.length?`<p class="log-summary">${method==='超量召唤'?'参与卡牌成为结果怪兽的素材；当前数量以本步场面为准。':'参与卡牌的去向依下方记录，不能视作叠放素材。'}</p>`:''}</div>`;
 }
 function reviewLogCard(c,node,options={}) { return reviewCard(c,node,{name:true,face:reviewKnown(c),...options}); }
 function compactLocation(l) {
   return l&&![4,8].includes(l.location)?`<span class="compact-location">${escape(reviewPlace(l))}</span>`:'';
 }
-function compactOperation(item,node,role='') {
-  const e=(reviewUI.report.events||[]).find(e=>e.id===(item.event_ref||item.id))||item;
+function compactOperation(item,node,role='',context=reviewLogContext()) {
+  const e=(context.report.events||[]).find(e=>e.id===(item.event_ref||item.id))||item;
   const cards=item.cards||e.cards||[], dest=e.destination, origin=e.origin;
   const method=cards.find(c=>c.summon_method)?.summon_method||({50:dest?.location===16?'送墓':dest?.location===32?'除外':dest?.location&128?'成为素材':dest?.location===2&&origin?.location===1?'检索':dest?.location===2?'回收':'移动',53:'改变表示',54:'盖放',61:'通常召唤',63:'特殊召唤',65:'反转召唤',75:'发动被无效',76:'效果被无效',90:'抽卡',100:'支付 LP'}[e.message])||'处理结果';
-  const materials=cards.flatMap(c=>c.materials||[]), opts={name:true,zone:false,position:false,miniLocation:true};
+  const materials=cards.flatMap(c=>c.materials||[]), opts={report:context.report,name:true,zone:false,position:false,miniLocation:true};
   const pictures=cs=>cs.map(c=>reviewLogCard(c,node,opts)).join('<b>＋</b>');
   const destination=dest?reviewPlace(dest):[61,63,65,54].includes(e.message)&&cards[0]?reviewPlace(cards[0]):e.message===90?'我方手牌':'';
-  if(materials.length)return `<div class="compact-summon"><div class="compact-cards">${pictures(materials)}</div><span class="chain-arrow">→</span><div class="chain-stage"><small class="log-role">${escape(method)}</small><div class="compact-cards">${cards.map(c=>reviewLogCard(c,node,{...opts,materials:reviewMaterials(reviewUI.nodes.find(n=>n.id===node),c).length})).join('')}</div>${cards.map(c=>compactLocation(c)).join('')}</div></div>`;
+  if(materials.length)return `<div class="compact-summon"><div class="compact-cards">${pictures(materials)}</div><span class="chain-arrow">→</span><div class="chain-stage"><small class="log-role">${escape(method)}</small><div class="compact-cards">${cards.map(c=>reviewLogCard(c,node,{...opts,materials:reviewMaterials(context.nodes.find(n=>n.id===node),c).length})).join('')}</div>${cards.map(c=>compactLocation(c)).join('')}</div></div>`;
   const places=destination?[compactLocation(origin),compactLocation(dest||cards[0]||{controller:0,location:2})].filter(Boolean):[];
   return `<div class="chain-stage"><small class="log-role">${escape(role?`${role} · ${method}`:method)}</small><div class="compact-cards">${pictures(cards)}</div>${places.length?`<small class="compact-destination">${places.join('<span class="chain-arrow">→</span>')}</small>`:''}${!cards.length?`<p>${escape(item.text||e.result||eventSummary(e)||'处理结果未记录')}</p>`:''}</div>`;
 }
-function compactLogAction(a,n) {
-  const stages=[], opts={name:true,zone:false,position:false,miniLocation:true};
-  const replacement=appliedReplacement(a,reviewUI.report);
-  if(replacement)return `<div class="compact-chain"><div class="chain-stage"><small class="log-role">${replacement.label}</small><div class="compact-cards">${reviewLogCard(replacement.card,n.id,opts)}</div></div><span class="chain-arrow">→</span>${compactOperation(a,n.id)}<span class="chain-arrow">→</span><div class="chain-stage"><small class="log-role">代替破坏</small><p>${replacement.result}</p></div></div><p class="log-summary">不进入连锁的②效果适用。</p>`;
+function compactLogAction(a,n,context=reviewLogContext()) {
+  const stages=[], opts={report:context.report,name:true,zone:false,position:false,miniLocation:true};
+  const replacement=appliedReplacement(a,context.report);
+  if(replacement)return `<div class="compact-chain"><div class="chain-stage"><small class="log-role">${replacement.label}</small><div class="compact-cards">${reviewLogCard(replacement.card,n.id,opts)}</div></div><span class="chain-arrow">→</span>${compactOperation(a,n.id,'',context)}<span class="chain-arrow">→</span><div class="chain-stage"><small class="log-role">代替破坏</small><p>${replacement.result}</p></div></div><p class="log-summary">不进入连锁的②效果适用。</p>`;
   if(a.kind==='effect') {
-    stages.push(`<div class="chain-stage"><small class="log-role">${escape(actionSide(a)+' '+(cardActivation(a,reviewUI.report)||`发动效果${a.effect_number?` ${Number(a.effect_number)}`:''}`))}</small><div class="compact-cards">${(a.cards||[]).map(c=>reviewLogCard(c,n.id,opts)).join('')}</div></div>`);
-    stages.push(...(a.costs||[]).map(s=>compactOperation(s,n.id,'Cost')));
+    stages.push(`<div class="chain-stage"><small class="log-role">${escape(actionSide(a)+' '+(cardActivation(a,context.report)||`发动效果${a.effect_number?` ${Number(a.effect_number)}`:''}`))}</small><div class="compact-cards">${(a.cards||[]).map(c=>reviewLogCard(c,n.id,opts)).join('')}</div></div>`);
+    stages.push(...(a.costs||[]).map(s=>compactOperation(s,n.id,'Cost',context)));
     if(a.targets?.length)stages.push(`<div class="chain-stage"><small class="log-role">对象</small><div class="compact-cards">${a.targets.map(c=>reviewLogCard(c,n.id,opts)).join('')}</div></div>`);
     if(a._interaction) {
       const {source,event,label}=a._interaction;
-      stages.push(`<div class="chain-stage opponent-response" data-response-action="${escape(source.id)}"><small class="log-role">对方 ${escape(cardActivation(source,reviewUI.report)||'发动效果')}</small><div class="compact-cards">${source.cards.map(c=>reviewLogCard(c,n.id,opts)).join('')}</div></div>`);
-      stages.push(...(source.costs||[]).map(s=>compactOperation(s,n.id,'对方 Cost')));
+      stages.push(`<div class="chain-stage opponent-response" data-response-action="${escape(source.id)}"><small class="log-role">对方 ${escape(cardActivation(source,context.report)||'发动效果')}</small><div class="compact-cards">${source.cards.map(c=>reviewLogCard(c,n.id,opts)).join('')}</div></div>`);
+      stages.push(...(source.costs||[]).map(s=>compactOperation(s,n.id,'对方 Cost',context)));
       const otherTargets=(source.targets||[]).filter(c=>c.instance_id==null||!a.cards.some(t=>t.instance_id===c.instance_id));
       if(otherTargets.length)stages.push(`<div class="chain-stage"><small class="log-role">对方选择对象</small><div class="compact-cards">${otherTargets.map(c=>reviewLogCard(c,n.id,opts)).join('')}</div></div>`);
-      stages.push(...(source.results||[]).filter(s=>s.event_ref!==event.id).map(s=>compactOperation(s,n.id)));
-      stages.push(`<div class="chain-stage"><small class="log-role">${!a._interaction.direct?'随后 ':''}${a.cards.some(c=>(reviewUI.report.catalog?.[c.code]?.type||0)&1)?'我方怪兽':'我方卡片'}${escape(label)}</small><div class="compact-cards">${a.cards.map(c=>reviewLogCard(c,n.id,opts)).join('')}</div></div>`);
-      if(reviewEdits().effects[source.id])stages.push(`<p class="preserve-lines">对方操作说明：${escape(reviewEdits().effects[source.id])}</p>`);
+      stages.push(...(source.results||[]).filter(s=>s.event_ref!==event.id).map(s=>compactOperation(s,n.id,undefined,context)));
+      stages.push(`<div class="chain-stage"><small class="log-role">${!a._interaction.direct?'随后 ':''}${a.cards.some(c=>(context.report.catalog?.[c.code]?.type||0)&1)?'我方怪兽':'我方卡片'}${escape(label)}</small><div class="compact-cards">${a.cards.map(c=>reviewLogCard(c,n.id,opts)).join('')}</div></div>`);
+      if(context.edits.effects[source.id])stages.push(`<p class="preserve-lines">对方操作说明：${escape(context.edits.effects[source.id])}</p>`);
     }
-    stages.push(...(a.results||[]).map(s=>compactOperation(s,n.id)));
-    return `<div class="compact-chain">${stages.join('<span class="chain-arrow">→</span>')}</div>${a.status!=='resolved'&&!a._interaction?`<p class="effect-status status-${escape(a.status)}">${escape(({pending:'已发动 · 尚未确认结算',negated:'发动被无效',disabled:'效果被无效'}[a.status])||a.status_label||'状态未记录')}</p>`:''}${activationResultMissing(a,reviewUI.report)?'<p>处理结果未记录；不能由发动推断成功生效。</p>':''}${reviewEdits().effects[a.id]?`<p class="preserve-lines">用户说明：${escape(reviewEdits().effects[a.id])}</p>`:''}`;
+    stages.push(...(a.results||[]).map(s=>compactOperation(s,n.id,undefined,context)));
+    return `<div class="compact-chain">${stages.join('<span class="chain-arrow">→</span>')}</div>${a.status!=='resolved'&&!a._interaction?`<p class="effect-status status-${escape(a.status)}">${escape(({pending:'已发动 · 尚未确认结算',negated:'发动被无效',disabled:'效果被无效'}[a.status])||a.status_label||'状态未记录')}</p>`:''}${activationResultMissing(a,context.report)?'<p>处理结果未记录；不能由发动推断成功生效。</p>':''}${context.edits.effects[a.id]?`<p class="preserve-lines">用户说明：${escape(context.edits.effects[a.id])}</p>`:''}`;
   }
-  const e=(reviewUI.report.events||[]).find(e=>e.id===a.id)||{};
-  return `<div class="compact-chain">${compactOperation({...e,cards:a.cards,text:a.summary},n.id,a.kind==='cost'?'Cost':'')}</div>`;
+  const e=(context.report.events||[]).find(e=>e.id===a.id)||{};
+  return `<div class="compact-chain">${compactOperation({...e,cards:a.cards,text:a.summary},n.id,a.kind==='cost'?'Cost':'',context)}</div>`;
 }
-function reviewLogAction(a,n) {
-  const events=[...new Set([...(a.evidence_refs||[]),...(a._interaction?.source.evidence_refs||[])])].map(id=>(reviewUI.report.events||[]).find(e=>e.id===id)).filter(Boolean);
-  const activation=cardActivation(a,reviewUI.report);
-  const replacement=appliedReplacement(a,reviewUI.report);
-  const title=replacement?`${reviewCardLabel(replacement.card,n)} · ②效果代替破坏`:a._interaction?`我方发动 → 对方响应 → ${a._interaction.label}`:a.kind==='effect'?(activation?`${actionSide(a)}${activation}－${(a.cards||[]).map(c=>reviewCardLabel(c,n,reviewUI.report)).join('、')}`:`${actionSide(a)}效果发动`):a.cards?.find(c=>c.summon_method)?.summon_method||a.summary;
+function reviewLogAction(a,n,context=reviewLogContext()) {
+  const events=[...new Set([...(a.evidence_refs||[]),...(a._interaction?.source.evidence_refs||[])])].map(id=>(context.report.events||[]).find(e=>e.id===id)).filter(Boolean);
+  const activation=cardActivation(a,context.report);
+  const replacement=appliedReplacement(a,context.report);
+  const title=replacement?`${reviewCardLabel(replacement.card,n,context.report)} · ②效果代替破坏`:a._interaction?`我方发动 → 对方响应 → ${a._interaction.label}`:a.kind==='effect'?(activation?`${actionSide(a)}${activation}－${(a.cards||[]).map(c=>reviewCardLabel(c,n,context.report)).join('、')}`:`${actionSide(a)}效果发动`):a.cards?.find(c=>c.summon_method)?.summon_method||a.summary;
   let body='';
-  if(reviewUI.logMode==='compact'&&compactCleanup(a))return '';
-  if(reviewUI.logMode==='compact'||replacement)body=compactLogAction(a,n);
+  if(context.mode==='compact'&&compactCleanup(a,context.report))return '';
+  if(context.mode==='compact'||replacement)body=compactLogAction(a,n,context);
   else if(a.kind==='effect') {
     const specific=!activation&&a.selected_effect_text&&a.effect_text_source!=='unknown';
     const effectLabel=activation|| (specific?`${a.effect_number?`效果 ${a.effect_number} · `:''}${a.selected_effect_text.slice(0,48)}`:'具体效果待补充');
     const tip=`effect-tip-${n.number}-${String(a.id).replaceAll(':','-')}`;
-    body=`<div class="log-flow">${(a.cards||[]).map(c=>reviewLogCard(c,n.id,{name:true})).join('')}<span class="effect-hint"><button type="button" aria-describedby="${tip}">${escape(effectLabel)}</button><span id="${tip}" role="tooltip">${escape(specific?a.selected_effect_text:(activation?'卡片本身的发动。完整卡片文本：\n':'具体发动效果尚未核实。完整卡片文本：\n')+(a.effect_text||'未记录'))}</span></span></div>
+    body=`<div class="log-flow">${(a.cards||[]).map(c=>reviewLogCard(c,n.id,{report:context.report,name:true})).join('')}<span class="effect-hint"><button type="button" aria-describedby="${tip}">${escape(effectLabel)}</button><span id="${tip}" role="tooltip">${escape(specific?a.selected_effect_text:(activation?'卡片本身的发动。完整卡片文本：\n':'具体发动效果尚未核实。完整卡片文本：\n')+(a.effect_text||'未记录'))}</span></span></div>
       <p class="effect-status status-${escape(a.status)}">${escape(({pending:'已发动 · 尚未确认结算',negated:'发动被无效',disabled:'效果被无效',resolved:'结算已完成 · 实际结果见下方'}[a.status])||a.status_label||'状态未记录')}</p>
-      ${(a.costs||[]).map(s=>reviewOperation(s,n.id,'费用 Cost')).join('')}
-      ${a.targets?.length?`<div class="log-operation"><small class="log-role">对象</small><div class="log-flow">${a.targets.map(c=>reviewLogCard(c,n.id,{name:true})).join('')}</div></div>`:''}
-      ${(a.results||[]).map(s=>reviewOperation(s,n.id)).join('')||(activationResultMissing(a,reviewUI.report)?'<p>处理结果未记录；不能由发动推断成功生效。</p>':['negated','disabled'].includes(a.status)?'<p>已记录无效结果，未继续处理原效果。</p>':'<p>卡片发动已结算，未记录额外动作。</p>')}
-      ${!specific?`<label class="log-user-note">用户补充说明<textarea data-effect-note="${escape(a.id)}" maxlength="4000" rows="2" ${flow.draft?'':'disabled'}>${escape(reviewEdits().effects[a.id]||'')}</textarea></label>`:reviewEdits().effects[a.id]?`<p>用户说明：${escape(reviewEdits().effects[a.id])}</p>`:''}`;
+      ${(a.costs||[]).map(s=>reviewOperation(s,n.id,'费用 Cost',context)).join('')}
+      ${a.targets?.length?`<div class="log-operation"><small class="log-role">对象</small><div class="log-flow">${a.targets.map(c=>reviewLogCard(c,n.id,{report:context.report,name:true})).join('')}</div></div>`:''}
+      ${(a.results||[]).map(s=>reviewOperation(s,n.id,undefined,context)).join('')||(activationResultMissing(a,context.report)?'<p>处理结果未记录；不能由发动推断成功生效。</p>':['negated','disabled'].includes(a.status)?'<p>已记录无效结果，未继续处理原效果。</p>':'<p>卡片发动已结算，未记录额外动作。</p>')}
+      ${!specific?`<label class="log-user-note">用户补充说明<textarea data-effect-note="${escape(a.id)}" maxlength="4000" rows="2" ${context.editable?'':'disabled'}>${escape(context.edits.effects[a.id]||'')}</textarea></label>`:context.edits.effects[a.id]?`<p>用户说明：${escape(context.edits.effects[a.id])}</p>`:''}`;
   } else {
     const e=events.find(e=>e.id===a.id)||events.at(-1)||{};
-    body=reviewOperation({...e,cards:a.cards,text:a.summary},n.id,a.kind==='cost'?'费用 Cost':'操作');
+    body=reviewOperation({...e,cards:a.cards,text:a.summary},n.id,a.kind==='cost'?'费用 Cost':'操作',context);
     // XYZ already shows material transfer on the summon itself. Other summon
     // methods expose their individual destinations only in detailed mode.
     const xyz=a.cards?.some(c=>c.summon_method==='超量召唤');
     const materials=xyz?[]:events.filter(e=>e.material_method || ((e.reason||0)&8));
-    if(materials.length)body+=`<div class="log-materials"><small class="log-role">素材去向</small>${materials.map(e=>reviewOperation(e,n.id,'')).join('')}</div>`;
+    if(materials.length)body+=`<div class="log-materials"><small class="log-role">素材去向</small>${materials.map(e=>reviewOperation(e,n.id,'',context)).join('')}</div>`;
   }
   if(a._interaction&&!a._interaction.direct)body+='<p class="log-summary">按实际对象与结算顺序连接。</p>';
-  return `<article class="log-action ${a._interaction||replacement?'log-connected':''} ${reviewUI.logMode==='compact'?'log-compact':''}" data-review-action="${escape(a.id)}"><h4>${escape(reviewDisplayText(title,a.cards,n))}</h4>${body}<details><summary>查看记录依据 · ${events.length} 条</summary>${events.map(e=>`<p>${escape(e.id)} · ${escape(eventSummary(e))}</p>`).join('')}</details></article>`;
+  return `<article class="log-action ${a._interaction||replacement?'log-connected':''} ${context.mode==='compact'?'log-compact':''}" data-review-action="${escape(a.id)}"><h4>${escape(reviewDisplayText(title,a.cards,n,context.report))}</h4>${body}<details><summary>查看记录依据 · ${events.length} 条</summary>${events.map(e=>`<p>${escape(e.id)} · ${escape(eventSummary(e))}</p>`).join('')}</details></article>`;
 }
 function renderReviewLog() {
   const actions=new Map((reviewUI.report.actions||[]).map(a=>[a.id,a]));
@@ -557,7 +570,8 @@ document.addEventListener('click',e=>{
   }
 });
 document.addEventListener('pointerover',e=>{
-  if(e.pointerType==='touch'||e.buttons)return;
+  if(e.pointerType==='touch'||e.buttons||e.target.closest('.duel-node'))return;
+  if(e.target.closest('[data-duel-add]')?.dataset.duelAdd===String(typeof duelUI!=='undefined'?duelUI.handHoverSuppressed?.code:''))return;
   if(e.target.closest('#review-card-popover')){clearTimeout(reviewHover.closeTimer);reviewHover.closeTimer=null;}
   const card=e.target.closest('[data-review-card]');
   if(card&&!card.disabled&&!card.contains(e.relatedTarget))scheduleReviewHover(card);

@@ -36,7 +36,7 @@ test('shortcut conflicts, focused editing, failure rollback and lifecycle cleanu
   const ctl=createController({registry,send:e=>sent.push(e),isFocused:()=>focused});
   const config={active:true,enabled:true,suspended:false,session:'a',bindings:defaults};
   assert.equal(ctl.update(config).registered.length,4);
-  registered.get('CONTROL+SHIFT+RIGHT')();assert.deepEqual(sent,[{action:'forward',session:'a'}]);
+  registered.get('RIGHT')();assert.deepEqual(sent,[{action:'forward',session:'a'}]);
   focused=true;ctl.sync();assert.equal(registered.size,0);ctl.invoke('forward');assert.equal(sent.length,1);
   focused=false;ctl.sync();assert.equal(registered.size,4);
   assert.equal(ctl.update({...config,suspended:true}).registered.length,0);
@@ -58,4 +58,21 @@ test('source-deck refresh safely clears stale matches even when a count input is
   context.api=async()=>{throw new Error('missing');};
   await assert.rejects(context.refreshDuelDeck(),/无法读取所选卡组/);
   assert.equal(context.state.deck,null);assert.equal(context.state.deckPage,'list');
+});
+
+test('held shortcuts repeat after a delay, stop on release and never leak across sessions',()=>{
+  let time=0,focused=false,listener,stops=0;const sent=[],registered=new Map();
+  const ctl=createController({registry:{register(k,f){registered.set(k,f);return true;},unregister(k){registered.delete(k);}},
+    send:e=>sent.push(e),isFocused:()=>focused,now:()=>time,watchKeys:(_bindings,receive)=>{listener=receive;return ()=>stops++;}});
+  const config={active:true,enabled:true,suspended:false,session:'first',bindings:defaults};
+  ctl.update(config);ctl.invoke('forward');ctl.invoke('forward');assert.equal(sent.length,1);
+  time=349;listener(['forward']);assert.equal(sent.length,1);
+  time=350;listener(['forward']);assert.equal(sent.length,2);
+  time=449;listener(['forward']);assert.equal(sent.length,2);
+  time=450;listener(['forward']);assert.equal(sent.length,3);
+  listener([]);time=900;listener(['forward']);assert.equal(sent.length,3);
+  ctl.invoke('forward');assert.equal(sent.length,4);
+  ctl.update({...config,session:'second'});time=1400;listener(['forward']);assert.equal(sent.length,4);
+  ctl.invoke('back');focused=true;time=2000;listener(['back']);assert.equal(sent.length,5);
+  ctl.sync();assert.equal(registered.size,0);assert(stops>=2);
 });

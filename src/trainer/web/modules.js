@@ -4,7 +4,7 @@
 // Expansion's first step uses a separate, read-only saved-deck selection.
 const moduleUI = {current:'home', editorOwner:'decks', expansionView:'decks', switching:false, railCollapsed:false,
   editors:{decks:null, expansion:null}, scroll:{home:0,decks:0,expansion:0,duel:0,tags:0}};
-const editorKeys = ['deck','deckTags','deckTagNames','id','revision','sourceName','dirty','undo','savedState','selected','offset','deckPage','libraryTab','targetZone'];
+const editorKeys = ['deck','representatives','deckTags','deckTagNames','id','revision','sourceName','dirty','undo','savedState','selected','offset','deckPage','libraryTab','targetZone'];
 const emptyDetail = $('#card-detail').innerHTML;
 function captureEditor() {
   return {state:structuredClone(Object.fromEntries(editorKeys.map(key=>[key,app[key]]))),
@@ -15,9 +15,9 @@ function captureEditor() {
 }
 function emptyEditor(owner) {
   return {state:{deck:{main:[],extra:[],side:[]},id:null,revision:null,dirty:false,undo:[],selected:null,offset:0,
-    deckTags:{tag_ids:[],primary_ids:[]},deckTagNames:{},
+    deckTags:{tag_ids:[],primary_ids:[]},deckTagNames:{},representatives:[null,null,null],
     deckPage:'manager',libraryTab:'all',targetZone:'main',
-    savedState:JSON.stringify({name:'新构筑',deck:{main:[],extra:[],side:[]},tags:{tag_ids:[],primary_ids:[]}})},
+    savedState:JSON.stringify({name:'新构筑',deck:{main:[],extra:[],side:[]},tags:{tag_ids:[],primary_ids:[]},representatives:[null,null,null]})},
     name:'新构筑',query:'',filter:'',libraryOpen:false,detail:emptyDetail,scroll:0};
 }
 function editorUnsavedSummary() {

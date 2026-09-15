@@ -66,7 +66,7 @@ class StoreTests(unittest.TestCase):
         self.assertEqual(saved['name'], '新名称')
         self.assertEqual(saved['deck'], edited)
         self.assertEqual(reopened.list_decks(), [{'id':first['id'], 'name':'新名称', 'source':'library',
-            'tag_selection': {'tag_ids': [], 'primary_ids': []}, 'tag_names': {}, 'tag_error': ''}])
+            'tag_selection': {'tag_ids': [], 'primary_ids': []}, 'tag_names': {}, 'tag_error': '', 'representatives': [None]*3}])
         self.assertEqual(next((self.store.root/'backups').glob('*.ydk')).read_bytes(), original)
         self.assertEqual(self.store.parse_deck(self.store.ydk(edited, '新名称')), edited)
         with self.assertRaises(ValueError): self.store.save_deck({**first, 'name':'其他名称'})
@@ -77,6 +77,45 @@ class StoreTests(unittest.TestCase):
         self.assertNotEqual(replacement['id'], first['id'])
         self.assertEqual(replacement['name'], '原名称')
         self.assertEqual(self.store.get_deck(first['id']), saved)
+
+    def test_representatives_persist_without_changing_deck_and_survive_rename(self):
+        saved = self.store.save_deck({'name': '代表卡', 'deck': self.deck,
+                                     'representatives': [55144522, 1184620, 23995346]})
+        self.assertEqual(saved['deck'], self.deck)
+        self.assertEqual(saved['representatives'], [55144522, 1184620, 23995346])
+        reopened = Store(self.root)
+        self.assertEqual(reopened.list_decks()[0]['representatives'], saved['representatives'])
+        renamed = reopened.rename_deck({**saved, 'name': '新代表卡'})
+        self.assertEqual(renamed['representatives'], saved['representatives'])
+        edited = {**self.deck, 'extra': []}
+        resaved = reopened.save_deck({'id': renamed['id'], 'revision': renamed['revision'],
+                                     'name': renamed['name'], 'deck': edited})
+        self.assertEqual(resaved['representatives'], [55144522, 1184620, None])
+        before = reopened.get_deck(resaved['id'])
+        for invalid in [[55144522], [True, None, None], [23995346, None, None]]:
+            with self.assertRaises(ValueError): reopened.save_deck({**resaved, 'representatives': invalid})
+            self.assertEqual(reopened.get_deck(resaved['id']), before)
+        with patch('app.atomic_bytes', side_effect=OSError('disk full')):
+            with self.assertRaises(OSError): reopened.save_deck({**resaved, 'representatives': [None]*3})
+        self.assertEqual(reopened.get_deck(resaved['id']), before)
+
+    def test_legacy_deck_has_empty_representatives_and_settings_are_persistent(self):
+        data = self.store.ydk(self.deck, '旧卡组')
+        self.assertEqual(self.store.deck_representatives(data, self.deck), [None]*3)
+        self.assertEqual(self.store.duel_settings(), {'hand_count': 5})
+        self.store.duel_settings({'hand_count': 4})
+        self.assertEqual(Store(self.root).duel_settings(), {'hand_count': 4})
+        for invalid in [0, 61, 1.5, True, None]:
+            with self.assertRaises(ValueError): self.store.duel_settings({'hand_count': invalid})
+        self.assertEqual(self.store.duel_settings(), {'hand_count': 4})
+
+    def test_malformed_deck_does_not_block_other_library_tiles(self):
+        self.store.save_deck({'name': '有效卡组', 'deck': self.deck})
+        (self.store.decks / '损坏卡组.ydk').write_text('#representatives: [55144522, null, null]\n#main\nnot-a-card\n', encoding='utf-8')
+        listed = self.store.list_decks()
+        self.assertEqual(len(listed), 2)
+        self.assertEqual(next(d for d in listed if d['name'] == '损坏卡组')['representatives'], [None]*3)
+        with self.assertRaises(ValueError): self.store.get_deck('library/损坏卡组.ydk')
 
     def test_favorites_persist_and_failed_writes_keep_original(self):
         self.assertEqual(self.store.favorites(), {'cards':[]})

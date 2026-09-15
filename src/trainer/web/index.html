@@ -22,7 +22,7 @@
 <body data-module="home">
 <div class="app-bar">
   <div class="brand"><img src="/app-icon.svg" alt=""><span>Lonely-Shadow-Yu-Gi-Oh-Toolbox</span></div>
-  <div class="local"><span class="status-dot"></span>本地卡组库 <small id="resource-count"></small></div>
+  <div class="local"><span class="status-dot"></span>本地卡组库 <small id="resource-count"></small><button id="app-settings" aria-label="全局设置" title="全局设置">⚙</button></div>
 </div>
 <aside id="primary-navigation" class="primary-rail" aria-label="主要导航">
   <img class="rail-mark" src="/app-icon.svg" alt="月影卡牌图标">
@@ -36,7 +36,6 @@
 </aside>
 <button id="navigation-toggle" class="navigation-toggle" aria-label="收起导航" title="收起导航" aria-controls="primary-navigation" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button>
 <div id="expansion-navigation" hidden>
-  <span class="module-caption">展开</span>
   <nav aria-label="展开流程导航">
     <button id="nav-decks" class="nav active" aria-current="page">选择卡组</button>
     <button id="nav-design" class="nav" disabled>展开前置设计</button>
@@ -81,7 +80,7 @@
     </div>
     <div class="workspace">
       <section class="panel detail" aria-label="操作工具与卡片详情">
-        <div class="editor-tools"><button id="sort-deck" title="三个分区分别按类型、等级和卡号排序">排序</button><button id="save-deck" class="save-button">保存构筑</button><button id="undo-deck" disabled title="撤销最近一次加卡、移除或排序（Ctrl+Z）">撤销</button><button id="deck-tags-button" aria-haspopup="dialog">TAG 设置</button><small>排序作用于全部三个分区</small></div>
+        <div class="editor-tools"><button id="sort-deck" title="三个分区分别按类型、等级和卡号排序">排序</button><button id="save-deck" class="save-button">保存构筑</button><button id="undo-deck" disabled title="撤销最近一次加卡、移除或排序（Ctrl+Z）">撤销</button><button id="deck-tags-button" aria-haspopup="dialog">TAG 设置</button><button id="deck-representatives-button" aria-haspopup="dialog">代表卡设置</button><small>排序作用于全部三个分区</small></div>
         <div class="panel-title"><h2>卡片详情</h2><span>DETAIL</span></div>
         <div id="card-detail" class="detail-content">
           <div class="detail-placeholder"><img src="/card-back.svg" alt=""><strong>选择一张卡牌</strong><p>点击卡组或搜索结果中的卡片<br>在这里查看卡图与效果</p></div>
@@ -226,7 +225,6 @@
   </section>
 <section id="compromise-design" class="compromise-design" hidden aria-label="妥协场构建前置"></section>
 <section id="duel" class="duel-page" hidden aria-label="决斗">
-  <header class="duel-header"><div><div class="eyebrow">DUEL / BO1</div><h1>决斗</h1></div><button id="duel-new">新开一场</button></header>
   <nav id="duel-steps" class="duel-steps" aria-label="决斗流程"></nav>
   <nav id="duel-substeps" class="duel-substeps" aria-label="卡组展开流程" hidden></nav>
   <p id="duel-message" role="status" aria-live="polite"></p>
@@ -235,7 +233,7 @@
 </section>
 </main>
 <section id="duel-preview" class="duel-preview" role="dialog" aria-label="方案或步骤预览" hidden><button id="duel-preview-close" aria-label="关闭预览">×</button><div id="duel-preview-content"></div></section>
-<dialog id="duel-shortcut-dialog" class="duel-shortcut-dialog" aria-labelledby="duel-shortcut-title"><h2 id="duel-shortcut-title">教程快捷键</h2><p>软件内默认使用 ← 后退、→ 前进、↑ / ↓ 选路线。后台默认使用 Control + Shift + 方向键，需在教程中启用。</p><p>点输入框后按下新快捷键，例如同时按 Control + Shift + →。清空表示不绑定。裸方向键可能被系统或其他软件占用。</p><form id="duel-shortcut-form"><div id="duel-shortcut-fields"></div><p id="duel-shortcut-error" role="alert"></p><div class="duel-actions"><button id="duel-shortcut-cancel" type="button">取消</button><button id="duel-shortcut-save" class="primary" type="submit">保存快捷键</button></div></form></dialog>
+<dialog id="duel-shortcut-dialog" class="duel-shortcut-dialog" aria-labelledby="duel-shortcut-title"><h2 id="duel-shortcut-title">全局设置</h2><form id="duel-shortcut-form"><div class="duel-global-options"><label>卡组选择<select disabled><option>手动选择</option><option disabled>自动识别 · 待开发</option></select></label><label>先后攻选择<select disabled><option>手动选择</option><option disabled>自动选择 · 待开发</option></select></label><label for="duel-default-count">先攻起手张数<input id="duel-default-count" type="number" min="1" max="60" step="1" value="5"></label></div><h3>教程快捷键</h3><p>软件内外使用同一组按键，按住可连续移动。进入教程时启用，结束或离开决斗时释放。</p><div id="duel-shortcut-fields"></div><p id="duel-shortcut-error" role="alert"></p><div class="duel-actions"><button id="duel-shortcut-cancel" type="button">取消</button><button id="duel-shortcut-save" class="primary" type="submit">保存</button></div></form></dialog>
 <dialog id="branch-context-menu" class="branch-context-menu" role="dialog" aria-labelledby="branch-context-title"></dialog>
 <dialog id="deck-tags-dialog" class="deck-tags-dialog" aria-labelledby="deck-tags-title">
   <header><div><div class="eyebrow">DECK TAGS</div><h2 id="deck-tags-title">卡组 TAG 设置</h2><p id="deck-tags-name"></p></div><button id="deck-tags-cancel" type="button">取消</button></header>
@@ -249,7 +247,8 @@
   </div>
   <footer><p id="deck-tags-status" role="status">应用后点击「保存构筑」保存。</p><button id="deck-tags-apply" type="button" class="primary">应用到卡组</button></footer>
 </dialog>
-<section id="review-card-popover" class="review-card-popover" role="dialog" aria-label="卡牌详情" tabindex="-1" hidden><header><button id="review-detail-back" hidden>返回上一级</button><strong>卡牌详情</strong><small id="review-detail-mode"></small><button id="toggle-preview-card-mark" aria-pressed="false" hidden>添加标记</button><button id="copy-preview-card-name" hidden>复制卡名</button><button id="review-detail-pin">固定查看</button><button id="review-detail-close" aria-label="关闭卡牌详情">×</button></header><div id="review-card-detail" class="review-card-detail"></div></section>
+<dialog id="deck-appearance-dialog" aria-labelledby="deck-appearance-title"><header><h2 id="deck-appearance-title">卡组代表卡</h2><button id="representative-cancel">取消</button></header><div id="representative-slots"></div><button id="representative-clear">清空当前展示位</button><div id="representative-cards"></div><footer><button id="representative-apply" class="primary">应用</button></footer></dialog>
+<section id="review-card-popover" class="review-card-popover" role="dialog" aria-label="卡牌详情" tabindex="-1" hidden><header><button id="review-detail-back" hidden>返回上一级</button><strong>卡牌详情</strong><small id="review-detail-mode"></small><button id="toggle-duel-card-mark" aria-pressed="false" hidden>添加标记</button><button id="toggle-preview-card-mark" aria-pressed="false" hidden>添加标记</button><button id="copy-preview-card-name" hidden>复制卡名</button><button id="review-detail-pin">固定查看</button><button id="review-detail-close" aria-label="关闭卡牌详情">×</button></header><div id="review-card-detail" class="review-card-detail"></div></section>
 <dialog id="plan-tutorial-dialog" class="plan-tutorial-dialog" aria-labelledby="plan-tutorial-title">
   <header><h2 id="plan-tutorial-title">一图流展开教程</h2><button id="plan-tutorial-zoom">原始大小</button><button data-tutorial-export="png" class="primary">导出 PNG</button><button data-tutorial-export="svg">导出 SVG</button><button id="plan-tutorial-close">关闭</button></header>
   <div id="plan-tutorial-scroll"><div id="plan-tutorial-canvas"></div></div>
@@ -258,6 +257,6 @@
 <script src="/deck-tag-view.js"></script><script src="/activation.js"></script><script src="/report-view.js"></script><script src="/deck-manager.js"></script><script src="/app.js"></script><script src="/expansion.js"></script><script src="/timeline.js"></script><script src="/review.js"></script><script src="/plan-tutorial.js"></script><script src="/plan-library.js"></script><script src="/tag-manager.js"></script><script src="/compromise.js"></script><script src="/compromise-tutorial.js"></script>
 <script src="/deck-selection.js"></script><script src="/modules.js"></script>
 <script src="/deck-tags.js"></script>
-<script src="/duel-model.js"></script><script src="/duel.js"></script>
+<script src="/deck-appearance.js"></script><script src="/duel-model.js"></script><script src="/duel.js"></script>
 </body>
 </html>

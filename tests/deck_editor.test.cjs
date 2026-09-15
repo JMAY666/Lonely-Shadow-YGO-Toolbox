@@ -518,3 +518,13 @@ test('queued box scroll events do not dismiss a newly opened pointer menu', () =
   e.node('#deck-manager').scrollTop=200;e.handleDeckManagerScroll();
   assert.equal(menu.hidden,false);
 });
+
+test('revealing a compact tile keeps its new hover preview while a later scroll closes it',()=>{
+  const e=setup(),preview=e.node('#deck-preview');let positions=0;
+  e.context.positionDeckPreview=()=>positions++;
+  e.deckManager.anchor={};preview.hidden=false;
+  e.deckManager.previewScroll=e.node('#deck-manager').scrollTop=500;
+  e.handleDeckManagerScroll();assert.equal(preview.hidden,false);assert.equal(positions,1);
+  e.node('#deck-manager').scrollTop=520;e.handleDeckManagerScroll();
+  assert.equal(preview.hidden,true);assert.equal(e.deckManager.anchor,null);
+});
