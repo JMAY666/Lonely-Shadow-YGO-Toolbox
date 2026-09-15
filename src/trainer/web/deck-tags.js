@@ -7,6 +7,7 @@ function refreshDeckTagName(tag) {
   const states = [app, ...(typeof moduleUI === 'undefined' ? [] : Object.values(moduleUI.editors).map(buffer => buffer?.state))];
   for (const state of states) if (state?.deckTags?.tag_ids.includes(tag.id)) state.deckTagNames[tag.id] = tag.name;
   updateDeckTagSummary();
+  void deckList().catch(error => notice(error.message));
 }
 function updateDeckTagSummary() {
   const selected = app.deckTags, count = selected.tag_ids.length;

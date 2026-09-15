@@ -182,10 +182,10 @@ module.exports=async function({application,page,nativeState,nativeWait,hostWait,
   await page.evaluate(async id=>{await showPlan(id);await showReport(id);},mainId);
   assert.equal(await page.locator('#review-branch [data-branch-route="main"]').getAttribute('aria-pressed'),'true');
   await page.evaluate(id=>showPlan(id),mainId);await page.locator('#generate-plan-tutorial').click();
-  assert.equal(await page.locator('[data-branch-connection]').count(),0);
+  assert.equal(await page.locator('#plan-tutorial-canvas [data-branch-connection]').count(),0);
   await page.locator('#tutorial-include-branches').check();
-  assert.equal(await page.locator('[data-branch-connection]').count(),2);
-  for(const line of await page.locator('[data-branch-connection]').all())assert.equal(await line.getAttribute('data-source-checkpoint'),String(point.checkpoint));
+  assert.equal(await page.locator('#plan-tutorial-canvas [data-branch-connection]').count(),2);
+  for(const line of await page.locator('#plan-tutorial-canvas [data-branch-connection]').all())assert.equal(await line.getAttribute('data-source-checkpoint'),String(point.checkpoint));
   const svg=await page.evaluate(async()=>{const {model,layout}=planTutorialUI;return renderPlanTutorialSvg(model,layout,await tutorialAssets(model));});
   assert.equal((svg.match(/>起手条件</g)||[]).length,1,'Only the mainline has opening conditions');
   assert(!svg.includes('href="/pics/'));fs.writeFileSync(path.join(evidence,'compromise-flow.svg'),svg);

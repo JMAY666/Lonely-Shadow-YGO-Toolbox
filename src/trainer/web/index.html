@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="/deck-selection.css">
   <link rel="stylesheet" href="/deck-tags.css">
   <link rel="stylesheet" href="/scrollbars.css">
+  <link rel="stylesheet" href="/duel.css">
 </head>
 <body data-module="home">
 <div class="app-bar">
@@ -29,6 +30,7 @@
     <button id="module-home" data-module-target="home" class="module-link active" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7M5 9v12h5v-7h4v7h5V9"/></svg><span>首页</span></button>
     <button id="module-decks" data-module-target="decks" class="module-link"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="3" width="12" height="17" rx="2"/><path d="M5 6H3v15h12v-1m-3-13h4m-4 4h4"/></svg><span>卡组编辑</span></button>
     <button id="module-expansion" data-module-target="expansion" class="module-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4v8h13M5 12v8m13-15v7m0-7-3 3m3-3 3 3"/><circle cx="5" cy="4" r="2"/><circle cx="5" cy="20" r="2"/><circle cx="18" cy="19" r="2"/><path d="M18 12v5"/></svg><span>展开</span><small id="module-expansion-status" hidden>进行中</small></button>
+    <button id="module-duel" data-module-target="duel" class="module-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 3 17 17m-1-17L3 20M3 3l1 5 4-4M21 3l-1 5-4-4M2 16l6 6m8 0 6-6"/></svg><span>决斗</span></button>
     <button id="module-tags" data-module-target="tags" class="module-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h8l10 10-8 8L3 11Z"/><circle cx="8" cy="8" r="1.5"/></svg><span>TAG 管理</span></button>
   </nav>
 </aside>
@@ -60,7 +62,7 @@
       <div id="selection-list" class="selection-list"></div>
     </div>
     <div id="selection-preview-page" hidden>
-      <header class="selection-heading selection-preview-heading"><button id="selection-back" aria-label="返回选择卡组">← 返回选择</button><div class="selection-identity"><div class="eyebrow">DECK PREVIEW</div><h1 id="selection-name">卡组预览</h1><p id="selection-summary"></p></div><button id="selection-next" class="primary" disabled>确认卡组，下一步 →</button></header>
+      <header class="selection-heading selection-preview-heading"><button id="selection-back" aria-label="返回选择卡组">← 返回选择</button><div class="selection-identity"><div class="eyebrow">DECK PREVIEW</div><h1 id="selection-name">卡组预览</h1><p id="selection-summary"></p><div id="selection-tags"></div></div><button id="selection-next" class="primary" disabled>确认卡组，下一步 →</button></header>
       <p id="selection-message" role="status" hidden></p>
       <div class="selection-tools"><p>悬停查看详情 · 点击固定 · 在浮层中添加起手候选标记</p><span id="selection-picked-count">已标记 0 张</span><button id="copy-selection-names" disabled title="同名合并，以 + 分隔">复制标记卡名</button><button id="clear-selection-picks" disabled>清空标记</button></div>
       <div id="selection-cards" aria-label="卡组卡牌预览"></div>
@@ -150,7 +152,7 @@
     <dialog id="rename-deck-dialog" class="delete-dialog" aria-labelledby="rename-deck-title"><form><h2 id="rename-deck-title">卡组改名</h2><label for="rename-deck-name">卡组名称</label><input id="rename-deck-name" maxlength="80" required><p id="rename-deck-error" role="alert"></p><div class="delete-actions"><button id="rename-deck-cancel" type="button">取消</button><button id="rename-deck-save" type="submit" class="save-button">保存名称</button></div></form></dialog>
   </section>
   <section id="design" class="design-page" hidden aria-label="展开前置设计">
-    <header><div><div class="eyebrow">01 / PREPARATION</div><h1>展开前置设计</h1><p id="design-deck"></p></div><button id="design-back">编辑玩家卡组</button></header>
+    <header><div><div class="eyebrow">01 / PREPARATION</div><h1>展开前置设计</h1><p id="design-deck"></p><div id="design-deck-tags"></div></div><button id="design-back">编辑玩家卡组</button></header>
     <div class="design-content panel">
       <label for="plan-name">方案名称 <small>必填 · 先命名，再设置起手</small></label>
       <input id="plan-name" maxlength="80" placeholder="例如：同一起手的稳定展开">
@@ -223,7 +225,17 @@
       </form></article></div>
   </section>
 <section id="compromise-design" class="compromise-design" hidden aria-label="妥协场构建前置"></section>
+<section id="duel" class="duel-page" hidden aria-label="决斗">
+  <header class="duel-header"><div><div class="eyebrow">DUEL / BO1</div><h1>决斗</h1></div><button id="duel-new">新开一场</button></header>
+  <nav id="duel-steps" class="duel-steps" aria-label="决斗流程"></nav>
+  <nav id="duel-substeps" class="duel-substeps" aria-label="卡组展开流程" hidden></nav>
+  <p id="duel-message" role="status" aria-live="polite"></p>
+  <div id="duel-body"></div>
+  <footer id="duel-footer" class="duel-footer"></footer>
+</section>
 </main>
+<section id="duel-preview" class="duel-preview" role="dialog" aria-label="方案或步骤预览" hidden><button id="duel-preview-close" aria-label="关闭预览">×</button><div id="duel-preview-content"></div></section>
+<dialog id="duel-shortcut-dialog" class="duel-shortcut-dialog" aria-labelledby="duel-shortcut-title"><h2 id="duel-shortcut-title">教程快捷键</h2><p>软件内默认使用 ← 后退、→ 前进、↑ / ↓ 选路线。后台默认使用 Control + Shift + 方向键，需在教程中启用。</p><p>点输入框后按下新快捷键，例如同时按 Control + Shift + →。清空表示不绑定。裸方向键可能被系统或其他软件占用。</p><form id="duel-shortcut-form"><div id="duel-shortcut-fields"></div><p id="duel-shortcut-error" role="alert"></p><div class="duel-actions"><button id="duel-shortcut-cancel" type="button">取消</button><button id="duel-shortcut-save" class="primary" type="submit">保存快捷键</button></div></form></dialog>
 <dialog id="branch-context-menu" class="branch-context-menu" role="dialog" aria-labelledby="branch-context-title"></dialog>
 <dialog id="deck-tags-dialog" class="deck-tags-dialog" aria-labelledby="deck-tags-title">
   <header><div><div class="eyebrow">DECK TAGS</div><h2 id="deck-tags-title">卡组 TAG 设置</h2><p id="deck-tags-name"></p></div><button id="deck-tags-cancel" type="button">取消</button></header>
@@ -243,8 +255,9 @@
   <div id="plan-tutorial-scroll"><div id="plan-tutorial-canvas"></div></div>
   <p id="plan-tutorial-status" role="status"></p>
 </dialog>
-<script src="/activation.js"></script><script src="/report-view.js"></script><script src="/deck-manager.js"></script><script src="/app.js"></script><script src="/expansion.js"></script><script src="/timeline.js"></script><script src="/review.js"></script><script src="/plan-tutorial.js"></script><script src="/plan-library.js"></script><script src="/tag-manager.js"></script><script src="/compromise.js"></script><script src="/compromise-tutorial.js"></script>
+<script src="/deck-tag-view.js"></script><script src="/activation.js"></script><script src="/report-view.js"></script><script src="/deck-manager.js"></script><script src="/app.js"></script><script src="/expansion.js"></script><script src="/timeline.js"></script><script src="/review.js"></script><script src="/plan-tutorial.js"></script><script src="/plan-library.js"></script><script src="/tag-manager.js"></script><script src="/compromise.js"></script><script src="/compromise-tutorial.js"></script>
 <script src="/deck-selection.js"></script><script src="/modules.js"></script>
 <script src="/deck-tags.js"></script>
+<script src="/duel-model.js"></script><script src="/duel.js"></script>
 </body>
 </html>

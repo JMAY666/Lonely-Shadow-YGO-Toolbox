@@ -5,7 +5,7 @@ const deckSelection = {selected:null, loading:false, busy:false, generation:0, p
 
 function renderDeckSelectionList(decks) {
   $('#selection-count').textContent = `${decks.length} 副`;
-  $('#selection-list').innerHTML = decks.map(d => `<button class="selection-deck" data-select-deck="${escape(d.id)}" title="${escape(d.name)}" aria-label="预览卡组：${escape(d.name)}"><span class="selection-deck-icon" aria-hidden="true">◇</span><span><strong>${escape(d.name)}</strong><small>${d.source === 'library' ? '我的卡组' : '已有卡组'}</small></span><span class="selection-deck-arrow" aria-hidden="true">→</span></button>`).join('') || '<div class="selection-empty"><h2>暂无可用卡组</h2><p>请先在左侧“卡组编辑”中保存卡组，再回来选择。</p></div>';
+  $('#selection-list').innerHTML = decks.map(d => `<button class="selection-deck" data-select-deck="${escape(d.id)}" title="${escape(d.name)}" aria-label="预览卡组：${escape(d.name)}"><span class="selection-deck-icon" aria-hidden="true">◇</span><span><strong>${escape(d.name)}</strong><small>${d.source === 'library' ? '我的卡组' : '已有卡组'}</small>${deckTagHtml(d)}</span><span class="selection-deck-arrow" aria-hidden="true">→</span></button>`).join('') || '<div class="selection-empty"><h2>暂无可用卡组</h2><p>请先在左侧“卡组编辑”中保存卡组，再回来选择。</p></div>';
 }
 function updateDeckSelectionControls() {
   const blocked = deckSelection.busy || app.busy;
@@ -104,6 +104,7 @@ function renderExpansionDeckPreview() {
   closeReviewDetail();
   $('#selection-name').textContent = saved.name;
   $('#selection-summary').textContent = zones.map(zone => `${zoneNames[zone]} ${saved.deck[zone].length} 张`).join(' · ');
+  $('#selection-tags').innerHTML = deckTagHtml(saved);
   const report = {id:`selection:${saved.id}`,catalog:Object.fromEntries(app.cache),events:[],review:{nodes:[{id:'catalog',kind:'catalog',action_ids:[]}]}};
   $('#selection-cards').innerHTML = zones.map(zone => `<section class="selection-zone" aria-label="${zoneNames[zone]}"><h2>${zoneNames[zone]} <small>${saved.deck[zone].length} 张</small></h2><div class="selection-card-grid">${saved.deck[zone].map((code, index) => {
     const name = app.cache.get(code)?.name || String(code), key = `${zone}:${index}`;
@@ -305,5 +306,7 @@ window.addEventListener('blur',clearOpeningDrag);
 $('#selection-back').onclick = backToDeckSelection;
 $('#selection-next').onclick = run(confirmExpansionDeck);
 $('#refresh-selection').onclick = run(deckList);
+$('#selection-list').addEventListener('pointerover', run(async e => {const tile=e.target.closest('[data-select-deck]');if(tile)await showDeckPreview(tile);}));
+$('#selection-list').addEventListener('pointerout', e => {if(!deckManager.anchor?.contains(e.relatedTarget)&&!$('#deck-preview').contains(e.relatedTarget))delayCloseDeckPreview();});
 // File drops in this step do not open the editor's import workflow or navigate away.
 for (const event of ['dragover', 'drop']) $('#deck-selection').addEventListener(event, e => e.preventDefault());

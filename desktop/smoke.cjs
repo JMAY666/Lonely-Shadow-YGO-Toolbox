@@ -11,7 +11,8 @@ const packaged = process.argv.includes('--packaged');
 const label = packaged ? 'packaged' : 'development';
 const onlyCompromise=process.argv.includes('--compromise-only');
 const onlySelection=process.argv.includes('--selection-only');
-const profileSuffix=onlyCompromise?'-compromise':onlySelection?'-selection':'';
+const onlyDuel=process.argv.includes('--duel-only');
+const profileSuffix=onlyCompromise?'-compromise':onlySelection?'-selection':onlyDuel?'-duel':'';
 const root = path.join(workspace, '.local', `desktop-check-${label}${profileSuffix}`);
 const evidence = path.join(workspace, '.local', 'evidence', `electron-${label}${profileSuffix}`);
 fs.mkdirSync(evidence, { recursive: true });
@@ -61,8 +62,8 @@ async function launch(first = false, testControl = true) {
   assert.equal(identity.name,brand.name); assert.equal(identity.title,brand.name);
   assert.equal(identity.data,path.join(root,'electron'));
   if(testControl)assert.deepEqual(await application.evaluate(()=>globalThis.brandingAcceptance),{windowIconExists:true,loadingImage:true,loadingTitlebar:process.platform==='win32'});
-  if(first)await require('./titlebar-smoke.cjs')({application,page,pass,evidence});
-  assert.deepEqual(await page.locator('.primary-rail nav button>span').allTextContents(),['首页','卡组编辑','展开','TAG 管理']);
+  if(first&&!onlyDuel)await require('./titlebar-smoke.cjs')({application,page,pass,evidence});
+  assert.deepEqual(await page.locator('.primary-rail nav button>span').allTextContents(),['首页','卡组编辑','展开','决斗','TAG 管理']);
   assert.equal(await page.locator('#expansion-navigation #nav-tags, #manage-tags').count(),0);
   const tagPosition=await page.locator('#module-tags').boundingBox();
   assert(tagPosition.y>700,'TAG management stays at the bottom of the 900px primary column');
@@ -183,6 +184,11 @@ async function activatePot(sid) {
 
 (async () => {
   await launch(true);
+  if(onlyDuel) {
+    await require('./duel-smoke.cjs')({page,application,root,evidence,pass});
+    await close();assert.deepEqual(errors,[]);
+    fs.writeFileSync(path.join(evidence,'duel-result.json'),JSON.stringify({checks,errors},null,2));return;
+  }
   if(process.argv.includes('--scrollbars-only')) {
     await require('./scrollbars-smoke.cjs')({page,application,evidence,pass});
     await close();assert.deepEqual(errors,[]);
@@ -264,6 +270,8 @@ async function activatePot(sid) {
   const {deck,deckId} = await require('./deck-management-smoke.cjs')({page,application,evidence,label,pass});
   await require('./deck-tags-smoke.cjs')({page,application,deckId,deck,evidence,pass});
   await require('./modules-smoke.cjs')({page,application,deckId,deck,pass,evidence});
+  await require('./duel-smoke.cjs')({page,application,root,evidence,pass});
+  await page.evaluate(()=>switchModule('expansion'));
   if (process.argv.includes('--decks-only')) {
     const savedTags = (await page.evaluate(id=>api('/api/deck?id='+encodeURIComponent(id)),deckId)).tag_selection;
     await close(); await launch(false,false);

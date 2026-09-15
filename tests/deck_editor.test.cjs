@@ -8,6 +8,7 @@ const test = require('node:test');
 // Real rendering and pointer interactions are checked separately in the local UI.
 const source = readFileSync(path.join(__dirname, '../src/trainer/web/app.js'), 'utf8');
 const managerSource = readFileSync(path.join(__dirname, '../src/trainer/web/deck-manager.js'), 'utf8');
+const tagViewSource = readFileSync(path.join(__dirname, '../src/trainer/web/deck-tag-view.js'), 'utf8');
 const editorSource = source.slice(0, source.indexOf("document.addEventListener('click'"));
 const cards = [
   {id:101, name:'测试怪兽甲', type:0x21, level:4, atk:1000, def:500, extra:false},
@@ -36,7 +37,7 @@ function setup() {
     window:{innerWidth:1280}, structuredClone, TextEncoder, setTimeout:() => 1, clearTimeout() {}, confirm:() => true,
     fetch:async () => { throw new Error('Unexpected network request'); },
   });
-  vm.runInContext(editorSource + managerSource + '\nglobalThis.editor = {app, card, addCard, removeCard, undoDeck, sortDeck, renderDeck, showCard, search, saveDeck, openDeck, newDeck, deleteDeck, confirmDeckDeletion, setLibraryOpen, deckState, dirty, importState, invalidateImport, previewImport, previewYdk, loadYdkFile, applyImportedDeck, validateNewDeckName, allowDeckReplacement, returnToDeckManager, createDeckFromDialog, toggleFavorite, favoriteUI, renderDeckBoxes, deckManager, confirmLeaveDeck, handleDeckManagerScroll};', context);
+  vm.runInContext(tagViewSource + editorSource + managerSource + '\nglobalThis.editor = {app, card, addCard, removeCard, undoDeck, sortDeck, renderDeck, showCard, search, saveDeck, openDeck, newDeck, deleteDeck, confirmDeckDeletion, setLibraryOpen, deckState, dirty, importState, invalidateImport, previewImport, previewYdk, loadYdkFile, applyImportedDeck, validateNewDeckName, allowDeckReplacement, returnToDeckManager, createDeckFromDialog, toggleFavorite, favoriteUI, renderDeckBoxes, deckManager, confirmLeaveDeck, handleDeckManagerScroll};', context);
   const editor = context.editor;
   context.confirmDeckDeletion = async () => true;
   context.confirmLeaveDeck = async () => 'discard';

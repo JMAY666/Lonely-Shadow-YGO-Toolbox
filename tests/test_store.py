@@ -65,7 +65,8 @@ class StoreTests(unittest.TestCase):
         self.assertEqual(reopened.get_deck(first['id']), saved)
         self.assertEqual(saved['name'], '新名称')
         self.assertEqual(saved['deck'], edited)
-        self.assertEqual(reopened.list_decks(), [{'id':first['id'], 'name':'新名称', 'source':'library'}])
+        self.assertEqual(reopened.list_decks(), [{'id':first['id'], 'name':'新名称', 'source':'library',
+            'tag_selection': {'tag_ids': [], 'primary_ids': []}, 'tag_names': {}, 'tag_error': ''}])
         self.assertEqual(next((self.store.root/'backups').glob('*.ydk')).read_bytes(), original)
         self.assertEqual(self.store.parse_deck(self.store.ydk(edited, '新名称')), edited)
         with self.assertRaises(ValueError): self.store.save_deck({**first, 'name':'其他名称'})

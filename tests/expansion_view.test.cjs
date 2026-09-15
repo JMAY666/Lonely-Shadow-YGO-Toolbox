@@ -4,6 +4,7 @@ const path=require('node:path');
 const vm=require('node:vm');
 const test=require('node:test');
 const source=readFileSync(path.join(__dirname,'../src/trainer/web/expansion.js'),'utf8');
+const tagViewSource=readFileSync(path.join(__dirname,'../src/trainer/web/deck-tag-view.js'),'utf8');
 function setup(){
   const elements=new Map();
   const node=s=>{if(!elements.has(s))elements.set(s,{textContent:'',innerHTML:'',value:'',hidden:false,disabled:false,close(){this.closed=true;},classList:{toggle(){}},focus(){}});return elements.get(s);};
@@ -12,7 +13,7 @@ function setup(){
     performance:{now:()=>clock},setInterval:fn=>{timers.set(++next,fn);return next;},clearInterval:id=>timers.delete(id),
     escape:s=>String(s??'').replaceAll('<','&lt;'),run:fn=>fn,window:{},document:{},
     api:async()=>{throw Error('unexpected request');}});
-  vm.runInContext(source.slice(0,source.indexOf("$('#start-training').onclick"))+'\nglobalThis.e={flow,conditionError,chooseOpening,renderChoices,renderDesign,prepareDraft,savePlan,unsavedSummary,allowReportChange,resizeSlots,handError,resetTimer,startTimer,stopTimer,timerValue,renderTimer,deleteDraft,finishDesignDeckEdit};',context);
+  vm.runInContext(tagViewSource+source.slice(0,source.indexOf("$('#start-training').onclick"))+'\nglobalThis.e={flow,conditionError,chooseOpening,renderChoices,renderDesign,prepareDraft,savePlan,unsavedSummary,allowReportChange,resizeSlots,handError,resetTimer,startTimer,stopTimer,timerValue,renderTimer,deleteDraft,finishDesignDeckEdit};',context);
   const d={name:'方案',deck:{main:[1,1,...Array(38).fill(2)],extra:[3],side:[4]},catalog:{1:{id:1,name:'甲'},2:{id:2,name:'乙'}},conditions:{slots:[null,null,null,null,null],banned:[]}};
   context.e.flow.design=d;
   return {...context.e,context,node,d,tick(ms){clock+=ms;for(const fn of [...timers.values()])fn();},timers};

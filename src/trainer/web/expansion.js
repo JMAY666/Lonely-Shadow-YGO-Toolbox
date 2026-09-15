@@ -123,6 +123,7 @@ function renderDesign() {
   const d = flow.design; if (!d) return;
   $('#design-conditions').disabled = !d.name.trim() || flow.busy;
   $('#design-deck').textContent = `${d.deck_name || d.name} · 主卡组 ${d.deck.main.length} 张 · 额外 ${d.deck.extra.length} 张`;
+  $('#design-deck-tags').innerHTML = deckTagHtml(typeof deckManager==='undefined' ? d : deckManager.decks.find(saved=>saved.id===d.id)||d);
   $('#opening-slots').innerHTML = slotsHtml(d);
   $('#hand-count').value = handCount(d) ?? '';
   $('#hand-count').max = Math.min(60,d.deck.main.length);

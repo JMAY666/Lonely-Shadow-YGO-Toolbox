@@ -23,7 +23,7 @@ function renderDeckBoxes(decks) {
   $('#deck-boxes').innerHTML = '<button class="deck-box new-deck-box" data-create-deck="true"><span class="deck-plus" aria-hidden="true">＋</span><strong>新建卡组</strong><small>空白卡组 / 导入 YDK</small></button>' + decks.map(d => `
     <article class="deck-box-item"><button class="deck-box" data-open-deck="${escape(d.id)}" aria-label="编辑卡组：${escape(d.name)}">
       <span class="deck-case" aria-hidden="true"><span>DECK</span><i>◇</i></span>
-      <strong>${escape(d.name)}</strong><small>${d.source === 'library' ? '我的卡组' : '已有副本 · 保存为练习卡组'}</small>
+      <strong>${escape(d.name)}</strong><small>${d.source === 'library' ? '我的卡组' : '已有副本 · 保存为练习卡组'}</small>${deckTagHtml(d)}
     </button><button class="deck-box-menu" data-deck-menu="${escape(d.id)}" aria-label="卡组操作：${escape(d.name)}" title="卡组操作" aria-haspopup="menu">···</button></article>`).join('');
 }
 function closeDeckPreview() {
@@ -57,11 +57,11 @@ async function showDeckPreview(anchor) {
   positionDeckPreview();
   try {
     // Read the saved deck each time, never the unsaved editor buffer.
-    const saved = await api(`/api/deck?id=${encodeURIComponent(anchor.dataset.openDeck)}`);
+    const saved = await api(`/api/deck?id=${encodeURIComponent(anchor.dataset.openDeck || anchor.dataset.selectDeck || anchor.dataset.duelDeck)}`);
     const codes = [...new Set(zones.flatMap(zone => saved.deck[zone]))];
     await Promise.all(codes.map(code => card(code).catch(() => {})));
     if (generation !== deckManager.previewGeneration) return;
-    preview.innerHTML = `<header><strong>${escape(saved.name)}</strong><small>已保存的卡组</small></header>` + zones.map(zone => {
+    preview.innerHTML = `<header><strong>${escape(saved.name)}</strong><small>已保存的卡组</small></header>${deckTagHtml(saved)}` + zones.map(zone => {
       const counts = new Map();
       saved.deck[zone].forEach(code => counts.set(code, (counts.get(code) || 0) + 1));
       return `<section><h3>${zoneNames[zone]} <b>${saved.deck[zone].length} 张</b></h3><div class="deck-preview-cards">${[...counts].map(([code,count]) => `<figure title="${escape(app.cache.get(code)?.name || `未知卡牌 ${code}`)} ×${count}"><img src="/pics/${code}.jpg" alt="${escape(app.cache.get(code)?.name || `卡号 ${code}`)}"><figcaption>×${count}</figcaption></figure>`).join('') || '<small>暂无卡牌</small>'}</div></section>`;

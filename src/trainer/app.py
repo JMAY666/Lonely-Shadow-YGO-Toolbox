@@ -210,11 +210,20 @@ class Store:
 
     def list_decks(self):
         result = []
+        vocabulary = self.library.all_tags()
         for source, root in (('library', self.decks), ('existing', self.runtime / 'deck')):
             for p in sorted(root.rglob('*.ydk')):
                 if p.is_symlink(): continue
                 identifier = source + '/' + p.relative_to(root).as_posix()
-                result.append({'id': identifier, 'name': self.deck_name(p.read_bytes(), p.stem), 'source': source})
+                data = p.read_bytes()
+                try:
+                    selected = deck_tags.read_selection(data)
+                    tag_error = ''
+                except ValueError:
+                    selected, tag_error = deck_tags.empty_selection(), 'TAG 数据无法读取'
+                result.append({'id': identifier, 'name': self.deck_name(data, p.stem), 'source': source,
+                               'tag_selection': selected, 'tag_error': tag_error,
+                               'tag_names': {key: vocabulary[key]['name'] for key in selected['tag_ids'] if key in vocabulary}})
         return result
 
     def get_deck(self, identifier):
@@ -813,6 +822,9 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/decks/tag-options': return self.send(store.deck_tag_options(body))
                 if path == '/api/card-favorites': return self.send(store.set_favorite(body))
                 if path == '/api/decks/delete': return self.send(store.delete_deck(body))
+                if path == '/api/duel/match':
+                    from duel import match
+                    return self.send(match(store, body))
                 if path == '/api/decks/rename': return self.send(store.rename_deck(body))
                 if path == '/api/desktop/layout' and store.host: return self.send(store.host.layout(body, store))
                 if path == '/api/native/test' and store.host: return self.send(store.host.test_event(store, body))
@@ -891,6 +903,8 @@ class Handler(BaseHTTPRequestHandler):
                 files.update({'/deck-selection.js': 'deck-selection.js', '/deck-selection.css': 'deck-selection.css'})
                 files.update({'/deck-tags.js': 'deck-tags.js', '/deck-tags.css': 'deck-tags.css', '/theme.css': 'theme.css'})
                 files['/scrollbars.css'] = 'scrollbars.css'
+                for name in ('duel.js', 'duel-model.js', 'duel.css', 'deck-tag-view.js'):
+                    files['/' + name] = name
                 if path in files:
                     p = WEB / files[path]; return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0] + '; charset=utf-8')
                 if path in ('/activation.js', '/plan-library.js', '/plan-library.css', '/tag-manager.js', '/tag-manager.css', '/compromise.js', '/compromise.css', '/compromise-tutorial.js', '/opponent.html', '/opponent.js'):

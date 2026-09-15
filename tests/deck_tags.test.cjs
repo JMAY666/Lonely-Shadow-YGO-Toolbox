@@ -15,7 +15,7 @@ function setup() {
   const context = vm.createContext({$,structuredClone,setTimeout:()=>1,clearTimeout(){},escape:s=>s,
     tagSearchKey:s=>s.toLowerCase(),zones:['main','extra','side'],zoneNames:{main:'主',extra:'额外',side:'副'},
     app:{busy:false,deckEpoch:1,deck:{main:[1],extra:[],side:[]},deckTags:{tag_ids:['a'],primary_ids:['a']},deckTagNames:{a:'甲'}},
-    activeDesignDeckEdit:()=>false,card:async id=>({id,name:'测试卡'}),
+    activeDesignDeckEdit:()=>false,card:async id=>({id,name:'测试卡'}),deckList:async()=>{},
     api:async()=>({tags:[],suggestions:{tag_ids:[],primary_ids:[],candidates:[]}}),dirty(){context.app.dirty=true;},
     setDeckTags(value,names){context.app.deckTags=structuredClone(value);context.app.deckTagNames={...names};}});
   vm.runInContext(source.slice(0,source.indexOf("$('#deck-tags-button').onclick"))+'\nglobalThis.e={deckTagUI,setDeckTagRole,searchDeckTags,openDeckTags,closeDeckTags,applyDeckTags,refreshDeckTagName};',context);

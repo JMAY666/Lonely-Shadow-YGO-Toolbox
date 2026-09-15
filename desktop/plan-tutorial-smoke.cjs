@@ -7,20 +7,22 @@ module.exports=async function({page,application,plan,pass,evidence}) {
   const before=JSON.stringify(plan);
   await page.locator('#generate-plan-tutorial').click();
   assert(await page.locator('#plan-tutorial-dialog').isVisible());
-  const svg=page.locator('#plan-tutorial-canvas > svg');
+  // Other modules may retain hidden one-image previews; inspect this canvas only.
+  const canvas=page.locator('#plan-tutorial-canvas');
+  const svg=canvas.locator(':scope > svg');
   const shown=await svg.textContent();
   assert.match(shown,/起手条件/);assert.match(shown,/终场展示/);assert.match(shown,/展开流程/);
   assert(!shown.includes('展开使用资源'));
-  const count=await page.locator('.tutorial-step').count();assert(count>0);
-  assert.equal(await page.locator('.tutorial-connector').count(),count-1);
+  const count=await canvas.locator('.tutorial-step').count();assert(count>0);
+  assert.equal(await canvas.locator('.tutorial-connector').count(),count-1);
   const expected=await page.evaluate(()=>planTutorialUI.model.steps.flatMap(s=>s.actions).reduce((counts,a)=>({cards:counts.cards+a.stages.reduce((sum,s)=>sum+s.cards.length,0),arrows:counts.arrows+Math.max(0,a.stages.length-1)}),{cards:0,arrows:0}));
-  assert.equal(await page.locator('.tutorial-flow-card image').count(),expected.cards);
-  assert.equal(await page.locator('.tutorial-flow-arrow').count(),expected.arrows);
+  assert.equal(await canvas.locator('.tutorial-flow-card image').count(),expected.cards);
+  assert.equal(await canvas.locator('.tutorial-flow-arrow').count(),expected.arrows);
   assert(expected.cards>count,'Steps picture the individual operations rather than just a lead card');
   const expectedMaps=await page.evaluate(()=>planTutorialUI.model.steps.flatMap(s=>s.actions).flatMap(a=>a.stages).flatMap(s=>s.cards).filter(c=>c.fieldPosition).length+planTutorialUI.model.finalCards.filter(c=>c.fieldPosition).length);
   assert(expectedMaps>0,'Acceptance plan must exercise recorded field positions');
-  assert.equal(await page.locator('.tutorial-location-map').count(),expectedMaps);
-  const mapBounds=await page.locator('.tutorial-location-map').evaluateAll(maps=>maps.map(el=>{
+  assert.equal(await canvas.locator('.tutorial-location-map').count(),expectedMaps);
+  const mapBounds=await canvas.locator('.tutorial-location-map').evaluateAll(maps=>maps.map(el=>{
     const b=el.getBBox();return {x:b.x,y:b.y,width:b.width,height:b.height,side:Number(el.dataset.controller),active:el.querySelectorAll('[data-active-slot]').length};
   }));
   for(const map of mapBounds){assert(Math.abs(map.width-30)<0.001);assert(Math.abs(map.height-24)<0.001);assert.equal(map.active,1);}
@@ -31,7 +33,7 @@ module.exports=async function({page,application,plan,pass,evidence}) {
     model.steps=Array.from({length:25},(_,i)=>({...base,id:'layout:'+i,number:i+2,title:'自定义步骤名称'.repeat(11),actions:[...base.actions,many]}));
     model.opening=[];model.conditionsNote='测试条件备注';
     document.querySelector('#plan-tutorial-canvas').innerHTML=renderPlanTutorialSvg(model);
-    const bounds=[...document.querySelectorAll('.tutorial-step,.tutorial-stage')].every(step=>{
+    const bounds=[...document.querySelector('#plan-tutorial-canvas').querySelectorAll('.tutorial-step,.tutorial-stage')].every(step=>{
       const box=step.querySelector('rect').getBBox();
       return [...step.querySelectorAll('text,image,.tutorial-location-map')].every(el=>{const r=el.getBBox();return !(r.width||r.height)||(r.x>=box.x&&r.x+r.width<=box.x+box.width+1&&r.y>=box.y&&r.y+r.height<=box.y+box.height+1);});
     });
@@ -42,7 +44,7 @@ module.exports=async function({page,application,plan,pass,evidence}) {
     return {bounds,notesBelowEmpty:note.y>empty.y+empty.height+8};
   });
   assert.deepEqual(longTitleLayout,{bounds:true,notesBelowEmpty:true});
-  const overflow=await page.locator('.tutorial-step,.tutorial-stage').evaluateAll(steps=>steps.flatMap(step=>{
+  const overflow=await canvas.locator('.tutorial-step,.tutorial-stage').evaluateAll(steps=>steps.flatMap(step=>{
     const box=step.querySelector('rect').getBBox();
     return [...step.querySelectorAll('text,image,.tutorial-location-map')].filter(el=>{
       const r=el.getBBox();return (r.width>0||r.height>0)&&(r.x<box.x||r.x+r.width>box.x+box.width+1||r.y<box.y||r.y+r.height>box.y+box.height+1);
@@ -107,8 +109,8 @@ module.exports=async function({page,application,plan,pass,evidence}) {
   assert(!(await page.locator('[data-tutorial-export="svg"]').isDisabled()));
   await page.locator('#plan-tutorial-close').click();
   await page.locator('#generate-plan-tutorial').click();
-  const node=await page.locator('.tutorial-step').first().getAttribute('data-tutorial-node');
-  await page.locator('.tutorial-step').first().focus();await page.keyboard.press('Enter');
+  const node=await canvas.locator('.tutorial-step').first().getAttribute('data-tutorial-node');
+  await canvas.locator('.tutorial-step').first().focus();await page.keyboard.press('Enter');
   await page.waitForFunction(id=>app.view==='history'&&reviewUI.node===id,node);
   assert(await page.locator('#plan-tutorial-dialog').isHidden());
   await page.evaluate(id=>showPlan(id),plan.id);

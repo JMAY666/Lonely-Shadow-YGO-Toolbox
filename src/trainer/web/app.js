@@ -52,6 +52,7 @@ function displayView(view) {
   if(typeof closeReviewDetail==='function')closeReviewDetail();
   if (view !== 'decks') setLibraryOpen(false, false);
   $('#home').hidden = view !== 'home';
+  $('#duel').hidden = view !== 'duel';
   const selecting = view === 'decks' && typeof moduleUI !== 'undefined' && moduleUI.current === 'expansion' && !activeDesignDeckEdit();
   $('#editor').hidden = view !== 'decks' || selecting;
   $('#deck-selection').hidden = !selecting;
@@ -130,6 +131,17 @@ async function deckList() {
   if (typeof deckManager !== 'undefined' && generation !== deckManager.listGeneration) return;
   if (typeof renderDeckBoxes === 'function') renderDeckBoxes(decks);
   if (typeof renderDeckSelectionList === 'function') renderDeckSelectionList(decks);
+  if (typeof flow !== 'undefined' && flow.design) $('#design-deck-tags').innerHTML = deckTagHtml(decks.find(d=>d.id===flow.design.id)||flow.design);
+  if (typeof deckSelection !== 'undefined' && deckSelection.selected) {
+    const saved = decks.find(d => d.id === deckSelection.selected.id);
+    if (saved) {
+      // Refresh visible metadata without replacing the preview's frozen card
+      // composition/revision; confirmation still detects source edits.
+      deckSelection.selected.tag_selection = saved.tag_selection;
+      deckSelection.selected.tag_names = saved.tag_names;
+      $('#selection-tags').innerHTML = deckTagHtml(saved);
+    }
+  }
 }
 async function openDeck(id) {
   if (app.busy) return;

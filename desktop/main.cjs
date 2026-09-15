@@ -1,10 +1,11 @@
 'use strict';
-const { app, BrowserWindow, dialog, Menu, screen, ipcMain, clipboard } = require('electron');
+const { app, BrowserWindow, dialog, Menu, screen, ipcMain, clipboard, globalShortcut } = require('electron');
 const { spawn } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 const readline = require('node:readline');
 const branding = require('./branding.cjs');
+const tutorialShortcuts = require('./tutorial-shortcuts.cjs');
 app.setName(branding.name);
 const brandAssets = app.isPackaged ? path.join(process.resourcesPath, 'trainer', 'web', 'brand') : path.dirname(branding.icon);
 const applicationIcon = path.join(brandAssets, 'app.ico');
@@ -31,6 +32,12 @@ const webPreferences = { nodeIntegration: false, contextIsolation: true, sandbox
 let mainWindow, backend, ready, shuttingDown = false, finished = false, log;
 let closeRequested = false;
 let layoutQueue = Promise.resolve();
+let tutorialController;
+const tutorialSettingsFile = path.join(dataDir, 'tutorial-shortcuts.json');
+function readTutorialSettings() {
+  try {return {bindings:tutorialShortcuts.normalize(JSON.parse(fs.readFileSync(tutorialSettingsFile,'utf8')).bindings)};}
+  catch(error) {return {bindings:{...tutorialShortcuts.defaults},error:error.code==='ENOENT'?'':'快捷键设置无法读取，原文件已保留；当前使用默认组合键。'};}
+}
 
 function writeLog(message) {
   log?.write(`${new Date().toISOString()} ${message}\n`);
@@ -155,6 +162,7 @@ if (!app.requestSingleInstanceLock()) {
     else void stop();
   });
   app.on('window-all-closed', () => { void stop(); });
+  app.on('will-quit', () => tutorialController?.stop());
   app.whenReady().then(async () => {
     Menu.setApplicationMenu(null);
     fs.mkdirSync(path.join(dataDir, 'logs'), { recursive: true });
@@ -173,6 +181,28 @@ if (!app.requestSingleInstanceLock()) {
         titleBarOverlay: { color: '#152129', symbolColor: '#dce6ea', height: 60 } } : {}),
       show: process.env.YGO_DESKTOP_BACKGROUND !== '1',
       webPreferences: { ...webPreferences, preload: path.join(__dirname, 'preload.cjs'), backgroundThrottling: false } });
+    tutorialController = tutorialShortcuts.createController({registry:globalShortcut,
+      isFocused:()=>!!mainWindow?.isFocused(),send:value=>mainWindow?.webContents.send('trainer:tutorial-action',value)});
+    const shortcutSender = event => {
+      if (!ready || shuttingDown || event.sender !== mainWindow?.webContents || event.senderFrame !== mainWindow.webContents.mainFrame || new URL(event.senderFrame.url).origin !== ready.url) throw new Error('无效的教程快捷键请求');
+    };
+    ipcMain.handle('trainer:tutorial-settings', event => {shortcutSender(event);return readTutorialSettings();});
+    ipcMain.handle('trainer:tutorial-save-settings', (event, bindings) => {
+      shortcutSender(event);
+      const settings={bindings:tutorialShortcuts.normalize(bindings)};
+      const temporary=tutorialSettingsFile+'.tmp';
+      if(fs.existsSync(tutorialSettingsFile))fs.copyFileSync(tutorialSettingsFile,tutorialSettingsFile+'.backup');
+      fs.writeFileSync(temporary,JSON.stringify(settings,null,2)+'\n');fs.renameSync(temporary,tutorialSettingsFile);
+      return settings;
+    });
+    ipcMain.handle('trainer:tutorial-update', (event, value) => {shortcutSender(event);return tutorialController.update(value);});
+    const syncTutorial = () => {
+      const status=tutorialController.sync();mainWindow?.webContents.send('trainer:tutorial-status',status);
+    };
+    mainWindow.on('focus',syncTutorial);mainWindow.on('blur',syncTutorial);
+    mainWindow.webContents.on('did-start-navigation', (_event,_url,_inPlace,isMainFrame) => {if(isMainFrame)tutorialController.stop();});
+    mainWindow.webContents.on('render-process-gone',()=>tutorialController.stop());
+    if(process.env.YGO_DESKTOP_TEST==='1')globalThis.tutorialAcceptance=tutorialController;
     ipcMain.handle('trainer:copy-deck', async (event, id) => {
       if (!ready || shuttingDown || event.sender !== mainWindow?.webContents || event.senderFrame !== mainWindow.webContents.mainFrame || new URL(event.senderFrame.url).origin !== ready.url) throw new Error('无效的卡组复制请求');
       if (typeof id !== 'string' || id.length > 512) throw new Error('构筑标识无效');
@@ -230,6 +260,7 @@ if (!app.requestSingleInstanceLock()) {
       })().catch(error => { closeRequested = false; writeLog(error.stack); });
     });
     mainWindow.on('closed', () => {
+      tutorialController.stop();
       mainWindow = null;
       for (const child of BrowserWindow.getAllWindows()) child.destroy();
       void stop();

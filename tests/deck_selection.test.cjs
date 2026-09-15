@@ -21,7 +21,7 @@ function setup() {
     api:async(url,body)=>{calls.push({url,body});assert.equal(body,undefined);return structuredClone(saved);},
     card:async id=>{const value={id,name:`卡牌 ${id}`,desc:'效果<原文>',type:1,level:4,atk:1000,def:500};app.cache.set(id,value);return value;},
     openDesign:async selected=>designs.push(plain(selected)),updateStart:()=>context.updateDeckSelectionControls()});
-  vm.runInContext(source.slice(0,source.indexOf("$('#selection-list').addEventListener"))+'\nglobalThis.selection=deckSelection;',context);
+  vm.runInContext(fs.readFileSync(path.join(__dirname,'../src/trainer/web/deck-tag-view.js'),'utf8')+source.slice(0,source.indexOf("$('#selection-list').addEventListener"))+'\nglobalThis.selection=deckSelection;',context);
   return {context,app,saved,calls,designs,node,state:context.selection};
 }
 test('preview and confirmation read saved data without changing dirty editors, source or card order',async()=>{
