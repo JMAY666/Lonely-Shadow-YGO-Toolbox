@@ -1,0 +1,39 @@
+{
+  "width": 1200,
+  "fps": 30,
+  "duration": 6.0,
+  "colors": 256,
+  "dither": "none",
+  "transparent_color": "#ff00ff",
+  "alpha_threshold": 128,
+  "clip_to_base_alpha": true,
+  "max_size_mb": 2.0,
+  "reveals": [
+    {
+      "id": "main-route",
+      "axis": "x",
+      "start": 1.05,
+      "end": 2.10,
+      "exit": {"start": 5.0, "end": 5.80}
+    },
+    {
+      "id": "branch-route",
+      "axis": "x",
+      "start": 2.05,
+      "end": 2.90,
+      "exit": {"start": 5.0, "end": 5.80}
+    }
+  ],
+  "layers": [
+    {
+      "id": "opening-hand",
+      "enter": {"start": 0.20, "end": 1.10, "from": [0, 24]},
+      "exit": {"start": 5.0, "end": 5.80, "to": [0, 0]}
+    },
+    {
+      "id": "end-field",
+      "enter": {"start": 2.00, "end": 2.90, "from": [0, 0]},
+      "exit": {"start": 5.0, "end": 5.80, "to": [0, 0]}
+    }
+  ]
+}
