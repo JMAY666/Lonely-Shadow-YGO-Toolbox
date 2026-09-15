@@ -40,10 +40,10 @@ module.exports = async function settingsAcceptance({page, nativeWait, nativeStat
   const opponent=await request('/api/decks',{name:`对手验收-${Date.now()}`,deck:{main:[14558127,...Array(39).fill(1184620)],extra:[],side:[55144522]}});
   const mandatory=await request('/api/decks',{name:`强制效果验收-${Date.now()}`,deck:{main:[26202165,...Array(39).fill(1184620)],extra:[],side:[]}});
   await page.locator('#nav-decks').click();await page.evaluate(()=>deckList());
-  if (await page.locator('#deck-workbench').isVisible()) await page.locator('#back-to-decks').click();
-  await page.locator('[data-open-deck='+JSON.stringify(source.id)+']').click();
-  await page.waitForFunction(id=>app.id===id&&!app.busy,source.id);
-  await page.locator('#start-training').click();await page.waitForFunction(()=>!!flow.design);
+  if (await page.locator('#selection-preview-page').isVisible()) await page.locator('#selection-back').click();
+  await page.locator('[data-select-deck='+JSON.stringify(source.id)+']').click();
+  await page.waitForFunction(id=>deckSelection.selected?.id===id&&!deckSelection.loading,source.id);
+  await page.locator('#selection-next').click();await page.waitForFunction(()=>!!flow.design);
   await page.locator('#plan-name').fill('数量与条件保留验收');
   await page.locator('#hand-count').fill('0');assert(await page.locator('#begin-expansion').isDisabled());
   assert.match(await page.locator('#design-error').innerText(),/起手数量/);

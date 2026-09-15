@@ -6,11 +6,6 @@ module.exports = async function ({page,application,deckId,deck,pass,evidence}) {
     await page.locator(`#module-${name}`).click();
     await page.waitForFunction(name=>moduleUI.current===name&&!moduleUI.switching,name);
   };
-  const open = async () => {
-    if (await page.locator('#deck-workbench').isVisible()) await page.locator('#back-to-decks').click();
-    await page.locator('[data-open-deck='+JSON.stringify(deckId)+']').click();
-    await page.waitForFunction(id=>app.id===id&&!app.busy,deckId);
-  };
   const originalName = await page.locator('#deck-name').inputValue();
   assert.equal(await page.locator('#start-training').isVisible(),false);
   assert.equal(await page.locator('#expansion-navigation').isVisible(),false);
@@ -27,44 +22,143 @@ module.exports = async function ({page,application,deckId,deck,pass,evidence}) {
   await page.locator('#home-expansion').click();
   await page.waitForFunction(()=>moduleUI.current==='expansion'&&!moduleUI.switching);
   assert.equal(await page.locator('#module-expansion').getAttribute('aria-current'),'page');
-  assert.equal(await page.locator('#deck-manager').isVisible(),true);
+  assert.equal(await page.locator('#deck-selection').isVisible(),true);
+  assert.equal(await page.locator('#editor').isVisible(),false);
+  assert.equal(await page.locator('#nav-decks').textContent(),'选择卡组');
   assert.equal(await page.locator('#nav-design').isDisabled(),true);
   assert.equal(await page.locator('#nav-training').isDisabled(),true);
   assert.deepEqual(await page.evaluate(()=>app.deck),{main:[],extra:[],side:[]});
-  await open();
-  assert.deepEqual(await page.evaluate(()=>app.deck),deck);
-  await page.evaluate(()=>addCard(1184620,'side'));
-  const expansion = await page.evaluate(()=>({deck:structuredClone(app.deck),undo:structuredClone(app.undo)}));
+  const selected = page.locator('[data-select-deck='+JSON.stringify(deckId)+']');
+  const mark = async key => {
+    await page.locator(`[data-selection-key="${key}"] [data-review-card]`).click();
+    await page.locator('#toggle-preview-card-mark').click();
+    assert.equal(await page.locator('#toggle-preview-card-mark').getAttribute('aria-pressed'),'true');
+    assert.equal(await page.locator(`[data-selection-key="${key}"]`).evaluate(item=>item.classList.contains('is-marked')),true);
+    await page.locator('#review-detail-close').click();
+  };
+  const writes=[];
+  const track=request=>{if(request.method()==='POST')writes.push(request.url());};
+  page.on('request',track);
+  await page.screenshot({path:path.join(evidence,'expansion-deck-selection.png')});
+  assert(await page.evaluate(()=>[...document.querySelectorAll('.selection-deck')].every(button=>{
+    const box=button.getBoundingClientRect();
+    return [...button.querySelectorAll('strong,small')].every(text=>{const r=text.getBoundingClientRect();return r.top>=box.top&&r.bottom<=box.bottom&&r.left>=box.left&&r.right<=box.right;});
+  })),'Long deck names and source labels stay inside their selection buttons');
+  await selected.click({button:'right'});
+  assert.equal(await page.locator('#deck-context-menu').isVisible(),false);
+  await selected.focus(); await selected.press('Enter');
+  await page.waitForFunction(id=>deckSelection.selected?.id===id&&!deckSelection.loading,deckId);
+  assert.deepEqual(await page.evaluate(()=>deckSelection.selected.deck),deck);
+  assert.equal(await page.locator('#nav-design').isDisabled(),true);
+  assert.equal(await page.locator('#selection-name').textContent(),originalName);
+  assert.equal(await page.locator('#selection-cards [data-review-card]').count(),deck.main.length+deck.extra.length+deck.side.length);
+  assert.equal(await page.locator('.selection-detail-panel, #selection-detail').count(),0);
+  const cardTile=page.locator('#selection-cards [data-review-card]').first();
+  const beforeHover=await page.locator('#selection-cards').boundingBox();
+  assert.equal(await page.locator('#review-card-popover').isVisible(),false);
+  await cardTile.hover();
+  await page.waitForFunction(()=>!!reviewUI.selected&&!reviewUI.detailPinned&&!document.querySelector('#review-card-popover').hidden);
+  assert.deepEqual(await page.locator('#selection-cards').boundingBox(),beforeHover);
+  await cardTile.click();await page.locator('#selection-name').hover();
+  assert.equal(await page.evaluate(()=>reviewUI.detailPinned),true);
+  assert.equal(await page.locator('#review-card-popover').isVisible(),true);
+  await page.screenshot({path:path.join(evidence,'expansion-card-popover.png')});
+  const expectedNames=await page.evaluate(d=>[...new Set([d.main[0],d.main[1],d.extra[0]].map(code=>app.cache.get(code).name))],deck);
+  await application.evaluate(({clipboard})=>{globalThis.selectionClipboard={text:null,fail:false};globalThis.selectionClipboardWriter=clipboard.writeText;clipboard.writeText=text=>{if(globalThis.selectionClipboard.fail)throw Error('模拟卡名复制失败');globalThis.selectionClipboard.text=text;};});
+  try {
+    await page.locator('#copy-preview-card-name').click();
+    await page.waitForFunction(()=>!deckSelection.copying);
+    assert.equal(await application.evaluate(()=>globalThis.selectionClipboard.text),expectedNames[0]);
+    await page.locator('#review-detail-close').click();
+    for(const key of ['main:0','main:1','main:2','extra:0'])await mark(key);
+    await page.locator('#copy-selection-names').click();await page.waitForFunction(()=>!deckSelection.copying);
+    assert.equal(await application.evaluate(()=>globalThis.selectionClipboard.text),expectedNames.join(' + '));
+    await application.evaluate(()=>{globalThis.selectionClipboard.fail=true;});
+    await page.locator('#copy-selection-names').click();
+    await page.waitForFunction(()=>!deckSelection.copying&&document.querySelector('#notice').textContent.includes('复制失败'));
+    assert.equal(await page.evaluate(()=>deckSelection.picks.size),4);
+    await application.evaluate(()=>{globalThis.selectionClipboard.fail=false;});
+    await page.locator('#copy-selection-names').click();await page.waitForFunction(()=>!deckSelection.copying);
+    assert.equal(await application.evaluate(()=>globalThis.selectionClipboard.text),expectedNames.join(' + '));
+  } finally {await application.evaluate(({clipboard})=>{clipboard.writeText=globalThis.selectionClipboardWriter;});}
+  await cardTile.click({button:'right'}); await cardTile.dblclick(); await cardTile.press('Control+z');
+  await page.locator('#review-detail-close').click();
+  await page.locator('#deck-selection').dispatchEvent('drop',{dataTransfer:await page.evaluateHandle(()=>{const d=new DataTransfer();d.items.add(new File(['#main\n55144522'],'ignored.ydk'));return d;})});
+  assert.equal(await page.locator('#import-dialog').isVisible(),false);
+  assert.deepEqual(await page.evaluate(()=>app.deck),{main:[],extra:[],side:[]});
+  assert.deepEqual(await page.evaluate(()=>deckSelection.selected.deck),deck);
+  assert.equal(await page.locator('#deck-selection input, #deck-selection select, #deck-selection [data-add], #deck-selection [data-remove], #deck-selection [data-deck-menu], #deck-selection [data-create-deck]').count(),0);
+  assert.equal(await page.locator('#card-library').isVisible(),false);
+  await page.locator('#selection-back').click();
+  assert.equal(await page.locator('#selection-list-page').isVisible(),true);
+  assert.equal(await page.locator('#nav-design').isDisabled(),true);
+  await selected.click();
+  await page.waitForFunction(()=>!deckSelection.loading&&!!deckSelection.selected);
+  page.off('request',track);
+  assert.deepEqual(writes,[]);
+  assert.equal(await page.evaluate(()=>deckSelection.picks.size),4);
+  assert.equal(await page.locator('#selection-cards input').count(),0);
+  pass('Full-width clean artwork, hover/pinned detail with mark controls, single/batch name-copy IPC and failure recovery; no deck mutation');
   await selectModule('decks');
   assert.equal(await page.locator('#deck-name').inputValue(),originalName+' 独立未保存');
   assert.deepEqual(await page.evaluate(()=>({deck:app.deck,undo:app.undo})),standalone);
-  assert.match(await page.evaluate(()=>unsavedSummary()),/展开内卡组编辑有未保存/);
   await page.locator('#deck-name').fill(originalName);
   await page.locator('#save-deck').click();
   await page.waitForFunction(()=>!app.busy&&!app.dirty);
   await selectModule('expansion');
-  assert.deepEqual(await page.evaluate(()=>({deck:app.deck,undo:app.undo})),expansion);
-  await page.locator('#save-deck').click();
-  await page.waitForFunction(()=>!app.busy&&document.querySelector('#notice').textContent.includes('已被修改'));
-  assert.equal(await page.evaluate(()=>app.dirty),true);
-  assert.deepEqual(await page.evaluate(()=>app.deck),expansion.deck);
-  await page.locator('#back-to-decks').click();
-  await page.locator('#leave-deck-dialog [value="cancel"]').click();
-  assert.deepEqual(await page.evaluate(()=>app.deck),expansion.deck);
-  await page.locator('#back-to-decks').click();
-  await page.locator('#leave-deck-dialog [value="discard"]').click();
-  await page.waitForFunction(()=>!app.busy&&!app.dirty);
-  await open();
-  assert.deepEqual(await page.evaluate(()=>app.deck),standalone.deck);
-  // Restore the shared fixture before running the original complete expansion flow.
+  await page.locator('#selection-next').click();
+  await page.waitForFunction(()=>!deckSelection.busy&&document.querySelector('#selection-message').textContent.includes('卡组已更新'));
+  assert.equal(await page.locator('#design').isVisible(),false);
+  assert.equal(await page.evaluate(()=>deckSelection.picks.size),0);
+  assert.deepEqual(await page.evaluate(()=>deckSelection.selected.deck),standalone.deck);
+  // Restore the shared fixture through the independent editor.
+  await selectModule('decks');
   await page.evaluate(()=>removeCard(55144522,'side'));
   await page.locator('#save-deck').click();
   await page.waitForFunction(()=>!app.busy&&!app.dirty);
   assert.deepEqual(await page.evaluate(()=>app.deck),deck);
-  pass('Independent editor retains all controls; separate unsaved decks/undo, shared saves, conflict refusal and cancel/confirm reopening');
-
-  await page.locator('#start-training').click();
+  await selectModule('expansion');
+  await page.locator('#selection-back').click(); await selected.click();
+  await page.waitForFunction(()=>!deckSelection.loading&&!!deckSelection.selected);
+  for(const key of ['main:0','main:2','extra:0','side:0'])await mark(key);
+  for (const [width,height] of [[900,650],[1100,800],[1600,1000]]) {
+    await application.evaluate(({BrowserWindow},size)=>BrowserWindow.getAllWindows().find(w=>!w.getParentWindow()).setContentSize(...size),[width,height]);
+    await page.waitForFunction(width=>innerWidth===width,width);
+    await page.screenshot({path:path.join(evidence,`expansion-deck-preview-${width}.png`)});
+    const layout=await page.evaluate(()=>{
+      const next=document.querySelector('#selection-next').getBoundingClientRect(),cards=document.querySelector('#selection-cards').getBoundingClientRect();
+      return {overflow:document.documentElement.scrollWidth>innerWidth,right:next.right,top:next.top,bottom:next.bottom,cardsTop:cards.top,cardsBottom:cards.bottom,fullWidth:Math.abs(cards.left-document.querySelector('#deck-selection').getBoundingClientRect().left)<2};
+    });
+    assert(!layout.overflow&&layout.right<=width&&layout.bottom<=layout.cardsTop&&layout.cardsBottom<=height,JSON.stringify(layout));
+    assert(layout.fullWidth,JSON.stringify(layout));
+    assert.equal(await page.locator('#editor').isVisible(),false);
+  }
+  await page.locator('#selection-next').click();
   await page.waitForFunction(()=>!!flow.design&&app.view==='design');
+  assert.deepEqual(await page.evaluate(()=>flow.design.deck),deck);
+  assert.equal(await page.evaluate(()=>flow.design.id),deckId);
+  assert.deepEqual(await page.evaluate(()=>flow.design.conditions.slots),[null,null,null,null,null]);
+  assert.deepEqual(await page.evaluate(()=>mainQuickCodes()),[deck.main[0]]);
+  assert.equal(await page.locator('#design-opening-shortcuts button').count(),1);
+  assert.equal(await page.locator('#design-opening-shortcuts button').isDisabled(),true);
+  await page.locator('#plan-name').fill('起手快捷候选验收');
+  await page.locator('#design-opening-shortcuts button').click();
+  assert.deepEqual(await page.evaluate(()=>flow.design.conditions.slots),[deck.main[0],null,null,null,null]);
+  await page.locator('[data-slot="2"]').click();
+  await page.locator('[data-shortcut-choice]').click();
+  assert.deepEqual(await page.evaluate(()=>flow.design.conditions.slots),[deck.main[0],null,deck.main[0],null,null]);
+  await page.locator('#design-opening-shortcuts button').dragTo(page.locator('[data-slot="4"]'));
+  assert.deepEqual(await page.evaluate(()=>flow.design.conditions.slots),[deck.main[0],null,deck.main[0],null,deck.main[0]]);
+  await application.evaluate(({clipboard})=>{globalThis.selectionClipboardWriter=clipboard.writeText;clipboard.writeText=text=>{globalThis.selectionClipboard.text=text;};});
+  try {
+    await page.locator('#copy-design-card-names').click();await page.waitForFunction(()=>!deckSelection.copying);
+    assert.equal(await application.evaluate(()=>globalThis.selectionClipboard.text),[expectedNames[0],expectedNames[2]].join(' + '));
+    assert.equal(await page.locator('#plan-name').inputValue(),'起手快捷候选验收');
+  } finally {await application.evaluate(({clipboard})=>{clipboard.writeText=globalThis.selectionClipboardWriter;});}
+  await page.screenshot({path:path.join(evidence,'opening-card-shortcuts.png')});
+  await page.evaluate(()=>{flow.design.conditions.slots=Array(5).fill(null);renderDesign();});
+  pass('Selected main cards become optional quick candidates in preparation and slot picker; extra/side stay out of opening choices, and copied names do not overwrite the plan name');
+  pass('Saved-deck changes require a refreshed preview and confirmation; next step uses the previewed deck; 900/1100/1600 px layouts keep next at the upper right');
   await page.locator('#plan-name').fill('模块切换前置设计');
   await page.locator('#plan-notes').fill('前置内容保留');
   await page.locator('#design-back').click();
@@ -95,6 +189,7 @@ module.exports = async function ({page,application,deckId,deck,pass,evidence}) {
   await page.locator('#nav-decks').click();
   pass('Preparation, temporary design deck edit, explicit discard confirmation and the independent draft survive round-trip navigation');
 
+  await selectModule('decks');
   for (const [width,height] of [[900,650],[1100,800],[1600,1000]]) {
     await application.evaluate(({BrowserWindow},size)=>BrowserWindow.getAllWindows().find(w=>!w.getParentWindow()).setContentSize(...size),[width,height]);
     await page.waitForFunction(width=>innerWidth===width,width);
@@ -132,5 +227,6 @@ module.exports = async function ({page,application,deckId,deck,pass,evidence}) {
   }
   await application.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().find(w=>!w.getParentWindow()).setContentSize(1280,900));
   await page.waitForFunction(()=>innerWidth===1280&&innerHeight===900);
+  await selectModule('expansion');
   pass('900/1100/1600 px editor layouts retain all zones and card library; left navigation collapses to release width without changing edits');
 };

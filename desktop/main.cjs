@@ -183,6 +183,17 @@ if (!app.requestSingleInstanceLock()) {
       clipboard.writeText(exported.text);
       return {copied:true,name:exported.name};
     });
+    ipcMain.handle('trainer:copy-card-names', async (event, codes) => {
+      if (!ready || shuttingDown || event.sender !== mainWindow?.webContents || event.senderFrame !== mainWindow.webContents.mainFrame || new URL(event.senderFrame.url).origin !== ready.url) throw new Error('无效的卡名复制请求');
+      const names = await require('./card-names.cjs').cardNamesForCopy(codes, async code => {
+        const response = await fetch(`${ready.url}/api/card/${code}`);
+        const card = await response.json();
+        if (!response.ok) throw new Error(card.error || '无法读取卡名');
+        return card;
+      });
+      clipboard.writeText(names.join(' + '));
+      return {copied:true,count:names.length};
+    });
     ipcMain.handle('trainer:layout', async (event, bounds) => {
       if (!ready || shuttingDown || event.sender !== mainWindow?.webContents || event.senderFrame !== mainWindow.webContents.mainFrame || new URL(event.senderFrame.url).origin !== ready.url) throw new Error('无效的训练区域请求');
       const handle = mainWindow.getNativeWindowHandle();

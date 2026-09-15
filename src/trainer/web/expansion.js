@@ -43,18 +43,24 @@ async function confirmFlow(title, warning, action) {
   });
 }
 
-async function openDesign() {
+async function openDesign(selectedDeck) {
   if (flow.busy) return;
-  if (app.dirty || !app.id) return notice('请先保存构筑。');
+  if (app.active) return notice('请先结束当前展开。');
+  if (!selectedDeck?.deck && (app.dirty || !app.id)) return notice('请先选择并确认卡组。');
+  const selected = selectedDeck?.deck ? structuredClone(selectedDeck) : await api(`/api/deck?id=${encodeURIComponent(app.id)}`);
   if (draftDirty()) {
     if (!await confirmFlow('开始新的前置设计？', '当前草稿名称和备注有未保存修改，继续将放弃这些文字修改；已落盘的草稿保留。', '放弃文字修改并继续')) return;
     flow.draft = null;
   }
   if (flow.design) {
-    if (flow.design.id === app.id && flow.design.revision === app.revision) return switchView('design');
+    if (flow.design.id === selected.id && flow.design.revision === selected.revision &&
+        flow.design.deck_name === selected.name && JSON.stringify(flow.design.deck) === JSON.stringify(selected.deck)) {
+      flow.design.quick_cards = selected.quick_cards || [];
+      renderDesign();
+      return switchView('design');
+    }
     if (!await confirmFlow('重新填写前置设计？', '当前前置设计尚未开始，继续会替换其名称、备注和起手条件。', '重新设计')) return;
   }
-  const selected = await api(`/api/deck?id=${encodeURIComponent(app.id)}`);
   const opponent = await api('/api/opponent');
   await mountDesign({...selected, deck_name:selected.name, name:'', notes:'', conditions:{hand_count:5,slots:Array(5).fill(null),banned:[]},
     opponent_ai:false, opponent_responses:true, opponent_config:{...opponent,conditions:{hand_count:5,slots:[...opponent.opening],banned:[]}},
@@ -141,6 +147,7 @@ function renderDesign() {
   $('#timer-seconds').min=timer.mode==='down'?1:0;$('#timer-seconds').value=timer.seconds ?? '';
   $('#design-error').textContent = d.startError || conditionError(d);
   $('#begin-expansion').disabled = !!conditionError(d) || flow.busy || !!app.active;
+  if (typeof renderDesignCardShortcuts === 'function') renderDesignCardShortcuts();
 }
 function renderChoices() {
   const d = choiceDesign();
@@ -154,6 +161,7 @@ function renderChoices() {
     const assigned = d.conditions.slots.filter(x => x===code).length;
     return `<button data-choice="${code}" class="opening-choice"><img src="/pics/${code}.jpg" alt=""><span><strong>${escape(cardName(d,code))}</strong><small>牌组内 ${total} 张 · 已指定 ${assigned} 张 · 剩余可指定 ${Math.max(0,total-assigned)} 张</small><small>${d.conditions.banned.includes(code) ? '已禁止出现在初始手牌' : flow.mode==='required' ? '指定后仍可随机抽到其余副本' : '加入独立禁用列表，不占起手槽位'}</small></span></button>`;
   }).join('');
+  if (typeof renderOpeningShortcuts === 'function') renderOpeningShortcuts();
 }
 function choiceDesign() { return flow.target==='opponent' ? flow.design.opponent_config : flow.design; }
 function openChoices(target, slot=0, mode='required') {

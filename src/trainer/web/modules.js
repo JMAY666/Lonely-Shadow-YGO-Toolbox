@@ -1,7 +1,7 @@
 'use strict';
 
-// One editor implementation; two independent in-memory workspaces. The backend
-// deck library, optimistic revisions and immutable session snapshots are shared.
+// The standalone editor and temporary preparation edits keep independent buffers.
+// Expansion's first step uses a separate, read-only saved-deck selection.
 const moduleUI = {current:'home', editorOwner:'decks', expansionView:'decks', switching:false, railCollapsed:false,
   editors:{decks:null, expansion:null}, scroll:{home:0,decks:0,expansion:0,tags:0}};
 const editorKeys = ['deck','id','revision','sourceName','dirty','undo','savedState','selected','offset','deckPage','libraryTab','targetZone'];
@@ -21,7 +21,7 @@ function emptyEditor(owner) {
 }
 function editorUnsavedSummary() {
   return ['decks','expansion'].filter(owner=>owner===moduleUI.editorOwner ? app.dirty : moduleUI.editors[owner]?.state.dirty)
-    .map(owner=>`${owner==='decks'?'独立卡组编辑':'展开内卡组编辑'}有未保存修改。`);
+    .map(owner=>`${owner==='decks'?'独立卡组编辑':'前置设计临时卡组编辑'}有未保存修改。`);
 }
 function updateShellHeight() {
   const height = $('.app-bar').getBoundingClientRect().height + $('#expansion-navigation').getBoundingClientRect().height;
@@ -38,7 +38,7 @@ function updateModuleChrome() {
     if (moduleUI.current===name) button.setAttribute('aria-current','page');
     else button.removeAttribute('aria-current');
   }
-  $('#start-training').hidden = moduleUI.current !== 'expansion';
+  $('#start-training').hidden = true;
   $('#active-training').hidden = moduleUI.current !== 'expansion' || !app.active;
   $('#design-deck-edit').hidden = !activeDesignDeckEdit();
   $('#save-deck').textContent = activeDesignDeckEdit() ? '应用卡组并返回条件' : '保存构筑';

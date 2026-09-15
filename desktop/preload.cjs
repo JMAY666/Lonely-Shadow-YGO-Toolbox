@@ -6,5 +6,6 @@ window.addEventListener('DOMContentLoaded', () => {
 }, { once: true });
 contextBridge.exposeInMainWorld('trainerDesktop', {
   updateLayout: bounds => ipcRenderer.invoke('trainer:layout', bounds),
-  copyDeckCode: id => ipcRenderer.invoke('trainer:copy-deck', id)
+  copyDeckCode: id => ipcRenderer.invoke('trainer:copy-deck', id),
+  copyCardNames: codes => ipcRenderer.invoke('trainer:copy-card-names', codes)
 });

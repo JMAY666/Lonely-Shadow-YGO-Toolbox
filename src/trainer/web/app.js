@@ -52,7 +52,9 @@ function displayView(view) {
   if(typeof closeReviewDetail==='function')closeReviewDetail();
   if (view !== 'decks') setLibraryOpen(false, false);
   $('#home').hidden = view !== 'home';
-  $('#editor').hidden = view !== 'decks';
+  const selecting = view === 'decks' && typeof moduleUI !== 'undefined' && moduleUI.current === 'expansion' && !activeDesignDeckEdit();
+  $('#editor').hidden = view !== 'decks' || selecting;
+  $('#deck-selection').hidden = !selecting;
   $('#history').hidden = view !== 'history';
   $('#training').hidden = view !== 'training';
   $('#design').hidden = view !== 'design';
@@ -108,6 +110,7 @@ function updateStart() {
   $('#return-conditions').disabled = $('#restart-expansion').disabled;
   if (activeDesignDeckEdit()) $('#start-training').disabled=true;
   if (typeof updateModuleChrome === 'function') updateModuleChrome();
+  if (typeof updateDeckSelectionControls === 'function') updateDeckSelectionControls();
   if (typeof flow !== 'undefined' && flow.timer && (!app.active || app.active.status==='stopping') && flow.timer.started!==null) stopTimer();
   $('#training-title').textContent = app.active ? `${app.active.name} · ${statusNames[app.active.status]}` : '展开场地';
 }
@@ -121,6 +124,7 @@ async function deckList() {
   const decks = await api('/api/decks');
   if (typeof deckManager !== 'undefined' && generation !== deckManager.listGeneration) return;
   if (typeof renderDeckBoxes === 'function') renderDeckBoxes(decks);
+  if (typeof renderDeckSelectionList === 'function') renderDeckSelectionList(decks);
 }
 async function openDeck(id) {
   if (app.busy) return;
@@ -650,7 +654,7 @@ document.addEventListener('keydown', run(async e => {
     await undoDeck();
   }
 }));
-$('#nav-decks').onclick=()=>switchView('decks');$('#nav-history').onclick=run(async()=>{switchView('history');await refreshHistory();});
+$('#nav-decks').onclick=run(async()=>{switchView('decks');await deckList();});$('#nav-history').onclick=run(async()=>{switchView('history');await refreshHistory();});
 $('#save-deck').onclick=run(saveDeck);$('#deck-name').oninput=dirty;
 $('#undo-deck').onclick = run(undoDeck);
 $('#sort-deck').onclick = run(sortDeck);

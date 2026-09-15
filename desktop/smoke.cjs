@@ -10,8 +10,10 @@ const workspace = path.resolve(__dirname, '..');
 const packaged = process.argv.includes('--packaged');
 const label = packaged ? 'packaged' : 'development';
 const onlyCompromise=process.argv.includes('--compromise-only');
-const root = path.join(workspace, '.local', `desktop-check-${label}${onlyCompromise?'-compromise':''}`);
-const evidence = path.join(workspace, '.local', 'evidence', `electron-${label}${onlyCompromise?'-compromise':''}`);
+const onlySelection=process.argv.includes('--selection-only');
+const profileSuffix=onlyCompromise?'-compromise':onlySelection?'-selection':'';
+const root = path.join(workspace, '.local', `desktop-check-${label}${profileSuffix}`);
+const evidence = path.join(workspace, '.local', 'evidence', `electron-${label}${profileSuffix}`);
 fs.mkdirSync(evidence, { recursive: true });
 const executable = packaged ? path.join(workspace, require('../package.json').build.directories.output, 'win-unpacked', require('../package.json').build.win.executableName + '.exe') : require('electron');
 const checks = [], errors = [];
@@ -46,7 +48,7 @@ async function launch(first = false, testControl = true) {
   page.on('pageerror', error => errors.push(error.message));
   await Promise.race([
     page.waitForFunction(() => document.querySelector('#resource-count')?.textContent.includes('张卡牌'), null, { timeout: 300000 }),
-    page.waitForEvent('pageerror').then(error => { throw error; }),
+    page.waitForEvent('pageerror', {timeout:300000}).then(error => { throw error; }),
   ]);
   await application.evaluate(({BrowserWindow})=>{const main=BrowserWindow.getAllWindows().find(w=>!w.getParentWindow());main.webContents.setZoomFactor(1);main.setContentSize(1280,900);});
   await page.waitForFunction(()=>innerWidth===1280&&innerHeight===900);
@@ -83,9 +85,9 @@ async function launch(first = false, testControl = true) {
   return page;
 }
 async function openSavedDeck(id) {
-  if (await page.locator('#deck-workbench').isVisible()) await page.locator('#back-to-decks').click();
-  await page.locator('[data-open-deck='+JSON.stringify(id)+']').click();
-  await page.waitForFunction(id=>app.id===id&&!app.busy,id);
+  if (await page.locator('#selection-preview-page').isVisible()) await page.locator('#selection-back').click();
+  await page.locator('[data-select-deck='+JSON.stringify(id)+']').click();
+  await page.waitForFunction(id=>deckSelection.selected?.id===id&&!deckSelection.loading,id);
 }
 async function waitHistory(status) {
   await page.waitForFunction(expected => app.history.some(h => h.id === app.reportId && h.status === expected), status, { timeout: 20000 });
@@ -151,7 +153,7 @@ async function verifyBranchRestart() {
   await close();pass('Fresh desktop/backend restart with test controls disabled preserves both branches, their premises and end boards, and opens on the mainline');
 }
 async function designExpansion(name, ai = false) {
-  await page.locator('#start-training').click();
+  await page.locator('#selection-next').click();
   await page.waitForFunction(() => !!flow.design && !document.querySelector('#design').hidden);
   assert.equal(await page.locator('[data-slot="0"]').isDisabled(), true);
   await page.locator('#plan-name').fill(name);
@@ -188,6 +190,11 @@ async function activatePot(sid) {
     await page.screenshot({path:path.join(evidence,'home-collapsed.png')});
     await close();assert.deepEqual(errors,[]);
     console.log('PASS Final packaged/development home, brand and collapsible navigation');return;
+  }
+  if(onlySelection) {
+    await require('./selection-preview-smoke.cjs')({page,application,evidence,pass});
+    await close();assert.deepEqual(errors,[]);
+    fs.writeFileSync(path.join(evidence,'selection-result.json'),JSON.stringify({checks,errors},null,2));return;
   }
   if(process.argv.includes('--route-display-only')) {
     const plans=await page.evaluate(()=>api('/api/plans'));
@@ -476,8 +483,8 @@ async function activatePot(sid) {
   pass('Window close releases service, native process and listening port');
   await launch(false, false);
   await openSavedDeck(deckId);
-  await page.waitForFunction(id => app.id === id && !app.busy, deckId);
-  assert.deepEqual(await page.evaluate(() => app.deck), deck);
+  await page.waitForFunction(id => deckSelection.selected?.id === id && !deckSelection.loading, deckId);
+  assert.deepEqual(await page.evaluate(() => deckSelection.selected.deck), deck);
   await page.locator('#nav-plans').click();
   await page.locator('#history-archive > summary').click();
   await page.locator(`[data-report="${sessionId}"]`).click();
@@ -509,7 +516,7 @@ async function activatePot(sid) {
   pass('Closing the app during native training flushes an interrupted report and cleans up');
   await launch();
   await openSavedDeck(deckId);
-  await page.waitForFunction(id=>app.id===id&&!app.busy,deckId);
+  await page.waitForFunction(id=>deckSelection.selected?.id===id&&!deckSelection.loading,deckId);
   await designExpansion('AI 干扰验收',true);
   let aiId=await page.evaluate(()=>app.active.id);
   await hostWait(aiId,s=>s.frame_ready);
@@ -567,8 +574,8 @@ async function activatePot(sid) {
   await page.locator('#nav-decks').click();
   const banDeck=await page.evaluate(async()=>api('/api/decks',{name:`起手禁用-${Date.now()}`,deck:{main:[...Array(5).fill(55144522),...Array(35).fill(1184620)],extra:[],side:[]}}));
   await page.evaluate(()=>deckList());await openSavedDeck(banDeck.id);
-  await page.waitForFunction(id=>app.id===id&&!app.busy,banDeck.id);
-  await page.locator('#start-training').click();await page.waitForFunction(()=>!!flow.design);
+  await page.waitForFunction(id=>deckSelection.selected?.id===id&&!deckSelection.loading,banDeck.id);
+  await page.locator('#selection-next').click();await page.waitForFunction(()=>!!flow.design);
   await page.locator('#plan-name').fill('禁用卡后续仍可抽取');
   await page.locator('[data-slot="0"]').click();await page.locator('#choose-banned').click();await page.locator('[data-choice="1184620"]').click();
   assert.deepEqual(await page.evaluate(()=>flow.design.conditions.slots),[null,null,null,null,null]);
@@ -593,7 +600,9 @@ async function activatePot(sid) {
   assert.deepEqual(await (await fetch(`${service.url}/api/plan/${sessionId}`)).json(),report);
   assert.equal((await (await fetch(`${service.url}/api/deck?id=${encodeURIComponent(deckId)}`)).json()).deck.side.length,0);
   pass('Editing the source deck leaves the entire saved plan byte-for-byte equivalent at the API');
-  await page.locator('#back-to-decks').click();
+  await page.locator('#module-decks').click();
+  await page.waitForFunction(()=>moduleUI.current==='decks'&&!moduleUI.switching);
+  if (await page.locator('#deck-workbench').isVisible()) await page.locator('#back-to-decks').click();
   await page.locator('[data-open-deck='+JSON.stringify(deckId)+']').click({button:'right'});
   await page.locator('[data-deck-command="delete"]').click();
   await page.locator('#delete-cancel').click();
