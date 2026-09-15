@@ -23,10 +23,11 @@ function buildBranchedTutorial(plan,include=true) {
     const suffix=new Set((route.actions||[]).filter(a=>(a.evidence_refs||[]).some(ref=>Number(String(ref).split(':')[0])>b.source.seq)).map(a=>a.id));
     model.steps=model.steps.filter(step=>step.actions.some(a=>suffix.has(a.id)));
     model.name=b.name+' · 妥协终场';
+    model.branchFinal=true;
     // The branch starts at a response, so its actual inherited hand is context,
     // not a fresh five-card opening for a separate duel.
     model.conditionsNote='继承主线至 '+b.source.timing+'；从该时点独立记录。';
-    const facts=(b.premises||[]).map(p=>({sources:p.source_cards,affected:p.affected_cards,text:p.result,label:p.confirmed?'实际结算':'实际事件（影响待核对）'}));
+    const facts=observedBranchFacts(b).map(p=>({sources:p.source_cards,affected:p.affected_cards,text:p.result,label:p.confirmed?'实际结算':'实际事件（影响待核对）'}));
     if(!facts.length)facts.push({sources:[...new Set(b.conditions.hand)].map(code=>({code,name:plan.catalog?.[code]?.name||route.catalog?.[code]?.name||String(code)})),affected:b.source.cards||[],text:'尚未记录为实际阻抗',label:'预设条件'});
     routes.push({id:b.id,label:b.name,source:b.source,valid:b.valid!==false,model,facts});
   }

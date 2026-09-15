@@ -88,17 +88,16 @@ function pruneReviewCards() {
 }
 function renderReviewSidebar() {
   const d=flow.draft, r=reviewUI.report;
-  $('#draft-editor').innerHTML=`<div class="review-sidebar-head"><div class="eyebrow">CURRENT ROUTE</div><label for="draft-name">方案名称</label><input id="draft-name" maxlength="80" value="${escape(d?.name||r.name)}" ${d?'':'disabled'}><p class="review-stage">${escape(stageNames[r.plan_stage]||'原训练历史')}</p></div>
+  const scroll=$('#review-steps')?.scrollLeft||0;
+  $('#draft-editor').innerHTML=`<header class="review-timeline-header"><div class="review-sidebar-head"><div class="eyebrow">路线时间轴</div><label for="draft-name">方案名称</label><input id="draft-name" maxlength="80" value="${escape(d?.name||r.name)}" ${d?'':'disabled'}></div>
+    <p id="draft-message" class="review-stage" role="status">${escape(stageNames[r.plan_stage]||'原训练历史')}</p>
+    <div class="review-sidebar-actions">${d?`<button id="save-plan" class="primary" ${r.status!=='completed'&&!d.saved?'disabled':''}>${d.saved?'保存修改':'保存方案'}</button><button id="delete-draft" class="danger">${d.saved?'删除方案':'放弃草稿'}</button>`:''}${r.expansion?'<button id="draft-conditions">以此条件再次展开</button>':''}<button id="review-sidebar-toggle" aria-controls="review-timeline-drawer" aria-expanded="${!reviewUI.collapsed}">${reviewUI.collapsed?'展开':'收起'}时间轴 <span aria-hidden="true">${reviewUI.collapsed?'⌄':'⌃'}</span></button></div></header>
+    <div id="review-timeline-drawer" ${reviewUI.collapsed?'hidden':''}><div id="review-route-map"></div>
     <ol id="review-steps" class="review-steps">${reviewUI.nodes.map(n=>`<li><button data-review-node="${escape(n.id)}" ${n.id===reviewUI.node?'aria-current="step"':''}><small>Step ${n.number}</small><strong class="review-step-title">${escape(reviewTitle(n))}</strong><span>${n.kind==='initial'?'实际起手':n.kind==='final'?'展开结束时的状态':`${n.action_ids.length} 项操作`}</span></button></li>`).join('')}</ol>
-    <label for="draft-notes">方案备注</label><textarea id="draft-notes" rows="3" maxlength="4000" ${d?'':'disabled'}>${escape(d?.notes||r.expansion?.notes||'')}</textarea>
-    <p id="draft-message" role="status">${d?(d.saved?'正式方案的说明可继续编辑。':'确认存入前，当前内容仍为草稿。'):'此记录只读，原始数据保留。'}</p>
-    <div class="review-sidebar-actions">${d?`<button id="save-plan" class="primary" ${r.status!=='completed'&&!d.saved?'disabled':''}>${d.saved?'保存修改':'保存方案'}</button><button id="delete-draft" class="danger">${d.saved?'删除方案':'放弃草稿'}</button>`:''}${r.expansion?'<button id="draft-conditions">以此条件再次展开</button>':''}</div>`;
+    <div class="review-route-details"></div><div class="review-plan-note"><label for="draft-notes">方案备注</label><textarea id="draft-notes" rows="1" maxlength="4000" ${d?'':'disabled'}>${escape(d?.notes||r.expansion?.notes||'')}</textarea></div></div>`;
   $('#review-workspace').classList.toggle('sidebar-collapsed',!!reviewUI.collapsed);
-  if(!$('#review-sidebar-toggle'))$('#review-workspace').insertAdjacentHTML('beforeend','<button id="review-sidebar-toggle" class="review-sidebar-edge" aria-controls="draft-editor"></button>');
-  const toggle=$('#review-sidebar-toggle'),label=reviewUI.collapsed?'展开步骤栏':'收起步骤栏';
-  toggle.innerHTML=`<svg viewBox="0 0 16 24" aria-hidden="true"><path d="${reviewUI.collapsed?'M5 6l6 6-6 6':'M11 6l-6 6 6 6'}"/></svg>`;
-  toggle.setAttribute('aria-expanded',String(!reviewUI.collapsed));toggle.setAttribute('aria-label',label);toggle.title=label;
-  $('#review-sidebar-toggle').onclick=()=>{reviewUI.collapsed=!reviewUI.collapsed;renderReviewSidebar();};
+  $('#review-steps').scrollLeft=scroll;
+  $('#review-sidebar-toggle').onclick=()=>{reviewUI.collapsed=!reviewUI.collapsed;renderReviewSidebar();$('#review-sidebar-toggle').focus({preventScroll:true});};
   if(d) {
     $('#draft-name').oninput=e=>{d.name=e.target.value;$('#save-plan').disabled=!d.name.trim()||(r.status!=='completed'&&!d.saved);reviewUI.pending=null;};
     $('#draft-notes').oninput=e=>{d.notes=e.target.value;reviewUI.pending=null;};
@@ -309,7 +308,7 @@ function reviewOperation(item,node,role='处理结果') {
   const e=(reviewUI.report.events||[]).find(e=>e.id===(item.event_ref||item.id))||item;
   const cards=item.cards||e.cards||[], dest=e.destination, origin=e.origin;
   const names={50:dest?.location===16?'送墓':dest?.location===32?'除外':dest?.location&128?'成为素材':dest?.location===2&&origin?.location===1?'检索':dest?.location===2?'回收':'移动',53:'改变表示',54:'盖放',61:'通常召唤',63:'特殊召唤',65:'反转召唤',90:'抽卡',100:'支付 LP'};
-  const method=cards.find(c=>c.summon_method)?.summon_method||names[e.message]||'操作';
+  const method=cards.find(c=>c.summon_method)?.summon_method||({75:'发动被无效',76:'效果被无效'}[e.message])||names[e.message]||'操作';
   const materials=cards.flatMap(c=>c.materials||[]);
   return `<div class="log-operation"><small class="log-role">${escape(role)}</small><div class="log-flow">${materials.length?materials.map(c=>reviewLogCard(c,node,{name:true})).join('<b>＋</b>'):cards.map(c=>reviewLogCard(c,node,{name:true,location:origin||c.summon_origin||c})).join('')}<span class="log-arrow">→<em>${escape(method)}</em>→</span>${materials.length?cards.map(c=>reviewLogCard(c,node,{name:true,materials:reviewMaterials(reviewUI.nodes.find(n=>n.id===node),c).length})).join(''):`<span class="log-destination">${escape(dest?reviewPlace(dest):[61,63,65].includes(e.message)&&cards[0]?reviewPlace(cards[0]):e.message===90?'手牌':reviewDisplayText(item.text||e.result,cards,node)||'见实际记录')}</span>`}</div>
     <p class="log-summary">${escape(reviewDisplayText(item.text||eventSummary({...e,cards}),[...cards,...materials],node))}</p>${materials.length?`<p class="log-summary">${method==='超量召唤'?'参与卡牌成为结果怪兽的素材；当前数量以本步场面为准。':'参与卡牌的去向依下方记录，不能视作叠放素材。'}</p>`:''}</div>`;
@@ -321,7 +320,7 @@ function compactLocation(l) {
 function compactOperation(item,node,role='') {
   const e=(reviewUI.report.events||[]).find(e=>e.id===(item.event_ref||item.id))||item;
   const cards=item.cards||e.cards||[], dest=e.destination, origin=e.origin;
-  const method=cards.find(c=>c.summon_method)?.summon_method||({50:dest?.location===16?'送墓':dest?.location===32?'除外':dest?.location&128?'成为素材':dest?.location===2&&origin?.location===1?'检索':dest?.location===2?'回收':'移动',53:'改变表示',54:'盖放',61:'通常召唤',63:'特殊召唤',65:'反转召唤',90:'抽卡',100:'支付 LP'}[e.message])||'处理结果';
+  const method=cards.find(c=>c.summon_method)?.summon_method||({50:dest?.location===16?'送墓':dest?.location===32?'除外':dest?.location&128?'成为素材':dest?.location===2&&origin?.location===1?'检索':dest?.location===2?'回收':'移动',53:'改变表示',54:'盖放',61:'通常召唤',63:'特殊召唤',65:'反转召唤',75:'发动被无效',76:'效果被无效',90:'抽卡',100:'支付 LP'}[e.message])||'处理结果';
   const materials=cards.flatMap(c=>c.materials||[]), opts={name:true,zone:false,position:false,miniLocation:true};
   const pictures=cs=>cs.map(c=>reviewLogCard(c,node,opts)).join('<b>＋</b>');
   const destination=dest?reviewPlace(dest):[61,63,65,54].includes(e.message)&&cards[0]?reviewPlace(cards[0]):e.message===90?'我方手牌':'';
@@ -331,23 +330,36 @@ function compactOperation(item,node,role='') {
 }
 function compactLogAction(a,n) {
   const stages=[], opts={name:true,zone:false,position:false,miniLocation:true};
+  const replacement=appliedReplacement(a,reviewUI.report);
+  if(replacement)return `<div class="compact-chain"><div class="chain-stage"><small class="log-role">${replacement.label}</small><div class="compact-cards">${reviewLogCard(replacement.card,n.id,opts)}</div></div><span class="chain-arrow">→</span>${compactOperation(a,n.id)}<span class="chain-arrow">→</span><div class="chain-stage"><small class="log-role">代替破坏</small><p>${replacement.result}</p></div></div><p class="log-summary">不进入连锁的②效果适用。</p>`;
   if(a.kind==='effect') {
-    stages.push(`<div class="chain-stage"><small class="log-role">${escape(cardActivation(a,reviewUI.report)||`发动效果${a.effect_number?` ${Number(a.effect_number)}`:''}`)}</small><div class="compact-cards">${(a.cards||[]).map(c=>reviewLogCard(c,n.id,opts)).join('')}</div></div>`);
+    stages.push(`<div class="chain-stage"><small class="log-role">${escape(actionSide(a)+' '+(cardActivation(a,reviewUI.report)||`发动效果${a.effect_number?` ${Number(a.effect_number)}`:''}`))}</small><div class="compact-cards">${(a.cards||[]).map(c=>reviewLogCard(c,n.id,opts)).join('')}</div></div>`);
     stages.push(...(a.costs||[]).map(s=>compactOperation(s,n.id,'Cost')));
     if(a.targets?.length)stages.push(`<div class="chain-stage"><small class="log-role">对象</small><div class="compact-cards">${a.targets.map(c=>reviewLogCard(c,n.id,opts)).join('')}</div></div>`);
+    if(a._interaction) {
+      const {source,event,label}=a._interaction;
+      stages.push(`<div class="chain-stage opponent-response" data-response-action="${escape(source.id)}"><small class="log-role">对方 ${escape(cardActivation(source,reviewUI.report)||'发动效果')}</small><div class="compact-cards">${source.cards.map(c=>reviewLogCard(c,n.id,opts)).join('')}</div></div>`);
+      stages.push(...(source.costs||[]).map(s=>compactOperation(s,n.id,'对方 Cost')));
+      const otherTargets=(source.targets||[]).filter(c=>c.instance_id==null||!a.cards.some(t=>t.instance_id===c.instance_id));
+      if(otherTargets.length)stages.push(`<div class="chain-stage"><small class="log-role">对方选择对象</small><div class="compact-cards">${otherTargets.map(c=>reviewLogCard(c,n.id,opts)).join('')}</div></div>`);
+      stages.push(...(source.results||[]).filter(s=>s.event_ref!==event.id).map(s=>compactOperation(s,n.id)));
+      stages.push(`<div class="chain-stage"><small class="log-role">${!a._interaction.direct?'随后 ':''}${a.cards.some(c=>(reviewUI.report.catalog?.[c.code]?.type||0)&1)?'我方怪兽':'我方卡片'}${escape(label)}</small><div class="compact-cards">${a.cards.map(c=>reviewLogCard(c,n.id,opts)).join('')}</div></div>`);
+      if(reviewEdits().effects[source.id])stages.push(`<p class="preserve-lines">对方操作说明：${escape(reviewEdits().effects[source.id])}</p>`);
+    }
     stages.push(...(a.results||[]).map(s=>compactOperation(s,n.id)));
-    return `<div class="compact-chain">${stages.join('<span class="chain-arrow">→</span>')}</div>${a.status!=='resolved'?`<p class="effect-status status-${escape(a.status)}">${escape(({pending:'已发动 · 尚未确认结算',negated:'发动被无效',disabled:'效果被无效'}[a.status])||a.status_label||'状态未记录')}</p>`:''}${activationResultMissing(a,reviewUI.report)?'<p>处理结果未记录；不能由发动推断成功生效。</p>':''}${reviewEdits().effects[a.id]?`<p class="preserve-lines">用户说明：${escape(reviewEdits().effects[a.id])}</p>`:''}`;
+    return `<div class="compact-chain">${stages.join('<span class="chain-arrow">→</span>')}</div>${a.status!=='resolved'&&!a._interaction?`<p class="effect-status status-${escape(a.status)}">${escape(({pending:'已发动 · 尚未确认结算',negated:'发动被无效',disabled:'效果被无效'}[a.status])||a.status_label||'状态未记录')}</p>`:''}${activationResultMissing(a,reviewUI.report)?'<p>处理结果未记录；不能由发动推断成功生效。</p>':''}${reviewEdits().effects[a.id]?`<p class="preserve-lines">用户说明：${escape(reviewEdits().effects[a.id])}</p>`:''}`;
   }
   const e=(reviewUI.report.events||[]).find(e=>e.id===a.id)||{};
   return `<div class="compact-chain">${compactOperation({...e,cards:a.cards,text:a.summary},n.id,a.kind==='cost'?'Cost':'')}</div>`;
 }
 function reviewLogAction(a,n) {
-  const events=(a.evidence_refs||[]).map(id=>(reviewUI.report.events||[]).find(e=>e.id===id)).filter(Boolean);
+  const events=[...new Set([...(a.evidence_refs||[]),...(a._interaction?.source.evidence_refs||[])])].map(id=>(reviewUI.report.events||[]).find(e=>e.id===id)).filter(Boolean);
   const activation=cardActivation(a,reviewUI.report);
-  const title=a.kind==='effect'?(activation?`${activation}－${(a.cards||[]).map(c=>reviewCardLabel(c,n,reviewUI.report)).join('、')}`:'效果发动'):a.cards?.find(c=>c.summon_method)?.summon_method||a.summary;
+  const replacement=appliedReplacement(a,reviewUI.report);
+  const title=replacement?`${reviewCardLabel(replacement.card,n)} · ②效果代替破坏`:a._interaction?`我方发动 → 对方响应 → ${a._interaction.label}`:a.kind==='effect'?(activation?`${actionSide(a)}${activation}－${(a.cards||[]).map(c=>reviewCardLabel(c,n,reviewUI.report)).join('、')}`:`${actionSide(a)}效果发动`):a.cards?.find(c=>c.summon_method)?.summon_method||a.summary;
   let body='';
   if(reviewUI.logMode==='compact'&&compactCleanup(a))return '';
-  if(reviewUI.logMode==='compact')body=compactLogAction(a,n);
+  if(reviewUI.logMode==='compact'||replacement)body=compactLogAction(a,n);
   else if(a.kind==='effect') {
     const specific=!activation&&a.selected_effect_text&&a.effect_text_source!=='unknown';
     const effectLabel=activation|| (specific?`${a.effect_number?`效果 ${a.effect_number} · `:''}${a.selected_effect_text.slice(0,48)}`:'具体效果待补充');
@@ -356,7 +368,7 @@ function reviewLogAction(a,n) {
       <p class="effect-status status-${escape(a.status)}">${escape(({pending:'已发动 · 尚未确认结算',negated:'发动被无效',disabled:'效果被无效',resolved:'结算已完成 · 实际结果见下方'}[a.status])||a.status_label||'状态未记录')}</p>
       ${(a.costs||[]).map(s=>reviewOperation(s,n.id,'费用 Cost')).join('')}
       ${a.targets?.length?`<div class="log-operation"><small class="log-role">对象</small><div class="log-flow">${a.targets.map(c=>reviewLogCard(c,n.id,{name:true})).join('')}</div></div>`:''}
-      ${(a.results||[]).map(s=>reviewOperation(s,n.id)).join('')||(activationResultMissing(a,reviewUI.report)?'<p>处理结果未记录；不能由发动推断成功生效。</p>':'<p>卡片发动已结算，未记录额外动作。</p>')}
+      ${(a.results||[]).map(s=>reviewOperation(s,n.id)).join('')||(activationResultMissing(a,reviewUI.report)?'<p>处理结果未记录；不能由发动推断成功生效。</p>':['negated','disabled'].includes(a.status)?'<p>已记录无效结果，未继续处理原效果。</p>':'<p>卡片发动已结算，未记录额外动作。</p>')}
       ${!specific?`<label class="log-user-note">用户补充说明<textarea data-effect-note="${escape(a.id)}" maxlength="4000" rows="2" ${flow.draft?'':'disabled'}>${escape(reviewEdits().effects[a.id]||'')}</textarea></label>`:reviewEdits().effects[a.id]?`<p>用户说明：${escape(reviewEdits().effects[a.id])}</p>`:''}`;
   } else {
     const e=events.find(e=>e.id===a.id)||events.at(-1)||{};
@@ -367,11 +379,12 @@ function reviewLogAction(a,n) {
     const materials=xyz?[]:events.filter(e=>e.material_method || ((e.reason||0)&8));
     if(materials.length)body+=`<div class="log-materials"><small class="log-role">素材去向</small>${materials.map(e=>reviewOperation(e,n.id,'')).join('')}</div>`;
   }
-  return `<article class="log-action ${reviewUI.logMode==='compact'?'log-compact':''}" data-review-action="${escape(a.id)}"><h4>${escape(reviewDisplayText(title,a.cards,n))}</h4>${body}<details><summary>查看记录依据 · ${events.length} 条</summary>${events.map(e=>`<p>${escape(e.id)} · ${escape(eventSummary(e))}</p>`).join('')}</details></article>`;
+  if(a._interaction&&!a._interaction.direct)body+='<p class="log-summary">按实际对象与结算顺序连接。</p>';
+  return `<article class="log-action ${a._interaction||replacement?'log-connected':''} ${reviewUI.logMode==='compact'?'log-compact':''}" data-review-action="${escape(a.id)}"><h4>${escape(reviewDisplayText(title,a.cards,n))}</h4>${body}<details><summary>查看记录依据 · ${events.length} 条</summary>${events.map(e=>`<p>${escape(e.id)} · ${escape(eventSummary(e))}</p>`).join('')}</details></article>`;
 }
 function renderReviewLog() {
   const actions=new Map((reviewUI.report.actions||[]).map(a=>[a.id,a]));
-  $('#review-log').innerHTML=`<header><h3>展开日志</h3><div class="log-mode" role="group" aria-label="日志显示方式"><button data-log-mode="compact" aria-pressed="${reviewUI.logMode==='compact'}">简略</button><button data-log-mode="detailed" aria-pressed="${reviewUI.logMode==='detailed'}">详细</button></div><button id="review-log-close">收起</button></header><div class="log-scroll">${reviewUI.nodes.map(n=>`<section class="log-node" data-log-node="${escape(n.id)}"><button class="log-node-heading" data-review-node="${escape(n.id)}"><small>Step ${n.number}</small><strong class="log-node-title">${escape(reviewTitle(n))}</strong></button>${n.kind==='initial'?`<div class="compact-cards">${(reviewUI.report.initial_hand||boardCards(n,0,2)).map(c=>reviewLogCard(c,n.id,{zone:false})).join('')}</div>`:n.kind==='final'?reviewFinalCards(n,reviewUI.report,reviewEdits(),{compact:reviewUI.logMode==='compact'}):''}${n.action_ids.map(id=>actions.get(id)).filter(Boolean).map(a=>reviewLogAction(a,n)).join('')||`<p>${n.kind==='initial'?'开始展开时的实际手牌。':n.kind==='final'?'结束后的最终状态与逐卡说明。':'本节点无额外操作。'}</p>`}</section>`).join('')}
+  $('#review-log').innerHTML=`<header><h3>展开日志</h3><div class="log-mode" role="group" aria-label="日志显示方式"><button data-log-mode="compact" aria-pressed="${reviewUI.logMode==='compact'}">简略</button><button data-log-mode="detailed" aria-pressed="${reviewUI.logMode==='detailed'}">详细</button></div><button id="review-log-close">收起</button></header><div class="log-scroll">${reviewUI.nodes.map(n=>`<section class="log-node" data-log-node="${escape(n.id)}"><button class="log-node-heading" data-review-node="${escape(n.id)}"><small>Step ${n.number}</small><strong class="log-node-title">${escape(reviewTitle(n))}</strong></button>${n.kind==='initial'?`<div class="compact-cards">${(reviewUI.report.initial_hand||boardCards(n,0,2)).map(c=>reviewLogCard(c,n.id,{zone:false})).join('')}</div>`:n.kind==='final'?reviewFinalCards(n,reviewUI.report,reviewEdits(),{compact:reviewUI.logMode==='compact'}):''}${(reviewUI.logMode==='compact'?groupedLogActions(n.action_ids.map(id=>actions.get(id)).filter(Boolean),reviewUI.report):n.action_ids.map(id=>actions.get(id)).filter(Boolean)).map(a=>reviewLogAction(a,n)).join('')||`<p>${n.kind==='initial'?'开始展开时的实际手牌。':n.kind==='final'?'结束后的最终状态与逐卡说明。':'本节点无额外操作。'}</p>`}</section>`).join('')}
     <details class="review-evidence"><summary>完整报告与原始事件</summary><label><input id="all-events" type="checkbox">查看原始事件</label><a href="/api/raw/${escape(reviewUI.report.id)}" target="_blank">原始记录 JSONL</a><div id="review-raw-events"></div></details></div>`;
   $('#review-log-close').onclick=()=>setReviewDrawer(false);
   $('#review-log-edge-toggle').onclick=()=>setReviewDrawer(!reviewUI.drawer);
@@ -393,7 +406,7 @@ function scrollReviewLogTo(id) {
   const scroller=$('#review-log .log-scroll'), node=document.querySelector(`[data-log-node="${CSS.escape(id)}"]`);
   if(!scroller||!node||!reviewUI.drawer)return;
   const top=node.getBoundingClientRect().top-scroller.getBoundingClientRect().top;
-  if(top<0||top>scroller.clientHeight-60)scroller.scrollTop+=top;
+  if(top<0||top>scroller.clientHeight-60||top>0&&node.getBoundingClientRect().bottom>scroller.getBoundingClientRect().bottom)scroller.scrollTop+=top;
 }
 function setReviewLogMode(mode) {
   if(!['compact','detailed'].includes(mode)||mode===reviewUI.logMode)return;

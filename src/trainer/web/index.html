@@ -168,7 +168,7 @@
   <section id="save-confirmation" class="save-confirmation" hidden aria-label="保存前二次确认"></section>
   <section id="plans" hidden class="plans-page" aria-label="展开管理">
     <header><div><div class="eyebrow">SAVED PLANS</div><h1>展开管理</h1><p>正式保存的方案，保留展开当时的牌组与记录。</p></div><div class="library-actions"><button id="import-plan">导入方案</button><button id="manage-tags">管理标签</button><button id="refresh-plans">刷新方案</button></div></header>
-    <div class="plan-filters panel"><label>搜索方案或标签别名<input id="plan-search" type="search" placeholder="方案名称、转生炎兽、别名…"></label><label>系列分类<select id="plan-tag-filter"><option value="">全部标签</option></select></label><label class="inline-check"><input id="plan-primary-only" type="checkbox">仅按主标签分类</label><span id="plan-count" role="status"></span></div>
+    <div class="plan-browser-toolbar panel"><button id="plan-folder-up" aria-label="返回上级文件夹" title="返回上级文件夹">↑</button><nav id="plan-folder-path" aria-label="当前文件夹"></nav><label class="plan-browser-search"><span class="sr-only">搜索方案或卡片</span><input id="plan-search" type="search" placeholder="搜索方案、标签别名或卡片名称 / 编号"></label><span id="plan-count" role="status"></span></div>
     <div class="history-layout"><div id="plan-list" class="panel history-list"></div><article id="plan-report" class="panel report"><div class="empty">选择已保存方案查看。</div></article></div>
     <details id="history-archive"><summary>历史记录与未保存草稿</summary><div id="history-list" class="panel history-list"></div></details>
   </section>

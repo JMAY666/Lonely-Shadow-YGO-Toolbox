@@ -67,11 +67,24 @@ function tutorialOperationStages(item,node,plan,role='') {
 }
 function tutorialAction(action,node,plan) {
   const stages=[],notes=[],add=(text,color='ink')=>{if(text)notes.push({text,color});};
+  const replacement=appliedReplacement(action,plan);
+  if(replacement) {
+    stages.push({label:replacement.label,cards:tutorialFlowCards(action.cards,node,plan)});
+    stages.push(...tutorialOperationStages(action,node,plan));
+    stages.push({label:'代替破坏',cards:[],text:replacement.result});
+    return {id:action.id,stages,notes};
+  }
   if(action.kind==='effect') {
     const num=Number(action.effect_number),label=num>0?('①②③④⑤⑥⑦⑧⑨⑩'[num-1]||String(num)):'效果';
-    stages.push({label:cardActivation(action,plan)||`发动${label}`,cards:tutorialFlowCards(action.cards,node,plan),text:action.cards?.length?'':'卡牌未记录'});
+    stages.push({label:(actionSide(action)==='对方'?'对方 ':'')+(cardActivation(action,plan)||`发动${label}`),cards:tutorialFlowCards(action.cards,node,plan),text:action.cards?.length?'':'卡牌未记录'});
     for(const cost of action.costs||[])stages.push(...tutorialOperationStages(cost,node,plan,'Cost'));
     if(action.targets?.length)stages.push({label:'对象',cards:tutorialFlowCards(action.targets,node,plan)});
+    if(action._interaction) {
+      const {source,event,label:result}=action._interaction;
+      const response=tutorialAction({...source,results:(source.results||[]).filter(r=>r.event_ref!==event.id)},node,plan);
+      stages.push(...response.stages,{label:(action.cards.some(c=>(plan.catalog?.[c.code]?.type||0)&1)?'我方怪兽':'我方卡片')+result,cards:tutorialFlowCards(action.cards,node,plan)});
+      notes.push(...response.notes.filter(n=>n.text!=='处理结果未记录'));
+    }
     for(const result of action.results||[])stages.push(...tutorialOperationStages(result,node,plan));
     if(action.status!=='resolved')add(({negated:'发动被无效',disabled:'效果被无效',pending:'已发动，尚未确认结算'}[action.status])||action.status_label||'结算状态未记录','warning');
     if(activationResultMissing(action,plan))add('处理结果未记录','warning');
@@ -93,7 +106,7 @@ function buildPlanTutorial(plan,includeBranches=false) {
     const notes=[];
     if(edit.notes?.trim())notes.push({text:tutorialNote(edit.notes),color:'note'});
     if(!active.length)notes.push({text:'本节点没有已记录操作',color:'muted'});
-    steps.push({id:n.id,number:n.number,title:tutorialNote(edit.name||''),actions:active.map(a=>tutorialAction(a,n,plan)),notes});
+    steps.push({id:n.id,number:n.number,title:tutorialNote(edit.name||''),actions:groupedLogActions(active,plan).map(a=>tutorialAction(a,n,plan)),notes});
   }
   let opening=plan.requirements?.opening;
   const openingKnown=Array.isArray(opening);
@@ -179,8 +192,9 @@ function layoutPlanTutorial(model) {
     const notes=s.notes.flatMap(l=>tutorialWrap(l.text,bodyWidth,14).map(text=>({...l,text})));
     return {...s,actions,notes,notesY:y,title,header,width:nodeWidth,height:Math.max(140,y+notes.length*20+18)};
   });
-  const openingColumns=model.opening.length>3?2:1,openingWidth=openingColumns===2?570:370;
-  const finalWidth=width-pad*2-openingWidth-24,finalColumns=finalWidth>900&&model.finalCards.length>=4?4:3;
+  const openingColumns=model.opening.length>3?2:1,openingWidth=model.branchFinal?0:openingColumns===2?570:370;
+  const finalX=model.branchFinal?pad:pad+openingWidth+24;
+  const finalWidth=width-pad-finalX,finalColumns=finalWidth>900&&model.finalCards.length>=4?4:3;
   const cardWidth=(finalWidth-40-24*(finalColumns-1))/finalColumns;
   const finalCards=model.finalCards.map(c=>{
     const lines=[...tutorialWrap(c.name,cardWidth-82,15).map(text=>({text,color:'ink'})),
@@ -192,14 +206,14 @@ function layoutPlanTutorial(model) {
   let finalHeight=58;
   for(let i=0;i<finalCards.length;i+=finalColumns) {
     const row=finalCards.slice(i,i+finalColumns),height=Math.max(...row.map(c=>c.height));
-    row.forEach((c,col)=>Object.assign(c,{x:pad+openingWidth+24+20+col*(cardWidth+24),y:finalHeight}));
+    row.forEach((c,col)=>Object.assign(c,{x:finalX+20+col*(cardWidth+24),y:finalHeight}));
     finalHeight+=height+12;
   }
   if(!finalCards.length)finalHeight+=60;
   const finalNotes=tutorialWrap(model.finalNote,finalWidth-40,14);
   if(model.finalNote)finalHeight+=finalNotes.length*20+12;
   const openingCardWidth=(openingWidth-40-16*(openingColumns-1))/openingColumns;
-  const openingRows=model.opening.map(c=>{
+  const openingRows=(model.branchFinal?[]:model.opening).map(c=>{
     const lines=tutorialWrap(`${c.name} ×${c.count}${c.manual?'（补充）':''}`,openingCardWidth-68,15);
     const conditions=c.constraint?tutorialWrap(c.constraint,openingCardWidth-68,13):[];
     return {...c,lines,conditions,height:Math.max(80,(lines.length+conditions.length)*21+16)};
@@ -210,7 +224,7 @@ function layoutPlanTutorial(model) {
     row.forEach((c,col)=>Object.assign(c,{x:pad+20+col*(openingCardWidth+16),y:openingBottom}));
     openingBottom+=height;
   }
-  const conditionLines=model.conditionsNote?tutorialWrap(model.conditionsNote,openingWidth-40,14):[];
+  const conditionLines=!model.branchFinal&&model.conditionsNote?tutorialWrap(model.conditionsNote,openingWidth-40,14):[];
   const openingNoteY=openingBottom+(!openingRows.length?44:0);
   const openingHeight=openingNoteY+conditionLines.length*20+18;
   const overviewY=100,overviewHeight=Math.max(180,openingHeight,finalHeight+10);
@@ -222,7 +236,7 @@ function layoutPlanTutorial(model) {
   }
   if(!boxes.length)y+=65;
   const footer=[...model.warnings.map(text=>({text,color:'warning'})),...(model.note?[{text:model.note,color:'note'}]:[])].flatMap(l=>tutorialWrap(l.text,width-pad*2,14).map(text=>({...l,text})));
-  return {width,height:y+footer.length*20+60,pad,gap,columns,boxes,openingWidth,openingNoteY,finalWidth,openingRows,finalCards,finalNotes,conditionLines,overviewY,overviewHeight,footerY:y,footer};
+  return {width,height:y+footer.length*20+60,pad,gap,columns,boxes,openingWidth,openingNoteY,finalX,finalWidth,openingRows,finalCards,finalNotes,conditionLines,overviewY,overviewHeight,footerY:y,footer};
 }
 function renderPlanTutorialSvg(model,layout=layoutPlanTutorial(model),assets={}) {
   if(model.routes)return renderBranchedTutorial(model,layout,assets);
@@ -230,20 +244,20 @@ function renderPlanTutorialSvg(model,layout=layoutPlanTutorial(model),assets={})
   const rect=(x,y,w,h,fill,stroke='#d9e5df',radius=12)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${radius}" fill="${fill}" stroke="${stroke}"/>`;
   const text=(value,x,y,size=15,color='ink',weight=400,anchor='start')=>`<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="${size}" font-weight="${weight}" fill="${tutorialColors[color]||color}">${esc(value)}</text>`;
   const picture=(src,x,y,w=48,h=70)=>`<image href="${esc(assets[src]||src)}" x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="xMidYMid meet"/>`;
-  const {width,height,pad,overviewY,overviewHeight,openingWidth,finalWidth}=layout;
+  const {width,height,pad,overviewY,overviewHeight,openingWidth,finalX,finalWidth}=layout;
   out.push(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="${esc(model.name)} · 展开一图流" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif"><title>${esc(model.name)} · 展开一图流</title><defs><marker id="tutorial-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="#2c745e" stroke-width="1.7"/></marker></defs>`);
   out.push(rect(0,0,width,height,'#f3f7f2','#f3f7f2',0),rect(pad,26,6,42,'#2c745e','#2c745e',3),text('展开',pad+22,58,30,'ink',700));
   const title=tutorialWrap(model.name,width-260,22);
   out.push(text(title[0]+(title.length>1?'…':''),pad+110,57,22,'accent',600),text(`${model.steps.length} 个步骤 · 顺箭头阅读`,width-245,83,13,'muted'));
-  out.push(rect(pad,overviewY,openingWidth,overviewHeight,'#fff'),rect(pad+openingWidth+24,overviewY,finalWidth,overviewHeight,'#fff'));
-  out.push(text('起手条件',pad+20,overviewY+34,19,'ink',700),text('终场展示',pad+openingWidth+44,overviewY+34,19,'ink',700));
+  if(!model.branchFinal)out.push(rect(pad,overviewY,openingWidth,overviewHeight,'#fff'),text('起手条件',pad+20,overviewY+34,19,'ink',700));
+  out.push(rect(finalX,overviewY,finalWidth,overviewHeight,'#fff'),text(model.branchFinal?'终场':'终场展示',finalX+20,overviewY+34,19,'ink',700));
   for(const c of layout.openingRows) {
     const y=overviewY+c.y;
     out.push(picture(c.src,c.x,y,45,65));
     c.lines.forEach((l,i)=>out.push(text(l,c.x+62,y+18+i*21,15,'ink',600)));
     c.conditions.forEach((l,i)=>out.push(text(l,c.x+62,y+18+(c.lines.length+i)*21,13,'muted')));
   }
-  if(!layout.openingRows.length)out.push(text(model.openingKnown?'未识别到指定起手，请核对方案':'起手未记录',pad+20,overviewY+78,14,'muted'));
+  if(!model.branchFinal&&!layout.openingRows.length)out.push(text(model.openingKnown?'未识别到指定起手，请核对方案':'起手未记录',pad+20,overviewY+78,14,'muted'));
   layout.conditionLines.forEach((l,i)=>out.push(text(l,pad+20,overviewY+layout.openingNoteY+16+i*20,14,'note')));
   for(const c of layout.finalCards) {
     const y=overviewY+c.y;
@@ -252,8 +266,8 @@ function renderPlanTutorialSvg(model,layout=layoutPlanTutorial(model),assets={})
     c.lines.forEach((l,i)=>out.push(text(l.text,c.x+64,y+16+i*20,i===0?15:14,l.color,i===0?600:400)));
     c.notes.forEach((l,i)=>out.push(text(l.text,c.x,y+c.headHeight+16+i*20,14,l.color,l.color==='note'?600:400)));
   }
-  if(!layout.finalCards.length)out.push(text('未标记终场卡牌；可在终场步骤中勾选。',pad+openingWidth+44,overviewY+83,15,'muted'));
-  if(model.finalNote)layout.finalNotes.forEach((l,i)=>out.push(text(l,pad+openingWidth+44,overviewY+overviewHeight-20-(layout.finalNotes.length-1-i)*20,14,'note')));
+  if(!layout.finalCards.length)out.push(text('未标记终场卡牌；可在终场步骤中勾选。',finalX+20,overviewY+83,15,'muted'));
+  if(model.finalNote)layout.finalNotes.forEach((l,i)=>out.push(text(l,finalX+20,overviewY+overviewHeight-20-(layout.finalNotes.length-1-i)*20,14,'note')));
   out.push(text('展开流程',pad,overviewY+overviewHeight+44,21,'ink',700),text('卡图 + 关键词 · 按 Step 序号依次展开',pad+116,overviewY+overviewHeight+43,14,'muted'));
   // Each row reverses direction. Row turns travel outside the boxes so that
   // arrows cannot cross text, including an incomplete final row.

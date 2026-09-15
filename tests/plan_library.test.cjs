@@ -17,10 +17,19 @@ test('frozen field activation is recognized from native evidence, with costs and
   const before=JSON.stringify({a,r});
   assert.equal(c.cardActivation(a,r),'发动场地魔法卡');assert.equal(c.activationResultMissing(a,r),false);
   assert.equal(JSON.stringify({a,r}),before);
-  for(const status of ['pending','negated','disabled']){a.status=status;assert(c.activationResultMissing(a,r));}
+  a.status='pending';assert(c.activationResultMissing(a,r));
+  for(const status of ['negated','disabled']){a.status=status;assert.equal(c.activationResultMissing(a,r),false);}
   a.status='resolved';a.engine_effect={effect_type:0x82};assert.equal(c.cardActivation(a,r),null);assert(c.activationResultMissing(a,r));
 });
 test('old placement fallback needs matching physical card evidence and does not infer activation from field type alone',()=>{
   const c=setup('activation.js'),a={kind:'effect',id:'2:0',cards:[{code:1,instance_id:8}],evidence_refs:['1:0','2:0']},r={catalog:{1:{type:0x80002}},events:[{id:'1:0',message:50,cards:[{instance_id:8}],origin:{location:2},destination:{location:8,position:1}},{id:'2:0'}]};
   assert.equal(c.cardActivation(a,r),'发动场地魔法卡');r.events[0].cards[0].instance_id=9;assert.equal(c.cardActivation(a,r),null);
+});
+
+test('saved plan search finds cards from either route by name or exact code and keeps folder scope',()=>{
+  const c=setup('plan-library.js');
+  const plans=[{name:'方案 A',tags:[{id:'a',name:'转生炎兽'}],search_cards:[{code:14812471,name:'转生炎兽 烽火猞猁'}]},{name:'方案 B',tags:[],search_cards:[{code:10,name:'分支续展卡'}]}];
+  assert.equal(c.filterPlans(plans,'猞猁').length,1);assert.equal(c.filterPlans(plans,'14812471').length,1);
+  assert.equal(c.filterPlans(plans,'14812').length,0);assert.equal(c.filterPlans(plans,'分支续展').length,1);
+  assert.equal(c.filterPlans(plans,'分支续展','a').length,0);assert.equal(c.filterPlans(plans,'不存在').length,0);
 });

@@ -27,6 +27,7 @@ function draftDirty() {
 async function confirmFlow(title, warning, action) {
   const dialog = $('#flow-dialog'), form = dialog.querySelector('form');
   $('#flow-message').textContent = title; $('#flow-warning').textContent = warning; $('#flow-confirm').textContent = action;
+  $('#flow-confirm').classList.toggle('danger',/删除|放弃/.test(action));
   flow.confirming = true;
   await syncNativeHost();
   return new Promise(resolve => {

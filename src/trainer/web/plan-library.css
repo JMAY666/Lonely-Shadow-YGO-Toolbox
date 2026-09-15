@@ -1,9 +1,4 @@
 .library-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
-.plan-filters { display:flex; align-items:end; flex-wrap:wrap; gap:16px; padding:16px; margin-bottom:18px; }
-.plan-filters label { margin:0; flex:1; min-width:160px; }
-.plan-filters label:first-child { flex:2; }
-.plan-filters label>input:not([type=checkbox]), .plan-filters select { display:block; width:100%; margin-top:6px; }
-.plan-filters .inline-check { display:flex; align-items:center; gap:6px; flex:0 0 auto; padding:10px 0; }
 .inline-check input { width:auto; }
 #plan-count { font-size:12px; padding:10px 0; color:#5d7169; }
 .plan-tag-chips { display:flex; gap:5px; flex-wrap:wrap; margin:7px 0; }
@@ -30,3 +25,21 @@
 #tag-definition-form { border-top:1px solid #d9e6de; margin-top:18px; }
 #tag-definition-source { color:#6a7c71; }
 @media(max-width:720px) { .plans-page>header { flex-wrap:wrap; gap:12px; }.library-dialog { padding:16px; }.chosen-tag { flex-wrap:wrap; } }
+.plan-browser-toolbar { display:flex; align-items:center; gap:12px; padding:12px; margin-bottom:16px; }
+#plan-folder-path { display:flex; flex:1; align-items:center; gap:12px; min-width:140px; font-size:13px; }
+#plan-folder-path button { background:transparent; border:0; padding:8px; }
+#plan-folder-path strong { overflow-wrap:anywhere; }
+.plan-browser-search { margin:0; flex:0 1 440px; }
+.plan-browser-search input { width:100%; }
+#plan-count { white-space:nowrap; padding:0 6px; }
+.plan-folder-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding-bottom:12px; margin-bottom:12px; border-bottom:1px solid #e0e7e2; }
+.plan-folder { display:grid; justify-items:center; gap:5px; padding:12px 5px; border:1px solid transparent; background:transparent; text-align:center; min-width:0; }
+.plan-folder:hover { border-color:#b9d8c9; background:#edf5ef; }
+.plan-folder svg { width:48px; height:38px; }
+.plan-folder strong { font-size:12px; overflow-wrap:anywhere; }
+.plan-folder small { font-size:10px; color:#748177; }
+.plan-file { position:relative; padding-left:42px; }
+.plan-file-icon { position:absolute; top:14px; left:13px; color:#538675; font-size:23px; }
+.plan-file strong { font-size:13px; }
+@media(max-width:760px) { .plan-browser-toolbar { flex-wrap:wrap; } .plan-browser-search { flex:1 1 100%; order:2; } }
+.sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }

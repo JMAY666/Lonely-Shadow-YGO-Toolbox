@@ -49,7 +49,7 @@ test('compact effect keeps activation, cost and summon horizontally, with failed
   assert.equal((html.match(/data-review-card=/g)||[]).length,3);
   assert(!html.includes('具体效果待补充'));assert(!html.includes('textarea'));
   const failed=r.reviewLogAction({...a,status:'negated',results:[]},{id:'step',number:2});
-  assert.match(failed,/发动被无效/);assert.match(failed,/Cost · 送墓/);assert.match(failed,/处理结果未记录/);
+  assert.match(failed,/发动被无效/);assert.match(failed,/Cost · 送墓/);assert(!failed.includes('处理结果未记录'));
 });
 
 test('XYZ material movements appear once; Link destinations remain available only in detailed mode',()=>{
@@ -218,4 +218,55 @@ test('hover opens only after its delay, stale targets are canceled and pinned de
   r.closeReviewDetail();r.scheduleReviewHover(r.outside);r.outside.hovered=false;r.advance(400);assert.equal(r.reviewUI.selected,null);
   r.outside.hovered=true;r.scheduleReviewHover(r.outside);r.closeReviewDetail();r.advance(400);assert.equal(r.reviewUI.selected,null);
   r.openReviewDetail(r.outside);r.scheduleReviewHover({...r.outside,dataset:{reviewCard:'material'}});r.advance(400);assert.equal(r.reviewUI.selected,r.host);
+});
+
+test('Balelynx replacement shows effect two and the prevention result only with matching native cause',()=>{
+  const r=setup(),c={code:14812471,instance_id:54,name:'转生炎兽 烽火猞猁',controller:0,location:16};
+  const e={id:'20:0',message:50,cards:[c],origin:{controller:0,location:16},destination:{controller:0,location:32,position:5},reason:64,
+    cause:{owner_code:c.code,handler_code:c.code,handler_instance:54,event_code:50,effect_type:2058,range:16}};
+  const a={id:e.id,kind:'action',cards:[c],evidence_refs:[e.id],summary:'除外'};
+  const report={events:[e],actions:[a],catalog:{14812471:{desc:'①：检索。\n②：自己场上的「转生炎兽」卡被战斗·效果破坏的场合，可以作为代替把墓地的这张卡除外。'}}};
+  const before=JSON.stringify(report);r.reviewUI.report=report;
+  const html=r.reviewLogAction(a,{id:'step',number:2});
+  assert.match(html,/②效果代替破坏/);assert.match(html,/代替我方「转生炎兽」卡被破坏/);assert(!html.includes('处理结果未记录'));
+  assert.equal(JSON.stringify(report),before);
+  for(const field of ['owner_code','handler_instance','event_code','effect_type','range']) {
+    const saved=e.cause[field];e.cause[field]=999;
+    assert.equal(r.context.appliedReplacement(a,report),null,field);e.cause[field]=saved;
+  }
+  e.reason=128;assert.equal(r.context.appliedReplacement(a,report),null);
+});
+
+test('opponent Infinite Impermanence is connected to the affected monster with costs and all evidence retained',()=>{
+  const r=setup(),monster={code:10,instance_id:1,name:'我方怪兽',controller:0,location:4},trap={code:10045474,instance_id:2,name:'无限泡影',controller:1,location:8};
+  const own={id:'1:0',activation_ref:'1:0',kind:'effect',status:'disabled',cards:[monster],evidence_refs:['1:0','4:0'],results:[],targets:[],costs:[]};
+  const response={id:'2:0',activation_ref:'2:0',kind:'effect',status:'resolved',cards:[trap],engine_effect:{effect_type:0x10},targets:[monster],costs:[{message:100,text:'支付 1000 LP',cards:[]}],results:[{event_ref:'4:0',message:76,cards:[monster]}],evidence_refs:['2:0','4:0']};
+  const negated={id:'4:0',message:76,resolution_source_ref:'2:0',activation_ref:'1:0',cards:[monster]};
+  const report={actions:[own,response],events:[{id:'1:0'},{id:'2:0'},negated],catalog:{10:{type:1},10045474:{type:4}}};r.reviewUI.report=report;
+  const before=JSON.stringify(report),group=r.context.groupedLogActions(report.actions,report);assert.equal(group.length,1);
+  const html=r.reviewLogAction(group[0],{id:'step',number:2});
+  for(const text of ['对方 发动陷阱卡','无限泡影','我方怪兽效果被无效','1000 LP','查看记录依据 · 3 条'])assert(html.includes(text),text);
+  assert(!html.includes('处理结果未记录'));assert.equal(JSON.stringify(report),before);
+  negated.resolution_source_ref=null;assert.equal(r.context.groupedLogActions(report.actions,report).length,2);
+  negated.resolution_source_ref='2:0';assert.equal(r.context.groupedLogActions([own],report).length,1,'No action is removed from another step');
+});
+
+test('legacy Impermanence target and delayed disabled event form one observed sequence without rewriting causal evidence',()=>{
+  const r=setup(),monster={code:2772337,instance_id:49,controller:0,location:4,name:'赐炎之咎姬'},trap={code:10045474,instance_id:97,controller:1,location:8,name:'无限泡影'};
+  const own={id:'1:0',activation_ref:'1:0',kind:'effect',chain_group:1,chain_link:1,status:'disabled',cards:[monster],evidence_refs:['1:0','9:0'],results:[]};
+  const response={id:'3:0',activation_ref:'3:0',kind:'effect',chain_group:1,chain_link:2,status:'resolved',cards:[trap],engine_effect:{owner_code:10045474,effect_type:26},targets:[],results:[],evidence_refs:['3:0','7:0']};
+  const target={id:'4:0',kind:'target',cards:[monster],evidence_refs:['4:0']};
+  const events=[{id:'1:0',message:70},{id:'2:0',message:71,activation_ref:'1:0'},
+    {id:'3:0',message:70},{id:'4:0',message:83,targets:[monster]},{id:'5:0',message:71,activation_ref:'3:0'},
+    {id:'6:0',message:72,activation_ref:'3:0'},{id:'7:0',message:73,activation_ref:'3:0'},
+    {id:'8:0',message:72,activation_ref:'1:0'},{id:'9:0',message:76,activation_ref:'1:0',resolution_source_ref:'1:0'}];
+  const report={actions:[own,response,target],events,catalog:{2772337:{type:1},10045474:{type:4}}};r.reviewUI.report=report;
+  const before=JSON.stringify(report),group=r.context.groupedLogActions(report.actions,report);
+  assert.equal(group.length,1);assert.equal(group[0]._interaction.direct,false);
+  const html=r.reviewLogAction(group[0],{id:'step',number:2});
+  assert.match(html,/无限泡影/);assert.match(html,/随后 我方怪兽效果被无效/);assert.match(html,/按实际对象与结算顺序连接/);
+  assert(group[0]._interaction.source.evidence_refs.includes('4:0'));
+  assert.equal(JSON.stringify(report),before);
+  response.status='negated';assert.equal(r.context.negationLinks(report).length,0);
+  response.status='resolved';events[3].targets=[{...monster,instance_id:50}];assert.equal(r.context.negationLinks(report).length,0);
 });

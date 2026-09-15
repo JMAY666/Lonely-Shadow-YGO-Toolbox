@@ -219,3 +219,18 @@ class ActivationTests(unittest.TestCase):
         action=project_actions(plan)[0]
         self.assertEqual(action['summary'],'发动场地魔法卡－转生炎兽的圣域')
         self.assertIsNone(action['status_label'])
+
+class PlanSearchTests(unittest.TestCase):
+    def test_index_uses_actual_own_cards_and_branch_cards_without_touching_plan(self):
+        from plan_library import search_cards
+        plan = sample()
+        branch = deepcopy(plan)
+        branch['actions'] = [{'id':'30:0', 'cards':[{'code':103,'controller':0},{'code':999,'controller':1}], 'evidence_refs':[]}]
+        branch['catalog']['103'] = {'name':'分支实际卡'}
+        plan['branches'] = [{'report':branch}]
+        before = deepcopy(plan)
+        result = search_cards(plan)
+        self.assertEqual({c['code'] for c in result}, {101,102,103})
+        self.assertNotIn(999, {c['code'] for c in result})
+        self.assertEqual(next(c for c in result if c['code']==103)['name'], '分支实际卡')
+        self.assertEqual(plan, before)

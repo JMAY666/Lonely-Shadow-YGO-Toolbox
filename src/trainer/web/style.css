@@ -420,3 +420,9 @@ dialog::backdrop { background: #071016aa; }
 @media (max-width: 1380px) { .app-bar .local { display: none; } .app-bar nav { margin-left: auto; } }
 @media (max-width: 900px) { .app-bar { height: auto; min-height: 58px; flex-wrap: wrap; gap: 8px; padding: 12px; } .app-bar nav { width: 100%; overflow-x: auto; min-height: 42px; margin: 0; } .opening-slots { gap: 7px; } .opening-slot { min-height: 200px; } .opening-slot img { height: 100px; } .design-content { padding: 16px; } .history-layout { grid-template-columns: 180px minmax(0,1fr); } }
 @media (max-width: 600px) { .opening-slots { grid-template-columns: repeat(2,minmax(0,1fr)); } #opening-choices { grid-template-columns: 1fr; } .history-layout { display: block; } .history-list { max-height: 200px; margin-bottom: 16px; } .design-footer { flex-wrap: wrap; } }
+.delete-dialog button { background:#2b4350; border-color:#668594; color:#edf5f8; }
+.delete-dialog button:hover { background:#3b5665; }
+.delete-dialog button[value=confirm] { background:#267957; border-color:#368767; color:#fff; }
+.delete-dialog button[value=confirm]:hover { background:#1c6447; }
+.delete-dialog button[value=confirm].danger { background:#a64338; border-color:#c66e61; color:#fff; }
+.delete-dialog button[value=confirm].danger:hover { background:#8d352c; }

@@ -103,10 +103,9 @@ async function verifyBranchRestart() {
   nativePid=null;
   await launch(false,false);
   await page.evaluate(id=>showPlan(id),compromiseSaved.id);
-  assert.equal(await page.locator('#saved-branch-view').isChecked(),false);
+  assert.equal(await page.locator('#saved-branch [data-branch-route="main"]').getAttribute('aria-pressed'),'true');
   assert.equal(await page.locator('#nav-compromise').isDisabled(),true);
-  await page.locator('#saved-branch-select').selectOption(compromiseSaved.branch);
-  await page.locator('#saved-branch-view').check();
+  await page.locator(`#saved-branch [data-branch-route="${compromiseSaved.branch}"]`).click();
   assert((await page.locator('#saved-branch-panel').innerText()).includes('效果被无效'));
   const reopened=await page.evaluate(id=>api('/api/plan/'+id),compromiseSaved.id);
   assert.equal(reopened.branches.length,2);
@@ -143,8 +142,18 @@ async function activatePot(sid) {
 
 (async () => {
   await launch(true);
+  if(process.argv.includes('--route-display-only')) {
+    const plans=await page.evaluate(()=>api('/api/plans'));
+    assert(plans.length,'Run the full smoke once to create an isolated saved plan');
+    const plan=await page.evaluate(id=>api('/api/plan/'+id),plans[0].id);
+    await require('./route-display-smoke.cjs')({page,plan,pass,evidence});
+    await close();assert.deepEqual(errors,[]);
+    fs.writeFileSync(path.join(evidence,'route-display-result.json'),JSON.stringify({checks,errors},null,2));return;
+  }
   if(onlyCompromise) {
     compromiseSaved=await require('./compromise-smoke.cjs')({application,page,nativeWait,nativeState,hostWait,pass,evidence});
+    const plan=await page.evaluate(id=>api('/api/plan/'+id),compromiseSaved.id);
+    await require('./route-display-smoke.cjs')({page,plan,pass,evidence});
     await close();await verifyBranchRestart();console.log(JSON.stringify({label,checks,errors}));process.exit(0);
   }
   if(process.argv.includes('--inspection-only')) {
@@ -408,6 +417,7 @@ async function activatePot(sid) {
   await page.screenshot({path:path.join(evidence,'saved-plan.png')});
   await require('./plan-tutorial-smoke.cjs')({page,application,plan:report,pass,evidence});
   await require('./plan-library-smoke.cjs')({page,application,plan:report,pass,evidence});
+  await require('./route-display-smoke.cjs')({page,plan:report,pass,evidence});
   pass('Draft text adjustment, visible save failure with retained content, retry and idempotent formal save');
   await close();
   pass('Window close releases service, native process and listening port');

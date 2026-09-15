@@ -7,6 +7,16 @@ import plan_tags as tags
 import plan_sharing as sharing
 
 
+def search_cards(plan):
+    """Read-only card index across the main route and its recorded branches."""
+    found = {}
+    for route in [plan, *(b['report'] for b in plan.get('branches', []) if b.get('report'))]:
+        for code in tags.used_codes(route):
+            card = route.get('catalog', {}).get(str(code), plan.get('catalog', {}).get(str(code), {}))
+            found[code] = {'code': code, 'name': card.get('name') or str(code)}
+    return [found[code] for code in sorted(found)]
+
+
 class PlanLibrary:
     def __init__(self, store, read, write, clock):
         self.store, self.read, self.write, self.clock = store, read, write, clock

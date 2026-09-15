@@ -1,6 +1,6 @@
 'use strict';
 
-const planLibraryUI={plans:[],info:null,selection:null,editingTag:null,tagDocument:null,importDocument:null,preview:null};
+const planLibraryUI={plans:[],folder:'',info:null,selection:null,editingTag:null,tagDocument:null,importDocument:null,preview:null};
 const tagSearchKey=value=>String(value||'').normalize('NFKC').trim().toLocaleLowerCase();
 const tagMatches=(tag,q)=>[tag.name,...tag.aliases||[]].some(value=>tagSearchKey(value).includes(tagSearchKey(q)));
 function filterPlans(plans,query='',tag='',primaryOnly=false) {
@@ -8,7 +8,7 @@ function filterPlans(plans,query='',tag='',primaryOnly=false) {
   return plans.filter(p=>{
     const tags=(p.tags||[]).filter(t=>!primaryOnly||t.primary);
     return (!tag||(tag==='untagged'?!p.tags?.length:tags.some(t=>t.id===tag)))&&
-      (!q||tagSearchKey(p.name).includes(q)||tagSearchKey(p.deck_name).includes(q)||tags.some(t=>tagMatches(t,q)));
+      (!q||tagSearchKey(p.name).includes(q)||tagSearchKey(p.deck_name).includes(q)||tags.some(t=>tagMatches(t,q))||(p.search_cards||[]).some(c=>tagSearchKey(c.name).includes(q)||String(c.code)===q));
   });
 }
 function tagChips(tags) {
@@ -16,13 +16,23 @@ function tagChips(tags) {
 }
 function renderPlanList(plans=planLibraryUI.plans) {
   planLibraryUI.plans=plans;
-  const select=$('#plan-tag-filter'), previous=select.value, tags=new Map();
+  const tags=new Map();
   for(const p of plans)for(const tag of p.tags||[])tags.set(tag.id,tag);
-  select.innerHTML='<option value="">全部标签</option><option value="untagged">未分类</option>'+[...tags.values()].sort((a,b)=>a.name.localeCompare(b.name,'zh-CN')).map(t=>`<option value="${escape(t.id)}">${escape(t.name)}</option>`).join('');
-  select.value=[...select.options].some(o=>o.value===previous)?previous:'';
-  const visible=filterPlans(plans,$('#plan-search').value,select.value,$('#plan-primary-only').checked);
+  if(planLibraryUI.folder!=='untagged'&&!tags.has(planLibraryUI.folder))planLibraryUI.folder='';
+  const folder=planLibraryUI.folder,q=$('#plan-search').value;
+  const visible=filterPlans(plans,q,folder);
+  const name=folder==='untagged'?'未归类':tags.get(folder)?.name;
+  $('#plan-folder-path').innerHTML=`<button data-plan-folder="">展开方案</button>${folder?`<span>›</span><strong>${escape(name)}</strong>`:''}`;
+  $('#plan-folder-up').disabled=!folder;
+  $('#plan-folder-up').onclick=()=>openPlanFolder('');
   $('#plan-count').textContent=`${visible.length} / ${plans.length} 个方案`;
-  $('#plan-list').innerHTML=visible.map(p=>`<button class="history-item ${p.id===flow.selectedPlan?'current':''}" data-plan="${escape(p.id)}"><strong>${escape(p.name)}</strong>${tagChips(p.tags||[])}<small>${escape(p.deck_name)}${p.imported?' · 已导入':''}</small><small>${dt(p.saved_ms)}</small></button>`).join('')||`<div class="empty">${plans.length?'没有符合条件的方案':'还没有正式方案'}<br><small>${plans.length?'可以更换名称、别名或分类条件。':'展开结束后保存，或导入分享文件。'}</small></div>`;
+  const folders=[...[...tags.values()].sort((a,b)=>a.name.localeCompare(b.name,'zh-CN')).map(t=>({id:t.id,name:t.name,count:plans.filter(p=>p.tags?.some(x=>x.id===t.id)).length})),...(plans.some(p=>!p.tags?.length)?[{id:'untagged',name:'未归类',count:plans.filter(p=>!p.tags?.length).length}]:[])];
+  const directories=!folder&&!q.trim()?`<div class="plan-folder-grid">${folders.map(t=>`<button data-plan-folder="${escape(t.id)}" class="plan-folder"><svg viewBox="0 0 48 38" aria-hidden="true"><path d="M3 7Q3 3 7 3H20L25 9H41Q45 9 45 13V31Q45 35 41 35H7Q3 35 3 31Z" fill="#e3bd67"/><path d="M3 14H45V31Q45 35 41 35H7Q3 35 3 31Z" fill="#f3d68b"/></svg><strong>${escape(t.name)}</strong><small>${t.count} 个方案</small></button>`).join('')}</div>`:'';
+  $('#plan-list').innerHTML=directories+visible.map(p=>`<button class="history-item plan-file ${p.id===flow.selectedPlan?'current':''}" data-plan="${escape(p.id)}"><span class="plan-file-icon" aria-hidden="true">▤</span><strong>${escape(p.name)}</strong><small>${escape(p.deck_name)}${p.imported?' · 已导入':''}</small><small>${dt(p.saved_ms)}</small></button>`).join('')+(!visible.length?`<div class="empty">${plans.length?'没有匹配的方案':'还没有正式方案'}<br><small>${plans.length?'可搜索卡片名称、编号或方案名称。':'展开结束后保存，或导入分享文件。'}</small></div>`:'');
+  document.querySelectorAll('[data-plan-folder]').forEach(b=>b.onclick=()=>openPlanFolder(b.dataset.planFolder));
+}
+function openPlanFolder(id) {
+  planLibraryUI.folder=id;$('#plan-search').value='';renderPlanList();
 }
 async function downloadPlan(plan) {
   const data=await api(`/api/plan-export/${plan.id}`);
@@ -106,7 +116,7 @@ async function savePlanTags() {
   try {
     const info=planLibraryUI.info,s=planLibraryUI.selection;
     const saved=await api('/api/plans/classify',{id:info.id,revision:info.edit_revision,classification:s,automatic:s.mode==='automatic'});
-    $('#plan-tags-dialog').close();await showPlan(saved.id);notice('方案标签已保存。');
+    await showPlan(saved.id);$('#plan-tags-dialog').close();notice('方案标签已保存。');
   }catch(e){$('#plan-tags-status').textContent=`保存失败：${e.message}`;}finally{button.disabled=false;}
 }
 async function openTagDictionary() {
@@ -157,7 +167,7 @@ async function commitPlanImport() {
     $('#plan-import-dialog').close();await showPlan(result.id);notice(result.duplicate?'已打开此前导入的方案。':'方案已导入，可回看、调整和分享。');
   }catch(e){$('#plan-import-status').textContent=`导入失败：${e.message}`;}finally{button.disabled=false;$('#plan-import-file').disabled=false;}
 }
-$('#plan-search').oninput=()=>renderPlanList();$('#plan-tag-filter').onchange=()=>renderPlanList();$('#plan-primary-only').onchange=()=>renderPlanList();
+$('#plan-search').oninput=()=>renderPlanList();
 $('#manage-tags').onclick=run(openTagDictionary);
 $('#import-plan').onclick=()=>{
   ensureLibraryDialogs();planLibraryUI.importDocument=null;planLibraryUI.preview=null;

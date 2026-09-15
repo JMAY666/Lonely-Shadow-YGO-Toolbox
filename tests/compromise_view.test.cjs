@@ -145,3 +145,11 @@ test('a normally hidden cleanup becomes an explicit real anchor only when a sele
   assert.equal(included.routes[0].model.steps[0].actions[0].id,'3:0');
   assert.equal(layout.connections.length,2);assert.equal(layout.connections[0].action,'3:0');
 });
+
+test('branched tutorial repeats no opening conditions in branch regions and gives their end board full width',()=>{
+  const tools=tutorial(),plan=planFixture(),model=tools.buildPlanTutorial(plan,true),layout=tools.layoutPlanTutorial(model);
+  const svg=tools.renderPlanTutorialSvg(model,layout);
+  assert.equal((svg.match(/>起手条件</g)||[]).length,1);
+  assert.equal((svg.match(/>终场</g)||[]).length,2);
+  for(const b of layout.routes.slice(1)){assert(b.model.branchFinal);assert.equal(b.inner.openingRows.length,0);assert.equal(b.inner.finalWidth,b.inner.width-b.inner.pad*2);}
+});

@@ -40,16 +40,55 @@ function updateBranchNav() {
 }
 function branchControls(id) {
   const branches=branchUI.root?.branches||[];
-  return `<div class="branch-controls"><strong>${branchUI.viewing?'妥协分支':'主线'} · ${branches.length} 条妥协分支</strong>
-    <label><input id="${id}-view" type="checkbox" ${branchUI.viewing?'checked':''} ${branches.length?'':'disabled'}>查看妥协场</label>
-    <label>当前选中分支<select id="${id}-select" ${branches.length?'':'disabled'}><option value="">请选择妥协分支</option>${branches.map(b=>`<option value="${escape(b.id)}" ${branchUI.selected===b.id?'selected':''}>${escape(b.name)}${b.valid===false?'（起点失效）':''}</option>`).join('')}</select></label>
-    <label><input id="${id}-resources" type="checkbox" ${branchUI.resources?'checked':''} ${branchUI.selected?'':'disabled'}>包含妥协场资源</label>
-    <small>展示：${branchUI.viewing?escape(selectedBranch()?.name||'请选择分支'):'主线'}<br>资源：主线${branchUI.resources?' ＋ '+escape(selectedBranch()?.name||'未选分支')+'的新增资源':''}</small></div>`;
+  const nodes=branchUI.root?.review?.nodes||[],groups=new Map();
+  if(!branches.length)return `<section id="${id}" class="branch-controls"><div class="branch-map-caption"><strong>主线 · ${nodes.length} 个步骤</strong><span>从步骤右键创建妥协分支</span></div></section>`;
+  for(const b of branches){const key=b.source.node_id;if(!groups.has(key))groups.set(key,[]);groups.get(key).push(b);}
+  const ordered=[...groups].sort((a,b)=>nodes.findIndex(n=>n.id===a[0])-nodes.findIndex(n=>n.id===b[0]));
+  return `<section id="${id}" class="branch-controls" aria-label="可视化路线切换"><div class="branch-map-caption"><strong>${branchUI.viewing?escape(selectedBranch()?.name||'妥协分支'):'主线'} <small>· ${branches.length} 条分支</small></strong><span>点击路线切换 · 悬停查看条件</span></div>
+    <div class="branch-map-scroll"><div class="branch-map"><button class="branch-main-route" data-branch-route="main" aria-pressed="${!branchUI.viewing}"><strong>主线</strong><small>完整展开</small></button>
+    ${ordered.map(([nodeId,items])=>`<div class="branch-fork"><button class="branch-origin" data-branch-origin="${escape(nodeId)}" data-branch-tooltip="${escape(items.map(b=>b.id).join(','))}"><span>●</span> ${nodes.find(n=>n.id===nodeId)?.kind==='initial'?'起手':`Step ${nodes.find(n=>n.id===nodeId)?.number||'?'}`}</button><div class="branch-fork-routes">${items.map(b=>`<button class="branch-route" data-branch-route="${escape(b.id)}" data-branch-tooltip="${escape(b.id)}" aria-pressed="${branchUI.viewing&&branchUI.selected===b.id}"><strong>${escape(b.name)}</strong><small>${escape(b.source.timing)}${b.valid===false?' · 起点失效':!b.report?' · 待展开':''}</small></button>`).join('')}</div></div>`).join('')}
+    <button class="branch-main-end" data-branch-origin="final">主线终场 →</button></div></div>
+    ${id==='saved-branch'?`<label class="branch-resource-toggle"><input id="${id}-resources" type="checkbox" ${branchUI.resources?'checked':''} ${branchUI.selected?'':'disabled'}>统计包含当前分支的新增资源</label>`:''}</section>`;
 }
 function bindBranchControls(id, render) {
-  $(`#${id}-view`).onchange=run(async e=>{branchUI.viewing=e.target.checked;if(branchUI.viewing&&!branchUI.selected)branchUI.selected=branchUI.root.branches[0]?.id;await render();});
-  $(`#${id}-select`).onchange=run(async e=>{branchUI.selected=e.target.value||null;if(!branchUI.selected){branchUI.viewing=false;branchUI.resources=false;}updateBranchNav();await render();});
-  $(`#${id}-resources`).onchange=run(async e=>{branchUI.resources=e.target.checked;await render();});
+  const box=$('#'+id);
+  box.querySelectorAll('[data-branch-route]').forEach(button=>button.onclick=run(async()=>{
+    const route=button.dataset.branchRoute;hideBranchTooltip();
+    // Stash annotations before changing the selected route; all drafts stay local until save.
+    stashBranchDraft();branchUI.viewing=route!=='main';if(branchUI.viewing)branchUI.selected=route;
+    updateBranchNav();await render();
+    $('#'+id)?.querySelector(`[data-branch-route="${CSS.escape(route)}"]`)?.focus({preventScroll:true});
+  }));
+  box.querySelectorAll('[data-branch-origin]').forEach(button=>button.onclick=run(async()=>{
+    const node=button.dataset.branchOrigin;stashBranchDraft();branchUI.viewing=false;hideBranchTooltip();await render();
+    if(id==='review-branch')selectReviewNode(node);
+  }));
+  const resource=$(`#${id}-resources`);
+  if(resource)resource.onchange=run(async e=>{branchUI.resources=e.target.checked;await render();});
+  bindBranchTooltips(box);
+}
+function hideBranchTooltip() {
+  const tip=$('#branch-route-tooltip');if(tip)tip.hidden=true;
+  document.querySelectorAll('[aria-describedby="branch-route-tooltip"]').forEach(el=>el.removeAttribute('aria-describedby'));
+}
+function bindBranchTooltips(box) {
+  box.querySelectorAll('[data-branch-tooltip]').forEach(button=>{
+    const show=()=>{
+      if(!$('#branch-route-tooltip'))document.body.insertAdjacentHTML('beforeend','<div id="branch-route-tooltip" class="branch-route-tooltip" role="tooltip" hidden></div>');
+      const tip=$('#branch-route-tooltip'),ids=button.dataset.branchTooltip.split(',');
+      tip.innerHTML=ids.map(id=>{
+        const b=branchUI.root?.branches?.find(b=>b.id===id);if(!b)return '';
+        const hand=[...new Set(b.conditions?.hand||[])].map(code=>`${branchName(code)} ×${b.conditions.hand.filter(c=>c===code).length}`).join('、');
+        return `<strong>${escape(b.name)}</strong><p>分支时点：${escape(b.source.operation)} · ${escape(b.source.timing)}</p><p>预设条件：${escape(hand||'未配置对手手牌')}${b.conditions?.note?'；'+escape(b.conditions.note):''}</p><p>实际记录：${observedBranchFacts(b).map(p=>escape(`对方 ${p.source_cards.map(c=>c.name).join('、')} → ${p.affected_cards.map(c=>c.name).join('、')||'影响待核对'}：${p.result}`)).join('<br>')||'尚无已记录干扰'}</p>${b.valid===false?`<p>${escape(b.invalid_reason||'分支起点失效')}</p>`:''}`;
+      }).join('<hr>');
+      tip.hidden=false;button.setAttribute('aria-describedby','branch-route-tooltip');
+      const b=button.getBoundingClientRect(),t=tip.getBoundingClientRect();
+      tip.style.left=Math.max(8,Math.min(b.left,innerWidth-t.width-8))+'px';
+      tip.style.top=Math.max(8,b.bottom+t.height+12<innerHeight?b.bottom+8:b.top-t.height-8)+'px';
+    };
+    button.onmouseenter=show;button.onfocus=show;button.onmouseleave=hideBranchTooltip;button.onblur=hideBranchTooltip;
+    button.addEventListener('keydown',e=>{if(e.key==='Escape')hideBranchTooltip();});
+  });
 }
 function branchCards(cards=[]) {
   return cards.map(c=>`<span class="branch-card"><img src="/pics/${Number(c.code)}.jpg" alt="${escape(c.name||branchName(c.code))}"><span>${escape(c.name||branchName(c.code))}</span></span>`).join('');
@@ -59,7 +98,7 @@ function branchPremises(branch, edit=false) {
   return `<section class="branch-premises"><h3>${escape(branch.name)} · 分支前提</h3><p>起点：${escape(branch.source.operation)} · ${escape(branch.source.timing)}${branch.source.chain_depth?` · 连锁 ${branch.source.chain_depth}`:''}</p>
     ${branch.valid===false?`<p class="review-warning">${escape(branch.invalid_reason)}</p>`:''}
     <details><summary>预设条件（配置不代表发动或生效）</summary><div class="branch-cards">${Object.entries(branch.conditions.hand.reduce((a,c)=>(a[c]=(a[c]||0)+1,a),{})).map(([code,n])=>`${branchCards([{code,name:branchName(code)}])}<span>×${n}</span>`).join('')||'未配置对手手牌'}</div><p>${escape(branch.conditions.note||'')}</p></details>
-    <h4>实际记录</h4>${(branch.premises||[]).map(p=>`<div class="branch-event">${branchCards(p.source_cards)}<b>→</b>${p.affected_cards.length?branchCards(p.affected_cards):'<span>受影响卡牌未确认</span>'}<div><strong>${escape(p.result)}</strong><small>连锁 ${p.chain_group??'?'} / ${p.chain_link??'?'} · ${escape(p.basis)} · 证据 ${escape(p.evidence_refs.join('、'))}</small>${p.note?`<p>${escape(p.note)}</p>`:''}${edit&&!p.confirmed?`<button data-branch-associate="${escape(p.source_action)}">补充关联或说明</button>`:''}</div></div>`).join('')||'<p>尚无已记录的对方发动；预设卡牌不会显示为实际阻抗。</p>'}
+    <h4>实际记录</h4>${observedBranchFacts(branch).map(p=>`<div class="branch-event">${branchCards(p.source_cards)}<b>→</b>${p.affected_cards.length?branchCards(p.affected_cards):'<span>受影响卡牌未确认</span>'}<div><strong>${escape(p.result)}</strong><small>连锁 ${p.chain_group??'?'} / ${p.chain_link??'?'} · ${escape(p.basis)} · 证据 ${escape(p.evidence_refs.join('、'))}</small>${p.note?`<p>${escape(p.note)}</p>`:''}${edit&&!p.confirmed?`<button data-branch-associate="${escape(p.source_action)}">补充关联或说明</button>`:''}</div></div>`).join('')||'<p>尚无已记录的对方发动；预设卡牌不会显示为实际阻抗。</p>'}
     ${branch.report?`<details><summary>接管原始操作 · ${(branch.report.control_records||[]).length} 条</summary><ol>${(branch.report.control_records||[]).map(r=>`<li>记录 ${r.seq} · ${r.kind==='response'?`对手手动选择（规则窗口 ${r.prompt}）`:`${r.manual?'接管对手':'交还 AI 托管'}`}</li>`).join('')}</ol></details>`:'<p>尚未进入妥协场，无分支终场。</p>'}</section>`;
 }
 function displayBranchRoute() {
@@ -80,16 +119,19 @@ function displayBranchRoute() {
 function mountBranchSidebar() {
   const root=branchUI.root;
   if(!root||root.id!==reviewUI.report?.id||reviewUI.report.compromise&&!reviewUI.report._route)return;
-  $('#review-steps').insertAdjacentHTML('beforebegin',branchControls('review-branch'));
+  hideBranchTooltip();
+  $('#review-route-map').innerHTML=branchControls('review-branch');
   bindBranchControls('review-branch',displayBranchRoute);
   const b=selectedBranch();
-  if(root.branches?.length)$('#review-steps').insertAdjacentHTML('afterend',branchResourceHtml(root,b,branchUI.resources));
-  if(branchUI.viewing&&b)$('#review-steps').insertAdjacentHTML('afterend',branchPremises(b,true));
+  if(branchUI.viewing&&b)$('#review-steps').insertAdjacentHTML('afterend',`<details class="branch-record-details"><summary>分支条件与实际记录 · ${escape(b.name)}</summary>${branchPremises(b,true)}</details>`);
   $('#review-steps').insertAdjacentHTML('beforebegin','<p class="branch-context-hint">右键步骤查看分支操作 · Shift+F10</p>');
   document.querySelectorAll('#review-steps [data-review-node]').forEach(button=>{
     button.setAttribute('aria-haspopup','dialog');button.setAttribute('aria-controls','branch-context-menu');
     button.setAttribute('aria-keyshortcuts','Shift+F10');button.title='右键打开分支操作（Shift+F10）';
+    const forks=!branchUI.viewing&&(root.branches||[]).filter(b=>b.source.node_id===button.dataset.reviewNode);
+    if(forks?.length){button.dataset.branchTooltip=forks.map(b=>b.id).join(',');button.insertAdjacentHTML('beforeend',`<em class="review-fork-badge">⑂ ${forks.length} 条分支</em>`);}
   });
+  bindBranchTooltips($('#review-steps'));
   document.querySelectorAll('[data-branch-associate]').forEach(button=>button.onclick=run(()=>editBranchAssociation(button.dataset.branchAssociate)));
   if(branchUI.viewing&&$('#delete-draft'))$('#delete-draft').onclick=run(deleteSelectedBranch);
   if($('#draft-conditions')&&branchUI.viewing)$('#draft-conditions').onclick=run(openBranchDesign);
@@ -355,11 +397,12 @@ branchDialog.addEventListener('pointerdown',event=>{
   if(!branchMenu.context?.submitting&&event.target===branchDialog&&(event.clientX<box.left||event.clientX>box.right||event.clientY<box.top||event.clientY>box.bottom))closeBranchMenu();
 });
 document.addEventListener('scroll',event=>{
+  hideBranchTooltip();
   if(!branchMenu.context||branchDialog.contains(event.target))return;
   const box=branchMenuTrigger(branchMenu.context)?.getBoundingClientRect(),anchor=branchMenu.anchor;
   if(!box||!anchor||Math.abs(box.left-anchor.left)>.5||Math.abs(box.top-anchor.top)>.5)closeBranchMenu(false);
 },true);
-window.addEventListener('resize',()=>closeBranchMenu(false));
+window.addEventListener('resize',()=>{hideBranchTooltip();closeBranchMenu(false);});
 const opponentBar=document.createElement('div');opponentBar.id='opponent-control-bar';opponentBar.className='opponent-control-bar';opponentBar.hidden=true;
 opponentBar.innerHTML='<strong id="opponent-control-label">妥协对局</strong><button id="take-opponent">接管对手</button><button id="release-opponent">交还 AI 托管</button>';
 $('#native-stage').parentElement.insertBefore(opponentBar,$('#native-stage'));

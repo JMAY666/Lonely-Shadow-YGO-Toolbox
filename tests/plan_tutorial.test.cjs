@@ -48,7 +48,7 @@ test('negated and unrecorded outcomes and random dependencies remain explicit',(
   const r=setup(),plan=fixture();plan.actions[0].status='negated';plan.actions[0].results=[];
   plan.requirements.random=[{name:'需要随机命中',count:1}];
   const svg=r.renderPlanTutorialSvg(r.buildPlanTutorial(plan));
-  assert.match(svg,/发动被无效/);assert.match(svg,/处理结果未记录/);assert.match(svg,/Cost/);assert.match(svg,/随机依赖：需要随机命中 ×1/);
+  assert.match(svg,/发动被无效/);assert(!svg.includes('处理结果未记录'));assert.match(svg,/Cost/);assert.match(svg,/随机依赖：需要随机命中 ×1/);
   assert(!svg.includes('data-tutorial-role="检索"'));
 });
 test('position mini maps accompany action and final cards using recorded zones, without mutating the plan',()=>{

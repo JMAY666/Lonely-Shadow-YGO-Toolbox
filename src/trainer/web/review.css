@@ -2,10 +2,7 @@
    textual so these controls do not pretend to be unverified MD icon artwork. */
 #history { max-width: 1800px; padding: 24px 12px; }
 #history > header { margin-bottom: 20px; }
-.review-layout { --review-rail-width:230px; --review-log-width: min(480px,calc(100vw - 76px)); display: grid; grid-template-columns: var(--review-rail-width) minmax(0,1fr); gap: 18px; align-items: start; position: relative; }
-.review-sidebar-edge { position:sticky; grid-column:1; grid-row:1; justify-self:end; z-index:3; top:66px; margin-top:54px; margin-right:-11px; display:flex; align-items:center; justify-content:center; width:24px; height:48px; padding:0; border:1px solid #c4d7dc; border-radius:8px; color:#527984; background:#f6fafb; box-shadow:0 2px 6px #20394210; }
-.review-sidebar-edge:hover { color:#225f77; background:#e9f3f7; border-color:#84adbd; }
-.review-sidebar-edge svg { width:12px; height:20px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.review-layout { --review-log-width: min(480px,calc(100vw - 76px)); display: grid; grid-template-columns: minmax(0,1fr); gap: 18px; align-items: start; position: relative; }
 .review-sidebar, .review-center, .review-log { background: #fff; border: 1px solid #dce4e5; border-radius: 12px; min-width: 0; }
 .review-sidebar { grid-column:1; grid-row:1; padding: 18px; position: sticky; top: 12px; max-height: calc(100dvh - var(--app-bar-height,58px) - 32px); overflow: auto; }
 .review-sidebar label, .node-explanation label, .detail-card-copy label, .confirmation-section label { display: block; margin: 10px 0 7px; font-size: 12px; font-weight: 600; }
@@ -23,7 +20,7 @@
 .review-steps span { display: block; font-size: 10px; margin-top: 5px; color: #71828b; }
 .review-sidebar-actions { display: grid; gap: 8px; margin-top: 15px; }
 #draft-message { font-size: 11px; margin-top: 12px; }
-.review-center { grid-column:2; grid-row:1; overflow: hidden; }
+.review-center { grid-column:1; grid-row:2; overflow: hidden; }
 .review-node-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 20px; border-bottom: 1px solid #e5ebee; }
 .review-node-header h2 { font-size: 20px; margin: 6px 0 0; }
 .review-node-header small { font-size: 10px; letter-spacing: 1px; }
@@ -201,14 +198,6 @@ textarea:focus-visible { outline: 2px solid #619fc2; outline-offset: 2px; }
 [hidden] { display: none !important; }
 
 /* Compact step rail keeps ordinal navigation available. */
-.review-layout.sidebar-collapsed { --review-rail-width:88px; grid-template-columns: var(--review-rail-width) minmax(0,1fr); }
-.sidebar-collapsed .review-sidebar { padding: 8px; }
-.sidebar-collapsed .review-sidebar-head,.sidebar-collapsed .review-sidebar > label,.sidebar-collapsed #draft-notes,.sidebar-collapsed #draft-message,.sidebar-collapsed .review-sidebar-actions { display:none; }
-.sidebar-collapsed .review-steps { padding:0; margin:12px 0; }
-.sidebar-collapsed .review-steps li { padding:0 0 6px; border:0; }
-.sidebar-collapsed .review-steps li:before,.sidebar-collapsed .review-steps strong,.sidebar-collapsed .review-steps span { display:none; }
-.sidebar-collapsed .review-steps small { position:static; font-size:12px; }
-.sidebar-collapsed .review-steps button { padding:12px 4px; text-align:center; }
 .review-zone-popover { position:fixed; z-index:55; top:15vh; right:24px; width:min(580px,calc(100vw - 48px)); max-height:70vh; overflow:auto; border:1px solid #7da1b4; border-radius:12px; background:#f6f9fb; box-shadow:0 12px 45px #102b4660; }
 #review-zone-close { float:right; }
 .location-icon { display:inline-flex; vertical-align:middle; color:#237caa; width:48px; flex-shrink:0; }
@@ -231,5 +220,34 @@ textarea:focus-visible { outline: 2px solid #619fc2; outline-offset: 2px; }
 .marked-final-cards .marked-note { color:#b33737; font-weight:600; margin:5px 0 0; }
 #plan-report .marked-final-cards { grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); }
 #plan-report .marked-effect-original { font-size:13px; line-height:1.7; }
-@media (min-width:721px) and (max-width:1000px) { .review-layout:not(.sidebar-collapsed) { --review-rail-width:195px; } }
-@media (max-width:720px) { .review-sidebar-edge { position:absolute; margin:0; right:-5px; top:42px; } }
+/* The route drawer occupies the full width above the board. */
+#review-workspace { grid-template-columns:minmax(0,1fr); }
+#draft-editor { grid-column:1; grid-row:1; position:relative; top:auto; max-height:none; padding:16px 20px; overflow:visible; }
+#draft-editor .review-timeline-header { display:flex; gap:18px; align-items:center; flex-wrap:wrap; margin:0 0 8px; }
+#draft-editor .review-sidebar-head { display:grid; grid-template-columns:auto minmax(130px,230px); gap:4px 12px; align-items:center; }
+#draft-editor .review-sidebar-head .eyebrow { grid-column:1/-1; }
+#draft-editor .review-sidebar-head label { margin:0; }
+#draft-editor #draft-name { padding:7px 10px; }
+#draft-editor .review-sidebar-actions { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 0 auto; }
+#draft-editor #draft-message { display:block; margin:0; font-size:11px; }
+#review-timeline-drawer[hidden] { display:none; }
+#draft-editor .review-steps { display:flex; gap:0; overflow-x:auto; list-style:none; padding:8px 0 12px; margin:0; scroll-padding:14px; }
+#draft-editor .review-steps li { flex:0 0 152px; border:0; padding:0 12px 0 0; }
+#draft-editor .review-steps li::before { display:none; }
+#draft-editor .review-steps li:not(:last-child)::after { content:'→'; position:absolute; right:0; top:34px; color:#9bb6ab; }
+#draft-editor .review-steps button { text-align:left; padding:10px 12px; min-height:86px; height:100%; background:#f4f8f6; }
+#draft-editor .review-steps button[aria-current=step] { border-color:#328269; background:#e1f2e9; color:#19513e; }
+#draft-editor .review-steps small { position:static; display:block; font-size:10px; color:#668074; }
+#draft-editor .review-steps strong { display:block; padding:3px 0 0; }
+#draft-editor .review-steps span { display:block; }
+.review-fork-badge { display:block; font-size:10px; font-style:normal; margin-top:4px; color:#98652a; }
+#draft-editor .review-plan-note { display:flex; gap:12px; align-items:center; }
+#draft-editor .review-plan-note label { flex-shrink:0; }
+#draft-editor #draft-notes { display:block; min-height:36px; resize:vertical; padding:8px; }
+#draft-editor .branch-controls,#draft-editor .branch-context-hint { display:block; }
+.branch-record-details { margin:8px 0 12px; font-size:12px; }
+.branch-record-details>summary { cursor:pointer; color:#81602e; }
+@media (max-width:720px) { #draft-editor { padding:12px; } #draft-editor .review-sidebar-actions { margin:0; } #review-center { margin-top:12px; } }
+.log-connected .compact-chain { align-items:flex-start; }
+.log-connected .chain-stage { min-width:72px; max-width:118px; }
+.log-connected .log-role { min-height:32px; white-space:normal; overflow-wrap:anywhere; }

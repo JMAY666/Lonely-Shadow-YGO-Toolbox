@@ -18,3 +18,30 @@
 #branch-context-status{font-size:12px;line-height:1.7;color:#63756a;overflow-wrap:anywhere}
 .branch-context-menu>footer{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:16px}
 .branch-context-menu>footer button{padding:9px 12px}
+/* A connected route map shared by review and saved plans. */
+.branch-controls { display:block; padding:12px 0; border:0; border-radius:0; margin:0; background:transparent; }
+.branch-map-caption { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:13px; margin-bottom:12px; }
+.branch-map-caption small { display:inline; font-weight:400; }
+.branch-map-caption>span { font-size:11px; color:#667d71; }
+.branch-map-scroll { overflow:auto; padding:2px 0 8px; }
+.branch-map { display:flex; align-items:flex-start; width:max-content; min-width:100%; gap:0; padding:0 4px; }
+.branch-map button { position:relative; background:#f0f6f2; color:#3b6250; border:1px solid #c6d8cc; border-radius:8px; text-align:left; white-space:normal; }
+.branch-main-route { flex:0 0 100px; min-height:50px; }
+.branch-main-end { flex:0 0 auto; min-height:50px; }
+.branch-fork { position:relative; padding:0 24px; min-width:210px; max-width:310px; }
+.branch-fork::before { content:''; position:absolute; top:24px; left:0; right:0; border-top:2px solid #a9c1b3; }
+.branch-fork .branch-origin { display:block; margin:8px auto 20px; border:0; background:#fff; padding:4px 8px; font-size:11px; z-index:1; }
+.branch-origin span { color:#8b6636; }
+.branch-fork-routes { display:grid; gap:10px; position:relative; }
+.branch-fork-routes::before { content:''; position:absolute; top:-25px; bottom:24px; left:-10px; border-left:2px solid #c4a777; }
+.branch-fork .branch-route { display:block; width:100%; background:#fff9ed; border-color:#decba9; padding:9px 12px; }
+.branch-route::before { content:''; position:absolute; left:-11px; top:23px; width:10px; border-top:2px solid #c4a777; }
+.branch-route strong { display:block; font-size:12px; overflow-wrap:anywhere; }
+.branch-route small { display:block; margin-top:4px; font-size:10px; }
+.branch-map button[aria-pressed=true] { color:#17513b; background:#dcf0e3; border-color:#337b58; box-shadow:0 0 0 1px #337b58; }
+.branch-map button:focus-visible { outline:3px solid #78aac0; outline-offset:2px; }
+.branch-controls .branch-resource-toggle { font-size:12px; margin-top:12px; }
+.branch-route-tooltip { position:fixed; z-index:150; width:360px; max-width:calc(100vw - 24px); max-height:min(420px,70vh); overflow:auto; padding:15px 18px; border:1px solid #cfbb97; border-radius:10px; color:#eee4cd; background:#263a32; box-shadow:0 8px 30px #172b3040; font-size:12px; pointer-events:none; }
+.branch-route-tooltip strong { color:#e8d4a8; }
+.branch-route-tooltip p { margin:7px 0 0; line-height:1.7; overflow-wrap:anywhere; }
+.branch-route-tooltip[hidden] { display:none; }

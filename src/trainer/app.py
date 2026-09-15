@@ -26,7 +26,7 @@ from report import REPORT_VERSION, build_report, read_journal
 from expansion import OPPONENT, draw_opening, plan_text, validate_conditions, training_settings
 from timeline import route_rows, timeline_nodes
 from review import annotations_for, confirmation_key, legacy_review, requirements
-from plan_library import PlanLibrary
+from plan_library import PlanLibrary, search_cards
 from plan_tags import tag_list
 from plan_sharing import MAX_BYTES
 from compromise import Compromise, resource_scope
@@ -513,7 +513,8 @@ class Store:
                 plan = read_json(path)
                 selection = self.library.selection(plan, vocabulary)
                 result.append({**{key: plan[key] for key in ('id', 'name', 'deck_name', 'saved_ms')},
-                               'tags': tag_list(selection, vocabulary), 'tag_mode': selection.get('mode'), 'imported': plan.get('imported', False)})
+                               'tags': tag_list(selection, vocabulary), 'tag_mode': selection.get('mode'), 'imported': plan.get('imported', False),
+                               'search_cards': search_cards(plan)})
             except (ValueError, OSError, KeyError):
                 result.append({'id': path.stem, 'name': '方案文件损坏（原文件保留）', 'deck_name': '', 'saved_ms': 0})
         return sorted(result, key=lambda p: p['saved_ms'], reverse=True)
