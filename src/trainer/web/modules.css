@@ -33,7 +33,7 @@ body.rail-collapsed { --rail-width:0px; }
 .module-link small { color:#c4e88c; font-size:9px; }
 #expansion-navigation { display:flex; align-items:center; gap:18px; padding:0 18px; min-height:50px; background:#182730; border-bottom:1px solid #30424c; }
 .module-caption { color:#dce7e9; font-size:12px; white-space:nowrap; }
-#expansion-navigation nav { display:flex; overflow-x:auto; min-width:0; gap:12px; min-height:50px; scrollbar-width:thin; }
+#expansion-navigation nav { display:flex; overflow-x:auto; min-width:0; gap:12px; min-height:50px; }
 #expansion-navigation nav>span { display:flex; }
 #expansion-navigation .nav { padding:10px 5px; font-size:12px; }
 #editor { height:calc(100dvh - var(--app-bar-height) - 16px); min-height:0; }

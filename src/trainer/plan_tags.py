@@ -140,7 +140,7 @@ def validate_selection(value, tags):
         if not isinstance(ids, list) or len(ids) > 30 or any(not isinstance(key, str) or key not in tags for key in ids):
             raise ValueError('标签不存在或超过 30 个，请刷新标签库')
         result[field] = list(dict.fromkeys(ids))
-    if not set(result['primary_ids']) <= set(result['tag_ids']): raise ValueError('主标签必须属于此方案的标签')
+    if not set(result['primary_ids']) <= set(result['tag_ids']): raise ValueError('主标签必须属于已选择的标签')
     return result
 
 

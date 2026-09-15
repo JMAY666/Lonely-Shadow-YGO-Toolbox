@@ -1,0 +1,26 @@
+/* One palette for the editor, saved plans, TAG management and secondary windows. */
+:root {
+  color-scheme:dark;
+  --surface-page:#10191f;
+  --surface-panel:#182832;
+  --surface-raised:#20333d;
+  --surface-input:#12232b;
+  --surface-hover:#2b4247;
+  --surface-selected:#304638;
+  --text-main:#dce5e9;
+  --text-muted:#a0b3bd;
+  --text-accent:#d1e9ac;
+  --border-subtle:#3b505a;
+  --border-selected:#819e6b;
+  --accent:#c0e888;
+  --accent-ink:#21321b;
+  --warning-bg:#3b3326;
+  --warning-text:#e9c88b;
+  --warning-line:#8b754d;
+  --danger-bg:#432d33;
+  --danger-text:#f3b2ac;
+  --self-bg:#213d50;
+  --self-text:#a7d9f6;
+  --opponent-bg:#4a303b;
+  --opponent-text:#f3bdc5;
+}

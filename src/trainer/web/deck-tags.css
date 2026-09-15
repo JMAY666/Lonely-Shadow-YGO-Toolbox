@@ -1,0 +1,56 @@
+/* Shared vocabulary selection without reserving additional editor width. */
+#editor .editor-tools #undo-deck { grid-column:auto; }
+.deck-meta-row { grid-column:2/-1; display:flex; align-items:center; gap:9px; min-width:0; min-height:23px; }
+#editor .deck-meta-row #deck-status { flex-shrink:0; font-size:10px; }
+#editor #deck-tag-count { padding:2px 6px; font-size:10px; color:#d2e9ab; border-color:#607b5b; flex-shrink:0; }
+#deck-tag-summary { font-size:10px; color:#b7cdaa; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.deck-tags-dialog { width:min(1060px,calc(100vw - 36px)); max-width:none; max-height:calc(100dvh - 36px); padding:0; border:1px solid #58716c; border-radius:12px; background:#14232b; color:#dce5e9; color-scheme:dark; }
+.deck-tags-dialog[open] { display:flex; flex-direction:column; }
+.deck-tags-dialog::backdrop { background:#071016b8; }
+.deck-tags-dialog>header,.deck-tags-dialog>footer { margin:0; display:flex; align-items:center; justify-content:space-between; gap:18px; padding:16px 22px; background:#1b2d35; flex-shrink:0; }
+.deck-tags-dialog>header { border-bottom:1px solid #354c52; }
+.deck-tags-dialog>header h2 { font-size:19px; margin:5px 0; }
+.deck-tags-dialog>header p { font-size:12px; overflow-wrap:anywhere; }
+.deck-tags-dialog>footer { border-top:1px solid #354c52; }
+.deck-tags-dialog p,.deck-tags-dialog small { font-size:11px; color:#a1b5bd; }
+.deck-tags-dialog h3 { font-size:13px; margin:0; }
+.deck-tags-dialog button,.deck-tags-dialog input { background:#20333d; border-color:#445c63; color:#dce5e9; font-size:12px; }
+.deck-tags-dialog button:hover { background:#2d4547; border-color:#86a774; }
+.deck-tags-dialog .primary { background:#bbdd86; color:#21311c; }
+.deck-tags-dialog input { width:100%; margin:9px 0; }
+.deck-tags-dialog input::placeholder { color:#8aa2ad; }
+.deck-tags-body { min-height:0; overflow:auto; padding:18px 22px; }
+.deck-tags-heading { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:8px; }
+.deck-tags-heading button { padding:5px 9px; font-size:11px; }
+.deck-tags-selection { border:1px solid #3e5659; border-radius:8px; padding:14px; background:#1a2e33; }
+.deck-tags-selection>p { margin:6px 0 12px; }
+.deck-tag-group { display:flex; align-items:baseline; gap:12px; margin-top:8px; }
+.deck-tag-group>strong { font-size:11px; flex-shrink:0; min-width:42px; color:#adc4bc; }
+.deck-tag-group>div { display:flex; align-items:center; flex-wrap:wrap; gap:7px; }
+.deck-tag-chip { display:inline-flex; align-items:center; gap:5px; background:#243b45; border:1px solid #4b646e; border-radius:5px; padding:4px 6px; font-size:12px; }
+.deck-tag-chip.primary { background:#304b3b; color:#d7edb4; border-color:#789660; }
+.deck-tag-chip>span { overflow-wrap:anywhere; }
+.deck-tags-dialog .deck-tag-chip button { background:transparent; border:0; padding:2px 4px; font-size:10px; }
+.deck-tags-basis { margin:12px 0 18px; font-size:11px; color:#97adaf; }
+.deck-tags-basis>p { padding:8px 0; }
+.deck-tags-browser { display:grid; grid-template-columns:minmax(200px,0.8fr) minmax(300px,1.4fr); gap:20px; }
+.deck-tags-browser>section { min-width:0; }
+.deck-tags-option-panel>label { font-size:13px; font-weight:600; }
+#deck-tags-cards { max-height:340px; overflow:auto; display:grid; gap:6px; align-content:start; }
+#deck-tags-cards>button { display:flex; align-items:center; gap:10px; text-align:left; padding:7px; }
+#deck-tags-cards img { width:34px; height:49px; object-fit:contain; flex-shrink:0; }
+#deck-tags-cards small { display:block; margin-top:5px; font-size:10px; }
+#deck-tags-options { max-height:340px; overflow:auto; display:grid; align-content:start; gap:7px; }
+.deck-tag-option { display:flex; justify-content:space-between; gap:14px; padding:12px; border:1px solid #374b55; border-radius:7px; background:#192b34; }
+.deck-tag-option>div:first-child { min-width:0; }
+.deck-tag-option strong { font-size:13px; overflow-wrap:anywhere; }
+.deck-tag-option small { display:block; margin-top:5px; overflow-wrap:anywhere; }
+.deck-tag-option p { margin:5px 0 0; }
+.deck-tag-option details { font-size:10px; color:#a3bbb1; margin-top:5px; }
+.deck-tag-option.selected { border-color:#6f8d67; }
+.deck-tag-role { display:flex; align-items:center; flex-shrink:0; gap:5px; }
+.deck-tag-role button { padding:6px 8px; font-size:10px; }
+.deck-tags-dialog [aria-pressed="true"] { background:#324e3d; border-color:#9bbb78; color:#d8eeb8; }
+#deck-tags-more { margin-top:8px; width:100%; }
+@media(max-width:1100px) { .deck-meta-row { flex-wrap:wrap; gap:4px 8px; } #deck-tag-summary { max-width:100%; } }
+@media(max-width:650px) { .deck-tags-browser { grid-template-columns:1fr; } .deck-tags-dialog>header,.deck-tags-dialog>footer,.deck-tags-body { padding:12px; } }

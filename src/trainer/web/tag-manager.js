@@ -22,7 +22,7 @@ async function selectManagedTag(id=null) {
   $('#tag-manager-empty').hidden=true;$('#tag-manager-form').hidden=false;
   $('#tag-manager-title').textContent=id?value.tag.name:'新增 TAG';$('#tag-manager-source').textContent=value.tag.source;
   $('#tag-manager-name').value=value.tag.name;$('#tag-manager-aliases').value=value.tag.aliases.join('\n');$('#tag-member-filter').value='';
-  $('#tag-manager-status').textContent='卡牌范围用于自动识别；手动给方案设置的标签会保留。';
+  $('#tag-manager-status').textContent='卡牌范围供卡组与方案共用；已保存的卡组标签和手动方案标签会保留。';
   renderTagManagerList();renderTagMembers();
   $('#tag-add-search').value='';tagManagerUI.results=[];tagManagerUI.total=0;tagManagerUI.searchSerial++;renderTagSearchResults();
 }
@@ -64,6 +64,7 @@ async function saveManagedTag(e) {
       aliases:$('#tag-manager-aliases').value.split(/\r?\n/).map(s=>s.trim()).filter(Boolean),card_ids:[...tagManagerUI.members.keys()]});
     tagManagerUI.selected=result.tag.id;tagManagerUI.draft=result.tag;tagManagerUI.revision=result.revision;tagManagerUI.dirty=false;
     const index=tagManagerUI.tags.findIndex(t=>t.id===result.tag.id);if(index<0)tagManagerUI.tags.push(result.tag);else tagManagerUI.tags[index]=result.tag;
+    if(typeof refreshDeckTagName==='function')refreshDeckTagName(result.tag);
     $('#tag-manager-name').value=result.tag.name;$('#tag-manager-aliases').value=result.tag.aliases.join('\n');$('#tag-manager-title').textContent=result.tag.name;
     renderTagManagerList();await refreshPlans();$('#tag-manager-status').textContent='已保存名称、别名和卡牌范围，自动识别已使用最新设置。';
   }catch(error){$('#tag-manager-status').textContent=`保存失败：${error.message}。输入与卡牌选择仍保留。`;}

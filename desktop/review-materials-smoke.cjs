@@ -158,7 +158,18 @@ module.exports=async function({page,nativeState,nativeWait,hostWait,waitHistory,
   assert.equal(await page.locator('[data-log-node="final"] .marked-effect-original').count(),0);
   assert.equal(await page.locator('[data-log-node="final"] .location-icon').count(),0);
   assert.match(await page.locator('[data-log-node="final"] .marked-location').innerText(),/墓地/);
-  assert.equal(await page.locator('[data-log-node="final"] .marked-note').evaluate(el=>getComputedStyle(el).color),'rgb(179, 55, 55)');
+  const noteColor=await page.locator('[data-log-node="final"] .marked-note').evaluate(el=>{
+    const rgb=value=>value.match(/[\d.]+/g).map(Number);
+    const foreground=rgb(getComputedStyle(el).color);
+    let parent=el,background;
+    do{background=rgb(getComputedStyle(parent).backgroundColor);parent=parent.parentElement;}
+    while(parent&&background.length>3&&background[3]===0);
+    const light=channels=>channels.slice(0,3).map(c=>c/255).map(c=>c<=.04045?c/12.92:((c+.055)/1.055)**2.4)
+      .reduce((sum,c,i)=>sum+c*[.2126,.7152,.0722][i],0);
+    return {red:foreground[0]>foreground[1]+35&&foreground[0]>foreground[2]+35,
+      contrast:(light(foreground)+.05)/(light(background)+.05)};
+  });
+  assert(noteColor.red&&noteColor.contrast>=4.5,JSON.stringify(noteColor));
   await page.locator('[data-log-mode="detailed"]').click();
   assert(await page.locator('[data-log-node="final"] .marked-effect-original').count()>0);
   await page.locator('[data-log-mode="compact"]').click();

@@ -6,7 +6,7 @@ const statusNames = {starting:'正在启动',running:'展开中',stopping:'正�
 const reasons = {manual:'手动结束',client_closed:'关闭了模拟器窗口',engine_ended:'引擎提前结束',native_exit_without_end:'模拟器异常退出或记录未完成',deck_load_failed:'构筑载入失败',launch_failed:'启动失败'};
 const zones = ['main', 'extra', 'side'];
 const zoneLimits = {main:60, extra:15, side:15};
-const app = {token:'',deck:{main:[],extra:[],side:[]},id:null,revision:null,dirty:false,cache:new Map(),pendingCards:new Map(),offset:0,total:0,history:[],active:null,reportId:null,allEvents:false,searchGeneration:0,renderGeneration:0,detailGeneration:0,deckEpoch:0,selected:null,undo:[],savedState:null,busy:false};
+const app = {token:'',deck:{main:[],extra:[],side:[]},deckTags:{tag_ids:[],primary_ids:[]},deckTagNames:{},id:null,revision:null,dirty:false,cache:new Map(),pendingCards:new Map(),offset:0,total:0,history:[],active:null,reportId:null,allEvents:false,searchGeneration:0,renderGeneration:0,detailGeneration:0,deckEpoch:0,selected:null,undo:[],savedState:null,busy:false};
 const importState = {generation:0, preview:null, text:'', busy:false, creating:false, mode:'import'};
 const dt = (v) => v ? new Date(v).toLocaleString('zh-CN',{hour12:false}) : '未知';
 const duration = (v) => `${Math.floor(v/60000)} 分 ${Math.floor(v/1000)%60} 秒`;
@@ -88,7 +88,11 @@ async function waitNativeFrame(id) {
   if(app.active?.id===id) $('#native-loading').textContent='训练场地未能显示，请结束本次训练并重新启动应用。';
   return false;
 }
-function deckState() { return JSON.stringify({name:$('#deck-name').value.trim(), deck:app.deck}); }
+function setDeckTags(value, names = {}) {
+  app.deckTags = structuredClone(value || {tag_ids:[],primary_ids:[]});
+  app.deckTagNames = {...names};
+}
+function deckState() { return JSON.stringify({name:$('#deck-name').value.trim(), deck:app.deck, tags:app.deckTags}); }
 function dirty() {
   app.dirty = deckState() !== app.savedState;
   $('#deck-status').textContent = app.dirty ? '● 有未保存的修改' : !app.id ? '新构筑 · 尚未保存' : app.id.startsWith('existing/') ? '已有构筑 · 保存时创建练习室副本' : '已保存 · 本地构筑';
@@ -111,6 +115,7 @@ function updateStart() {
   if (activeDesignDeckEdit()) $('#start-training').disabled=true;
   if (typeof updateModuleChrome === 'function') updateModuleChrome();
   if (typeof updateDeckSelectionControls === 'function') updateDeckSelectionControls();
+  if (typeof updateDeckTagSummary === 'function') updateDeckTagSummary();
   if (typeof flow !== 'undefined' && flow.timer && (!app.active || app.active.status==='stopping') && flow.timer.started!==null) stopTimer();
   $('#training-title').textContent = app.active ? `${app.active.name} · ${statusNames[app.active.status]}` : '展开场地';
 }
@@ -136,6 +141,7 @@ async function openDeck(id) {
   try {
     const d = await api(`/api/deck?id=${encodeURIComponent(id)}`);
     app.deck = d.deck;
+    setDeckTags(d.tag_selection, d.tag_names);
     app.id = d.id;
     app.revision = d.revision;
     app.sourceName = d.name;
@@ -197,6 +203,7 @@ async function deleteDeck(id) {
     if (clearing) {
       ++app.deckEpoch;
       app.deck = {main:[], extra:[], side:[]};
+      setDeckTags();
       app.id = app.revision = null;
       app.undo = [];
       app.selected = null;
@@ -528,6 +535,7 @@ async function applyImportedDeck() {
     validateNewDeckName(name, decks);
     ++app.deckEpoch;
     app.deck = structuredClone(preview.deck);
+    setDeckTags();
     app.id = null;
     app.revision = null;
     app.undo = [];
@@ -555,7 +563,7 @@ async function saveDeck() {
   if (app.id?.startsWith('existing/') && name === (app.sourceName || app.id.split('/').at(-1).replace(/\.ydk$/,''))) name += ' - 练习';
   $('#deck-name').value = name;
   const savedState = deckState();
-  const body = {name, deck:structuredClone(app.deck), id:app.id, revision:app.revision};
+  const body = {name, deck:structuredClone(app.deck), id:app.id, revision:app.revision, tag_selection:structuredClone(app.deckTags)};
   app.busy = true;
   updateStart();
   updateDetailCounts();
@@ -564,6 +572,7 @@ async function saveDeck() {
     app.id = saved.id;
     app.revision = saved.revision;
     app.sourceName = saved.name || name;
+    if (saved.tag_names) app.deckTagNames = saved.tag_names;
     app.savedState = savedState;
     dirty();
     await deckList();

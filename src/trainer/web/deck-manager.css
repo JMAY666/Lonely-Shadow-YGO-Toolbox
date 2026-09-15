@@ -23,7 +23,7 @@
 .deck-case i { font:38px/1 Georgia,serif; color:#c2d797; padding-left:12px; }
 #editor .new-deck-box { border-style:dashed; background:#18282e; }
 .deck-plus { width:88px; height:112px; display:grid; place-items:center; font:64px/1 sans-serif; color:#c0e58a; font-weight:200; }
-.deck-preview { position:fixed; z-index:90; width:min(530px,calc(100vw - 24px)); max-height:calc(100dvh - 24px); overflow:auto; padding:17px; background:#192c34; color:#dce5e9; border:1px solid #779777; border-radius:9px; box-shadow:0 14px 48px #0009; scrollbar-width:thin; }
+.deck-preview { position:fixed; z-index:90; width:min(530px,calc(100vw - 24px)); max-height:calc(100dvh - 24px); overflow:auto; padding:17px; background:#192c34; color:#dce5e9; border:1px solid #779777; border-radius:9px; box-shadow:0 14px 48px #0009; }
 .deck-preview header { margin:0 0 12px; gap:14px; }
 .deck-preview header strong { font-size:16px; overflow-wrap:anywhere; }
 .deck-preview header small { flex-shrink:0; font-size:10px; }

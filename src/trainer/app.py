@@ -28,6 +28,7 @@ from timeline import route_rows, timeline_nodes
 from review import annotations_for, confirmation_key, legacy_review, requirements
 from plan_library import PlanLibrary, search_cards
 from plan_tags import tag_list
+import deck_tags
 from plan_sharing import MAX_BYTES
 from compromise import Compromise, resource_scope
 
@@ -171,8 +172,9 @@ class Store:
             if missing: raise ValueError('缺少效果脚本，不能可靠训练：' + ', '.join(missing[:8]))
 
     @staticmethod
-    def ydk(deck, name=None):
+    def ydk(deck, name=None, tags=None):
         title = '#name: ' + json.dumps(name, ensure_ascii=False) + '\n' if name is not None else ''
+        if tags is not None: title += deck_tags.comment(tags)
         return ('#created by YGO Trainer\n' + title + '#main\n' + '\n'.join(map(str, deck['main'])) + '\n#extra\n' + '\n'.join(map(str, deck['extra'])) + '\n!side\n' + '\n'.join(map(str, deck['side'])) + '\n').encode('utf-8')
 
     @staticmethod
@@ -221,7 +223,16 @@ class Store:
         p = safe_child(self.decks if source == 'library' else self.runtime / 'deck', relative)
         if p.suffix != '.ydk': raise ValueError('需要 YDK 文件')
         data = p.read_bytes()
-        return {'id': identifier, 'name': self.deck_name(data, p.stem), 'deck': self.parse_deck(data), 'revision': hashlib.sha256(data).hexdigest(), 'source': source}
+        selected = deck_tags.read_selection(data)
+        vocabulary = self.library.all_tags()
+        return {'id': identifier, 'name': self.deck_name(data, p.stem), 'deck': self.parse_deck(data),
+                'revision': hashlib.sha256(data).hexdigest(), 'source': source, 'tag_selection': selected,
+                'tag_names': {key: vocabulary[key]['name'] for key in selected['tag_ids'] if key in vocabulary}}
+
+    def deck_tag_options(self, body):
+        with self.lock:
+            deck = body.get('deck'); self.validate(deck)
+            return deck_tags.options(deck, self.library.all_tags(), self.catalog.cards, body.get('query', ''), body.get('card_ids'))
 
     def export_deck(self, identifier):
         saved = self.get_deck(identifier)
@@ -274,6 +285,11 @@ class Store:
             current = self.get_deck(identifier) if identifier else None
             if current and current['revision'] != body.get('revision'):
                 raise ValueError('构筑已被修改，请重新打开后再保存')
+            selected = body.get('tag_selection', current['tag_selection'] if current else deck_tags.empty_selection())
+            vocabulary = self.library.all_tags()
+            # Existing references survive catalog changes; clients cannot add unknown tags.
+            retained = dict.fromkeys(current['tag_selection']['tag_ids']) if current else {}
+            selected = deck_tags.selection(selected, {**retained, **vocabulary})
             own_id = identifier if identifier.startswith('library/') else None
             self.check_deck_name_available(name, own_id)
             p = safe_child(self.decks, identifier.partition('/')[2] if own_id else name + '.ydk')
@@ -287,7 +303,7 @@ class Store:
                     raise ValueError('同名构筑已存在或已被修改，请重新打开或使用新名称保存')
                 backup = self.root / 'backups' / (uuid.uuid4().hex + '.ydk')
                 atomic_bytes(backup, old)
-            atomic_bytes(p, self.ydk(deck, name))
+            atomic_bytes(p, self.ydk(deck, name, selected))
             return self.get_deck('library/' + p.relative_to(self.decks).as_posix())
 
     def session_path(self, identifier):
@@ -794,6 +810,7 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/plans/import-preview': return self.send(store.library.import_document(body, preview=True))
                 if path == '/api/plans/import': return self.send(store.library.import_document(body))
                 if path == '/api/decks': return self.send(store.save_deck(body))
+                if path == '/api/decks/tag-options': return self.send(store.deck_tag_options(body))
                 if path == '/api/card-favorites': return self.send(store.set_favorite(body))
                 if path == '/api/decks/delete': return self.send(store.delete_deck(body))
                 if path == '/api/decks/rename': return self.send(store.rename_deck(body))
@@ -872,6 +889,8 @@ class Handler(BaseHTTPRequestHandler):
                 files = {'/': 'index.html', '/app.js': 'app.js', '/expansion.js': 'expansion.js', '/timeline.js': 'timeline.js', '/report-view.js': 'report-view.js', '/review.js': 'review.js', '/review.css': 'review.css', '/plan-tutorial.js': 'plan-tutorial.js', '/plan-tutorial.css': 'plan-tutorial.css', '/review-back.svg': 'review-back.svg', '/style.css': 'style.css', '/card-back.svg': 'card-back.svg'}
                 files.update({'/modules.js': 'modules.js', '/modules.css': 'modules.css', '/app-icon.svg': 'brand/app.svg', '/deck-manager.js': 'deck-manager.js', '/deck-manager.css': 'deck-manager.css'})
                 files.update({'/deck-selection.js': 'deck-selection.js', '/deck-selection.css': 'deck-selection.css'})
+                files.update({'/deck-tags.js': 'deck-tags.js', '/deck-tags.css': 'deck-tags.css', '/theme.css': 'theme.css'})
+                files['/scrollbars.css'] = 'scrollbars.css'
                 if path in files:
                     p = WEB / files[path]; return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0] + '; charset=utf-8')
                 if path in ('/activation.js', '/plan-library.js', '/plan-library.css', '/tag-manager.js', '/tag-manager.css', '/compromise.js', '/compromise.css', '/compromise-tutorial.js', '/opponent.html', '/opponent.js'):

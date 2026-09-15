@@ -1,0 +1,18 @@
+/* Shared scrollbars: a narrow rounded thumb with a transparent, draggable gutter. */
+:root {
+  --scrollbar-thumb:#3e5862;
+  --scrollbar-hover:#65828a;
+  --scrollbar-active:#91afa0;
+}
+* { scrollbar-width:thin; scrollbar-color:var(--scrollbar-thumb) transparent; }
+/* Chromium exposes thumb/track parts, including the native arrow buttons.
+   Use these parts for a 4px visible thumb inside an 8px pointer target. */
+@supports selector(::-webkit-scrollbar) {
+  * { scrollbar-width:auto; scrollbar-color:auto; }
+  ::-webkit-scrollbar { width:8px; height:8px; }
+  ::-webkit-scrollbar-track, ::-webkit-scrollbar-corner { background:transparent; }
+  ::-webkit-scrollbar-thumb { min-height:32px; min-width:32px; border:2px solid transparent; border-radius:8px; background:var(--scrollbar-thumb); background-clip:padding-box; }
+  ::-webkit-scrollbar-thumb:hover { background-color:var(--scrollbar-hover); }
+  ::-webkit-scrollbar-thumb:active { background-color:var(--scrollbar-active); }
+  ::-webkit-scrollbar-button { display:none; width:0; height:0; }
+}

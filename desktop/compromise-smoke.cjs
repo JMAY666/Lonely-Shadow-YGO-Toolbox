@@ -87,6 +87,7 @@ module.exports=async function({application,page,nativeState,nativeWait,hostWait,
   assert.notEqual(sid,mainId);
   assert.equal(await opponent.evaluate(()=>opponentState.id),sid);
   await opponent.locator('[data-opponent-choice]').first().waitFor();
+  await require('./theme-smoke.cjs')(opponent);
   const opponentPng=await application.evaluate(async({BrowserWindow})=>{
     const contents=BrowserWindow.getAllWindows().find(w=>w.webContents.getURL().includes('/opponent.html')).webContents;
     await contents.capturePage(undefined,{stayHidden:true});await new Promise(resolve=>setTimeout(resolve,150));

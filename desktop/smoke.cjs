@@ -34,6 +34,7 @@ async function launch(first = false, testControl = true) {
   page = await application.firstWindow();
   // Capture the app's renderer while its window stays hidden. CDP screenshots can stall on a hidden HWND.
   page.screenshot = async ({path:target,preserveScroll=false}) => {
+    await require('./theme-smoke.cjs')(page);
     if(!preserveScroll)await page.evaluate(()=>window.scrollTo(0,0));
     // Hidden compositors may suspend an entrance animation between captures.
     await page.evaluate(()=>document.getAnimations().forEach(animation=>{if(Number.isFinite(animation.effect?.getComputedTiming().endTime))animation.finish();}));
@@ -182,6 +183,11 @@ async function activatePot(sid) {
 
 (async () => {
   await launch(true);
+  if(process.argv.includes('--scrollbars-only')) {
+    await require('./scrollbars-smoke.cjs')({page,application,evidence,pass});
+    await close();assert.deepEqual(errors,[]);
+    fs.writeFileSync(path.join(evidence,'scrollbars-result.json'),JSON.stringify({checks,errors},null,2));return;
+  }
   if(process.argv.includes('--home-only')) {
     await page.locator('#module-home').click();
     await page.waitForFunction(()=>moduleUI.current==='home'&&!moduleUI.switching);
@@ -256,13 +262,17 @@ async function activatePot(sid) {
   await page.locator('#module-decks').click();
   await page.waitForFunction(()=>moduleUI.current==='decks'&&!moduleUI.switching);
   const {deck,deckId} = await require('./deck-management-smoke.cjs')({page,application,evidence,label,pass});
+  await require('./deck-tags-smoke.cjs')({page,application,deckId,deck,evidence,pass});
   await require('./modules-smoke.cjs')({page,application,deckId,deck,pass,evidence});
   if (process.argv.includes('--decks-only')) {
+    const savedTags = (await page.evaluate(id=>api('/api/deck?id='+encodeURIComponent(id)),deckId)).tag_selection;
     await close(); await launch(false,false);
-    assert.deepEqual((await page.evaluate(id=>api('/api/deck?id='+encodeURIComponent(id)),deckId)).deck,deck);
+    const reopened = await page.evaluate(id=>api('/api/deck?id='+encodeURIComponent(id)),deckId);
+    assert.deepEqual(reopened.deck,deck);
+    assert.deepEqual(reopened.tag_selection,savedTags);
     assert((await page.evaluate(()=>api('/api/card-favorites'))).cards.includes(55144522));
     await close();assert.deepEqual(errors,[]);
-    pass('Decks and favorites survive a fresh desktop/backend restart');
+    pass('Decks, TAG selections and favorites survive a fresh desktop/backend restart');
     fs.writeFileSync(path.join(evidence,'deck-result.json'),JSON.stringify({label,globalInput:false,clipboardWriter:'isolated',checks,errors},null,2));
     return;
   }

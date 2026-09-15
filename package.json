@@ -1,6 +1,6 @@
 {
   "name": "lonely-shadow-yu-gi-oh-toolbox",
-  "version": "1.12.1",
+  "version": "1.13.0",
   "private": true,
   "description": "Lonely-Shadow-Yu-Gi-Oh-Toolbox：卡组编辑、展开练习与方案管理",
   "main": "desktop/main.cjs",
@@ -28,7 +28,7 @@
     "productName": "Lonely-Shadow-Yu-Gi-Oh-Toolbox",
     "asar": true,
     "directories": {
-      "output": "release/1.12.1"
+      "output": "release/1.13.0"
     },
     "files": [
       "desktop/main.cjs",

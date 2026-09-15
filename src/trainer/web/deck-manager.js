@@ -212,6 +212,7 @@ async function returnToDeckManager() {
   await deckList();
   ++app.deckEpoch; ++app.detailGeneration;
   app.deck = {main:[],extra:[],side:[]};
+  setDeckTags();
   app.id = app.revision = app.selected = null;
   app.undo = [];
   $('#deck-name').value = '新构筑';
@@ -253,6 +254,7 @@ async function createDeckFromDialog() {
     app.busy = true; updateStart(); setImportBusy(true);
     ++app.deckEpoch; ++app.detailGeneration;
     app.deck = {main:[],extra:[],side:[]};
+    setDeckTags();
     app.id = app.revision = app.selected = null;
     app.undo = [];
     app.savedState = null;
