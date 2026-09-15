@@ -98,3 +98,7 @@ Desktop.ini
 .vs/
 *.suo
 *.user
+
+# README 首图编辑源保留本地；页面显示所需的 GIF 继续纳入版本管理。
+/assets/readme/hero.svg
+/assets/readme/hero-motion.json
