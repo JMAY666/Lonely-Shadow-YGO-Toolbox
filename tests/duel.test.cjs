@@ -115,6 +115,47 @@ test('hover cancels detached targets and explicit close suppresses the current t
   c.ui.previewSuppressed=null;c.showDuelPreview(a);r.advance(280);assert(!r.panel.hidden);
 });
 
+test('long step previews stay outside the graph and leave the footer clickable',()=>{
+  const {context:c}=previewFixture();
+  const fixture={anchor:{left:550},graph:{top:225,bottom:635},width:720,height:684,viewport:{width:1440,height:900},footer:{left:1190,right:1414,top:848}};
+  const below=c.duelPreviewPlacement(fixture);
+  assert(below.top>fixture.graph.bottom);assert(below.top+below.height<fixture.footer.top);
+  const above=c.duelPreviewPlacement({...fixture,graph:{top:225,bottom:1000}});
+  assert(above.top>=70);assert(above.top+above.height<225);
+  assert.equal(c.duelPreviewPlacement({...fixture,graph:{top:40,bottom:1000}}),null);
+  const tile={left:120,right:380,top:235,bottom:670};
+  const beside=c.duelPreviewPlacement({...fixture,anchor:tile,graph:tile,beside:true,footer:null});
+  assert(beside.left>=tile.right);assert.equal(beside.height,684);
+});
+
+test('pointer down cancels a pending preview and graph movement cannot rearm it until the mouse moves',()=>{
+  const r=previewFixture(),c=r.context,a=r.anchor('a');
+  c.showDuelPreview(a);r.advance(150);c.pauseDuelPreviewForClick({clientX:300,clientY:400});
+  r.advance(500);assert(r.panel.hidden);
+  c.showDuelPreview(a);r.advance(500);assert(r.panel.hidden);
+  c.moduleUI={current:'duel'};
+  const event={clientX:300,clientY:400,buttons:0,target:{closest:()=>a}};
+  c.resumeDuelPreviewAfterMove(event);r.advance(500);assert(r.panel.hidden);
+  c.resumeDuelPreviewAfterMove({...event,clientX:340,buttons:1});r.advance(500);assert(r.panel.hidden);
+  c.resumeDuelPreviewAfterMove({...event,clientX:340});r.advance(280);assert(!r.panel.hidden);
+});
+
+test('final notes retain full text and instance ownership without revealing a random card through effect text',()=>{
+  const {context:c}=previewFixture(),long='保存的终场说明。'.repeat(60);
+  c.escape=value=>String(value??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+  c.reviewRandomDraw=card=>card.instance_id===2;
+  const source=fs.readFileSync(path.join(__dirname,'../src/trainer/web/review.js'),'utf8');
+  vm.runInContext(source.slice(source.indexOf('function reviewEffectParts'),source.indexOf('function reviewMarkEditor')),c);
+  const plan={catalog:{10:{desc:'①：可见的完整效果。'},11:{desc:'①：随机卡牌的隐藏身份。'}},requirements:{final:{notes:long}},
+    annotations:{nodes:{final:{notes:long}},cards:{1:'这张卡的说明',2:'抽牌的用户备注'},final_marks:{1:{marked:true,effects:{0:{note:'完整效果备注。'.repeat(60)}}},2:{marked:true,effects:{0:{note:'保留随机卡备注'}}}}},
+    final_state:{cards:[{instance_id:1,code:10,name:'已知卡牌',location:16},{instance_id:2,code:11,name:'隐藏卡牌名称',location:2}]}};
+  const before=JSON.stringify(plan),compact=c.duelFinalNotes(plan),detail=c.duelFinalNotes(plan,true);
+  assert(compact.includes(long));assert.equal(compact.split(long).length,2);assert(compact.includes('完整效果备注。'.repeat(60)));
+  assert(compact.includes('已知卡牌 · 墓地'));assert(compact.includes('抽牌的用户备注'));assert(!compact.includes('可见的完整效果。'));
+  assert(detail.includes('可见的完整效果。'));assert(!detail.includes('随机卡牌的隐藏身份'));assert(!detail.includes('隐藏卡牌名称'));
+  assert.equal(JSON.stringify(plan),before);
+});
+
 test('held shortcuts repeat after a delay, stop on release and never leak across sessions',()=>{
   let time=0,focused=false,listener,stops=0;const sent=[],registered=new Map();
   const ctl=createController({registry:{register(k,f){registered.set(k,f);return true;},unregister(k){registered.delete(k);}},

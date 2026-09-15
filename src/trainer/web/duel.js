@@ -6,6 +6,19 @@ const newDuel = () => ({stage:0,reached:0,mode:null,deck:null,deckPage:'list',de
   marks:new Set(),target:null,result:null,plan:null,routes:null,graph:null,position:null,ended:false,enabled:false,session:crypto.randomUUID()});
 const duelUI = {state:newDuel(),busy:false,generation:0,message:'',detailPreview:false,handCount:5,bindings:{...duelDefaults},shortcutStatus:null,shortcutQueue:Promise.resolve(),hoverTimer:null,closeTimer:null,previewAnchor:null,previewRect:null,previewKind:null,previewId:null,previewSuppressed:null,handHoverSuppressed:null};
 const duelState = () => duelUI.state;
+const duelRouteCache=new WeakMap();
+function duelPlanRoutes(plan) {
+  if(!duelRouteCache.has(plan))duelRouteCache.set(plan,buildBranchedTutorial(plan,true).routes);
+  return duelRouteCache.get(plan);
+}
+const duelPlanStepCount=plan=>duelPlanRoutes(plan).find(route=>route.id==='main').model.steps.length;
+function duelPlanBranches(plan) {
+  const routes=duelPlanRoutes(plan),graph=DuelModel.graph(routes),reachable=new Set(graph.nodes.map(node=>node.route));
+  return (plan.branches||[]).filter(branch=>branch.valid!==false&&reachable.has(branch.id));
+}
+function duelPlanCounts(plan) {
+  return `<span class="duel-plan-counts"><small class="duel-plan-step-count">主线 ${duelPlanStepCount(plan)} 步</small><small class="duel-plan-branch-count">可用分支 ${duelPlanBranches(plan).length}</small></span>`;
+}
 const duelHandCount = () => duelUI.handCount;
 const blankDuelHand = count => Number.isSafeInteger(count)&&count>=1&&count<=(duelState().deck?.deck?.main?.length||0) ? Array(count).fill(null) : [];
 const duelName = code => app.cache.get(code)?.name || duelState().plan?.catalog?.[code]?.name || `卡号 ${code}`;
@@ -128,11 +141,42 @@ function duelSummaryCards(plan,kind,limit=Infinity) {
   }).join('');
 }
 function duelPlanSummary(plan,detailed=false) {
-  return `<h3>${escape(plan.name)}</h3>${plan.expansion?.notes?`<p class="preserve-lines">${escape(plan.expansion.notes)}</p>`:''}<section><h4>起手</h4><div class="duel-summary-cards">${duelSummaryCards(plan,'opening')||'<span>无指定起手</span>'}</div></section><section><h4>终场</h4><div class="duel-summary-cards">${duelSummaryCards(plan,'final')||'<span>未记录终场卡牌</span>'}</div></section>${detailed?renderPlanTutorialSvg(buildPlanTutorial(plan,true)):''}`;
+  return `<h3>${escape(plan.name)}</h3>${duelPlanCounts(plan)}${plan.expansion?.notes?`<p class="preserve-lines">${escape(plan.expansion.notes)}</p>`:''}<section><h4>起手</h4><div class="duel-summary-cards">${duelSummaryCards(plan,'opening')||'<span>无指定起手</span>'}</div></section><section><h4>终场</h4><div class="duel-summary-cards">${duelSummaryCards(plan,'final')||'<span>未记录终场卡牌</span>'}</div>${duelFinalNotes(plan,detailed)}</section>${detailed?duelBranchDetails(plan)+renderPlanTutorialSvg(buildPlanTutorial(plan,true)):''}`;
+}
+function duelFinalNotes(plan,detailed=false) {
+  const final=plan.review?.nodes?.find(node=>node.kind==='final'),edits=plan.annotations||{};
+  const general=[...new Set([edits.nodes?.[final?.id||'final']?.notes,plan.requirements?.final?.notes].map(note=>String(note||'').trim()).filter(Boolean))];
+  const cards=(final?.state?.cards||plan.final_state?.cards||[]).filter(card=>edits.final_marks?.[String(card.instance_id)]?.marked);
+  const notes=cards.map(card=>{
+    const id=String(card.instance_id),mark=edits.final_marks[id],note=String(edits.cards?.[id]||'').trim();
+    const random=reviewRandomDraw(card,final||{id:'final',state:plan.final_state},plan);
+    const parts=reviewEffectParts(plan.catalog?.[card.code]?.desc);
+    const effects=Object.entries(mark.effects||{}).filter(([,value])=>value).map(([key,value])=>{
+      const part=parts.find(part=>String(part.key)===key),label=part?part.label+'效果':'效果备注';
+      return `<div class="duel-final-effect"><strong>${escape(label)}</strong>${detailed&&part&&!random?`<p class="preserve-lines">${escape(part.text)}</p>`:''}${value.note?.trim()?`<p class="duel-saved-note preserve-lines">${escape(value.note)}</p>`:''}</div>`;
+    }).join('');
+    if(!note&&!effects)return '';
+    const name=random?'随机抽牌':card.name||plan.catalog?.[card.code]?.name||`卡号 ${card.code}`;
+    return `<article><strong>${escape(name)} · ${escape(duelRegion(card))}</strong>${note?`<p class="duel-saved-note preserve-lines">${escape(note)}</p>`:''}${effects}</article>`;
+  }).join('');
+  if(!general.length&&!notes)return '';
+  return `<section class="duel-final-notes"><h4>终场备注</h4>${general.map(note=>`<p class="duel-saved-note preserve-lines">${escape(note)}</p>`).join('')}${notes}</section>`;
+}
+function duelBranchDetails(plan) {
+  const branches=duelPlanBranches(plan);if(!branches.length)return '';
+  return `<section class="duel-branch-list"><h4>分支详情</h4>${branches.map(branch=>{
+    const report=branch.report,source=branch.source||{},node=plan.review?.nodes?.find(node=>node.id===source.node_id);
+    const at=source.node_id==='initial'?'起手':node?.number!=null?`主线 Step ${node.number}`:'记录的分支起点';
+    const named=card=>card.name||report.catalog?.[card.code]?.name||plan.catalog?.[card.code]?.name||`卡号 ${card.code}`;
+    const hand=[...DuelModel.counts(branch.conditions?.hand||[])].map(([code,count])=>`${named({code})} ×${count}`).join('、');
+    const facts=observedBranchFacts(branch).map(fact=>`<p class="preserve-lines"><strong>${fact.confirmed?'已确认干扰':'记录关联（待核对）'}</strong>：${escape((fact.source_cards||[]).map(named).join('、'))} → ${escape((fact.affected_cards||[]).map(named).join('、')||'影响待核对')}：${escape(fact.result||'')}${fact.note?`<br>${escape(fact.note)}`:''}</p>`).join('');
+    const steps=duelPlanRoutes(plan).find(route=>route.id===branch.id).model.steps.length;
+    return `<article class="duel-branch-detail" data-duel-branch-detail="${escape(branch.id)}"><h4>${escape(branch.name)} <small>${steps} 步</small></h4><p>${escape(at)} · ${escape(source.timing||'时点未记录')}${source.operation?`<br>${escape(source.operation)}`:''}</p><p>对手预设手牌：${escape(hand||'未配置')}</p>${branch.conditions?.note?`<p class="preserve-lines">${escape(branch.conditions.note)}</p>`:''}${facts||'<p>尚无已记录干扰。</p>'}<h4>分支终场</h4><div class="duel-summary-cards">${duelSummaryCards(report,'final')||'<span>未记录终场卡牌</span>'}</div>${duelFinalNotes(report,true)}</article>`;
+  }).join('')}</section>`;
 }
 function duelMatchesPage() {
   const result=duelState().result;if(!result)return '';
-  return `<div class="duel-section-heading"><h2>方案选择</h2>${duelButton('rematch','刷新')}</div><div class="duel-plan-grid">${result.matches.map(plan=>`<button class="duel-plan" data-duel-plan="${escape(plan.id)}"><strong>${escape(plan.name)}</strong>${plan.expansion?.notes?`<span class="duel-plan-note">${escape(plan.expansion.notes)}</span>`:''}<span class="duel-tile-cards">${duelSummaryCards(plan,'opening',3)}</span><span class="duel-tile-arrow" aria-hidden="true">↓</span><span class="duel-tile-cards">${duelSummaryCards(plan,'final',4)}</span></button>`).join('')||`<div class="duel-empty"><h3>${escape(result.reason||'暂无可用方案')}</h3>${duelButton('edit-hand','调整起手')}</div>`}</div>`;
+  return `<div class="duel-section-heading"><h2>方案选择</h2>${duelButton('rematch','刷新')}</div><div class="duel-plan-grid">${result.matches.map(plan=>`<button class="duel-plan" data-duel-plan="${escape(plan.id)}"><span class="duel-plan-heading"><strong>${escape(plan.name)}</strong>${duelPlanCounts(plan)}</span>${plan.expansion?.notes?`<span class="duel-plan-note">${escape(plan.expansion.notes)}</span>`:''}<span class="duel-tile-cards">${duelSummaryCards(plan,'opening',3)}</span><span class="duel-tile-arrow" aria-hidden="true">↓</span><span class="duel-tile-cards">${duelSummaryCards(plan,'final',4)}</span></button>`).join('')||`<div class="duel-empty"><h3>${escape(result.reason||'暂无可用方案')}</h3>${duelButton('edit-hand','调整起手')}</div>`}</div>`;
 }
 function duelNodeSource(node) {
   const s=duelState(),report=node.route==='main'?s.plan:s.plan.branches.find(b=>b.id===node.route)?.report;
@@ -295,7 +339,7 @@ async function matchDuel(force=false) {
 function chooseDuelPlan(id) {
   const s=duelState(),plan=s.result.matches.find(p=>p.id===id);if(!plan)return;
   if(s.plan!==plan||s.ended) {
-    s.plan=plan;s.routes=buildBranchedTutorial(plan,true).routes;s.graph=DuelModel.graph(s.routes);
+    s.plan=plan;s.routes=duelPlanRoutes(plan);s.graph=DuelModel.graph(s.routes);
     s.position={key:s.graph.start,choice:0};s.ended=false;s.session=crypto.randomUUID();
   }
   s.enabled=true;closeDuelPreview();duelReach(5);renderDuel();void syncDuelShortcuts();
@@ -312,17 +356,37 @@ function closeDuelPreview(suppress=false) {
   if(reviewUI.anchor?.element?.closest('#duel-preview'))closeReviewDetail();
   duelUI.previewAnchor=duelUI.previewRect=duelUI.previewKind=duelUI.previewId=null;panel.hidden=true;
 }
+function duelPreviewPlacement({anchor,graph,width,height,viewport,footer,beside=false}) {
+  if(beside) {
+    const side=anchor.right+8+width<=viewport.width-12?anchor.right+8:anchor.left-8-width>=12?anchor.left-8-width:null;
+    if(side!==null)return {left:side,top:Math.max(70,Math.min(anchor.top,viewport.height-height-12)),height};
+  }
+  const left=Math.max(12,Math.min(anchor.left,viewport.width-width-12));
+  const overlapsFooter=footer&&left<footer.right&&left+width>footer.left;
+  const bottom=Math.min(viewport.height-12,overlapsFooter?footer.top-12:Infinity);
+  const below={top:Math.max(70,graph.bottom+8),bottom};
+  const above={top:70,bottom:Math.min(bottom,graph.top-8)};
+  const available=area=>Math.max(0,area.bottom-area.top);
+  const area=available(below)>=Math.min(height,180)||available(below)>=available(above)?below:above;
+  const fittedHeight=Math.min(height,available(area));
+  // Never move a tall preview back across the graph just to fit it on screen.
+  if(fittedHeight<80)return null;
+  return {left,top:area===below?area.top:area.bottom-fittedHeight,height:fittedHeight};
+}
 function paintDuelPreview() {
   const s=duelState(),plan=duelUI.previewKind==='plan'?s.result?.matches.find(p=>p.id===duelUI.previewId):null,node=duelUI.previewKind==='node'?s.graph?.nodes.find(n=>n.key===duelUI.previewId):null;
   if(!plan&&!node)return;
   $('#duel-preview-content').innerHTML=plan?`<div class="duel-preview-modes" role="group" aria-label="预览方式"><button data-duel-preview-mode="compact" aria-pressed="${!duelUI.detailPreview}">简略</button><button data-duel-preview-mode="detailed" aria-pressed="${duelUI.detailPreview}">详细</button></div>${duelPlanSummary(plan,duelUI.detailPreview)}`:duelNodeDetail(node);
-  const p=$('#duel-preview');p.hidden=false;
+  const p=$('#duel-preview');p.style.maxHeight='';p.hidden=false;
   const box=duelUI.previewAnchor.getBoundingClientRect();
-  p.style.left=`${Math.max(12,Math.min(box.left,window.innerWidth-p.offsetWidth-12))}px`;
-  p.style.top=`${Math.max(70,Math.min(box.bottom+8,window.innerHeight-p.offsetHeight-12))}px`;
+  const placement=duelPreviewPlacement({anchor:box,graph:node?$('#duel-graph-scroll').getBoundingClientRect():box,width:p.offsetWidth,height:p.offsetHeight,
+    viewport:{width:innerWidth,height:innerHeight},footer:$('#duel-footer').hidden?null:$('#duel-footer').getBoundingClientRect(),beside:!!plan});
+  if(!placement){p.hidden=true;return;}
+  p.style.left=placement.left+'px';p.style.top=placement.top+'px';p.style.maxHeight=placement.height+'px';
   pruneReviewCards();
 }
 function showDuelPreview(anchor) {
+  if(duelUI.previewClickPoint)return;
   clearTimeout(duelUI.closeTimer);duelUI.closeTimer=null;
   if(duelUI.previewSuppressed===anchor||duelUI.previewAnchor===anchor&&(duelUI.hoverTimer||!$('#duel-preview').hidden))return;
   if(duelUI.previewAnchor!==anchor)closeDuelPreview();
@@ -333,6 +397,17 @@ function showDuelPreview(anchor) {
     closeReviewDetail();duelUI.previewKind=anchor.dataset.duelPlan?'plan':'node';duelUI.previewId=anchor.dataset.duelPlan||anchor.dataset.duelNode;
     paintDuelPreview();
   },280);
+}
+function pauseDuelPreviewForClick(event) {
+  duelUI.previewClickPoint={x:event.clientX,y:event.clientY};
+  closeDuelPreview();closeReviewDetail();
+}
+function resumeDuelPreviewAfterMove(event) {
+  const point=duelUI.previewClickPoint;
+  if(!point||event.buttons||Math.hypot(event.clientX-point.x,event.clientY-point.y)<4)return;
+  duelUI.previewClickPoint=null;
+  const anchor=event.target.closest?.('[data-duel-plan],[data-duel-node]');
+  if(anchor&&moduleUI.current==='duel')showDuelPreview(anchor);
 }
 function withinDuelPreview(target) {
   return !!target&&(duelUI.previewAnchor?.contains(target)||$('#duel-preview').contains(target)||
@@ -427,6 +502,11 @@ $('#duel').addEventListener('pointerover',run(async event=>{
   const deck=event.target.closest('[data-duel-deck]');if(deck){await showDeckPreview(deck);return;}
   const anchor=event.target.closest('[data-duel-plan],[data-duel-node]');if(anchor&&!anchor.contains(event.relatedTarget))showDuelPreview(anchor);
 }));
+$('#duel').addEventListener('pointerdown',event=>{
+  if(event.button===0&&event.target.closest('[data-duel-node],#duel-footer'))pauseDuelPreviewForClick(event);
+},true);
+$('#duel-footer').addEventListener('pointerenter',()=>{closeDuelPreview();closeReviewDetail();});
+document.addEventListener('pointermove',resumeDuelPreviewAfterMove);
 $('#duel').addEventListener('pointerout',event=>{
   if(!deckManager.anchor?.contains(event.relatedTarget)&&!$('#deck-preview').contains(event.relatedTarget))delayCloseDeckPreview();
   if(duelUI.previewSuppressed&&!duelUI.previewSuppressed.contains(event.relatedTarget))duelUI.previewSuppressed=null;

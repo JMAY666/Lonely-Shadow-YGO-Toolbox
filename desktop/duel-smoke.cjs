@@ -5,6 +5,13 @@ module.exports=async function({page,application,root,evidence,pass}) {
   const enter=async name=>{await page.locator('#module-'+name).click();await page.waitForFunction(name=>moduleUI.current===name&&!moduleUI.switching,name);};
   const click=async action=>{await page.locator(`[data-duel-action="${action}"]`).click();await page.waitForFunction(()=>!duelUI.busy);};
   const stage=async value=>page.waitForFunction(value=>duelState().stage===value&&!duelUI.busy,value);
+  await enter('home');
+  assert.deepEqual(await page.locator('.home-shortcut').evaluateAll(nodes=>nodes.map(node=>node.dataset.moduleTarget)),['decks','expansion','duel','tags']);
+  await page.screenshot({path:path.join(evidence,'home-four-entries.png')});
+  for(const name of ['decks','expansion','duel','tags']) {
+    await page.locator('#home-'+name).click();await page.waitForFunction(name=>moduleUI.current===name&&!moduleUI.switching,name);
+    await enter('home');
+  }
   const key=crypto.randomUUID();
   const globalMods='Control+Alt+Shift';
   const globalKeys=await application.evaluate(({app})=>app.isPackaged?{back:'F5',forward:'F6',up:'F7',down:'F8',custom:'F10'}:{back:'F1',forward:'F2',up:'F3',down:'F4',custom:'F9'});
@@ -27,10 +34,11 @@ module.exports=async function({page,application,root,evidence,pass}) {
     classification:{tag_ids:[data.tag.id],primary_ids:[data.tag.id],mode:'manual'},catalog:data.catalog,
     requirements:{main:[row(55144522,2),row(1184620)],extra:[],opening:[row(55144522,2),row(null)],random:[],warnings:[],final:{cards:[],notes:'合成终场说明'}},
     review:{complete:true,revision:'synthetic',nodes:[{id:'initial',kind:'initial',action_ids:[],state},node('s1',1,'10:0'),node('s2',2,'20:0'),node('s3',3,'30:0'),{id:'final',kind:'final',action_ids:[],state}]},
-    initial_hand:[state.cards[1]],events:[action('10:0'),action('20:0'),action('30:0')],actions:[action('10:0'),action('20:0'),action('30:0')],annotations:{nodes:{s1:{name:'开始展开',notes:'逐步说明 <保持原文>'}},effects:{},cards:{},final_marks:{1:{marked:true,effects:{}},2:{marked:true,effects:{}},3:{marked:true,effects:{}}}},branches:[],final_state:state});
+    initial_hand:[state.cards[1]],events:[action('10:0'),action('20:0'),action('30:0')],actions:[action('10:0'),action('20:0'),action('30:0')],annotations:{nodes:{s1:{name:'开始展开',notes:'逐步说明 <保持原文>'}},effects:{},cards:{1:'终场卡牌备注 <保持原文>\n'+'完整备注不得截断。'.repeat(24)},final_marks:{1:{marked:true,effects:{0:{note:'终场效果备注：保留此效果作为后续资源。'}}},2:{marked:true,effects:{}},3:{marked:true,effects:{}}}},branches:[],final_state:state});
   const plan=makePlan();
   for(const [id,count] of [['allowed',1],['blocked',2],['alternative',1]]) {
     const report=makePlan();report.requirements.extra=[row(23995346,count)];
+    report.requirements.final.notes='分支终场说明 '+id;
     plan.branches.push({id,name:id==='blocked'?'资源不足分支':id==='allowed'?'可用分支 A':'互斥分支 C',valid:true,source:{node_id:'s1',action_id:'10:0',seq:10,checkpoint:1,timing:'结算后',cards:[]},conditions:{hand:[]},premises:[],report});
   }
   const noResource=makePlan();noResource.name='主线资源不足';noResource.requirements.main=[row(55144522,3)];
@@ -141,14 +149,42 @@ module.exports=async function({page,application,root,evidence,pass}) {
   assert.equal(result.counts.resources,1);assert.equal(result.counts.opening,1);assert.equal(result.counts.incomplete,1);assert.equal(result.counts.turn_order,1);
   assert(!(await page.locator('#duel-body').textContent()).match(/Tag ID|妥协分支|资源不足|可选.*个/));
   const tile=page.locator(`[data-duel-plan="${plan.id}"]`);assert(await tile.locator('img').count()>3);
+  assert.equal(await tile.locator('.duel-plan-step-count').textContent(),'主线 3 步');
+  assert.equal(await tile.locator('.duel-plan-branch-count').textContent(),'可用分支 2');
+  assert(!(await tile.textContent()).includes('可用分支 A'));assert(!(await tile.textContent()).includes('互斥分支 C'));
+  // The HTML dialog must stay below Windows caption buttons, including zoom.
+  await page.evaluate(()=>openPlanTutorial(duelState().result.matches[0]));
+  for(const [width,height,zoom] of [[1440,915,1],[900,650,1],[1100,800,1.25]]) {
+    await application.evaluate(({BrowserWindow},{width,height,zoom})=>{const window=BrowserWindow.getAllWindows().find(w=>!w.getParentWindow());window.setContentSize(width,height);window.webContents.setZoomFactor(zoom);},{width,height,zoom});
+    await page.waitForFunction(({width,zoom})=>Math.abs(innerWidth-width/zoom)<2,{width,zoom});
+    await page.waitForFunction(()=>{
+      const area=navigator.windowControlsOverlay?.getTitlebarAreaRect(),dialog=document.querySelector('#plan-tutorial-dialog').getBoundingClientRect();
+      return !area||dialog.top>=area.bottom+8&&dialog.bottom<=innerHeight;
+    });
+    assert(await page.locator('#plan-tutorial-dialog header button').evaluateAll(buttons=>buttons.every(button=>{const r=button.getBoundingClientRect();return r.right<=innerWidth&&r.top>=navigator.windowControlsOverlay.getTitlebarAreaRect().bottom;})));
+  }
+  await application.evaluate(({BrowserWindow})=>{const window=BrowserWindow.getAllWindows().find(w=>!w.getParentWindow());window.webContents.setZoomFactor(1);window.setContentSize(1280,900);});
+  await page.waitForFunction(()=>innerWidth===1280&&innerHeight===900);
+  await page.screenshot({path:path.join(evidence,'tutorial-titlebar-clear.png')});
+  await page.locator('#plan-tutorial-close').click();
   await tile.hover();await page.waitForFunction(()=>!document.querySelector('#duel-preview').hidden);
   assert.equal(await page.locator('#duel-preview svg').count(),0);assert(await page.locator('#duel-preview img').count()>3);
   assert((await page.locator('#duel-preview').textContent()).includes('手牌区'));
   assert((await page.locator('#duel-preview').textContent()).includes('墓地'));
+  const compactText=await page.locator('#duel-preview').textContent();
+  const tileBox=await tile.boundingBox(),planBox=await page.locator('#duel-preview').boundingBox();
+  assert(planBox.x>=tileBox.x+tileBox.width||planBox.x+planBox.width<=tileBox.x||planBox.y>=tileBox.y+tileBox.height||planBox.y+planBox.height<=tileBox.y);
+  assert(compactText.includes('合成终场说明'));assert(compactText.includes('终场卡牌备注 <保持原文>'));
+  assert(compactText.includes('完整备注不得截断。'.repeat(24)));assert(compactText.includes('终场效果备注：保留此效果作为后续资源。'));
+  assert(compactText.includes('可用分支 2'));assert(!compactText.includes('分支终场说明'));assert(!compactText.includes('可用分支 A'));
   await page.screenshot({path:path.join(evidence,'duel-plan-preview.png')});
   await page.locator('[data-duel-preview-mode="detailed"]').click();
   await page.waitForFunction(()=>document.querySelectorAll('#duel-preview [data-tutorial-route]').length===3);
   assert.equal(await page.locator('#duel-preview [data-tutorial-route="blocked"]').count(),0);
+  assert.equal(await page.locator('#duel-preview [data-duel-branch-detail]').count(),2);
+  assert((await page.locator('#duel-preview [data-duel-branch-detail="allowed"]').textContent()).includes('分支终场说明 allowed'));
+  assert((await page.locator('#duel-preview [data-duel-branch-detail="allowed"]').textContent()).includes('主线 Step 1'));
+  await page.screenshot({path:path.join(evidence,'duel-branch-details.png')});
   await page.locator('[data-duel-preview-mode="compact"]').click();assert.equal(await page.locator('#duel-preview svg').count(),0);
   await page.locator('#duel-preview-close').click();await tile.click();await stage(5);
   const originalReview=await page.evaluate(()=>({id:reviewUI.report?.id,node:reviewUI.node,draft:JSON.stringify(flow.draft)}));
@@ -180,6 +216,39 @@ module.exports=async function({page,application,root,evidence,pass}) {
     assert.equal(await page.evaluate(()=>duelUI.previewId),key);assert(await page.locator('#duel-preview').isVisible());
     await page.locator('#duel-preview-close').click();
   }
+  // A slow, real coordinate click must hit the next step even after a very
+  // tall detail has opened. Locator.click() could otherwise hide interception
+  // by retrying until the popup goes away.
+  const savedNodeNotes=await page.evaluate(()=>{
+    const notes=structuredClone(duelState().plan.annotations.nodes);
+    duelState().plan.annotations.nodes.s2={notes:'长步骤详情，点击下一步必须仍然可用。\n'.repeat(50)};
+    return notes;
+  });
+  const step=page.locator('[data-duel-node="main/s2"]'),bounds=await step.boundingBox();
+  const point={x:bounds.x+24,y:bounds.y+32};
+  await page.mouse.move(point.x,point.y);await page.waitForFunction(()=>duelUI.previewId==='main/s2'&&!document.querySelector('#duel-preview').hidden);
+  const previewBounds=await page.locator('#duel-preview').boundingBox(),graphBounds=await page.locator('#duel-graph-scroll').boundingBox();
+  assert(previewBounds.y>=graphBounds.y+graphBounds.height||previewBounds.y+previewBounds.height<=graphBounds.y);
+  assert(await page.locator('#duel-preview').evaluate(el=>el.scrollHeight>el.clientHeight));
+  await page.screenshot({path:path.join(evidence,'duel-hover-click-safe.png'),preserveScroll:true});
+  await page.mouse.click(point.x,point.y);assert.equal(await page.evaluate(()=>duelState().position.key),'main/s2');
+  await page.waitForTimeout(450);assert(await page.locator('#duel-preview').isHidden());
+  await page.locator('#duel-substeps').hover();await step.hover();
+  await page.waitForFunction(()=>duelUI.previewId==='main/s2'&&!document.querySelector('#duel-preview').hidden);
+  const forward=await page.locator('[data-duel-action="forward-step"]').boundingBox();
+  const forwardPoint={x:forward.x+forward.width/2,y:forward.y+forward.height/2};
+  await page.mouse.move(forwardPoint.x,forwardPoint.y);assert(await page.locator('#duel-preview').isHidden());
+  await page.mouse.click(forwardPoint.x,forwardPoint.y);assert.equal(await page.evaluate(()=>duelState().position.key),'main/s3');
+  await page.mouse.click(forwardPoint.x,forwardPoint.y);assert.equal(await page.evaluate(()=>duelState().position.key),'main/final');
+  await page.evaluate(notes=>{duelState().plan.annotations.nodes=notes;duelState().position={key:'main/s1',choice:0};paintDuelPosition();},savedNodeNotes);
+  await page.locator('#duel-substeps').hover();
+  const held=await page.locator('[data-duel-node="main/s2"]').boundingBox();
+  await page.mouse.move(held.x+24,held.y+32);await page.mouse.down();await page.waitForTimeout(450);
+  assert(await page.locator('#duel-preview').isHidden());await page.mouse.up();assert.equal(await page.evaluate(()=>duelState().position.key),'main/s2');
+  await page.evaluate(()=>{duelState().position={key:'main/s1',choice:0};paintDuelPosition();});
+  await page.locator('#duel-substeps').hover();
+  pass('Slow coordinate clicks and held presses survive long step previews; footer navigation stays reachable and repeats; tiles show main-route step counts');
+  pass('Four working home entries; tutorial dialog clears native window controls at narrow widths and zoom; full final notes and counts survive compact/detail switching with branch details only in detailed mode');
   await page.keyboard.press(globalMods+'+'+globalKeys.down);assert.equal(await page.evaluate(()=>duelState().position.choice),1);
   await page.keyboard.press(globalMods+'+'+globalKeys.forward);assert.match(await page.evaluate(()=>duelState().position.key),/^allowed\//);
   await page.keyboard.press(globalMods+'+'+globalKeys.back);assert.equal(await page.evaluate(()=>duelState().position.key),'main/s1');

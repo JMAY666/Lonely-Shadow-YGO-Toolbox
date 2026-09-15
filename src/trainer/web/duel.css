@@ -52,6 +52,10 @@
 .duel-mode>span.duel-mode-symbol{display:none}.duel-page .duel-mode{gap:4px}.duel-mode>small{position:absolute;top:14px;right:14px;padding:4px 9px;border-radius:5px;background:#14242b;color:var(--text-muted)}
 
 .duel-graph-scroll{overflow-anchor:none;scroll-behavior:auto}#app-settings-error{color:var(--danger-text)}
+/* Navigation remains reachable above both automatic detail popovers. */
+.duel-footer{z-index:70}
+.duel-plan-heading{display:flex;flex-direction:column;gap:8px;width:100%}.duel-plan-heading>strong{font-size:17px;min-width:0;overflow-wrap:anywhere}.duel-plan-counts{display:flex;flex-wrap:wrap;gap:6px 12px}.duel-plan-counts>small{white-space:nowrap;font-size:11px;color:var(--text-muted)}
+.duel-final-notes{margin-top:16px}.duel-final-notes>article{padding:10px 0;border-top:1px solid var(--border-subtle);font-size:12px}.duel-final-effect{margin:8px 0}.duel-preview .duel-saved-note{color:var(--danger-text);overflow-wrap:anywhere}.duel-branch-detail{margin:12px 0;padding:14px;border:1px solid var(--border-subtle);border-radius:8px;background:var(--surface-raised)}
 
 .duel-graph-resize{height:14px;margin:-9px 0 3px;display:flex;align-items:center;justify-content:center;cursor:ns-resize;touch-action:none;border-radius:4px;position:relative;z-index:2}
 .duel-graph-resize>span{width:52px;height:3px;background:var(--border-subtle);border-radius:3px}.duel-graph-resize:hover>span,.duel-graph-resize:focus-visible>span{background:var(--accent)}.duel-graph-resize:hover{background:#c0e88812}.duel-resizing,.duel-resizing *{cursor:ns-resize!important;user-select:none!important}
