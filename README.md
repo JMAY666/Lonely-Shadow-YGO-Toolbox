@@ -8,6 +8,8 @@
 
 ## Windows 桌面版
 
+1.11.1 将 Windows 系统标题栏融合到原有深色顶部栏，应用名称只显示一次；右侧保留同色的系统最小化、最大化／还原和关闭按钮。顶部名称及空白区域可拖动窗口，滚动页面时仍保留在顶部；窗口缩放时名称与本地资源状态避开系统按钮。左侧导航和各模块沿用现有布局，旧网页入口保持兼容。
+
 1.11.0 统一使用 **Lonely-Shadow-Yu-Gi-Oh-Toolbox** 名称与月影卡牌图标，覆盖界面、启动页、窗口、任务栏与 Windows EXE。左侧一级导航从上到下为 **首页 → 卡组编辑 → 展开**，**TAG 管理**固定在栏目最下方；启动默认进入首页。导航边缘垂直居中的箭头按钮控制收起／展开，不显示按钮文字；收起后箭头留在窗口左侧中间，主内容区获得更多宽度，切换模块仍保持收起状态。
 
 ### 模块入口与状态
@@ -59,9 +61,9 @@
 
 对手 AI 默认关闭，沿用无干扰的空场占位。开启后显示双方场地与对手状态，基础对手实际参与规则内互动；结束操作统一使用工具箱顶部“展开结束”。
 
-展开场地左侧使用可回退时间轴，替换原生卡图与介绍栏；卡组编辑页的卡片详情不变。开场发牌和阶段提示不等待过场动画。删除和重新展开使用页内确认。旧版本目录保留：请结束当前展开并退出旧版，再从下方 1.11.0 目录启动。
+展开场地左侧使用可回退时间轴，替换原生卡图与介绍栏；卡组编辑页的卡片详情不变。开场发牌和阶段提示不等待过场动画。删除和重新展开使用页内确认。旧版本目录保留：请结束当前展开并退出旧版，再从下方 1.11.1 目录启动。
 
-完整解压 `release/1.11.0/Lonely-Shadow-Yu-Gi-Oh-Toolbox-1.11.0-windows-x64.zip`，双击其中的 `Lonely-Shadow-Yu-Gi-Oh-Toolbox.exe`。本机展开目录为 `release/1.11.0/win-unpacked/Lonely-Shadow-Yu-Gi-Oh-Toolbox.exe`。**必须保留同目录的 DLL、resources 等全部内容，不能只复制 EXE。**
+完整解压 `release/1.11.1/Lonely-Shadow-Yu-Gi-Oh-Toolbox-1.11.1-windows-x64.zip`，双击其中的 `Lonely-Shadow-Yu-Gi-Oh-Toolbox.exe`。本机展开目录为 `release/1.11.1/win-unpacked/Lonely-Shadow-Yu-Gi-Oh-Toolbox.exe`。**必须保留同目录的 DLL、resources 等全部内容，不能只复制 EXE。**
 
 - 面向 Windows 10/11 x64，包内包含 Electron 44.3.0、Python 3.14.5 嵌入式运行时、YGOPro Lite、卡牌数据库、卡图和 Lua 脚本。启动不需要 Node、Python、开发服务器、外部浏览器或管理员安装步骤。
 - 主窗口自动启动并连接自己的本地服务，使用系统分配的 `127.0.0.1` 端口，避免与旧网页服务或其他软件争用固定端口。同一数据目录重复启动只激活已有桌面窗口。
@@ -85,13 +87,13 @@ npm run test:packaged
 npm run build
 ```
 
-`desktop:prepare` 校验 Python 归档哈希，按白名单生成 `runtime.zip`，只携带所需资源与干净的默认配置；个人卡组、展开方案、训练记录、旧配置、账号、Bot/WindBot、录像和日志不进入应用包。`build:dir` 生成 `release/1.11.0/win-unpacked/`；`build` 另生成上述 Windows ZIP 包。整个 `release/` 与 `.local/` 均留在本地，不进入 Git。
+`desktop:prepare` 校验 Python 归档哈希，按白名单生成 `runtime.zip`，只携带所需资源与干净的默认配置；个人卡组、展开方案、训练记录、旧配置、账号、Bot/WindBot、录像和日志不进入应用包。`build:dir` 生成 `release/1.11.1/win-unpacked/`；`build` 另生成上述 Windows ZIP 包。整个 `release/` 与 `.local/` 均留在本地，不进入 Git。
 
 `test:desktop` / `test:packaged` 使用后台 Electron、内置 Python 和真实原生引擎，以隔离数据目录验证 YDK 导入、编辑删除、场地嵌入与缩放、效果发动、通常召唤、报告、重启和关闭，并覆盖 1／2／3／5 张起手、双方配置、返回修改、计时和草稿／方案删除。验收同时检查场地没有被重叠的分层窗口覆盖，不能仅以原生截图或鼠标命中成功判断场地可显示。测试通过引擎自己的命中检测和 Irrlicht 事件接口点击，通过渲染驱动捕获场地图像，不使用系统鼠标、全局按键或其他应用窗口。
 
 测试脚本显式启用 `YGO_DESKTOP_TEST=1` 与 `YGO_DESKTOP_BACKGROUND=1`：仅测试实例提供内部输入／截图接口并固定随机种子，日志开始行标记 `test_control: true`。正常启动不启用这些接口，继续使用随机起手。一图流验收还覆盖真实保存方案的 PNG／SVG 下载、各环节卡图嵌入、多张素材换行、节点与卡图环节的文字边界、导出失败恢复、键盘跳转原步骤及冻结方案保持不变；终场摘要回归检查完整效果原文、位置与备注，并核对简略模式保持原有显示。
 
-本轮验收另外覆盖首页跳转、两处未保存编辑隔离、共享卡组版本冲突、展开中的模块切换、窄窗口抽屉与左侧导航边界，以及品牌资源和升级数据读取。
+验收另外覆盖首页跳转、两处未保存编辑隔离、共享卡组版本冲突、展开中的模块切换、窄窗口抽屉与左侧导航边界，以及品牌资源和升级数据读取。合并标题栏的检查覆盖启动页拖动区域、900／1280／1600 像素宽度、125% 页面缩放、滚动固定及系统按钮避让。
 
 保留旧版应用包时，可运行 `npm run test:upgrade -- --legacy-exe "release/1.10.0/win-unpacked/YGOTrainer.exe"`：在隔离的 `LOCALAPPDATA` 下先运行旧版，再运行新版，对比卡组、方案、历史、窗口设置与备份。该测试只读取旧包和自动验收生成的测试方案，不访问生产用户数据。
 
@@ -123,7 +125,7 @@ YGOTrainer/
 `npm start` 在首次运行时自动从 `.local/YGOPro-Lite` 备份并迁移到开发数据目录。打包版本不会携带或自动扫描其他机器上的私人数据；首次迁移当前工作副本时使用：
 
 ```powershell
-.\release\1.11.0\win-unpacked\Lonely-Shadow-Yu-Gi-Oh-Toolbox.exe --import-from "$PWD\.local\YGOPro-Lite"
+.\release\1.11.1\win-unpacked\Lonely-Shadow-Yu-Gi-Oh-Toolbox.exe --import-from "$PWD\.local\YGOPro-Lite"
 ```
 
 先正常结束旧版训练并停止旧网页服务；源服务仍占用目录或原生训练存活时拒绝迁移。迁移顺序为：完整清点 → 独立备份 → 核对备份和源文件哈希 → 复制到空目标 → 逐文件核对 → 写入完成标记。旧数据保留原处；中途退出可从验证过的备份继续，不覆盖已经产生新修改的目标文件。已使用的桌面数据目录不会被再次导入覆盖；如需另行迁移，使用 `--data-dir "另一个空目录" --import-from "旧副本目录"`。

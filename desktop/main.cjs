@@ -169,6 +169,8 @@ if (!app.requestSingleInstanceLock()) {
       }
     } catch { /* First launch or damaged window settings: use defaults. */ }
     mainWindow = new BrowserWindow({ ...bounds, minWidth: 900, minHeight: 650, title: branding.name, icon:applicationIcon, autoHideMenuBar: true,
+      ...(process.platform === 'win32' ? { titleBarStyle: 'hidden',
+        titleBarOverlay: { color: '#152129', symbolColor: '#dce6ea', height: 60 } } : {}),
       show: process.env.YGO_DESKTOP_BACKGROUND !== '1',
       webPreferences: { ...webPreferences, preload: path.join(__dirname, 'preload.cjs'), backgroundThrottling: false } });
     ipcMain.handle('trainer:layout', async (event, bounds) => {
@@ -216,7 +218,8 @@ if (!app.requestSingleInstanceLock()) {
     await mainWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(loading));
     if (process.env.YGO_DESKTOP_TEST === '1') globalThis.brandingAcceptance = {
       windowIconExists:fs.existsSync(applicationIcon),
-      loadingImage:await mainWindow.webContents.executeJavaScript('document.images[0].complete && document.images[0].naturalWidth > 0')
+      loadingImage:await mainWindow.webContents.executeJavaScript('document.images[0].complete && document.images[0].naturalWidth > 0'),
+      loadingTitlebar:await mainWindow.webContents.executeJavaScript('getComputedStyle(document.querySelector(".loading-titlebar")).webkitAppRegion === "drag"')
     };
     const importFrom = argument('--import-from') || (!app.isPackaged ? path.join(workspace, '.local', 'YGOPro-Lite') : null);
     const service = await launchBackend(importFrom);

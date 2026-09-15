@@ -13,6 +13,14 @@ body.rail-collapsed { --rail-width:0px; }
 .brand img { width:34px; height:34px; flex-shrink:0; }
 .app-bar .brand span { display:block; font-size:15px; font-weight:650; letter-spacing:.2px; color:#dce6ea; white-space:normal; overflow-wrap:anywhere; }
 .app-bar .local { display:flex; }
+/* The desktop header also owns window dragging; native controls occupy its right edge.
+   Overlay dimensions are CSS pixels, so the safe area follows window/page scaling. */
+.desktop-shell .app-bar { position:sticky; top:0; z-index:44; -webkit-app-region:drag; user-select:none;
+  height:env(titlebar-area-height,60px); min-height:env(titlebar-area-height,60px);
+  padding-right:calc(22px + 100vw - env(titlebar-area-x,0px) - env(titlebar-area-width,100vw)); }
+.desktop-shell .app-bar .brand span { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.desktop-shell .app-bar :is(button,a,input,select,textarea,[role="button"]) { -webkit-app-region:no-drag; }
+.desktop-shell .rail-mark { -webkit-app-region:drag; user-select:none; }
 .primary-rail { position:fixed; inset:0 auto 0 0; width:var(--rail-size); z-index:45; display:flex; flex-direction:column; align-items:center; gap:30px; padding:18px 8px; background:#17262f; border-right:1px solid #35434a; color:#c3d0d5; }
 .rail-mark { width:40px; height:40px; }
 .primary-rail nav { display:flex; flex-direction:column; width:100%; gap:10px; flex:1; min-height:0; }

@@ -54,7 +54,8 @@ async function launch(first = false, testControl = true) {
   const identity = await application.evaluate(({app,BrowserWindow})=>({name:app.getName(),title:BrowserWindow.getAllWindows().find(w=>!w.getParentWindow()).getTitle(),data:app.getPath('userData')}));
   assert.equal(identity.name,brand.name); assert.equal(identity.title,brand.name);
   assert.equal(identity.data,path.join(root,'electron'));
-  if(testControl)assert.deepEqual(await application.evaluate(()=>globalThis.brandingAcceptance),{windowIconExists:true,loadingImage:true});
+  if(testControl)assert.deepEqual(await application.evaluate(()=>globalThis.brandingAcceptance),{windowIconExists:true,loadingImage:true,loadingTitlebar:process.platform==='win32'});
+  if(first)await require('./titlebar-smoke.cjs')({application,page,pass,evidence});
   assert.deepEqual(await page.locator('.primary-rail nav button>span').allTextContents(),['首页','卡组编辑','展开','TAG 管理']);
   assert.equal(await page.locator('#expansion-navigation #nav-tags, #manage-tags').count(),0);
   const tagPosition=await page.locator('#module-tags').boundingBox();
