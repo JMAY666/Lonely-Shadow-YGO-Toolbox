@@ -14,7 +14,6 @@
 #deck-appearance-dialog header,#deck-appearance-dialog footer{display:flex;justify-content:space-between;align-items:center;gap:12px}#deck-appearance-dialog footer{justify-content:flex-end;margin-top:16px}
 #representative-slots{display:flex;justify-content:center;gap:20px;margin:20px 0}#representative-slots button{width:86px;height:130px;position:relative;padding:4px;font-size:28px}#representative-slots img{width:100%;height:100%;object-fit:contain}#representative-slots small{position:absolute;bottom:0;right:0;background:var(--surface-panel);padding:2px 7px;font-size:12px}#representative-slots [aria-pressed=true]{outline:2px solid var(--accent)}
 #representative-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(60px,1fr));gap:10px;max-height:36vh;overflow:auto;padding:12px 2px}#representative-cards button{padding:2px}#representative-cards img{width:100%;aspect-ratio:59/86;object-fit:contain}#deck-appearance-dialog::backdrop{background:#0008}
-#app-settings{padding:2px 6px;font-size:18px;border:0;background:transparent;color:var(--text-muted);flex-shrink:0}
 /* Flow navigation stays compact; actions float above the page without a bar. */
 .duel-page{max-width:1600px;margin:0 auto;padding:0 0 86px;color:var(--text-main)}
 .duel-section-heading,.duel-actions{display:flex;align-items:center;justify-content:space-between;gap:12px}.duel-actions{justify-content:flex-start;flex-wrap:wrap}.duel-section-heading{margin:16px 0}.duel-section-heading h2{margin:0;font-size:16px}

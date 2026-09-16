@@ -110,6 +110,9 @@ class Compromise:
 
     def script_identity(self):
         value = hashlib.sha256()
+        from superpre import installed_metadata
+        patch = installed_metadata(self.store.runtime)
+        if patch: value.update(patch['sha256'].encode('ascii'))
         for root in ('script', 'expansions/script'):
             for file in sorted((self.store.runtime / root).rglob('*.lua')):
                 value.update(file.relative_to(self.store.runtime).as_posix().encode())

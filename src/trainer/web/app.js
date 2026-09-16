@@ -17,10 +17,11 @@ function run(fn){return async(...args)=>{try{await fn(...args);}catch(e){notice(
 async function card(code) {
   if (app.cache.has(code)) return app.cache.get(code);
   if (!app.pendingCards.has(code)) {
+    const epoch=app.catalogEpoch||0;
     app.pendingCards.set(code, api(`/api/card/${code}`).then(c => {
-      app.cache.set(code, c);
+      if(epoch===(app.catalogEpoch||0))app.cache.set(code, c);
       return c;
-    }).finally(() => app.pendingCards.delete(code)));
+    }).finally(() => {if(epoch===(app.catalogEpoch||0))app.pendingCards.delete(code);}));
   }
   return app.pendingCards.get(code);
 }
@@ -76,7 +77,7 @@ function displayView(view) {
 async function syncNativeHost() {
   if (!window.trainerDesktop) return;
   const brainVisible=typeof modularFieldVisible==='function'&&modularFieldVisible();
-  if (($('#training').hidden && ($('#modular').hidden || !app.active) && !brainVisible) || (typeof flow !== 'undefined' && flow.confirming) || (typeof rewindState !== 'undefined' && rewindState.busy)) return window.trainerDesktop.updateLayout({visible:false});
+  if (($('#training').hidden && ($('#modular').hidden || !app.active) && !brainVisible) || $('#app-settings-dialog')?.open || (typeof flow !== 'undefined' && flow.confirming) || (typeof rewindState !== 'undefined' && rewindState.busy)) return window.trainerDesktop.updateLayout({visible:false});
   const box = $('#native-stage').getBoundingClientRect();
   if (!$('#modular').hidden || brainVisible) {
     const top=Math.max(box.y,0),left=Math.max(box.x,0),width=Math.min(box.right,innerWidth)-left,height=Math.min(box.bottom,innerHeight)-top;

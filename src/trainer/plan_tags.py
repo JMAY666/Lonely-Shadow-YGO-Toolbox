@@ -15,8 +15,9 @@ def normalized(value):
 
 
 def builtin_tags(runtime):
+    from superpre import resource_files
     result = {}
-    for path in (runtime / 'strings.conf', runtime / 'expansions/strings.conf'):
+    for path in (runtime / 'strings.conf', runtime / 'expansions/strings.conf', *resource_files(runtime, '.conf')):
         if not path.exists(): continue
         for line in path.read_text(encoding='utf-8-sig', errors='replace').splitlines():
             match = re.match(r'^!setname\s+(0x[\da-fA-F]+)\s+(.+)', line)

@@ -18,11 +18,12 @@
   <link rel="stylesheet" href="/deck-tags.css">
   <link rel="stylesheet" href="/scrollbars.css">
   <link rel="stylesheet" href="/duel.css">
+  <link rel="stylesheet" href="/superpre.css">
 </head>
 <body data-module="home">
 <div class="app-bar">
   <div class="brand"><img src="/app-icon.svg" alt=""><span>Lonely-Shadow-Yu-Gi-Oh-Toolbox</span></div>
-  <div class="local"><span class="status-dot"></span>本地卡组库 <small id="resource-count"></small><button id="app-settings" aria-label="全局设置" title="全局设置">⚙</button></div>
+  <div class="local"><span class="status-dot"></span>本地卡组库 <small id="resource-count"></small></div>
 </div>
 <aside id="primary-navigation" class="primary-rail" aria-label="主要导航">
   <img class="rail-mark" src="/app-icon.svg" alt="月影卡牌图标">
@@ -32,6 +33,7 @@
     <button id="module-expansion" data-module-target="expansion" class="module-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4v8h13M5 12v8m13-15v7m0-7-3 3m3-3 3 3"/><circle cx="5" cy="4" r="2"/><circle cx="5" cy="20" r="2"/><circle cx="18" cy="19" r="2"/><path d="M18 12v5"/></svg><span>展开</span><small id="module-expansion-status" hidden>进行中</small></button>
     <button id="module-duel" data-module-target="duel" class="module-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 3 17 17m-1-17L3 20M3 3l1 5 4-4M21 3l-1 5-4-4M2 16l6 6m8 0 6-6"/></svg><span>决斗</span></button>
     <button id="module-modular" data-module-target="modular" class="module-link"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="3" width="7" height="7" rx="2"/><rect x="15" y="14" width="7" height="7" rx="2"/><path d="M9 6h9v8M5 10v8h10"/></svg><span>模块化</span></button>
+    <button id="app-settings" class="module-link" aria-label="全局设置" title="全局设置" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 3-1 3-3 1v3l-2 2 2 2v3l3 1 1 3h6l1-3 3-1v-3l2-2-2-2V7l-3-1-1-3Z"/><circle cx="12" cy="12" r="3"/></svg><span>全局设置</span></button>
     <button id="module-tags" data-module-target="tags" class="module-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h8l10 10-8 8L3 11Z"/><circle cx="8" cy="8" r="1.5"/></svg><span>TAG 管理</span></button>
   </nav>
 </aside>
@@ -251,6 +253,28 @@
     <div class="duel-global-options"><label for="duel-default-count">先攻起手张数<input id="duel-default-count" type="number" min="1" max="60" step="1" value="5"></label></div>
     <p>用于尚未准备起手的流程及后续对局。</p>
     <button id="app-settings-shortcuts" type="button">教程快捷键</button>
+    <section id="superpre-settings" aria-labelledby="superpre-title">
+      <div class="superpre-heading"><h3 id="superpre-title">超先行补丁</h3><span id="superpre-state">正在读取</span></div>
+      <p>同步 MyCard 超先行新卡与修正，应用于卡组编辑、展开场地和后台推演。测试卡效果以官方补丁及当前规则引擎的实际结算为准。</p>
+      <dl class="superpre-details">
+        <dt>本地版本</dt><dd id="superpre-installed">未安装</dd>
+        <dt>官方最新版本</dt><dd id="superpre-latest">尚未检查</dd>
+        <dt>官方更新时间</dt><dd id="superpre-updated">尚未检查</dd>
+        <dt>上次检查</dt><dd id="superpre-checked">尚未检查</dd>
+        <dt>下载位置</dt><dd><a id="superpre-download" target="_blank" rel="noreferrer" hidden></a><span id="superpre-no-download">检查更新后显示官方地址</span></dd>
+      </dl>
+      <div class="superpre-actions">
+        <button id="superpre-check" type="button" disabled>检查更新</button>
+        <button id="superpre-install" type="button" class="primary" disabled>安装补丁</button>
+        <button id="superpre-update" type="button" disabled>更新补丁</button>
+        <button id="superpre-uninstall" type="button" class="danger" disabled>卸载补丁</button>
+      </div>
+      <progress id="superpre-progress" aria-label="补丁操作进度" hidden></progress>
+      <p id="superpre-status" role="status" aria-live="polite"></p>
+      <p id="superpre-error" role="alert"></p>
+      <p>安装、更新和卸载立即生效，无需点击下方保存。卸载会移除补丁新卡，已有卡组、方案和记录仍会保留；再次使用这些卡牌需要重新安装。展开或后台推演运行时请先结束。</p>
+      <a id="superpre-source" href="https://mycard.world/ygopro/arena/#/superpre" target="_blank" rel="noreferrer">查看官方补丁说明 ↗</a>
+    </section>
     <p id="app-settings-error" role="alert"></p>
     <div class="duel-actions"><button id="app-settings-cancel" type="button">取消</button><button id="app-settings-save" class="primary" type="submit">保存</button></div>
   </form>
@@ -280,6 +304,6 @@
 <link rel="stylesheet" href="/modular.css">
 <script src="/modular.js"></script><script src="/deck-selection.js"></script><script src="/modules.js"></script>
 <script src="/deck-tags.js"></script>
-<script src="/deck-appearance.js"></script><script src="/duel-model.js"></script><script src="/tutorial-bindings.js"></script><script src="/duel.js"></script><script src="/duel-forecast.js"></script>
+<script src="/deck-appearance.js"></script><script src="/duel-model.js"></script><script src="/tutorial-bindings.js"></script><script src="/duel.js"></script><script src="/duel-forecast.js"></script><script src="/superpre.js"></script>
 </body>
 </html>

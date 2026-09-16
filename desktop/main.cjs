@@ -1,5 +1,5 @@
 'use strict';
-const { app, BrowserWindow, dialog, Menu, screen, ipcMain, clipboard, globalShortcut } = require('electron');
+const { app, BrowserWindow, dialog, Menu, screen, ipcMain, clipboard, globalShortcut, shell } = require('electron');
 const { spawn } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -213,6 +213,11 @@ if (!app.requestSingleInstanceLock()) {
       if (!ready || shuttingDown || event.sender !== mainWindow?.webContents || event.senderFrame !== mainWindow.webContents.mainFrame || new URL(event.senderFrame.url).origin !== ready.url) throw new Error('无效的教程快捷键请求');
     };
     ipcMain.handle('trainer:tutorial-settings', event => {shortcutSender(event);return readTutorialSettings();});
+    ipcMain.handle('trainer:open-patch-link', (event, url) => {
+      shortcutSender(event);
+      if(typeof url!=='string'||!(url==='https://mycard.world/ygopro/arena/#/superpre'||/^https:\/\/(?:cdntx|cdncf)\.moecube\.com\/ygopro-super-pre\/archive\/ygopro-super-pre(?:-[\w.-]+)?\.ypk$/.test(url)))throw new Error('补丁链接无效');
+      return shell.openExternal(url);
+    });
     ipcMain.handle('trainer:tutorial-save-settings', (event, bindings) => {
       shortcutSender(event);
       const settings={version:2,bindings:tutorialShortcuts.normalize(bindings)};

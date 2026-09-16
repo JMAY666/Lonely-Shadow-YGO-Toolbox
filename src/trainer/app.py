@@ -31,6 +31,7 @@ from plan_tags import tag_list
 import deck_tags
 from plan_sharing import MAX_BYTES
 from compromise import Compromise, resource_scope
+import superpre
 
 WORKSPACE = Path(__file__).resolve().parents[2]
 RUNTIME = WORKSPACE / '.local/YGOPro-Lite'
@@ -101,7 +102,16 @@ def process_identity(pid):
 class Catalog:
     def __init__(self, runtime):
         self.cards, self.sources = {}, []
-        databases = [runtime / 'cards.cdb', *sorted((runtime / 'expansions').glob('*.cdb'))]
+        self.patch_root = superpre.resource_root(runtime)
+        patch = superpre.installed_metadata(runtime)
+        if patch and (not superpre.archive_path(runtime).is_file() or
+                      superpre.digest(superpre.archive_path(runtime)) != patch['sha256']):
+            raise ValueError('超先行补丁文件与安装记录不一致，请检查补丁目录；原始数据已保留')
+        if patch: superpre.verify_projection(runtime, patch)
+        databases = [runtime / 'cards.cdb', *sorted((runtime / 'expansions').glob('*.cdb')),
+                     *superpre.resource_files(runtime, '.cdb')]
+        scripts = [runtime / 'script', runtime / 'expansions/script']
+        if self.patch_root: scripts.append(self.patch_root / 'script')
         for path in databases:
             if not path.exists(): raise ValueError(f'缺少卡牌数据库：{path.name}')
             with closing(sqlite3.connect(path.resolve().as_uri() + '?mode=ro', uri=True)) as db:
@@ -111,10 +121,12 @@ class Catalog:
                     card = dict(row)
                     card['source'] = path.relative_to(runtime).as_posix()
                     card['extra'] = bool(card['type'] & EXTRA_TYPES)
-                    card['script_available'] = any((p / f"c{card['id']}.lua").exists() for p in (runtime / 'script', runtime / 'expansions/script'))
+                    card['script_available'] = any((p / f"c{card['id']}.lua").exists() for p in scripts)
                     self.cards[card['id']] = card
             self.sources.append({'path': path.relative_to(runtime).as_posix(), 'sha256': hashlib.sha256(path.read_bytes()).hexdigest()})
-        self.archive_warning = [p.name for p in (runtime / 'expansions').glob('*') if p.suffix.lower() in ('.zip', '.ypk')]
+        if patch: self.sources.append({'path': 'expansions/' + superpre.ARCHIVE_NAME, 'sha256': patch['sha256']})
+        self.archive_warning = [p.name for p in (runtime / 'expansions').glob('*') if p.suffix.lower() in ('.zip', '.ypk')
+                                and not (patch and p.name == superpre.ARCHIVE_NAME)]
         if self.archive_warning: raise ValueError('检测到尚未支持的扩展资源包；请先明确其与引擎的加载顺序，避免构筑资料不一致')
 
     def search(self, q, kind='', offset=0, *, name_only=False, favorites=None, attribute='', race='', level=''):
@@ -140,22 +152,33 @@ class Store:
         self.decks.mkdir(exist_ok=True)
         self.plans = self.root / 'plans'
         self.plans.mkdir(exist_ok=True)
-        self.catalog = Catalog(self.runtime)
         self.lock = threading.RLock()
+        self.processes = {}
+        self.planning = set()
+        self.closing = False
+        self.superpre = superpre.Superpre(self)
+        self.catalog = Catalog(self.runtime)
         self.history_plan_names = {}
         self.library = PlanLibrary(self, read_json, atomic_json, now)
         self.compromise = Compromise(self, read_json, atomic_json, atomic_bytes)
         from modular import Modular
         self.modular = Modular(self, read_json, atomic_json, atomic_bytes)
-        self.processes = {}
-        self.planning = set()
-        self.closing = False
         self.job = None
         self.host = host
         if desktop:
             from desktop_runtime import OwnedJob
             self.job = OwnedJob()
         self.refresh()
+
+    def reload_resources(self):
+        """Commit the web projection together; existing saved reports retain their snapshots."""
+        from plan_tags import builtin_tags
+        catalog = Catalog(self.runtime)
+        builtins = builtin_tags(self.runtime)
+        self.catalog, self.library.builtins = catalog, builtins
+        with self.modular.lock:
+            for sid in self.modular.sessions: self.modular.planning_cache.discard(sid)
+            self.modular.sessions.clear()
 
     def parse_deck(self, data):
         deck = {'main': [], 'extra': [], 'side': []}
@@ -474,6 +497,7 @@ class Store:
     def start(self, identifier, design=None, retry_meta=None, branch_setup=None, *, planning=False):
         with self.lock:
             if self.closing: raise ValueError('应用正在保存并退出，请稍候')
+            if self.superpre.mutating: raise ValueError('超先行补丁正在变更，请等待操作完成后再开始展开或推演')
             self.refresh()
             if not planning and (any(proc.poll() is None for sid, proc in self.processes.items() if sid not in self.planning) or
                     any(r['status'] in ('running','starting','stopping') for r in self.history())):
@@ -913,6 +937,7 @@ class Handler(BaseHTTPRequestHandler):
                 maximum = MAX_BYTES if path in ('/api/plans/import', '/api/plans/import-preview') else 1_000_000 if path == '/api/tags/save' else 100_000
                 if not 0 < length < maximum: raise ValueError('请求长度无效，分享文件上限为 20 MB')
                 body = json.loads(self.rfile.read(length))
+                if path == '/api/superpre': return self.send(store.superpre.start(body.get('action')))
                 if path == '/api/modular/dispatch': return self.send(store.modular.dispatch(body))
                 if path == '/api/modular/configure': return self.send(store.modular.configure(body))
                 if path == '/api/modular/search': return self.send(store.modular.public_result(store.modular.search(body['id'])))
@@ -950,6 +975,7 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/shutdown':
                     self.send({'ok': True}); threading.Thread(target=self.server.shutdown, daemon=True).start(); return
             else:
+                if path == '/api/superpre': return self.send(store.superpre.status())
                 if path == '/api/modular/data': return self.send(store.modular.data())
                 if path == '/api/modular/library': return self.send(store.modular.library.sync())
                 if path.startswith('/api/modular/source/'):
@@ -1010,7 +1036,10 @@ class Handler(BaseHTTPRequestHandler):
                     return self.send(p.read_bytes(), 'text/plain; charset=utf-8')
                 if path.startswith('/pics/'):
                     code = int(Path(path).stem)
-                    for root in (store.runtime / 'expansions/pics', store.runtime / 'pics'):
+                    roots = [store.runtime / 'expansions/pics']
+                    if store.catalog.patch_root: roots.append(store.catalog.patch_root / 'pics')
+                    roots.append(store.runtime / 'pics')
+                    for root in roots:
                         for ext in ('.jpg', '.png'):
                             p = root / f'{code}{ext}'
                             if p.is_file(): return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0])
@@ -1022,7 +1051,7 @@ class Handler(BaseHTTPRequestHandler):
                 files['/scrollbars.css'] = 'scrollbars.css'
                 for art in ('first', 'second', 'bo1', 'bo3'):
                     files[f'/brand/duel-{art}.svg'] = f'brand/duel-{art}.svg'
-                for name in ('duel.js', 'duel-forecast.js', 'duel-model.js', 'tutorial-bindings.js', 'duel.css', 'deck-tag-view.js', 'deck-appearance.js'):
+                for name in ('duel.js', 'duel-forecast.js', 'duel-model.js', 'tutorial-bindings.js', 'duel.css', 'deck-tag-view.js', 'deck-appearance.js', 'superpre.js', 'superpre.css'):
                     files['/' + name] = name
                 if path in files:
                     p = WEB / files[path]; return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0] + '; charset=utf-8')

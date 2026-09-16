@@ -5,7 +5,11 @@ const path = require('node:path');
 
 module.exports = async ({page,application,evidence,label,pass}) => {
   const stamp = Date.now(), blankName = `空白-${label}-${stamp}`, name = `Electron-${label}-${stamp}`;
-  const created = () => page.locator('[data-create-deck]');
+  const create = async () => {
+    // Keyboard activation is independent of the hover preview revealed when a
+    // modal closes. This also covers the new-deck tile's accessible action.
+    await page.locator('[data-create-deck]').press('Enter');
+  };
   const tile = title => page.locator('[data-open-deck]').filter({hasText:title});
   const settled = () => page.waitForFunction(() => !app.busy);
   const save = async () => { await page.locator('#save-deck').click(); await page.waitForFunction(() => !app.busy && !app.dirty && !!app.id); };
@@ -13,14 +17,14 @@ module.exports = async ({page,application,evidence,label,pass}) => {
   assert.equal(await page.locator('#deck-workbench').isVisible(), false);
   const initial = await page.evaluate(() => api('/api/decks'));
   await page.screenshot({path:path.join(evidence,'deck-manager.png')});
-  await created().click();
+  await create();
   assert.equal(await page.locator('#import-title').innerText(), '新建卡组');
   await page.locator('#import-name').fill('');
   await page.locator('#import-apply').click();
   await page.waitForFunction(() => document.querySelector('#import-status').textContent.includes('有效的卡组名称'));
   await page.locator('#import-cancel').click();
   assert.deepEqual(await page.evaluate(() => api('/api/decks')), initial);
-  await created().click();
+  await create();
   await page.locator('#import-name').fill(blankName);
   await page.locator('#import-apply').click();
   await page.waitForFunction(() => !document.querySelector('#import-dialog').open && app.dirty && !app.busy);
@@ -40,7 +44,7 @@ module.exports = async ({page,application,evidence,label,pass}) => {
   const deck = {main:Array.from({length:40},(_,i)=>i%2?1184620:55144522),extra:[23995346],side:[55144522]};
   const source = path.join(evidence,'acceptance.ydk');
   fs.writeFileSync(source,'\uFEFF#main\r\n'+deck.main.join('\r\n')+'\r\n#extra\r\n23995346\r\n!side\r\n55144522\r\n');
-  await created().click();
+  await create();
   await page.locator('#create-import-mode').click();
   await page.locator('.import-paste summary').click();
   await page.locator('#import-text').fill('#main\n4294967295');

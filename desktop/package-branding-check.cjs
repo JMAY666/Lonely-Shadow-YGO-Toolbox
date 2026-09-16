@@ -6,7 +6,7 @@ const {NtExecutable,NtExecutableResource} = require('pe-library');
 const {Resource,Data} = require('resedit');
 const brand = require('./branding.cjs');
 const config = require('../package.json');
-const executable = path.resolve(__dirname,'..',config.build.directories.output,'win-unpacked',config.build.win.executableName+'.exe');
+const executable = path.resolve(__dirname,'..',process.env.YGO_PACKAGE_DIR||config.build.directories.output,'win-unpacked',config.build.win.executableName+'.exe');
 const resources = NtExecutableResource.from(NtExecutable.from(fs.readFileSync(executable)));
 const versions = Resource.VersionInfo.fromEntries(resources.entries).flatMap(info=>info.getAvailableLanguages().map(language=>info.getStringValues(language)));
 assert(versions.some(version=>version.ProductName===brand.name));

@@ -465,11 +465,13 @@ async function openDuelShortcuts() {
 async function closeDuelShortcuts() {$('#duel-shortcut-dialog').close();await syncDuelShortcuts();}
 async function openAppSettings() {
   closeDuelPreview();closeReviewDetail();
+  closeDeckPreview();
   const settings=await api('/api/duel/settings');duelUI.handCount=settings.hand_count;
   $('#duel-default-count').value=settings.hand_count;$('#app-settings-error').textContent='';
-  $('#app-settings-dialog').showModal();await syncDuelShortcuts();
+  $('#app-settings-dialog').showModal();await syncDuelShortcuts();await syncNativeHost();
+  if(typeof loadSuperpreSettings==='function')void loadSuperpreSettings(true);
 }
-async function closeAppSettings() {$('#app-settings-dialog').close();await syncDuelShortcuts();}
+async function closeAppSettings() {$('#app-settings-dialog').close();await syncDuelShortcuts();await syncNativeHost();}
 
 $('#duel').addEventListener('click',run(async event=>{
   if(duelUI.busy)return;const s=duelState(),node=event.target.closest('[data-duel-node]'),button=event.target.closest('button');

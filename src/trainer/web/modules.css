@@ -23,8 +23,8 @@ body.rail-collapsed { --rail-width:0px; }
 .desktop-shell .rail-mark { -webkit-app-region:drag; user-select:none; }
 .primary-rail { position:fixed; inset:0 auto 0 0; width:var(--rail-size); z-index:45; display:flex; flex-direction:column; align-items:center; gap:30px; padding:18px 8px; background:#17262f; border-right:1px solid #35434a; color:#c3d0d5; }
 .rail-mark { width:40px; height:40px; }
-.primary-rail nav { display:flex; flex-direction:column; width:100%; gap:10px; flex:1; min-height:0; }
-#module-tags { margin-top:auto; }
+.primary-rail nav { display:flex; flex-direction:column; width:100%; gap:10px; flex:1; min-height:0; overflow-y:auto; }
+#app-settings { margin-top:auto; }
 .module-link { display:flex; align-items:center; flex-direction:column; justify-content:center; gap:9px; min-height:80px; width:100%; padding:12px 4px; border:1px solid transparent; border-radius:9px; background:transparent; color:#93a8b3; font-size:12px; position:relative; }
 .module-link svg { width:23px; height:23px; stroke:currentColor; stroke-width:1.7; fill:none; stroke-linecap:round; stroke-linejoin:round; }
 .module-link:hover { background:#243740; border-color:#47604e; }

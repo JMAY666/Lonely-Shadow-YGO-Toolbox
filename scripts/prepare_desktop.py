@@ -74,7 +74,7 @@ def main():
     shutil.copy2(WORKSPACE / 'docs/third-party.md', notices / 'THIRD-PARTY.md')
     shutil.copy2(WORKSPACE / 'licenses/YGOPro-GPL-2.0.txt', notices / 'YGOPro-GPL-2.0.txt')
     shutil.copy2(WORKSPACE / 'README.md', notices / 'README.md')
-    for relative in ('AGENTS.md', 'docs/recording.md', 'docs/verification.md', 'docs/third-party.md',
+    for relative in ('AGENTS.md', 'docs/recording.md', 'docs/verification.md', 'docs/third-party.md', 'docs/superpre.md',
                      'licenses/YGOPro-GPL-2.0.txt', 'scripts/source-lock.json', 'scripts/desktop-lock.json'):
         destination = notices / relative
         destination.parent.mkdir(parents=True, exist_ok=True)
