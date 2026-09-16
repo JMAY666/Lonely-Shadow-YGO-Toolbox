@@ -53,7 +53,27 @@
     }
     return next;
   }
-  const model = {counts,handError,place,graph,navigate};
+  function markedFinalCards(plan) {
+    const node=plan.review?.nodes?.find(n=>n.kind==='final'),module=plan.review?.module_graph?.modules?.find(m=>m.id===node?.module_id);
+    const cards=(module?.state||node?.state||plan.final_state)?.cards||[],marks=plan.annotations?.final_marks||{};
+    return cards.filter(c=>marks[String(c.instance_id)]?.marked);
+  }
+  function rankPlans(plans,preference='shortest',stepCount=()=>0) {
+    const rows=plans.map(plan=>{
+      const marked=markedFinalCards(plan).filter(c=>!c.disabled),marks=plan.annotations?.final_marks||{};
+      return {plan,steps:stepCount(plan),cards:marked.length,effects:marked.reduce((n,c)=>n+Object.values(marks[c.instance_id]?.effects||{}).filter(Boolean).length,0)};
+    });
+    const compareTerminal=(a,b)=>a.cards-b.cards||a.effects-b.effects;
+    const terminals=rows.filter((r,i)=>rows.findIndex(other=>!compareTerminal(r,other))===i).sort(compareTerminal);
+    const low=Math.min(...rows.map(r=>r.steps)),high=Math.max(...rows.map(r=>r.steps));
+    for(const row of rows) {
+      row.stepScore=high>low?100*(high-row.steps)/(high-low):100;
+      row.terminalScore=terminals.length>1?100*terminals.findIndex(r=>!compareTerminal(row,r))/(terminals.length-1):100;
+      row.average=(row.stepScore+row.terminalScore)/2;
+    }
+    return rows.sort((a,b)=>(preference==='balanced'?b.average-a.average:preference==='largest'?compareTerminal(b,a):a.steps-b.steps)||compareTerminal(b,a)||a.steps-b.steps||a.plan.id.localeCompare(b.plan.id));
+  }
+  const model = {counts,handError,place,graph,navigate,markedFinalCards,rankPlans};
   if (typeof module !== 'undefined') module.exports = model;
   else root.DuelModel = model;
 })(globalThis);

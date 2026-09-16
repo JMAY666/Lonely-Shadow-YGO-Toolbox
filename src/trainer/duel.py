@@ -108,6 +108,7 @@ def match(store, body):
             raise ValueError('卡组已修改，请返回卡组选择重新确认')
         validate_hand(saved['deck'], body.get('hand_count'), body.get('hand'))
         vocabulary = store.library.all_tags()
+        favorites = set(store.plan_favorites()['plans'])
         selected = set(saved['tag_selection']['tag_ids']) & vocabulary.keys()
         result = {'matches': [], 'excluded': [], 'tag_ids': sorted(selected),
                   'counts': {'total': 0, 'tags': 0, 'resources': 0, 'opening': 0, 'incomplete': 0, 'turn_order': 0}}
@@ -126,6 +127,7 @@ def match(store, body):
                     result['counts'][stage] += 1
                     result['excluded'].append({'id': plan.get('id'), 'name': plan.get('name'), 'stage': stage, 'reason': reason})
                 else:
+                    projected['favorite'] = projected['id'] in favorites
                     projected['duel_tags'] = [{'id': key, 'name': vocabulary[key]['name']}
                                               for key in classification['tag_ids'] if key in vocabulary]
                     result['matches'].append(projected)

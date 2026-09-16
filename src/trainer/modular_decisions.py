@@ -374,6 +374,8 @@ def evaluation(state, catalog):
 
 
 def resource_rank(value):
+    if 'marked_cards' in value:
+        return (value['marked_cards'], value.get('marked_effects', 0))
     return (value.get('confirmed_response', 0), value['board']+value['hand'], value.get('field_monsters', 0), value['extra'], value['lp'])
 
 

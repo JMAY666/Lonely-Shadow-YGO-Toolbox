@@ -27,6 +27,7 @@ def close(modular, sid):
         proc.terminate(); proc.wait(timeout=5)
     store.refresh()
     with modular.lock: modular.sessions.pop(sid, None)
+    modular.planning_cache.discard(sid)
     store.planning.discard(sid)
 
 
@@ -38,6 +39,7 @@ def response(modular, sid, ctx, result=None):
     return {'id': sid, 'temporary': True, 'inputs': ctx['forecast_meta']['inputs'],
             'catalog': ctx['forecast_meta']['catalog'], 'result': modular.public_result(result) if result else None,
             'prefix': public_steps(modular, ctx.get('forecast_steps', [])),
+            'anchor': ctx['forecast_meta'].get('anchor'), 'prefix_layout': ctx['forecast_meta'].get('prefix_layout', []),
             'initial': deepcopy(ctx['forecast_meta']['initial']),
             'confirmed': len(ctx.get('forecast_steps', [])), 'route': (ctx.get('forecast_route') or {}).get('id')}
 
@@ -52,6 +54,8 @@ def generate(modular, body):
             selected = body.get('sources', []); modular.library.sync()
             if not isinstance(selected, list) or not selected or any(source not in modular.library.entries for source in selected):
                 raise ValueError('请选择可用的展开来源；来源变化后请重新生成')
+            from duel_continuation import anchor_source
+            anchor = anchor_source(modular, body['anchor']) if body.get('anchor') else None
             session = store.start(saved['id'], design={
                 'name': '决斗临时方案推演', 'notes': '后台计算用途，不是实际展开或正式保存方案',
                 'revision': saved['revision'], 'deck': deepcopy(saved['deck']), 'deck_name': saved['name'],
@@ -77,6 +81,9 @@ def generate(modular, body):
         modular.configure({'id': sid, 'sources': body.get('sources', ctx['selected']),
                            'preference': body.get('preference', ctx['preference']),
                            'precise': body.get('precise', ctx['precise']), 'goal': body.get('goal', ctx['goal'])})
+        if created and anchor:
+            from duel_continuation import replay_anchor
+            replay_anchor(modular, sid, ctx, anchor)
         result = modular.search(sid)
         ctx['forecast_meta']['inputs']['sources'] = result['token'][2]
         ctx['forecast_touched'] = time.monotonic()

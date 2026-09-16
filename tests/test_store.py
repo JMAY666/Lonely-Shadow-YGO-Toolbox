@@ -37,6 +37,21 @@ class StoreTests(unittest.TestCase):
         assert self.root.resolve().is_relative_to(Path(__file__).resolve().parents[1] / '.local/test-runs')
         self.temp.cleanup()
 
+    def test_plan_favorite_is_persistent_separate_and_preserves_failed_writes(self):
+        identifier = str(uuid.uuid4()); target = self.store.plan_path(identifier)
+        plan = {'id': identifier, 'name': 'favorite fixture', 'deck_name': 'deck', 'saved_ms': 1}
+        atomic_json(target, plan); original = target.read_bytes()
+        self.store.plan_favorites({'id': identifier, 'favorite': True})
+        self.assertEqual(Store(self.root).plan_favorites(), {'plans': [identifier]})
+        self.assertTrue(self.store.list_plans()[0]['favorite'])
+        self.assertEqual(target.read_bytes(), original)
+        with patch('app.atomic_json', side_effect=OSError('disk full')):
+            with self.assertRaises(OSError): self.store.plan_favorites({'id':identifier,'favorite':False})
+        self.assertEqual(self.store.plan_favorites(), {'plans':[identifier]})
+        self.store.plan_favorites({'id':identifier,'favorite':False})
+        self.assertEqual(Store(self.root).plan_favorites(), {'plans':[]})
+        with self.assertRaises(ValueError):self.store.plan_favorites({'id':str(uuid.uuid4()),'favorite':True})
+
     def test_save_reopen_and_overwrite_backup(self):
         first=self.store.save_deck({'name':'验收','deck':self.deck})
         self.assertEqual(self.store.get_deck(first['id'])['deck'],self.deck)

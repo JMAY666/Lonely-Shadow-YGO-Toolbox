@@ -31,6 +31,23 @@ module.exports=async({page,root,evidence,pass})=>{
   const code=await new Promise(resolve=>python.once('exit',resolve));
   clearInterval(layoutTimer);
   assert.equal(code,0,output.slice(-7000));
+  const continuationFile=path.join(evidence,'modular-step9-continuation.json');
+  if(fs.existsSync(continuationFile)) {
+    const data=JSON.parse(fs.readFileSync(continuationFile,'utf8'));
+    await page.evaluate(async data=>{
+      await switchModule('duel');duelUI.state=newDuel();const s=duelState();
+      s.hand=data.initial.cards.filter(c=>c.controller===0&&c.location===2).map(c=>c.code);
+      s.plan=temporaryDuelPlan(data,data.result.candidates[0]);s.routes=duelPlanRoutes(s.plan);s.graph=DuelModel.graph(s.routes);
+      const next=reviewNodes(s.plan).find(n=>n.kind==='step'&&n.forecast_index===0);
+      s.position={key:'main/'+next.id,choice:0};s.stage=5;s.reached=5;s.forecast={showResults:false};renderDuel();
+    },data);
+    assert(await page.locator('.forecast-step .compact-summon').count()>0);
+    assert(await page.locator('.forecast-step .chain-arrow').count()>0);
+    assert(await page.locator('.forecast-step .location-icon svg').count()>0);
+    await page.screenshot({path:path.join(evidence,'duel-combo3-step9-continuation.png')});
+    await page.evaluate(()=>{duelUI.state=newDuel();});
+    pass('Combo 3 continuation uses material pictures, summon and effect arrows, location maps and frozen prefix labels');
+  }
   if(process.env.YGO_MODULAR_PIPELINE_ONLY==='1')await require('./duel-forecast-smoke.cjs')({page,root,evidence,pass});
   if(process.env.YGO_MODULAR_FORECAST_ONLY==='1')await require('./duel-forecast-outcome-smoke.cjs')({page,evidence,pass});
   await page.evaluate(async()=>{await refreshHistory();flow.restarting=false;await switchModule('modular');});

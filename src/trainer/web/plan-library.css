@@ -39,5 +39,11 @@
 .plan-file { position:relative; padding-left:42px; }
 .plan-file-icon { position:absolute; top:14px; left:13px; color:var(--text-muted); font-size:23px; }
 .plan-file strong { font-size:13px; }
+.plan-file-row { position:relative; border:1px solid transparent; border-radius:8px; margin-bottom:7px; }
+.plan-file-row .plan-file { width:100%; padding-right:44px; margin:0; }
+.plan-file-row.is-favorite { border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); }
+.plan-file-row>.plan-favorite-toggle { position:absolute; top:8px; right:6px; }
+.plan-favorite-toggle { padding:5px 8px; font-size:20px; line-height:1; }
+.plan-favorite-toggle[aria-pressed=true] { color:var(--accent); border-color:var(--accent); }
 @media(max-width:760px) { .plan-browser-toolbar { flex-wrap:wrap; } .plan-browser-search { flex:1 1 100%; order:2; } }
 .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }

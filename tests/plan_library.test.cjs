@@ -12,6 +12,29 @@ test('series aliases and multiple primary tags filter without duplicating plans'
   assert.equal(c.filterPlans(plans,'','untagged').length,1);
   plans[0].tags[1].primary=true;assert.equal(c.filterPlans(plans,'','b',true).length,2);
 });
+
+test('favorite filter composes with folder and text searches without changing stored plans',()=>{
+  const c=setup('plan-library.js'),plans=[{id:'1',name:'one',favorite:true,tags:[{id:'a',name:'a'}]},
+    {id:'2',name:'two',favorite:false,tags:[{id:'a',name:'a'}]},{id:'3',name:'three',favorite:true,tags:[]}];
+  assert.equal(c.filterPlans(plans,'','',false,true).length,2);
+  assert.equal(c.filterPlans(plans,'','a',false,true)[0].id,'1');
+  assert.equal(c.filterPlans(plans,'two','a',false,true).length,0);
+  assert.equal(c.filterPlans(plans,'two','a').length,1);
+});
+
+test('out-of-order favorite acknowledgements never roll back another item',async()=>{
+  const pending={},plans=[{id:'a',favorite:false},{id:'b',favorite:false}],duel={stage:4,result:{matches:structuredClone(plans)}};
+  const c=setup('plan-library.js',{$:id=>id==='#saved-plan-favorite'?null:{},document:{querySelectorAll:()=>[]},
+    api:(_url,body)=>new Promise(resolve=>pending[body.id]=resolve),duelState:()=>duel});
+  c.renderPlanList=()=>{};c.renderDuel=()=>{};
+  vm.runInContext('globalThis.favoriteState=planLibraryUI',c);c.favoriteState.plans=plans;
+  const buttons=['a','b'].map(id=>({dataset:{planFavorite:id},getAttribute:()=> 'false'}));
+  c.bindPlanFavorites({querySelectorAll:()=>buttons});
+  const calls=buttons.map(b=>b.onclick({stopPropagation(){}}));
+  pending.b({plans:['a','b']});await calls[1];
+  pending.a({plans:['a']});await calls[0];
+  assert(plans.every(p=>p.favorite));assert(duel.result.matches.every(p=>p.favorite));
+});
 test('frozen field activation is recognized from native evidence, with costs and negation preserved',()=>{
   const c=setup('activation.js'),a={kind:'effect',id:'2:0',cards:[{code:1,instance_id:8}],status:'resolved',results:[]},r={catalog:{1:{type:0x80002}},events:[{id:a.id,engine_effect:{effect_type:0x1a}}]};
   const before=JSON.stringify({a,r});

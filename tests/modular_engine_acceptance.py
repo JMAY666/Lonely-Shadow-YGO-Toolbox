@@ -4,6 +4,7 @@ import json
 import sys
 import time
 import urllib.request
+import urllib.parse
 import uuid
 import hashlib
 import os
@@ -77,9 +78,14 @@ def main(runtime, url, evidence):
         nonlocal sid
         sid=identifier
         request=evidence/'modular-layout.request';request.write_text('layout',encoding='ascii');wait(lambda:not request.exists())
-    def save():
+    def save(mark_field=False):
         report=finish()
         body={'id':sid,'name':report['name'],'notes':'TEST ONLY isolated source'}
+        if mark_field:
+            from copy import deepcopy
+            edits=deepcopy(report.get('annotations') or {})
+            edits['final_marks']={str(c['instance_id']):{'marked':True,'effects':{}} for c in report['final_state']['cards'] if c['controller']==0 and c['location'] in (4,8)}
+            body['annotations']=edits
         preview=api('/api/plans/preview',body)
         plan=api('/api/plans/save',{**body,'annotations':preview['annotations'],'confirmation':preview['confirmation']})
         wait(lambda:not any(h['status'] in ('running','starting','stopping') for h in api('/api/history')))
@@ -99,8 +105,12 @@ def main(runtime, url, evidence):
     if os.environ.get('YGO_MODULAR_PIPELINE_ONLY')=='1':
         normal=1184620;deck={'main':[normal]*40,'extra':[],'side':[]}
         start(deck,[normal]*3,'pipeline normal source')
-        choose('summon',normal);choose(place=[0,4,1]);idle();plan=save()
-        (evidence/'pipeline-source.json').write_text(json.dumps({'plan':plan['id'],'deck':plan['selected_deck']},ensure_ascii=False),encoding='utf-8')
+        choose('summon',normal);choose(place=[0,4,1]);idle();plan=save(mark_field=True)
+        pot=55144522;start({'main':[normal]*20+[pot]*20,'extra':[],'side':[]},[normal,pot,pot],'pipeline continuation source')
+        choose('summon',normal);choose(place=[0,4,1]);idle()
+        choose('spell_set',pot);choose(place=[0,8,0]);idle();followup=save(mark_field=True)
+        (evidence/'pipeline-source.json').write_text(json.dumps({'plan':plan['id'],'deck':plan['selected_deck'],
+            'followup':{'plan':followup['id'],'deck':followup['selected_deck']}},ensure_ascii=False),encoding='utf-8')
         print('PASS pipeline source recorded through expansion and formal save',flush=True)
         return
     if os.environ.get('YGO_MODULAR_PRECISION_ONLY')=='1':
@@ -201,7 +211,20 @@ def main(runtime, url, evidence):
     api('/api/stop',{'id':sid})
     meta=json.loads((runtime/'_trainer/sessions'/sid/'session.json').read_text(encoding='utf-8'));wait(lambda:process_identity(meta['pid'])!=meta['process_identity'])
     from modular_salamangreat import record_sources, DECK, GAZELLE, SPINNY, NORMAL, ROAR
-    combos, settle = record_sources(start,current,answer,choose,save)
+    combos, settle = record_sources(start,current,answer,choose,lambda:save(mark_field=True))
+    combo=combos[2];selected=next(n for n in combo['review']['nodes'] if n.get('kind')=='step' and n['number']==9)
+    saved=api('/api/deck?id='+urllib.parse.quote(combo['selected_deck'],safe=''))
+    request={'consumer':'duel','intent':'plan','deck_id':saved['id'],'revision':saved['revision'],
+        'hand_count':5,'hand':[GAZELLE,SPINNY]+[NORMAL]*3,'sources':[p['id'] for p in combos],'preference':'shortest',
+        'anchor':{'plan':combo['id'],'revision':combo['edit_revision'],'route':'main','node':selected['id'],'number':9}}
+    continuation=api('/api/modular/dispatch',request)['result']
+    assert continuation['confirmed']>0 and continuation['anchor']['number']==9
+    assert continuation['result']['candidates'],continuation['result']
+    assert not any(choice['kind']=='summon' for c in continuation['result']['candidates'] for step in c['steps']
+                   for choice in (step.get('bound_decision') or step['decision'])['selection'])
+    (evidence/'modular-step9-continuation.json').write_text(json.dumps(continuation,ensure_ascii=False,indent=2),encoding='utf-8')
+    api('/api/modular/dispatch',{'consumer':'duel','intent':'plan-close','id':continuation['id']})
+    print('PASS real Combo 3 Step 9 continuation preserves its source prefix and searches only later decisions',flush=True)
     start(DECK,[GAZELLE,SPINNY]+[NORMAL]*3,'Salamangreat shared opening')
     api('/api/modular/configure',{'id':sid,'sources':[p['id'] for p in combos],'preference':'shortest'})
     result=api('/api/modular/search',{'id':sid})

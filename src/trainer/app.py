@@ -234,6 +234,22 @@ class Store:
                 raise ValueError('收藏文件无法读取，原文件已保留，请从备份恢复后重试')
             return {'cards': sorted(set(data['cards']))}
 
+    def plan_favorites(self, body=None):
+        with self.lock:
+            path = self.root / 'plan-favorites.json'
+            document = read_json(path) if path.exists() else {'plans': []}
+            if not isinstance(document, dict) or not isinstance(document.get('plans'), list) or any(not isinstance(i, str) for i in document['plans']):
+                raise ValueError('方案收藏文件无法读取，原文件保留，请修复后重试')
+            identifiers = set(document['plans'])
+            if body is not None:
+                identifier, favorite = body.get('id'), body.get('favorite')
+                if type(favorite) is not bool: raise ValueError('方案收藏状态无效')
+                if not self.plan_path(identifier).is_file(): raise ValueError('方案已不存在，请刷新列表')
+                if favorite: identifiers.add(identifier)
+                else: identifiers.discard(identifier)
+                atomic_json(path, {'plans': sorted(identifiers)})
+            return {'plans': sorted(identifiers)}
+
     def duel_settings(self, body=None):
         with self.lock:
             path = self.root / 'duel-settings.json'
@@ -698,12 +714,14 @@ class Store:
 
     def list_plans(self):
         result = []
+        favorites = set(self.plan_favorites()['plans'])
         vocabulary = self.library.all_tags()
         for path in self.plans.glob('*.json'):
             try:
                 plan = read_json(path)
                 selection = self.library.selection(plan, vocabulary)
                 result.append({**{key: plan[key] for key in ('id', 'name', 'deck_name', 'saved_ms')},
+                               'favorite': plan['id'] in favorites,
                                'tags': tag_list(selection, vocabulary), 'tag_mode': selection.get('mode'), 'imported': plan.get('imported', False),
                                'search_cards': search_cards(plan)})
             except (ValueError, OSError, KeyError):
@@ -907,6 +925,7 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/decks': return self.send(store.save_deck(body))
                 if path == '/api/decks/tag-options': return self.send(store.deck_tag_options(body))
                 if path == '/api/card-favorites': return self.send(store.set_favorite(body))
+                if path == '/api/plan-favorites': return self.send(store.plan_favorites(body))
                 if path == '/api/duel/settings': return self.send(store.duel_settings(body))
                 if path == '/api/decks/delete': return self.send(store.delete_deck(body))
                 if path == '/api/duel/match':
@@ -944,6 +963,7 @@ class Handler(BaseHTTPRequestHandler):
                     if not re.fullmatch(r'[0-9a-f]{32}\.png', frame): raise ValueError('场地截图标识无效')
                     return self.send((store.session_path(sid) / ('native-' + frame)).read_bytes(), 'image/png')
                 if path == '/api/card-favorites': return self.send(store.favorites())
+                if path == '/api/plan-favorites': return self.send(store.plan_favorites())
                 if path == '/api/duel/settings': return self.send(store.duel_settings())
                 if path == '/api/cards':
                     return self.send(store.catalog.search(query.get('q', [''])[0], query.get('kind', [''])[0], max(0, int(query.get('offset', ['0'])[0])),

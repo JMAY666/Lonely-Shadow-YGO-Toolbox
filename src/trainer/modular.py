@@ -14,11 +14,13 @@ from timeline import route_rows
 from card_semantics import effect_clause
 from module_graph import decision_boundaries, decision_id
 from module_conditions import branch_condition, condition_matches, facts_from_report, advance_facts
+from plan_endboard import attach_terminal_marks, marked_terminal, marked_evaluation
+from planning_cache import PlanningCache
 
 
-PREFERENCES = ('shortest', 'largest', 'safest')
+PREFERENCES = ('shortest', 'largest', 'balanced', 'safest')
 LIMITS = {'seconds': 32, 'nodes': 320, 'depth': 48, 'candidates': 24}
-EXTRACTOR_VERSION = 9
+EXTRACTOR_VERSION = 10
 
 
 def message(code):
@@ -159,7 +161,7 @@ class ModularLibrary:
                 if not edge.get('terminal'):continue
                 required=Counter((c['code'],c['location']) for c in edge['terminal_state']['cards'] if c.get('controller')==0 and c['location'] in (16,32) and marked.get(str(c.get('instance_id')),{}).get('marked'))
                 edge['terminal_resources']=[[code,zone,count] for (code,zone),count in required.items()]
-            return source
+            return attach_terminal_marks(source, report)
         sid = session_id or report.get('id')
         try:
             folder = self.store.session_path(sid)
@@ -228,9 +230,9 @@ class ModularLibrary:
                         count=sum(c.get('location')==128 and c.get('overlay_target')==carrier.get('instance_id') for c in last['state']['cards'])
                         if count:final_edge['terminal_materials'].append(([carrier['code'],4,carrier['sequence'],carrier['position']],count))
             terminal_profiles(edges)
-            return {'schema': 1, 'extractor_version': EXTRACTOR_VERSION, 'snapshots': snapshots, 'edges': edges, 'unknown': unknown,
+            return attach_terminal_marks({'schema': 1, 'extractor_version': EXTRACTOR_VERSION, 'snapshots': snapshots, 'edges': edges, 'unknown': unknown,
                     'engine': report.get('engine_sha256'), 'scripts': report.get('scripts_sha256'),
-                    'status': 'recorded' if edges else 'incomplete'}
+                    'status': 'recorded' if edges else 'incomplete'}, report)
         except (ValueError, OSError, TypeError) as error:
             return {'schema': 1, 'snapshots': [], 'edges': [], 'unknown': [{'reason': str(error)}], 'status': 'incomplete'}
 
@@ -353,6 +355,7 @@ class Modular:
         self.worker = None
         self.search_lock = threading.RLock()
         self.planning_lock = threading.Lock()
+        self.planning_cache = PlanningCache()
         self.providers = {}
         self.consumers = {'duel', 'expansion', 'modular'}
         self.register_provider('decks', '卡组编辑', self.deck_input_version)
@@ -490,6 +493,7 @@ class Modular:
                 ctx['result'] = None
                 ctx['followup'] = None
                 ctx['source_epoch'] = ctx.get('source_epoch', 0)+1
+                self.planning_cache.discard(sid, 'search')
                 ctx['reason'] = '来源方案正在更新，旧候选已失效，等待从实际局面重新规划'
                 self.audit(ctx, 'sources_updating')
 
@@ -499,6 +503,19 @@ class Modular:
             folder = self.store.session_path(sid)
             full_path = state.get('_prefix', []) + path if command != 'answer' else path
             forecast = command != 'answer' and 'forecast_meta' in self.sessions.get(sid, {})
+            cache_key = None
+            if forecast:
+                # Full replay identity retains ordering, duplicate cards, outcomes,
+                # seed/session and resource versions. A confirmed prefix can reuse
+                # the same probe; an actual correction gets a different identity.
+                cache_key = digest([state['version'], scenario, full_path, state.get('_observations', []),
+                                    self.sessions[sid]['forecast_meta']['inputs'].get('engine'),
+                                    self.sessions[sid]['forecast_meta']['inputs'].get('scripts')])
+                actual = self.state(sid)
+                if actual['version'] != state['version'] or not actual['running'] or actual['answered']:
+                    raise ValueError('stale_state')
+                cached = self.planning_cache.get('probe', sid, cache_key)
+                if cached is not None: return cached
             text = f"{'forecast' if forecast else command} {state['version']} {token} {scenario} {len(full_path)}\n" + '\n'.join(full_path) + '\n'
             if forecast:
                 observations = state.get('_observations', [])
@@ -518,6 +535,7 @@ class Modular:
                         if command == 'answer': return value
                         raw, uncertain = next_prompt(value['batches']) if full_path else (state['raw'], False)
                         value.update(raw=raw, uncertain=uncertain or bool(value.get('private_cards')), player=(bytes.fromhex(raw)[2] if bytes.fromhex(raw)[0] == 23 else bytes.fromhex(raw)[1]) if raw else None)
+                        if cache_key is not None: self.planning_cache.put('probe', sid, cache_key, value)
                         return value
                 # An accepted answer can publish its successor between the result
                 # read and this check. Its acknowledgement still belongs to this
@@ -537,7 +555,35 @@ class Modular:
 
     def search(self, sid, **options):
         with self.search_lock:
-            return self._search(sid, **options)
+            ctx = self.context(sid)
+            if 'forecast_meta' not in ctx: return self._search(sid, **options)
+            self.library.sync(); state = self.state(sid); expected = self.token(state, ctx)
+            if not state['running'] or state['answered'] or state['player'] != 0:
+                raise ValueError('引擎尚未开放我方决策')
+            key = digest([state, expected[2], ctx['precise'], ctx['goal'], ctx.get('original_goal'),
+                          ctx.get('forecast_steps'), options, EXTRACTOR_VERSION])
+            started = time.monotonic(); before = self.planning_cache.stats.copy()
+            result = self.planning_cache.get('search', sid, key)
+            hit = result is not None
+            if hit:
+                if not self.valid_token(sid, expected): raise ValueError('stale_state_source_or_preference')
+                result.update(token=expected, preference=ctx['preference'])
+                for candidate in result['candidates']:
+                    candidate['token'] = expected
+                    candidate['id'] = digest([expected, [s['edge'] for s in candidate['steps']]])
+                self.rank(result['candidates'], ctx['preference'])
+            else:
+                result = self._search(sid, **options)
+                self.planning_cache.put('search', sid, key, result)
+            result['cache'] = {'result_hit': hit,
+                'probe_hits': self.planning_cache.stats['probe_hits'] - before['probe_hits'],
+                'probe_misses': self.planning_cache.stats['probe_misses'] - before['probe_misses']}
+            result['computed_seconds'] = result['seconds']
+            result['seconds'] = round(time.monotonic() - started, 3)
+            if not options.get('scenario'):
+                ctx['result'] = result
+                if hit: self.audit(ctx, 'planning_cache_hit', candidates=len(result['candidates']))
+            return result
 
     def _search(self, sid, *, scenario=0, seed=None, limits=None):
         ctx = self.context(sid); self.library.sync(); state = self.state(sid)
@@ -669,9 +715,11 @@ class Modular:
                         if 'forecast_meta' in ctx and new_unknown:
                             terminal = forecast_state(following['state'], uncertain_cards)
                             slots = [c.get('location') for c in following['state']['cards'] if c.get('instance_id') in new_unknown]
+                            pending_terminal = marked_terminal({}, terminal)
                             candidates.append({'id': digest([expected, [s['edge'] for s in route]]), 'steps': route,
                                 'remaining': sum(not s['automatic'] for s in route), 'terminal': terminal,
-                                'evaluation': evaluation(terminal, self.store.catalog.cards), 'goal_met': False,
+                                **pending_terminal,
+                                'evaluation': {**evaluation(terminal, self.store.catalog.cards), **marked_evaluation(pending_terminal)}, 'goal_met': False,
                                 'conditional': True, 'validation': 'needs_observation', 'observation_required': slots,
                                 'reason': '到达随机结果步骤，请填写实际抽牌或堆墓结果后继续计算',
                                 'robustness': {'status': 'unassessed', 'scenarios': []}, 'path': extended, 'token': expected})
@@ -679,11 +727,14 @@ class Modular:
                         if edge['terminal'] and bytes.fromhex(following['raw'])[0] in (10,11) and not following['state'].get('chain_depth') and terminal_matches(edge,following['state'],route,actual_history,ctx['precise']):
                             if any(c.get('instance_id') in uncertain_cards and c.get('location') in (4,8) for c in following['state']['cards']):
                                 unknown=True;continue
-                            terminal = forecast_state(following['state'],uncertain_cards); ev = evaluation(terminal, self.store.catalog.cards)
+                            terminal = forecast_state(following['state'],uncertain_cards)
+                            marked = marked_terminal(edge, terminal, ctx['precise'])
+                            ev = evaluation(terminal, self.store.catalog.cards)
+                            if 'forecast_meta' in ctx: ev.update(marked_evaluation(marked))
                             actual = Counter(c.get('code') for c in terminal['cards'] if c.get('controller') == 0 and c.get('location') in (4, 8))
                             candidate = {'id': digest([expected, [s['edge'] for s in route]]), 'steps': route,
                                 'terminal_source':edge['source'], 'terminal_if':edge.get('if_condition'),
-                                'remaining': sum(not s['automatic'] for s in route), 'terminal': terminal, 'evaluation': ev,
+                                'remaining': sum(not s['automatic'] for s in route), 'terminal': terminal, 'evaluation': ev, **marked,
                                 'goal_met': not (Counter(goal)-actual), 'conditional': condition,
                                 'validation': 'conditional' if condition else 'engine_verified',
                                 'reason': '每次选择均来自来源方案；隔离引擎已到达对应场上目标，手牌与可用权限按本局实际资源显示',
@@ -828,10 +879,18 @@ class Modular:
 
     @staticmethod
     def rank(candidates, preference):
+        if not candidates: return
+        low = min(c['remaining'] for c in candidates); high = max(c['remaining'] for c in candidates)
+        terminals = sorted(set(resource_rank(c['evaluation']) for c in candidates))
+        for c in candidates:
+            steps = 100 * (high-c['remaining']) / (high-low) if high > low else 100
+            terminal = 100 * terminals.index(resource_rank(c['evaluation'])) / (len(terminals)-1) if len(terminals) > 1 else 100
+            c['ranking'] = {'steps': round(steps, 2), 'terminal': round(terminal, 2), 'average': round((steps+terminal)/2, 2)}
         def key(c):
             ev = tuple(-v for v in resource_rank(c['evaluation']))
             common = (not c['goal_met'],)
             if preference == 'shortest': return (*common, c['remaining'], c['conditional'], *ev, c['id'])
+            if preference == 'balanced': return (*common, -c['ranking']['average'], c['conditional'], c['remaining'], *ev, c['id'])
             if preference == 'safest':
                 robust = c['robustness']
                 return (*common, robust['status'] != 'evaluated', -sum(s.get('original_terminal_retained', False) for s in robust['scenarios']), -sum(s.get('continued', False) for s in robust['scenarios']), *ev, c['remaining'], c['id'])

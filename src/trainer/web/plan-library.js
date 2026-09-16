@@ -1,13 +1,13 @@
 'use strict';
 
-const planLibraryUI={plans:[],folder:'',info:null,selection:null,importDocument:null,preview:null};
+const planLibraryUI={plans:[],folder:'',info:null,selection:null,importDocument:null,preview:null,favoritesOnly:false,favoriteBusy:new Set()};
 const tagSearchKey=value=>String(value||'').normalize('NFKC').trim().toLocaleLowerCase();
 const tagMatches=(tag,q)=>[tag.name,...tag.aliases||[]].some(value=>tagSearchKey(value).includes(tagSearchKey(q)));
-function filterPlans(plans,query='',tag='',primaryOnly=false) {
+function filterPlans(plans,query='',tag='',primaryOnly=false,favoritesOnly=false) {
   const q=tagSearchKey(query);
   return plans.filter(p=>{
     const tags=(p.tags||[]).filter(t=>!primaryOnly||t.primary);
-    return (!tag||(tag==='untagged'?!p.tags?.length:tags.some(t=>t.id===tag)))&&
+    return (!favoritesOnly||p.favorite)&&(!tag||(tag==='untagged'?!p.tags?.length:tags.some(t=>t.id===tag)))&&
       (!q||tagSearchKey(p.name).includes(q)||tagSearchKey(p.deck_name).includes(q)||tags.some(t=>tagMatches(t,q))||(p.search_cards||[]).some(c=>tagSearchKey(c.name).includes(q)||String(c.code)===q));
   });
 }
@@ -20,7 +20,8 @@ function renderPlanList(plans=planLibraryUI.plans) {
   for(const p of plans)for(const tag of p.tags||[])tags.set(tag.id,tag);
   if(planLibraryUI.folder!=='untagged'&&!tags.has(planLibraryUI.folder))planLibraryUI.folder='';
   const folder=planLibraryUI.folder,q=$('#plan-search').value;
-  const visible=filterPlans(plans,q,folder);
+  const visible=filterPlans(plans,q,folder,false,planLibraryUI.favoritesOnly);
+  $('#plan-favorites-only').setAttribute('aria-pressed',String(planLibraryUI.favoritesOnly));
   const name=folder==='untagged'?'未归类':tags.get(folder)?.name;
   $('#plan-folder-path').innerHTML=`<button data-plan-folder="">展开方案</button>${folder?`<span>›</span><strong>${escape(name)}</strong>`:''}`;
   $('#plan-folder-up').disabled=!folder;
@@ -28,8 +29,32 @@ function renderPlanList(plans=planLibraryUI.plans) {
   $('#plan-count').textContent=`${visible.length} / ${plans.length} 个方案`;
   const folders=[...[...tags.values()].sort((a,b)=>a.name.localeCompare(b.name,'zh-CN')).map(t=>({id:t.id,name:t.name,count:plans.filter(p=>p.tags?.some(x=>x.id===t.id)).length})),...(plans.some(p=>!p.tags?.length)?[{id:'untagged',name:'未归类',count:plans.filter(p=>!p.tags?.length).length}]:[])];
   const directories=!folder&&!q.trim()?`<div class="plan-folder-grid">${folders.map(t=>`<button data-plan-folder="${escape(t.id)}" class="plan-folder"><svg viewBox="0 0 48 38" aria-hidden="true"><path d="M3 7Q3 3 7 3H20L25 9H41Q45 9 45 13V31Q45 35 41 35H7Q3 35 3 31Z" fill="#e3bd67"/><path d="M3 14H45V31Q45 35 41 35H7Q3 35 3 31Z" fill="#f3d68b"/></svg><strong>${escape(t.name)}</strong><small>${t.count} 个方案</small></button>`).join('')}</div>`:'';
-  $('#plan-list').innerHTML=directories+visible.map(p=>`<button class="history-item plan-file ${p.id===flow.selectedPlan?'current':''}" data-plan="${escape(p.id)}"><span class="plan-file-icon" aria-hidden="true">▤</span><strong>${escape(p.name)}</strong><small>${escape(p.deck_name)}${p.imported?' · 已导入':''}</small><small>${dt(p.saved_ms)}</small></button>`).join('')+(!visible.length?`<div class="empty">${plans.length?'没有匹配的方案':'还没有正式方案'}<br><small>${plans.length?'可搜索卡片名称、编号或方案名称。':'展开结束后保存，或导入分享文件。'}</small></div>`:'');
+  $('#plan-list').innerHTML=directories+visible.map(p=>`<div class="plan-file-row ${p.favorite?'is-favorite':''}"><button class="history-item plan-file ${p.id===flow.selectedPlan?'current':''}" data-plan="${escape(p.id)}"><span class="plan-file-icon" aria-hidden="true">▤</span><strong>${escape(p.name)}</strong><small>${escape(p.deck_name)}${p.imported?' · 已导入':''}</small><small>${dt(p.saved_ms)}</small></button>${planFavoriteButton(p)}</div>`).join('')+(!visible.length?`<div class="empty">${planLibraryUI.favoritesOnly?'当前筛选下没有收藏方案':plans.length?'没有匹配的方案':'还没有正式方案'}<br><small>${plans.length?'可调整搜索或收藏筛选。':'展开结束后保存，或导入分享文件。'}</small></div>`:'');
   document.querySelectorAll('[data-plan-folder]').forEach(b=>b.onclick=()=>openPlanFolder(b.dataset.planFolder));
+  bindPlanFavorites($('#plan-list'));
+}
+function planFavoriteButton(plan) {
+  return `<button class="plan-favorite-toggle" data-plan-favorite="${escape(plan.id)}" aria-pressed="${!!plan.favorite}" aria-label="${escape((plan.favorite?'取消收藏：':'收藏方案：')+plan.name)}" title="${plan.favorite?'取消收藏':'收藏方案'}" ${planLibraryUI.favoriteBusy.has(plan.id)?'disabled':''}>${plan.favorite?'★':'☆'}</button>`;
+}
+function bindPlanFavorites(container) {
+  for(const button of container.querySelectorAll('[data-plan-favorite]'))button.onclick=run(async event=>{
+    event.stopPropagation();const id=button.dataset.planFavorite;if(planLibraryUI.favoriteBusy.has(id))return;
+    planLibraryUI.favoriteBusy.add(id);button.disabled=true;
+    try {
+      const saved=await api('/api/plan-favorites',{id,favorite:button.getAttribute('aria-pressed')!=='true'}),favorite=saved.plans.includes(id);
+      // Responses for different stars may arrive out of order. Apply only the
+      // acknowledged item, not an older snapshot of every other favorite.
+      for(const plan of planLibraryUI.plans)if(plan.id===id)plan.favorite=favorite;
+      if(typeof duelState==='function')for(const plan of duelState().result?.matches||[])if(plan.id===id)plan.favorite=favorite;
+      renderPlanList();
+      const detail=$('#saved-plan-favorite');
+      if(detail){const plan=planLibraryUI.plans.find(p=>p.id===detail.dataset.id);if(plan){detail.innerHTML=planFavoriteButton(plan);bindPlanFavorites(detail);}}
+      if(typeof duelState==='function'&&duelState().stage===4)renderDuel();
+    } finally {
+      planLibraryUI.favoriteBusy.delete(id);
+      for(const control of document.querySelectorAll('[data-plan-favorite]'))if(control.dataset.planFavorite===id)control.disabled=false;
+    }
+  });
 }
 function openPlanFolder(id) {
   planLibraryUI.folder=id;$('#plan-search').value='';renderPlanList();
@@ -48,6 +73,8 @@ function mountPlanLibrary(plan) {
   $('#export-plan').onclick=run(()=>downloadPlan(plan));
   $('#edit-plan-tags').onclick=run(()=>openPlanTags(plan.id));
   const summary=planLibraryUI.plans.find(p=>p.id===plan.id);
+  actions.insertAdjacentHTML('beforeend',`<span id="saved-plan-favorite" data-id="${escape(plan.id)}">${planFavoriteButton({...plan,favorite:summary?.favorite})}</span>`);
+  bindPlanFavorites(actions);
   $('#saved-plan-tags').innerHTML=tagChips(summary?.tags||[])+`<small>${summary?.tag_mode==='automatic'?'自动识别 · 可人工修改':summary?.tags?.length?'★ 为主标签':'尚未分类，可编辑标签或自动识别'}</small>`;
 }
 
@@ -133,6 +160,7 @@ async function commitPlanImport() {
   }catch(e){$('#plan-import-status').textContent=`导入失败：${e.message}`;}finally{button.disabled=false;$('#plan-import-file').disabled=false;}
 }
 $('#plan-search').oninput=()=>renderPlanList();
+$('#plan-favorites-only').onclick=()=>{planLibraryUI.favoritesOnly=!planLibraryUI.favoritesOnly;renderPlanList();};
 $('#import-plan').onclick=()=>{
   ensureLibraryDialogs();planLibraryUI.importDocument=null;planLibraryUI.preview=null;
   $('#plan-import-file').value='';$('#plan-import-preview').innerHTML='';$('#plan-import-status').textContent='';$('#confirm-import-plan').disabled=true;$('#plan-import-dialog').showModal();

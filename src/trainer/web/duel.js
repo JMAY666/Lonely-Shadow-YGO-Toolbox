@@ -3,7 +3,7 @@
 const duelDefaults = TutorialBindings.defaults;
 const duelLabels = TutorialBindings.labels;
 const newDuel = () => ({stage:0,reached:0,mode:null,deck:null,deckPage:'list',decks:[],first:false,count:5,hand:Array(5).fill(null),
-  marks:new Set(),target:null,result:null,plan:null,routes:null,graph:null,position:null,ended:false,enabled:false,session:crypto.randomUUID()});
+  marks:new Set(),target:null,result:null,plan:null,routes:null,graph:null,position:null,ended:false,enabled:false,planSort:'shortest',favoritesOnly:false,session:crypto.randomUUID()});
 const duelUI = {state:newDuel(),busy:false,generation:0,message:'',detailPreview:false,handCount:5,bindings:{...duelDefaults},shortcutStatus:null,shortcutQueue:Promise.resolve(),hoverTimer:null,closeTimer:null,previewAnchor:null,previewRect:null,previewKind:null,previewId:null,previewSuppressed:null,handHoverSuppressed:null};
 const duelState = () => duelUI.state;
 const duelInputKey=s=>JSON.stringify([s.deck?.id,s.deck?.revision,s.hand]);
@@ -137,8 +137,8 @@ function duelRegion(c) {
 function duelSummaryCards(plan,kind,limit=Infinity) {
   const final=reviewNodes(plan).find(n=>n.kind==='final')||{id:'final',state:plan.final_state};
   const marks=plan.annotations?.final_marks||{};
-  const marked=(final.state?.cards||[]).filter(c=>marks[String(c.instance_id)]?.marked);
-  const cards=kind==='opening'?plan.requirements?.opening||[]:marked.length?marked:plan.requirements?.final?.cards||[];
+  const marked=DuelModel.markedFinalCards(plan);
+  const cards=kind==='opening'?plan.requirements?.opening||[]:marked;
   return cards.slice(0,limit).map(c=>{
     const node=kind==='opening'?'initial':final.id,random=kind==='final'&&reviewRandomDraw(c,final,plan),known=c.code&&!random;
     const label=random?'随机抽牌':c.name||c.constraint||plan.catalog?.[c.code]?.name||'任意手牌';
@@ -180,8 +180,10 @@ function duelBranchDetails(plan) {
   }).join('')}</section>`;
 }
 function duelMatchesPage() {
-  const result=duelState().result;if(!result)return '';
-  return `<div class="duel-section-heading"><h2>方案选择</h2><div class="duel-actions">${duelButton('modular','生成临时方案')}${duelButton('rematch','刷新')}</div></div><p>后台生成临时方案后，在步骤图中确认实际进度；出现偏差可填写实际情况并重算后续。</p><div class="duel-plan-grid">${result.matches.map(plan=>`<button class="duel-plan" data-duel-plan="${escape(plan.id)}"><span class="duel-plan-heading"><strong>${escape(plan.name)}</strong>${duelPlanCounts(plan)}</span>${plan.expansion?.notes?`<span class="duel-plan-note">${escape(plan.expansion.notes)}</span>`:''}<span class="duel-tile-cards">${duelSummaryCards(plan,'opening',3)}</span><span class="duel-tile-arrow" aria-hidden="true">↓</span><span class="duel-tile-cards">${duelSummaryCards(plan,'final',4)}</span></button>`).join('')||`<div class="duel-empty"><h3>${escape(result.reason||'暂无可用方案')}</h3>${duelButton('edit-hand','调整起手')}</div>`}</div>`;
+  const s=duelState(),result=s.result;if(!result)return '';
+  // Score against the full matched set so a favorite filter never changes scores.
+  const ranked=DuelModel.rankPlans(result.matches,s.planSort,duelPlanStepCount).filter(r=>!s.favoritesOnly||r.plan.favorite);
+  return `<div class="duel-section-heading"><h2>方案选择</h2><div class="duel-actions">${duelButton('modular','生成临时方案')}${duelButton('rematch','刷新')}</div></div><div class="duel-plan-filters"><label>方案排序 <select id="duel-plan-sort">${[['shortest','步骤最少'],['largest','终场最大'],['balanced','平均值（均衡）']].map(([value,label])=>`<option value="${value}" ${s.planSort===value?'selected':''}>${label}</option>`).join('')}</select></label><button data-duel-action="favorites-only" aria-pressed="${s.favoritesOnly}">★ 只看收藏</button><small>${ranked.length} / ${result.matches.length} 个方案</small></div><p class="duel-sort-basis">终场只比较已标记卡牌数，再比较标记效果数。平均值为步骤得分与终场排名得分各占 50%，仅用于当前方案比较。</p><div class="duel-plan-grid">${ranked.map(({plan,cards,effects,average})=>`<article class="duel-plan-tile ${plan.favorite?'is-favorite':''}"><button class="duel-plan" data-duel-plan="${escape(plan.id)}"><span class="duel-plan-heading"><strong>${escape(plan.name)}</strong>${duelPlanCounts(plan)}</span><small>${cards?`标记终场 ${cards} 张 · 效果 ${effects} 项`:'未标记有效终场'}${s.planSort==='balanced'?` · 平均 ${average.toFixed(1)}`:''}</small>${plan.expansion?.notes?`<span class="duel-plan-note">${escape(plan.expansion.notes)}</span>`:''}<span class="duel-tile-cards">${duelSummaryCards(plan,'opening',3)}</span><span class="duel-tile-arrow" aria-hidden="true">↓</span><span class="duel-tile-cards">${duelSummaryCards(plan,'final',4)||'<small>未标记终场卡牌</small>'}</span></button>${planFavoriteButton(plan)}</article>`).join('')||`<div class="duel-empty"><h3>${escape(s.favoritesOnly?'当前匹配结果中没有收藏方案':result.reason||'暂无可用方案')}</h3>${s.favoritesOnly?duelButton('favorites-only','查看全部方案'):duelButton('edit-hand','调整起手')}</div>`}</div>`;
 }
 function duelNodeSource(node) {
   const s=duelState(),report=node.route==='main'?s.plan:s.plan.branches.find(b=>b.id===node.route)?.report;
@@ -254,7 +256,7 @@ function mountDuelGraphResize() {
 }
 function duelTutorialPage() {
   const s=duelState();
-  return `<div class="duel-section-heading"><h2>${escape(s.plan.name)}</h2><div class="duel-actions">${duelButton('toggle-shortcuts',s.enabled?'暂停快捷键':'启用快捷键')}${duelButton('shortcuts','快捷键设置')}${duelButton('modular',s.forecast?'重新生成后续':'生成临时方案')}</div></div><p id="duel-shortcut-status" role="status"></p>${duelGraphHtml()}<div id="duel-graph-resize" class="duel-graph-resize" role="separator" tabindex="0" aria-label="调整教程图高度" aria-orientation="horizontal" aria-valuemin="200" aria-valuemax="1800" title="拖动调整教程图高度；双击恢复默认"><span></span></div><div id="duel-route-choice" class="duel-route-choice"></div><article id="duel-current-detail" class="duel-current-detail"></article><div id="duel-zone-content" class="review-zone-popover" role="dialog" aria-label="区域卡牌" hidden></div>`;
+  return `<div class="duel-section-heading"><h2>${escape(s.plan.name)}</h2><div class="duel-actions">${duelButton('toggle-shortcuts',s.enabled?'暂停快捷键':'启用快捷键')}${duelButton('shortcuts','快捷键设置')}${duelButton('modular',s.plan?.temporary?'重新生成后续':'生成展开后续')}</div></div><p id="duel-shortcut-status" role="status"></p>${duelGraphHtml()}<div id="duel-graph-resize" class="duel-graph-resize" role="separator" tabindex="0" aria-label="调整教程图高度" aria-orientation="horizontal" aria-valuemin="200" aria-valuemax="1800" title="拖动调整教程图高度；双击恢复默认"><span></span></div><div id="duel-route-choice" class="duel-route-choice"></div><article id="duel-current-detail" class="duel-current-detail"></article><div id="duel-zone-content" class="review-zone-popover" role="dialog" aria-label="区域卡牌" hidden></div>`;
 }
 function renderDuel() {
   if($('#duel-brain-field')?.contains($('#native-stage')))restoreModularField();
@@ -284,6 +286,7 @@ function renderDuel() {
   }
   $('#duel-body').innerHTML=body;$('#duel-footer').innerHTML=footer;$('#duel-footer').hidden=!footer;duelTell(duelUI.message);
   if(s.forecast&&s.stage>=4&&s.stage<=5)renderDuelForecast();
+  if(s.stage===4){$('#duel-plan-sort').onchange=event=>{s.planSort=event.target.value;renderDuel();};bindPlanFavorites($('#duel-body'));}
   if(duelUI.busy)$('#duel-body').querySelectorAll('button,input').forEach(el=>el.disabled=true);
   if(s.stage===5){
     $('#duel-graph-scroll').querySelectorAll('button,input,textarea').forEach(el=>el.tabIndex=-1);
@@ -503,6 +506,7 @@ $('#duel').addEventListener('click',run(async event=>{
   if(action==='match'||action==='rematch'){await duelWork(()=>matchDuel(action==='rematch'));return;}
   if(action==='edit-deck'){s.deckPage='preview';duelGo(1);return;}
   if(action==='edit-hand'){duelGo(3);return;}
+  if(action==='favorites-only'){s.favoritesOnly=!s.favoritesOnly;renderDuel();return;}
   if(action==='back-step'||action==='forward-step'){duelNavigate(action==='back-step'?'back':'forward');return;}
   if(action==='end'){await endDuel();return;}
   if(action==='toggle-shortcuts'){s.enabled=!s.enabled;await syncDuelShortcuts();renderDuel();return;}
