@@ -67,6 +67,9 @@ def main(runtime, url, evidence):
         api('/api/stop',{'id':sid})
         meta=json.loads((runtime/'_trainer/sessions'/sid/'session.json').read_text(encoding='utf-8'))
         wait(lambda:process_identity(meta['pid'])!=meta['process_identity'])
+        # The journal can finish before the server's retained process handle
+        # observes exit. Use its authoritative running flag before saving.
+        wait(lambda:api('/api/modular/state/'+sid).get('state',{}).get('running') is False)
         wait(lambda:not any(h['status'] in ('running','starting','stopping') for h in api('/api/history')))
         report=wait(lambda: (r if (r:=api('/api/report/'+sid))['status']=='completed' else None))
         return report
@@ -89,6 +92,10 @@ def main(runtime, url, evidence):
             elif p['message']==19:choose(option=1)
             else:raise AssertionError(json.dumps(p))
         raise AssertionError('Unsettled core')
+    if os.environ.get('YGO_MODULAR_FORECAST_ONLY')=='1':
+        from modular_forecast import run
+        run(runtime,evidence,api,start,current,answer,choose,save)
+        return
     if os.environ.get('YGO_MODULAR_PIPELINE_ONLY')=='1':
         normal=1184620;deck={'main':[normal]*40,'extra':[],'side':[]}
         start(deck,[normal]*3,'pipeline normal source')

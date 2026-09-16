@@ -1,0 +1,32 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+module.exports=async({page,evidence,pass})=>{
+  const source=JSON.parse(fs.readFileSync(path.join(evidence,'forecast-sources.json'),'utf8')).draw;
+  await page.evaluate(async source=>{
+    await refreshHistory();await switchModule('duel');duelUI.state=newDuel();const s=duelState();
+    s.deck=await api('/api/deck?id='+encodeURIComponent(source.deck));s.mode='BO1';s.first=true;s.count=3;s.hand=[55144522,1184620,1184620];
+    s.result=await api('/api/duel/match',{deck_id:s.deck.id,revision:s.deck.revision,hand_count:s.count,hand:s.hand});s.stage=4;s.reached=4;
+    const sources=(await api('/api/modular/library')).sources.filter(item=>item.id===source.plan);
+    s.forecast={sources,selected:[source.plan],preference:'shortest',precise:false,generation:0,showResults:true};renderDuel();
+  },source);
+  await page.locator('[data-duel-action="modular"]').click();
+  await page.waitForFunction(()=>duelState().forecast.data?.result?.candidates.some(c=>c.observation_required),null,{timeout:90000});
+  const candidate=await page.evaluate(()=>duelState().forecast.data.result.candidates.find(c=>c.observation_required).id);
+  await page.locator(`[data-duel-adopt="${candidate}"]`).click();await page.waitForFunction(()=>duelState().plan?.temporary);
+  const original=await page.evaluate(()=>duelState().plan.forecastRoute);
+  await page.locator('[data-duel-action="forward-step"]').click();
+  await page.waitForFunction(()=>document.querySelector('#duel-observation').open);
+  await page.locator('#duel-observation-query').fill('1184620');
+  await page.locator('[data-observation-code="1184620"]').click();await page.locator('[data-observation-code="1184620"]').click();
+  assert.equal(await page.locator('[data-remove-observation]').count(),2);
+  await page.screenshot({path:path.join(evidence,'duel-report-random-draw.png'),preserveScroll:true});
+  await page.locator('#duel-observation-submit').click();
+  await page.waitForFunction(original=>!document.querySelector('#duel-observation').open&&duelState().plan.forecastRoute!==original,original,{timeout:90000});
+  assert.equal(await page.evaluate(()=>moduleUI.current),'duel');assert.equal(await page.locator('#duel #native-stage').count(),0);
+  const observed=await page.evaluate(()=>duelState().plan.review.nodes.flatMap(n=>n.forecast_steps||[]).find(s=>s.observation));
+  assert.deepEqual(observed.observation.cards,[1184620,1184620]);
+  assert((await page.evaluate(()=>duelState().plan.confirmed))>0);
+  await page.screenshot({path:path.join(evidence,'duel-replanned-after-draw.png'),preserveScroll:true});
+  await page.evaluate(()=>endDuel());
+  pass('Random-step dialog accepts duplicate actual cards and replaces the remaining tutorial in place while retaining confirmed progress');
+};

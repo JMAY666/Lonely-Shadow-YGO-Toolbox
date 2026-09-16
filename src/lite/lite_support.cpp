@@ -8,6 +8,7 @@
 #include <windows.h>
 
 namespace ygo {
+static std::string tracePath = "_profile/logs/training.log";
 bool InitializeLitePaths() {
     wchar_t path[32768]{};
     const auto length = GetModuleFileNameW(nullptr, path, 32768);
@@ -30,16 +31,30 @@ bool InitializeLitePaths() {
     SetEnvironmentVariableW(L"LOCALAPPDATA", (root + L"\\_profile\\AppData\\Local").c_str());
     SetEnvironmentVariableW(L"TEMP", (root + L"\\_profile\\Temp").c_str());
     SetEnvironmentVariableW(L"TMP", (root + L"\\_profile\\Temp").c_str());
+    // freopen_s keeps a Windows file handle open. A hidden forecast must not
+    // contend with the real expansion's stdout/stderr or invalidate its streams.
+    std::string logRoot = "_profile/logs/";
+    if(GetEnvironmentVariableA("YGO_TRAIN_PLANNING", nullptr, 0)) {
+        char id[64]{};
+        if(GetEnvironmentVariableA("YGO_TRAIN_SESSION", id, sizeof id) != 36) return false;
+        const std::string session(id);
+        for(size_t i = 0; i < session.size(); ++i) {
+            const bool separator = i == 8 || i == 13 || i == 18 || i == 23;
+            if(separator ? session[i] != '-' : std::string("0123456789abcdef").find(session[i]) == std::string::npos) return false;
+        }
+        logRoot = "_trainer/sessions/" + session + '/';
+    }
+    tracePath = logRoot + "training.log";
     FILE* stream{};
-    freopen_s(&stream, "_profile/logs/stdout.log", "a", stdout);
-    freopen_s(&stream, "_profile/logs/stderr.log", "a", stderr);
+    if(freopen_s(&stream, (logRoot + "stdout.log").c_str(), "a", stdout)) return false;
+    if(freopen_s(&stream, (logRoot + "stderr.log").c_str(), "a", stderr)) return false;
     return true;
 }
 
 void LiteTrace(const char* format, ...) {
     static std::mutex mutex;
     std::lock_guard<std::mutex> lock(mutex);
-    FILE* output = std::fopen("_profile/logs/training.log", "a");
+    FILE* output = std::fopen(tracePath.c_str(), "a");
     if (!output)
         return;
     va_list args;

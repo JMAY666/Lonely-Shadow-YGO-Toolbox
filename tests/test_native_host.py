@@ -88,3 +88,12 @@ class NativeCompositionTests(unittest.TestCase):
         self.assertTrue(state['timeline_accessible'])
         self.assertTrue(state['owns_stage_hit_test'])
         self.assertTrue(state['composition_compatible'])
+
+    def test_background_planning_child_never_becomes_a_visible_stage(self):
+        self.store.planning = {'test'}
+        self.user.ShowWindow(self.native, 0)
+        self.host.layout({'hwnd':str(self.parent), 'visible':True, 'timeline':True,
+                          'x':24, 'y':140, 'width':1100, 'height':720,
+                          'viewportWidth':1200, 'viewportHeight':900}, self.store)
+        self.host.sync(self.store)
+        self.assertFalse(self.host.status(self.store, 'test')['visible'])

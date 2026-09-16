@@ -22,6 +22,7 @@ struct ModularProbeCache {
     std::vector<std::string> path, batches;
     std::vector<unsigned char> boundary;
     bool ended = false;
+    std::string observations;
 };
 static ModularProbeCache modularCache;
 void TrainingModularClose() {
@@ -64,6 +65,23 @@ static bool modularTick(intptr_t engine) {
     if(token.size() != 32 || token.find_first_not_of("0123456789abcdef") != std::string::npos) return false;
     std::vector<std::string> path;
     for(unsigned i = 0; i < count && i <= 256 && request >> encoded; ++i) path.push_back(encoded);
+    struct Observation { unsigned index, kind; std::vector<unsigned> codes; };
+    std::vector<Observation> observations;
+    std::ostringstream observationKey;
+    if(command == "forecast") {
+        unsigned n = 0;
+        if(!(request >> n) || n > 64) return false;
+        for(unsigned i = 0; i < n; ++i) {
+            Observation o{}; unsigned size = 0;
+            if(!(request >> o.index >> o.kind >> size) || size == 0 || size > 60 || o.kind > 1 || o.index > 256) return false;
+            observationKey << o.index << ':' << o.kind << ':';
+            for(unsigned j = 0, code; j < size; ++j) {
+                if(!(request >> code) || !code) return false;
+                o.codes.push_back(code); observationKey << code << ',';
+            }
+            observations.push_back(o);
+        }
+    }
     request.close(); DeleteFileA(TrainingPath("modular.request").c_str());
     if(TrainingTestControlled()) {
         std::ostringstream trace;
@@ -102,11 +120,13 @@ static bool modularTick(intptr_t engine) {
             atomicFile("modular-result.json", "{\"token\":\"" + token + "\",\"status\":\"submitted\"}");
             return true;
         }
-        if(command != "probe") throw std::runtime_error("invalid_request");
+        if(command != "probe" && (command != "forecast" || !GetEnvironmentVariableA("YGO_TRAIN_PLANNING", nullptr, 0)))
+            throw std::runtime_error("invalid_request");
         restoring = true; replayError = false;
         std::vector<unsigned char> buffer(SIZE_QUERY_BUFFER + SIZE_MESSAGE_BUFFER);
         const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(4);
         const bool cached = modularCache.engine && modularCache.version == expected && modularCache.scenario == scenario
+            && modularCache.observations == observationKey.str()
             && path.size() >= modularCache.path.size() && std::equal(modularCache.path.begin(), modularCache.path.end(), path.begin());
         const size_t completed = cached ? modularCache.path.size() : 0;
         std::vector<std::string> batches = cached ? modularCache.batches : std::vector<std::string>{};
@@ -158,6 +178,26 @@ static bool modularTick(intptr_t engine) {
         if(!cached) probeCore.modular_private_cards.clear();
         for(size_t step = completed; step < path.size(); ++step) {
             probeCore.modular_private_cards.clear();
+            for(const auto& observation : observations) if(observation.index == step) {
+                const auto f = reinterpret_cast<duel*>(candidate)->game_field;
+                if(observation.kind == 0) {
+                    // User-reported random outcomes only reorder existing deck
+                    // instances in this disposable forecast. Effects still resolve
+                    // in the original core, including triggers and summon limits.
+                    auto& deck = f->player[0].list_main;
+                    auto remaining = deck; std::vector<card*> top;
+                    for(const auto code : observation.codes) {
+                        auto found = std::find_if(remaining.begin(), remaining.end(), [code](card* c){return c->data.code == code;});
+                        if(found == remaining.end()) throw std::runtime_error("reported_card_unavailable");
+                        top.push_back(*found); remaining.erase(found);
+                    }
+                    remaining.insert(remaining.end(), top.rbegin(), top.rend()); deck = remaining;
+                    for(size_t i = 0; i < deck.size(); ++i) deck[i]->current.sequence = static_cast<uint8_t>(i);
+                } else {
+                    f->core.simple_ai_responses = true;
+                    for(const auto code : observation.codes) new_card(candidate, code, 1, 1, LOCATION_HAND, 0, POS_FACEDOWN_DEFENSE);
+                }
+            }
             const auto& guarded = path[step];
             if(ended) throw std::runtime_error("past_end");
             const auto separator = guarded.find(':');
@@ -205,7 +245,7 @@ static bool modularTick(intptr_t engine) {
         bool firstPrivate = true;
         for(const auto id : probeCore.modular_private_cards) { if(!firstPrivate) out << ','; firstPrivate = false; out << id; }
         out << "]}";
-        modularCache = {candidate, expected, scenario, path, batches, boundaryBytes, ended};
+        modularCache = {candidate, expected, scenario, path, batches, boundaryBytes, ended, observationKey.str()};
         candidate = 0; restoring = false;
         atomicFile("modular-result.json", out.str());
     } catch(const std::exception& error) {

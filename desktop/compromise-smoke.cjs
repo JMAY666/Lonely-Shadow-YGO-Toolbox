@@ -133,7 +133,7 @@ module.exports=async function({application,page,nativeState,nativeWait,hostWait,
   branch=await request('/api/report/'+sid);assert.equal(branch.statistics['效果抽卡'],2);
   assert.equal(branch.final_state.cards.filter(c=>c.controller===1&&c.location===2&&c.code===ash).length,1);
   assert.equal(branch.actions.filter(a=>a.kind==='effect'&&a.cards.some(c=>c.code===ash)).length,1);
-  await page.locator('#finish-training').click();await page.waitForFunction(()=>!app.active&&!flow.busy&&branchUI.root?.id===app.reportId,null,{timeout:20000});
+  await page.locator('#finish-training').click();await page.waitForFunction(()=>!app.active&&!flow.busy&&branchUI.root?.id===app.reportId&&branchUI.viewing,null,{timeout:20000});
   await secondWindow.close();
   assert.equal(await page.evaluate(()=>branchUI.viewing),true);
   await page.evaluate(()=>setReviewDrawer(true));

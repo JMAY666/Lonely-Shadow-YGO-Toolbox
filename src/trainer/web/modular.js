@@ -135,23 +135,4 @@ setInterval(async()=>{
   const id=app.active.id;
   try{const value=await api('/api/modular/state/'+id);if(app.active?.id===id)expansionModularStop.hidden=!value.auto;}catch{}
 },1200);
-async function launchModularFromDuel(){
-  const s=duelState(),input=duelInputKey(s);
-  if(!s.deck||s.hand.some(c=>!c))throw new Error('请先确认卡组并填写完整起手');
-  if(app.active){
-    if(s.modularSession!==app.active.id||s.modularInput!==input)throw new Error('已有另一场展开正在进行。请先结束该场，或从“展开”的“模块化续展”继续当前真实局面。');
-    renderDuel();await refreshDuelModular();$('#duel-modular-status')?.scrollIntoView({block:'start'});return;
-  }
-  const deck=await api('/api/deck?id='+encodeURIComponent(s.deck.id));
-  if(deck.revision!==s.deck.revision)throw new Error('卡组已修改，请返回决斗卡组选择确认');
-  const sources=(await api('/api/modular/library')).sources.filter(source=>source.status==='ready').map(source=>source.id);
-  await switchModule('expansion');displayView('training');await syncNativeHost();
-  const session=await api('/api/start',{deck_id:deck.id,design:{name:'决斗 · 模块化验证',notes:'从决斗已录入起手进入真实引擎；原手动教程进度保留',revision:deck.revision,conditions:{hand_count:s.hand.length,slots:[...s.hand],banned:[]},opponent_ai:false,turn_order:'first'}});
-  s.modularSession=session.id;s.modularInput=input;app.reportId=session.id;
-  await refreshHistory();
-  await modularDispatch('duel','configure',{id:session.id,sources,preference:'shortest',goal:[]});
-  await switchModule('duel');renderDuel();await refreshDuelModular();$('#duel-modular-status')?.scrollIntoView({block:'start'});
-  await syncNativeHost();await waitNativeFrame(session.id);
-  notice('本次起手已交给模块化处理。可在决斗窗口查找路线和执行；手动教程进度仍保留。');
-}
 window.addEventListener('scroll',()=>{if(moduleUI.current==='modular'||modularFieldVisible())void syncNativeHost().catch(()=>{});},{passive:true});

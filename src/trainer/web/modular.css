@@ -3,6 +3,8 @@
 .modular-heading h1 {margin:4px 0 8px}
 .modular-data {display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px}.modular-data article{padding:12px;border-left:2px solid var(--border-subtle)}
 .duel-brain {margin-bottom:20px}.duel-brain-output{display:grid;grid-template-columns:minmax(420px,1.3fr) minmax(270px,1fr);gap:16px;align-items:start}
+.duel-forecast{margin-bottom:20px}.duel-forecast>details{max-height:180px;overflow:auto}.duel-forecast #duel-brain-routes{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-top:16px}
+.forecast-step .compact-cards>span{display:grid;width:68px;text-align:center;gap:6px}.forecast-step img{width:60px}.forecast-card-search{display:flex;gap:8px;flex-wrap:wrap;max-height:260px;overflow:auto;margin:14px 0}.forecast-card-search button{display:grid;justify-items:center;gap:5px;width:96px;font-size:11px}.forecast-card-search img{width:48px}#duel-observation-error{color:var(--warning-text)}
 #duel-brain-field #native-stage{height:430px;min-height:260px}#duel-brain-routes{max-height:540px;overflow:auto;display:grid;gap:12px}.duel-brain-sources{max-height:150px;overflow:auto}.duel-brain-sources label{display:block}
 .modular-page p,.modular-page small {color:var(--text-muted)}
 .modular-setup {display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:20px 0}

@@ -121,7 +121,8 @@ def main():
     t = replace(t, '\twhile(device->run()) {', '\twhile(device->run()) {\n        TrainingPoll();')
     t = replace(t, '\t\tdriver->endScene();', '\t\tTrainingCaptureFrame();\n\t\tdriver->endScene();')
     t = replace(t, '\tdevice->setResizable(true);', '\tif(!TrainingEmbedded()) device->setResizable(true);')
-    t = replace(t, '\tif(gameConf.window_maximized)\n\t\tdevice->maximizeWindow();', '\tif(!TrainingEmbedded() && gameConf.window_maximized)\n\t\tdevice->maximizeWindow();')
+    t = replace(t, '\tif(gameConf.window_maximized)\n\t\tdevice->maximizeWindow();', '\tif(!TrainingEmbedded() && !GetEnvironmentVariableA("YGO_TRAIN_PLANNING", nullptr, 0) && gameConf.window_maximized)\n\t\tdevice->maximizeWindow();')
+    t = replace(t, '\tSaveConfig();', '\tif(!GetEnvironmentVariableA("YGO_TRAIN_PLANNING", nullptr, 0)) SaveConfig();')
     t = replace(t, '\tif(dInfo.isSingleMode)\n\t\tSingleMode::StopPlay(true);', '''    if(TrainingActive()) {
         // The renderer has stopped ticking. Release animation/choice waits before joining.
         frameSignal.SetNoWait(true);
@@ -201,8 +202,8 @@ def main():
         // create window
 ''')
     t = replace(t, 'realWidth, realHeight, NULL, NULL, hInstance, NULL);', 'realWidth, realHeight, embeddedParent, NULL, hInstance, NULL);')
-    t = replace(t, '\t\tShowWindow(HWnd, SW_SHOWNORMAL);', '\t\tShowWindow(HWnd, embeddedParent ? SW_SHOWNOACTIVATE : SW_SHOWNORMAL);')
-    t = replace(t, '\t// set this as active window\n\tif (!ExternalWindow)', '\t// Embedded training never changes the foreground application.\n\tif (!ExternalWindow && !GetParent(HWnd))')
+    t = replace(t, '\t\tShowWindow(HWnd, SW_SHOWNORMAL);', '\t\tShowWindow(HWnd, GetEnvironmentVariableA("YGO_TRAIN_PLANNING", nullptr, 0) ? SW_HIDE : embeddedParent ? SW_SHOWNOACTIVATE : SW_SHOWNORMAL);')
+    t = replace(t, '\t// set this as active window\n\tif (!ExternalWindow)', '\t// Embedded training and background planning never activate another window.\n\tif (!ExternalWindow && !GetParent(HWnd) && !GetEnvironmentVariableA("YGO_TRAIN_PLANNING", nullptr, 0))')
     save("irrlicht/source/Irrlicht/CIrrDeviceWin32.cpp", t)
 
     t = read("gframe/menu_handler.cpp")

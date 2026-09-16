@@ -148,6 +148,7 @@ class Store:
         from modular import Modular
         self.modular = Modular(self, read_json, atomic_json, atomic_bytes)
         self.processes = {}
+        self.planning = set()
         self.closing = False
         self.job = None
         self.host = host
@@ -424,7 +425,8 @@ class Store:
                         meta['ended_ms'] = end['time_ms'] if end else (rows[-1]['time_ms'] if rows else now())
                         if meta.get('plan_stage') == 'recording': meta['plan_stage'] = 'draft'
                         atomic_json(p, meta)
-                        atomic_json(p.parent / 'report.json', build_report(meta, rows, issues))
+                        if meta.get('purpose') != 'duel_planning':
+                            atomic_json(p.parent / 'report.json', build_report(meta, rows, issues))
                 except (ValueError, KeyError, OSError):
                     # Retain damaged records. List endpoint exposes a recovery warning.
                     continue
@@ -435,6 +437,7 @@ class Store:
         for p in self.sessions.glob('*/session.json'):
             try:
                 meta = read_json(p)
+                if meta.get('purpose') == 'duel_planning': continue
                 if meta.get('compromise') and meta['status'] not in ('running', 'starting', 'stopping'): continue
                 if meta.get('plan_stage') == 'discarded' and meta['status'] not in ('starting','running','stopping'): continue
                 if (self.plans / 'deleted' / (meta['id'] + '.json')).exists(): meta['plan_stage'] = 'deleted'
@@ -452,11 +455,11 @@ class Store:
                 result.append({'id': p.parent.name, 'name': '记录元数据损坏（原文件保留）', 'status': 'damaged', 'started_ms': 0})
         return sorted(result, key=lambda m: m['started_ms'], reverse=True)
 
-    def start(self, identifier, design=None, retry_meta=None, branch_setup=None):
+    def start(self, identifier, design=None, retry_meta=None, branch_setup=None, *, planning=False):
         with self.lock:
             if self.closing: raise ValueError('应用正在保存并退出，请稍候')
             self.refresh()
-            if (any(proc.poll() is None for proc in self.processes.values()) or
+            if not planning and (any(proc.poll() is None for sid, proc in self.processes.items() if sid not in self.planning) or
                     any(r['status'] in ('running','starting','stopping') for r in self.history())):
                 raise ValueError('请先结束当前展开，等待场地退出')
             if retry_meta:
@@ -535,15 +538,21 @@ class Store:
                 meta['name'] = branch_setup['name']
                 for code in branch_setup['hand']: meta['catalog'][str(code)] = deepcopy(self.catalog.cards[code])
                 self.compromise.prepare(path, meta, branch_setup)
-            atomic_json(path / 'session.json', meta)
             env = os.environ.copy(); env['YGO_TRAIN_SESSION'] = sid
-            if self.host: env.update(self.host.environment())
+            env.pop('YGO_TRAIN_PLANNING', None)
+            if planning: env['YGO_TRAIN_PLANNING'] = '1'
+            if self.host: env.update(self.host.environment(background=True) if planning else self.host.environment())
+            if planning:
+                meta.update(purpose='duel_planning', plan_stage='temporary')
+                self.planning.add(sid)
+            atomic_json(path / 'session.json', meta)
             try:
                 proc = subprocess.Popen([str(self.runtime / 'YGOPro.exe')], cwd=self.runtime, env=env)
                 if self.job: self.job.assign(proc)
                 self.processes[sid] = proc
                 meta.update(pid=proc.pid, process_identity=process_identity(proc.pid), status='running')
             except OSError as exc:
+                self.planning.discard(sid)
                 meta.update(status='interrupted', ended_ms=now(), end_reason='launch_failed')
                 atomic_json(path / 'session.json', meta)
                 raise ValueError(f'模拟器启动失败：{exc}') from exc
@@ -993,7 +1002,7 @@ class Handler(BaseHTTPRequestHandler):
                 files['/scrollbars.css'] = 'scrollbars.css'
                 for art in ('first', 'second', 'bo1', 'bo3'):
                     files[f'/brand/duel-{art}.svg'] = f'brand/duel-{art}.svg'
-                for name in ('duel.js', 'duel-model.js', 'tutorial-bindings.js', 'duel.css', 'deck-tag-view.js', 'deck-appearance.js'):
+                for name in ('duel.js', 'duel-forecast.js', 'duel-model.js', 'tutorial-bindings.js', 'duel.css', 'deck-tag-view.js', 'deck-appearance.js'):
                     files['/' + name] = name
                 if path in files:
                     p = WEB / files[path]; return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0] + '; charset=utf-8')

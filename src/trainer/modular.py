@@ -35,6 +35,7 @@ def message(code):
             'ai_unavailable':'基础对手 AI 不支持当前必要选择，需手动处理',
             'script_error':'隔离校验发生脚本错误，候选未被执行',
             'prompt_changed':'选择窗口发生变化，旧输入已停止',
+            'reported_card_unavailable':'填报的卡牌或份数不在该步骤的剩余牌组中，请核对实际结果；原路线已保留',
             'unknown_opponent_choice':'后续依赖未确认的对手选择，需等待实际事件'}.get(code,code)
 
 
@@ -351,6 +352,7 @@ class Modular:
         self.sessions = {}
         self.worker = None
         self.search_lock = threading.RLock()
+        self.planning_lock = threading.Lock()
         self.providers = {}
         self.consumers = {'duel', 'expansion', 'modular'}
         self.register_provider('decks', '卡组编辑', self.deck_input_version)
@@ -387,6 +389,10 @@ class Modular:
         handlers={'configure':self.configure,'search':lambda body:self.public_result(self.search(body['id'])),
                   'execute':self.execute,'auto':self.automatic,'status':lambda body:self.status(body['id'])}
         if intent=='data':result=self.data();versions=None
+        elif intent in ('plan','plan-adopt','plan-confirm','plan-observe','plan-close') and consumer=='duel':
+            from duel_planner import dispatch
+            with self.planning_lock: result=dispatch(self,intent,request)
+            versions=result['inputs']
         elif intent=='match':
             from duel import match
             from card_semantics import display_effects
@@ -421,7 +427,7 @@ class Modular:
             return self.sessions[sid]
 
     def save(self, ctx):
-        value = {k: v for k, v in ctx.items() if k not in ('result', 'busy', 'followup')}
+        value = {k: v for k, v in ctx.items() if k not in ('result', 'busy', 'followup', 'forecast_state', 'forecast_route')}
         self.write(self.store.session_path(ctx['id']) / 'modular.json', value)
 
     def audit(self, ctx, kind, **values):
@@ -439,10 +445,15 @@ class Modular:
                 time.sleep(.01)
         if not self.store.alive(self.read(self.store.session_path(sid)/'session.json')): value['running'] = False
         else: value['running'] = True
+        forecast = self.sessions.get(sid, {}).get('forecast_state')
+        if forecast: value.update(deepcopy(forecast))
         return value
 
     def visible_state(self, state):
         value = {k:deepcopy(v) for k,v in state.items() if not k.startswith('_')}; value['state'] = public_state(value['state'])
+        if state.get('_unknown_draws'):
+            value['state'] = forecast_state(state['state'], state['_unknown_draws'])
+            value.update(raw=None, effects={})
         if value.get('player') != 0: value.update(raw=None, effects={})
         return value
 
@@ -486,7 +497,14 @@ class Modular:
         with self.bridge_lock:
             token = lease or uuid.uuid4().hex
             folder = self.store.session_path(sid)
-            text = f"{command} {state['version']} {token} {scenario} {len(path)}\n" + '\n'.join(path) + '\n'
+            full_path = state.get('_prefix', []) + path if command != 'answer' else path
+            forecast = command != 'answer' and 'forecast_meta' in self.sessions.get(sid, {})
+            text = f"{'forecast' if forecast else command} {state['version']} {token} {scenario} {len(full_path)}\n" + '\n'.join(full_path) + '\n'
+            if forecast:
+                observations = state.get('_observations', [])
+                text += str(len(observations)) + '\n'
+                for observation in observations:
+                    text += ' '.join(map(str, [observation['index'], observation['kind'], len(observation['codes']), *observation['codes']])) + '\n'
             self.write_bytes(folder/'modular.request', text.encode('ascii'))
             deadline = time.monotonic()+7
             while time.monotonic() < deadline:
@@ -498,7 +516,7 @@ class Modular:
                     if value.get('token') == token:
                         if value['status'] == 'error': raise ValueError(value['error'])
                         if command == 'answer': return value
-                        raw, uncertain = next_prompt(value['batches']) if path else (state['raw'], False)
+                        raw, uncertain = next_prompt(value['batches']) if full_path else (state['raw'], False)
                         value.update(raw=raw, uncertain=uncertain or bool(value.get('private_cards')), player=(bytes.fromhex(raw)[2] if bytes.fromhex(raw)[0] == 23 else bytes.fromhex(raw)[1]) if raw else None)
                         return value
                 # An accepted answer can publish its successor between the result
@@ -525,10 +543,10 @@ class Modular:
         ctx = self.context(sid); self.library.sync(); state = self.state(sid)
         if not state['running'] or state['answered'] or state['player'] != 0: raise ValueError('引擎尚未开放我方决策')
         expected = self.token(state, ctx); preference = ctx['preference']; goal = ctx['goal'][:]
-        actual_history=self.decision_history(sid)
+        actual_history=self.decision_history(sid) + ctx.get('forecast_steps', [])
         edges = self.library.edges(ctx['selected']); bounds = {**LIMITS, **(limits or {})}
         actual_facts=facts_from_report(self.store._report(sid)) if any(edge.get('if_condition') for edge in edges) else []
-        state['_if_memory']={'chains':{},'facts':actual_facts}
+        state.setdefault('_if_memory', {'chains':{},'facts':actual_facts})
         longest = max((len(r['edges']) for source in ctx['selected'] for r in self.library.entries.get(source, {}).get('routes', [])), default=0)
         bounds['depth'] = min(128, max(bounds['depth'], longest+8))
         start = time.monotonic(); queue = deque()
@@ -636,6 +654,8 @@ class Modular:
                                 'bindings': response_bindings(prompt, response), 'source_bindings': edge.get('bindings', []),
                                 'response': response, 'state': forecast_state(following['state'],uncertain_cards), 'delta': edge['delta'],
                                 'next_raw': following['raw'],
+                                'path_end': len(extended), 'next_effects': following.get('effects', {}),
+                                'if_memory': deepcopy(if_memory),
                                 'automatic': edge.get('automatic', False)}
                         selected = next(iter(edge['decision'].get('selection', [])), {})
                         if selected.get('kind')=='special' and selected.get('card',{}).get('location')==8 and self.store.catalog.cards.get(selected['card'].get('code'),{}).get('type',0)&0x1000000:
@@ -645,6 +665,17 @@ class Modular:
                                 'engine_effect': selected['effect'], 'effect': {'description_id': selected['effect'].get('description')}},
                                 {str(k): v for k, v in self.store.catalog.cards.items()})
                         route = steps+[step]
+                        new_unknown = uncertain_cards - set(current.get('_unknown_draws', []))
+                        if 'forecast_meta' in ctx and new_unknown:
+                            terminal = forecast_state(following['state'], uncertain_cards)
+                            slots = [c.get('location') for c in following['state']['cards'] if c.get('instance_id') in new_unknown]
+                            candidates.append({'id': digest([expected, [s['edge'] for s in route]]), 'steps': route,
+                                'remaining': sum(not s['automatic'] for s in route), 'terminal': terminal,
+                                'evaluation': evaluation(terminal, self.store.catalog.cards), 'goal_met': False,
+                                'conditional': True, 'validation': 'needs_observation', 'observation_required': slots,
+                                'reason': '到达随机结果步骤，请填写实际抽牌或堆墓结果后继续计算',
+                                'robustness': {'status': 'unassessed', 'scenarios': []}, 'path': extended, 'token': expected})
+                            continue
                         if edge['terminal'] and bytes.fromhex(following['raw'])[0] in (10,11) and not following['state'].get('chain_depth') and terminal_matches(edge,following['state'],route,actual_history,ctx['precise']):
                             if any(c.get('instance_id') in uncertain_cards and c.get('location') in (4,8) for c in following['state']['cards']):
                                 unknown=True;continue
@@ -866,6 +897,7 @@ class Modular:
 
     def execute(self, body):
         sid = body['id']; ctx = self.context(sid)
+        if ctx.get('forecast_meta'): raise ValueError('临时方案通过步骤确认推进，不执行真实对局输入')
         with self.store.lock, self.lock:
             result = ctx.get('result')
             candidate = next((c for c in (result or {}).get('candidates', []) if c['id'] == body.get('candidate')), None)
@@ -945,6 +977,7 @@ class Modular:
 
     def automatic(self, body):
         ctx = self.context(body['id'])
+        if ctx.get('forecast_meta'): raise ValueError('临时方案不启用自动打牌，请使用步骤图')
         if type(body.get('enabled')) is not bool: raise ValueError('自动模式设置无效')
         with self.lock:
             ctx['auto'] = body['enabled']; self.cancel_lease(ctx['id'])
@@ -961,6 +994,7 @@ class Modular:
     def run(self):
         while not self.store.closing:
             for sid, ctx in list(self.sessions.items()):
+                if ctx.get('forecast_meta'): continue
                 try:
                     self.library.sync()
                     state = self.reconcile(sid)
@@ -992,7 +1026,7 @@ class Modular:
         try: state = self.reconcile(sid)
         except ValueError: state = None
         with self.lock:
-            value={k:deepcopy(v) for k,v in ctx.items() if k not in ('followup','completed','audit','result','pending')}
+            value={k:deepcopy(v) for k,v in ctx.items() if k not in ('followup','completed','audit','result','pending') and not k.startswith('forecast_')}
             value['result']=self.public_result(ctx['result']) if ctx.get('result') else None
             value['pending']={k:ctx['pending'].get(k) for k in ('lease','token','node','remaining_decisions')} if ctx.get('pending') else None
             value['completed']=[{'version':item['version'],'step':{k:deepcopy(item['step'].get(k)) for k in ('source','decision','bindings')}} for item in ctx['completed']]
@@ -1015,5 +1049,6 @@ class Modular:
         result=deepcopy(result)
         for candidate in result.get('candidates', []):
             candidate.pop('path',None)
-            for step in candidate.get('steps',[]):step.pop('next_raw',None)
+            for step in candidate.get('steps',[]):
+                for key in ('next_raw','next_effects','if_memory'):step.pop(key,None)
         return result

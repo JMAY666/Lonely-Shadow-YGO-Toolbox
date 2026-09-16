@@ -353,6 +353,8 @@ function reviewLogContext(report=reviewUI.report, mode=reviewUI.logMode) {
     editable:report===reviewUI.report&&app.view==='history'&&!!flow.draft};
 }
 function renderRecordedStep(report,n,mode='compact') {
+  if(report.temporary&&n.kind==='step')return renderForecastStep(n,report);
+  if(report.temporary&&n.kind==='final')return renderForecastTerminal(n,report);
   n=reviewModuleNode(n,report);
   const context={...reviewLogContext(report,mode),editable:false,edits:{...emptyEdits(),...report.annotations}};
   if(n.kind==='initial')return `<div class="compact-cards">${(report.initial_hand?.length?report.initial_hand:boardCards(n,0,2)).map(c=>reviewLogCard(c,n.id,{report,zone:false})).join('')}</div>`;

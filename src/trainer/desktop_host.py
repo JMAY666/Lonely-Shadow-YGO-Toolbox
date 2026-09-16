@@ -67,11 +67,11 @@ class NativeHost:
         self.sync(store)
         return {'embedded': True}
 
-    def environment(self):
-        if not self.hwnd or not self.user.IsWindow(self.hwnd) or not self.visible:
+    def environment(self, background=False):
+        if not self.hwnd or not self.user.IsWindow(self.hwnd) or (not background and not self.visible):
             raise ValueError('训练区域尚未就绪，请重新点击开始训练')
         return {'YGO_EMBED_PARENT': str(self.hwnd), 'YGO_EMBED_PARENT_PID': str(self.parent_pid),
-                'YGO_EMBED_RECT': ','.join(map(str, self.rect)),
+                'YGO_EMBED_RECT': ','.join(map(str, (0, 0, 1024, 640) if background else self.rect)),
                 'YGO_TRAIN_TEST_CONTROL': '1' if self.test_control else '0'}
 
     def child(self, store, sid):
@@ -111,6 +111,7 @@ class NativeHost:
 
     def sync(self, store):
         for sid in list(store.processes):
+            if sid in getattr(store, 'planning', set()): continue
             hwnd = self.child(store, sid)
             if not hwnd: continue
             placement = (hwnd, self.rect, self.visible, self.timeline)

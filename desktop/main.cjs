@@ -31,7 +31,14 @@ app.setAppUserModelId(branding.appId);
 const webPreferences = { nodeIntegration: false, contextIsolation: true, sandbox: true };
 let mainWindow, backend, ready, shuttingDown = false, finished = false, log;
 let closeRequested = false;
-let layoutQueue = Promise.resolve();
+const queueLayout = require('./native-layout.cjs').latestLayout(async bounds => {
+  if(shuttingDown)return;
+  const response=await fetch(`${ready.url}/api/desktop/layout`,{method:'POST',
+    headers:{'Content-Type':'application/json','X-Trainer-Token':ready.token},body:JSON.stringify(bounds),signal:AbortSignal.timeout(5000)});
+  const value=await response.json();
+  if(!response.ok)throw new Error(value.error);
+  return value;
+});
 let tutorialController;
 const tutorialSettingsFile = path.join(dataDir, 'tutorial-shortcuts.json');
 function readTutorialSettings() {
@@ -247,14 +254,7 @@ if (!app.requestSingleInstanceLock()) {
       if (!ready || shuttingDown || event.sender !== mainWindow?.webContents || event.senderFrame !== mainWindow.webContents.mainFrame || new URL(event.senderFrame.url).origin !== ready.url) throw new Error('无效的训练区域请求');
       const handle = mainWindow.getNativeWindowHandle();
       const hwnd = (handle.length === 8 ? handle.readBigUInt64LE() : BigInt(handle.readUInt32LE())).toString();
-      return layoutQueue = layoutQueue.catch(() => {}).then(async () => {
-        if(shuttingDown) return;
-        const response = await fetch(`${ready.url}/api/desktop/layout`, { method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-Trainer-Token': ready.token }, body: JSON.stringify({ ...bounds, hwnd }), signal: AbortSignal.timeout(5000) });
-        const value = await response.json();
-        if (!response.ok) throw new Error(value.error);
-        return value;
-      });
+      return queueLayout({...bounds,hwnd});
     });
     mainWindow.webContents.on('will-prevent-unload', event => {
       const response = dialog.showMessageBoxSync(mainWindow, { type: 'question', title: '内容尚未保存',

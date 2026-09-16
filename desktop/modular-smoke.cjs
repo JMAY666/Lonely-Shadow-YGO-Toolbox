@@ -31,7 +31,8 @@ module.exports=async({page,root,evidence,pass})=>{
   const code=await new Promise(resolve=>python.once('exit',resolve));
   clearInterval(layoutTimer);
   assert.equal(code,0,output.slice(-7000));
-  if(process.env.YGO_MODULAR_PIPELINE_ONLY==='1')await require('./modular-duel-smoke.cjs')({page,root,evidence,pass});
+  if(process.env.YGO_MODULAR_PIPELINE_ONLY==='1')await require('./duel-forecast-smoke.cjs')({page,root,evidence,pass});
+  if(process.env.YGO_MODULAR_FORECAST_ONLY==='1')await require('./duel-forecast-outcome-smoke.cjs')({page,evidence,pass});
   await page.evaluate(async()=>{await refreshHistory();flow.restarting=false;await switchModule('modular');});
   assert(await page.locator('#modular').isVisible());
   await page.screenshot({path:path.join(evidence,'modular.png')});
