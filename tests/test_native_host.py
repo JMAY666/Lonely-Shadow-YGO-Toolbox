@@ -26,6 +26,7 @@ class NativeCompositionTests(unittest.TestCase):
         u.DestroyWindow.argtypes = [w.HWND]
         # No WS_VISIBLE on the parent: no desktop window or global input.
         self.parent = self.window(0, 0, 0, 0, 1200, 900)
+        self.parent_style = u.GetWindowLongPtrW(self.parent, -16)
         self.addCleanup(u.DestroyWindow, self.parent)
         self.native = self.window(0, 0x56000000, 0, 0, 600, 500, self.parent)
         root = Path(__file__).resolve().parents[1] / '.local/test-runs'
@@ -68,6 +69,37 @@ class NativeCompositionTests(unittest.TestCase):
         state = self.host.status(self.store, 'test')
         self.assertTrue(state['composition_compatible'])
         self.assertEqual(state['layered_overlaps'], [])
+
+    def test_parent_paint_excludes_native_child_without_changing_window_geometry(self):
+        style = self.user.GetWindowLongPtrW(self.parent, -16)
+        self.assertTrue(style & 0x02000000, 'The parent must use WS_CLIPCHILDREN to prevent painting over OpenGL')
+        self.assertEqual(style, self.parent_style | 0x02000000)
+        state = self.host.status(self.store, 'test')
+        self.assertTrue(state['parent_clips_children'])
+        self.assertTrue(state['composition_compatible'])
+        self.assertEqual(tuple(state['bounds'][key] for key in ('x','y','width','height')), self.host.rect)
+
+    def test_shell_style_reset_is_repaired_without_repainting_native_window(self):
+        style = self.user.GetWindowLongPtrW(self.parent, -16)
+        self.user.SetWindowLongPtrW(self.parent, -16, style & ~0x02000000)
+        self.assertFalse(self.host.status(self.store, 'test')['composition_compatible'])
+        with patch.object(self.user, 'SetWindowPos', wraps=self.user.SetWindowPos) as move, \
+                patch.object(self.user, 'SetWindowRgn', wraps=self.user.SetWindowRgn) as clip, \
+                patch.object(self.user, 'ShowWindow', wraps=self.user.ShowWindow) as show:
+            self.host.sync(self.store)
+            self.assertTrue(self.host.status(self.store, 'test')['parent_clips_children'])
+            self.assertTrue(self.host.status(self.store, 'test')['composition_compatible'])
+            move.assert_called_once_with(self.parent, None, 0, 0, 0, 0, 0x003f)
+            clip.assert_not_called()
+            show.assert_not_called()
+
+    def test_parent_from_a_different_process_is_not_modified(self):
+        style = self.user.GetWindowLongPtrW(self.parent, -16)
+        self.user.SetWindowLongPtrW(self.parent, -16, style & ~0x02000000)
+        self.host.parent_pid += 1  # Simulate an HWND whose owning process changed.
+        with patch.object(self.user, 'SetWindowLongPtrW', wraps=self.user.SetWindowLongPtrW) as change:
+            self.host.protect_parent_paint()
+            change.assert_not_called()
 
     def test_sync_repairs_sibling_order_without_a_layout_change(self):
         sibling = self.window(0, 0x56000000, 0, 0, 1200, 900, self.parent)

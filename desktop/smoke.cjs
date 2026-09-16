@@ -133,7 +133,8 @@ async function hostWait(sid, predicate) {
   throw new Error(`Native host did not reach the expected state: ${JSON.stringify(state)}`);
 }
 function assertComposition(host) {
-  assert.equal(host.composition_compatible, true, 'A layered web surface must not cover the native field');
+  assert.equal(host.composition_compatible, true, 'Parent and sibling web surfaces must not paint over the native field');
+  assert.equal(host.parent_clips_children,true);
   assert.deepEqual(host.layered_overlaps, []);
   assert.equal(host.owns_stage_hit_test, true);
 }
@@ -406,6 +407,7 @@ async function activatePot(sid) {
     assert.equal(sample.layout_updates.visibility,stableHost.layout_updates.visibility,'Idle polling must not hide/show the field');
   }
   pass('Native field stays visible across 12 polling cycles without repeated clipping or hide/show');
+  await require('./native-paint-smoke.cjs')({page,application,sid:sessionId,nativeState,hostWait,evidence,pass});
   fs.writeFileSync(path.join(evidence, 'native-host.json'), JSON.stringify(host, null, 2));
   await page.screenshot({path: path.join(evidence, 'training-shell.png')});
   const stage = await page.locator('#native-stage').boundingBox();

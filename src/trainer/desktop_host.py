@@ -27,6 +27,7 @@ class NativeHost:
         u.GetWindowRect.argtypes = [w.HWND, ctypes.POINTER(w.RECT)]
         u.MapWindowPoints.argtypes = [w.HWND, w.HWND, ctypes.POINTER(w.POINT), w.UINT]
         u.GetWindowLongPtrW.argtypes = [w.HWND, ctypes.c_int]; u.GetWindowLongPtrW.restype = ctypes.c_ssize_t
+        u.SetWindowLongPtrW.argtypes = [w.HWND, ctypes.c_int, ctypes.c_ssize_t]; u.SetWindowLongPtrW.restype = ctypes.c_ssize_t
         u.SetWindowPos.argtypes = [w.HWND, w.HWND, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, w.UINT]
         u.ShowWindow.argtypes = [w.HWND, ctypes.c_int]
         u.PostMessageW.argtypes = [w.HWND, w.UINT, w.WPARAM, w.LPARAM]
@@ -120,7 +121,26 @@ class NativeHost:
         with self.layout_lock:
             self._sync(store)
 
+    def protect_parent_paint(self):
+        if not self.hwnd or not self.user.IsWindow(self.hwnd) or self.pid(self.hwnd) != self.parent_pid: return
+        style = self.user.GetWindowLongPtrW(self.hwnd, -16)
+        # Z-order and WS_CLIPSIBLINGS protect against other children only.
+        # Chromium's parent HWND must also exclude the native child when painting.
+        if not style & 0x02000000:  # WS_CLIPCHILDREN
+            ctypes.set_last_error(0)
+            previous = self.user.SetWindowLongPtrW(self.hwnd, -16, style | 0x02000000)
+            if not previous and ctypes.get_last_error():
+                raise ctypes.WinError(ctypes.get_last_error())
+            # Flush the cached style without moving, resizing, activating or
+            # repainting the parent (FRAMECHANGED | NOMOVE | NOSIZE | NOZORDER |
+            # NOACTIVATE | NOREDRAW). This runs only when the style was missing.
+            if not self.user.SetWindowPos(self.hwnd, None, 0, 0, 0, 0, 0x003f):
+                error = ctypes.get_last_error()
+                self.user.SetWindowLongPtrW(self.hwnd, -16, style)
+                raise ctypes.WinError(error)
+
     def _sync(self, store):
+        self.protect_parent_paint()
         for sid in list(store.processes):
             if sid in getattr(store, 'planning', set()): continue
             hwnd = self.child(store, sid)
@@ -175,6 +195,7 @@ class NativeHost:
         center = w.POINT(origin.x + (rect.right - rect.left) // 2, origin.y + (rect.bottom - rect.top) // 2)
         hit = self.user.ChildWindowFromPointEx(self.hwnd, center, 0)
         overlaps = self.layered_overlaps(hwnd, rect)
+        parent_clips = bool(self.user.GetWindowLongPtrW(self.hwnd, -16) & 0x02000000)
         sidebar = w.POINT(origin.x + max(1, (rect.right - rect.left) // 8), origin.y + (rect.bottom - rect.top) // 2)
         try: frame = json.loads((store.session_path(sid) / 'frame-ready.json').read_text('utf8'))
         except (OSError, ValueError): frame = {}
@@ -183,7 +204,8 @@ class NativeHost:
                 'frame_ready': bool(frame), 'frame_ms': frame.get('time_ms'),
                 'owns_stage_hit_test': hit == hwnd, 'stage_hit_hwnd': str(hit),
                 'timeline_accessible': self.timeline and self.user.ChildWindowFromPointEx(self.hwnd, sidebar, 0) != hwnd,
-                'composition_compatible': not overlaps, 'layered_overlaps': overlaps,
+                'composition_compatible': parent_clips and not overlaps, 'layered_overlaps': overlaps,
+                'parent_clips_children': parent_clips,
                 'child_style': bool(style & 0x40000000), 'caption': bool(style & 0x00C00000),
                 'visible': bool(style & 0x10000000), 'bounds': {'x': origin.x, 'y': origin.y,
                 'width': rect.right - rect.left, 'height': rect.bottom - rect.top}}

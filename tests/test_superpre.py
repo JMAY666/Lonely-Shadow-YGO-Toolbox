@@ -67,7 +67,9 @@ class SuperpreTests(unittest.TestCase):
             self.store.superpre.start(action)
             self.store.superpre.thread.join(10)
             self.assertFalse(self.store.superpre.thread.is_alive())
-        return self.store.superpre.status()
+        result = self.store.superpre.status()
+        if action == 'install': self.assertFalse(result['job']['error'], result['job']['error'])
+        return result
 
     def test_install_update_uninstall_and_reinstall_preserve_data_and_refresh_resources(self):
         saved = self.store.root / 'plans/saved.json'; saved.write_bytes(b'{"frozen":"unchanged"}')
@@ -142,7 +144,7 @@ class SuperpreTests(unittest.TestCase):
         newer = self.make_package('two', [(900002, '另一张卡')])
         with patch.object(self.store, 'reload_resources', side_effect=OSError('disk full')), \
                 patch.object(self.store.superpre, 'recover', side_effect=OSError('restore denied')):
-            self.assertTrue(self.operation('update', package=newer)['job']['error'])
+            self.assertIn('restore denied', self.operation('update', package=newer)['job']['error'])
         self.assertTrue((self.store.superpre.root / 'transaction.json').exists())
         with self.assertRaisesRegex(ValueError, '恢复尚未完成'): self.store.superpre.start('uninstall')
         with self.assertRaisesRegex(ValueError, '补丁正在变更'): self.store.start('missing')
