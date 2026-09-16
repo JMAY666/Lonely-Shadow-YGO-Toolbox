@@ -70,6 +70,25 @@ class StoreTests(unittest.TestCase):
         self.store.save_deck({'name':'original - 练习','deck':{**self.deck,'side':[]}})
         self.assertEqual(path.read_bytes(),before)
 
+    def test_captured_deck_save_confirm_update_reopen_and_second_deck(self):
+        tags={'tag_ids':[],'primary_ids':[]}
+        body={'name':'Live','deck':self.deck,'tag_selection':tags}
+        first=self.store.save_captured_deck(body)['deck']
+        changed={**body,'name':'Ｌｉｖｅ','deck':{**self.deck,'side':[]}}
+        pending=self.store.save_captured_deck(changed)
+        self.assertTrue(pending['confirmation'])
+        self.assertEqual(self.store.get_deck(first['id'])['deck'],self.deck)
+        with self.assertRaisesRegex(ValueError,'已改变'):
+            self.store.save_captured_deck({**changed,'overwrite':True,'id':first['id'],'revision':'stale'})
+        saved=self.store.save_captured_deck({**changed,'overwrite':True,'id':pending['id'],'revision':pending['revision']})
+        self.assertTrue(saved['overwritten']);self.assertEqual(saved['deck']['id'],first['id'])
+        self.assertEqual(Store(self.root).get_deck(first['id'])['deck']['side'],[])
+        self.assertEqual(len(list((self.store.root/'backups').glob('*.ydk'))),1)
+        second=self.store.save_captured_deck({**body,'name':'Second'})['deck']
+        self.assertNotEqual(first['id'],second['id']);self.assertEqual(len(self.store.list_decks()),2)
+        with self.assertRaisesRegex(ValueError,'已改变'):
+            self.store.save_captured_deck({**changed,'overwrite':True,'id':pending['id'],'revision':pending['revision']})
+
     def test_rename_keeps_identifier_order_backup_and_revision(self):
         first = self.store.save_deck({'name': '原名称', 'deck': self.deck})
         original = (self.store.decks / '原名称.ydk').read_bytes()

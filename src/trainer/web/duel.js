@@ -267,7 +267,7 @@ function renderDuel() {
   const s=duelState(),mainStage=Math.min(s.stage,duelStages.hand),stages=['模式选择','功能选择','卡组选择','决定先/后攻','卡组展开'];
   $('#duel').dataset.stage=String(s.stage);
   $('#duel-steps').innerHTML=stages.map((name,i)=>`<button data-duel-stage="${i}" ${i>s.reached||duelUI.busy?'disabled':''} ${i===mainStage?'aria-current="step"':''}><span>${i<mainStage?'✓':i+1}</span>${name}</button>`).join('');
-  const automatic=s.operationMode==='automatic',deckPage=automatic?s.automatic.page:s.deckPage,hasDeck=automatic?!!s.automatic.deck:!!s.deck;
+  const automatic=s.operationMode==='automatic',deckPage=automatic?s.automatic.page:s.deckPage,hasDeck=automatic?!!s.automatic.deck&&s.automatic.fresh:!!s.deck;
   $('#duel-substeps').hidden=![duelStages.function,duelStages.deck,duelStages.hand,duelStages.plans,duelStages.tutorial].includes(s.stage);
   $('#duel-substeps').setAttribute('aria-label',s.stage===duelStages.function?'功能选择流程':s.stage===duelStages.deck?'卡组选择流程':'卡组展开流程');
   if(s.stage===duelStages.function)$('#duel-substeps').innerHTML=['手动或自动','平台选择'].map((name,i)=>`<button data-duel-function-page="${i?'platform':'choice'}" ${duelUI.busy||i&&!automatic?'disabled':''} ${s.functionPage===(i?'platform':'choice')?'aria-current="step"':''}>${i+1}. ${name}</button>`).join('');
@@ -280,7 +280,7 @@ function renderDuel() {
   if(s.stage===duelStages.mode) {
     body=`<div class="duel-mode-grid"><button data-duel-action="bo1" class="duel-mode"><span class="duel-mode-symbol" aria-hidden="true">◇</span><strong>BO1</strong><span>单局模式</span></button><button class="duel-mode" disabled><span class="duel-mode-symbol" aria-hidden="true">◇◇</span><strong>BO3</strong><span>三局两胜</span><small>待开发</small></button></div>`;
   } else if(s.stage===duelStages.function) {
-    body=s.functionPage==='platform'&&automatic?duelPlatformPage():`<div class="duel-mode-grid"><button data-duel-action="manual" class="duel-mode"><strong>手动选择</strong><span>自行选择卡组与起手</span></button><button data-duel-action="automatic" class="duel-mode"><strong>自动选择</strong><span>从游戏平台识别卡组</span><small>界面预览</small></button></div>`;
+    body=s.functionPage==='platform'&&automatic?duelPlatformPage():`<div class="duel-mode-grid"><button data-duel-action="manual" class="duel-mode"><strong>手动选择</strong><span>自行选择卡组与起手</span></button><button data-duel-action="automatic" class="duel-mode"><strong>自动选择</strong><span>从游戏平台识别卡组</span></button></div>`;
   } else if(s.stage===duelStages.deck) {
     if(automatic){body=deckPage==='preview'&&hasDeck?duelAutomaticPreview():duelRecognitionPage();if(deckPage==='preview'&&hasDeck)footer=duelButton('start-duel','开始决斗',false,true);}
     else if(s.deckPage==='preview'&&s.deck){body=duelDeckPreview();footer=duelButton('start-duel','开始决斗',false,true);}
@@ -494,7 +494,7 @@ $('#duel').addEventListener('click',run(async event=>{
   if(button.dataset.duelDeckPage){if(s.operationMode==='automatic')s.automatic.page=button.dataset.duelDeckPage;else s.deckPage=button.dataset.duelDeckPage;closeReviewDetail();closeDeckPreview();duelTell('');renderDuel();return;}
   if(button.dataset.duelAutoTag){
     const draft=s.automatic,id=button.dataset.duelAutoTag,role=button.dataset.role,current=draft.primaryIds.includes(id)?'primary':draft.tagIds.includes(id)?'secondary':'';
-    DuelAutomatic.setRole(draft,id,current===role?'':role);draft.notice='TAG 已调整，保存后更新演示卡组。';
+    draft.notice='TAG 已调整，保存后更新本地卡组。';DuelAutomatic.setRole(draft,id,current===role?'':role);
     $('#duel-auto-tags').innerHTML=duelAutomaticTags();duelAutomaticSaveFeedback();return;
   }
   if(button.dataset.reviewZone){event.stopPropagation();showDuelZone(button.dataset.reviewZone);return;}

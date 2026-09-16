@@ -1,4 +1,13 @@
 /* Automatic setup shares the existing navigation, palette and card detail UI. */
+#duel-capture-dialog{width:min(620px,calc(100vw - 40px));padding:28px}
+#duel-capture-dialog h2{font-size:20px;margin:0 0 20px}
+#duel-capture-processes{max-height:45dvh;overflow:auto;margin:20px 0}
+#duel-capture-processes article{border:1px solid var(--border-subtle);background:var(--surface-panel);border-radius:8px;padding:16px;margin-top:10px}
+#duel-capture-processes p{font-size:12px;overflow-wrap:anywhere}
+#duel-capture-processes small{display:block;font-size:11px}
+#duel-capture-processes button{margin-top:12px}
+.duel-capture-summary{font-size:12px;color:var(--text-muted);overflow-wrap:anywhere}
+.duel-capture-help{font-size:13px;line-height:1.8;border-left:3px solid var(--accent);padding:10px 12px;background:var(--surface-input);color:var(--text-main)}
 .duel-page[data-stage="1"] .duel-mode-grid{min-height:calc(100dvh - var(--app-bar-height) - 158px)}
 .duel-page[data-stage="1"] .duel-platform{background-image:url('/brand/duel-ygopro.svg')}
 .duel-demo-notice{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;margin:12px 0 22px}

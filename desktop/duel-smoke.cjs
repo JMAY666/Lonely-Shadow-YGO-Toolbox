@@ -88,7 +88,7 @@ module.exports=async function({page,application,root,evidence,pass}) {
   assert(await page.locator('[data-duel-function-page="platform"]').isDisabled());
   assert(await page.locator('#duel-footer').isHidden());
   const automatic=page.locator('[data-duel-action="automatic"]');
-  assert(await automatic.isEnabled());assert((await automatic.textContent()).includes('界面预览'));
+  assert(await automatic.isEnabled());assert((await automatic.textContent()).includes('从游戏平台识别卡组'));
   assert.equal(await page.evaluate(()=>duelState().operationMode),null);
   const verifyFunctionLayout=async()=>{
     await page.locator('#duel-steps').hover();
@@ -127,9 +127,14 @@ module.exports=async function({page,application,root,evidence,pass}) {
   assert((await page.locator('#duel-footer').boundingBox()).width<200);
   await page.screenshot({path:path.join(evidence,'duel-deck.png')});
   await page.locator('#duel-steps [data-duel-stage="1"]').click();await stage('function');
-  await click('automatic');await click('platform-ygopro');await stage('deck');
-  assert.equal(await page.evaluate(()=>duelState().deck.id),data.deck.id);
-  assert.equal(await page.locator('.duel-card.is-marked').count(),3);
+  await page.route('**/api/ygopro/attach',route=>route.fulfill({json:{connected:false,processes:[],error:'隔离测试：尚未启动游戏'}}));
+  try {
+    await click('automatic');await click('platform-ygopro');await stage('function');
+    assert(await page.locator('#duel-capture-dialog').isVisible());
+    assert.equal(await page.evaluate(()=>duelState().deck.id),data.deck.id);
+    assert.equal(await page.evaluate(()=>duelState().marks.size),3);
+    await page.locator('#duel-capture-close').click();
+  } finally {await page.unroute('**/api/ygopro/attach');}
   await page.locator('#duel-steps [data-duel-stage="1"]').click();await stage('function');
   await page.locator('[data-duel-function-page="choice"]').click();
   await click('manual');await stage('deck');

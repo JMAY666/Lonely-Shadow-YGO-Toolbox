@@ -20,6 +20,7 @@ import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, unquote, urlsplit
 import uuid
+import unicodedata
 import webbrowser
 
 from report import REPORT_VERSION, build_report, read_journal
@@ -32,6 +33,7 @@ import deck_tags
 from plan_sharing import MAX_BYTES
 from compromise import Compromise, resource_scope
 import superpre
+import ygopro_capture
 
 WORKSPACE = Path(__file__).resolve().parents[2]
 RUNTIME = WORKSPACE / '.local/YGOPro-Lite'
@@ -165,6 +167,7 @@ class Store:
         self.modular = Modular(self, read_json, atomic_json, atomic_bytes)
         self.job = None
         self.host = host
+        self.ygopro_capture = ygopro_capture.Capture()
         if desktop:
             from desktop_runtime import OwnedJob
             self.job = OwnedJob()
@@ -415,6 +418,29 @@ class Store:
                 atomic_bytes(backup, old)
             atomic_bytes(p, self.ydk(deck, name, selected, representatives))
             return self.get_deck('library/' + p.relative_to(self.decks).as_posix())
+
+    def save_captured_deck(self, body):
+        """Resolve same-name saves under the library lock; revisions gate overwrite."""
+        with self.lock:
+            name = self.checked_deck_name(body.get('name', ''))
+            key = lambda value: unicodedata.normalize('NFKC', value.strip()).casefold()
+            matches = [d for d in self.list_decks() if key(d['name']) == key(name)]
+            if len(matches) > 1:
+                raise ValueError('存在多副同名卡组，请使用不同名称保存。')
+            values = {'name': name, 'deck': body.get('deck'), 'tag_selection': body.get('tag_selection')}
+            if matches:
+                existing = self.get_deck(matches[0]['id'])
+                if existing['source'] != 'library':
+                    raise ValueError('同名卡组属于导入的原始资源，请使用新名称保存到工具箱卡组库。')
+                if body.get('overwrite') is not True:
+                    return {'confirmation': True, 'id': existing['id'], 'revision': existing['revision'], 'name': existing['name']}
+                if body.get('id') != existing['id'] or body.get('revision') != existing['revision']:
+                    raise ValueError('同名卡组已改变，请重新保存并确认覆盖。')
+                values.update(id=existing['id'], revision=existing['revision'])
+            elif body.get('overwrite'):
+                raise ValueError('原卡组已改名或删除，请重新保存。')
+            result = self.save_deck(values)
+            return {'saved': True, 'overwritten': bool(matches), 'name': result['name'], 'deck': result}
 
     def session_path(self, identifier):
         if str(uuid.UUID(identifier)) != identifier: raise ValueError('训练标识无效')
@@ -948,6 +974,12 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/plans/import-preview': return self.send(store.library.import_document(body, preview=True))
                 if path == '/api/plans/import': return self.send(store.library.import_document(body))
                 if path == '/api/decks': return self.send(store.save_deck(body))
+                if path == '/api/ygopro/attach': return self.send(store.ygopro_capture.attach(body.get('pid')))
+                if path == '/api/ygopro/deck':
+                    result = store.ygopro_capture.deck(body.get('capture_id'))
+                    store.validate(result['deck'])
+                    return self.send(result)
+                if path == '/api/ygopro/save': return self.send(store.save_captured_deck(body))
                 if path == '/api/decks/tag-options': return self.send(store.deck_tag_options(body))
                 if path == '/api/card-favorites': return self.send(store.set_favorite(body))
                 if path == '/api/plan-favorites': return self.send(store.plan_favorites(body))
