@@ -1,0 +1,41 @@
+/* Automatic setup shares the existing navigation, palette and card detail UI. */
+.duel-page[data-stage="1"] .duel-mode-grid{min-height:calc(100dvh - var(--app-bar-height) - 158px)}
+.duel-page[data-stage="1"] .duel-platform{background-image:url('/brand/duel-ygopro.svg')}
+.duel-demo-notice{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;margin:12px 0 22px}
+.duel-demo-notice>span{color:var(--accent);border:1px solid var(--border-selected);border-radius:5px;padding:3px 8px;white-space:nowrap}
+.duel-platform-label,.duel-eyebrow{font-size:12px;color:var(--text-muted)}
+.duel-recognition-layout{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:24px;align-items:start}
+.duel-recognition-panel,.duel-recognition-controls,.duel-auto-save-panel{border:1px solid var(--border-subtle);background:var(--surface-panel);border-radius:12px;padding:20px;min-width:0}
+.duel-recognition-panel>header{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--border-subtle);padding-bottom:12px}
+.duel-recognition-panel h3,.duel-recognition-controls h3{margin:0}
+.duel-recognition-panel>header small{font-size:11px}
+.duel-recognition-empty{min-height:330px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.duel-recognition-empty>img{width:150px;height:150px;border-radius:10px;opacity:.7;margin-bottom:20px}
+.duel-recognition-empty p{font-size:12px}
+.duel-recognition-controls{display:flex;flex-direction:column;gap:16px;padding:24px}
+.duel-recognition-controls p{font-size:13px;line-height:1.8;margin:0}
+.duel-recognition-controls button{padding:12px 16px;font-size:13px}
+.duel-recognition-controls .duel-recognition-status{font-size:11px;text-align:center}
+.duel-recognition-zone{max-width:536px;margin-inline:auto}.duel-recognition-zone h4{font-size:12px;margin:16px 0 10px}.duel-recognition-zone h4 small{margin-left:8px;font-weight:400}
+.duel-recognition-cards{display:grid;grid-template-columns:repeat(10,minmax(0,50px));gap:4px}
+.duel-recognition-cards img{display:block;width:100%;aspect-ratio:59/86;object-fit:contain;border-radius:2px;background:var(--surface-input)}
+.duel-auto-preview-layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:24px;align-items:start}
+.duel-auto-cards{min-width:0}.duel-auto-cards .duel-section-heading{margin-top:0}.duel-auto-cards .duel-section-heading h2{overflow-wrap:anywhere}
+.duel-auto-save-panel{position:sticky;top:calc(var(--app-bar-height) + 16px);max-height:calc(100dvh - var(--app-bar-height) - 240px);overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+.duel-auto-save-panel h2{font-size:16px;margin:0 0 20px}.duel-auto-save-panel label{display:block;font-size:12px;margin-bottom:8px}
+.duel-auto-save-panel input{display:block;width:100%;min-width:0;background:var(--surface-input);border:1px solid var(--border-subtle);border-radius:6px;color:var(--text-main);padding:10px;font:inherit;font-size:13px}
+.duel-auto-tag-heading{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:24px}
+.duel-auto-tag-heading h3{margin:0}.duel-auto-tag-heading button{font-size:11px;padding:6px 9px}
+.duel-auto-save-panel .duel-auto-tag-help{font-size:11px;margin:10px 0 16px}.duel-auto-save-panel .duel-auto-tag-search{font-size:11px}
+.duel-auto-tag-selected{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0;min-height:24px;align-items:center}
+.duel-auto-tag-selected .deck-tag-chip{font-size:11px;padding:4px 7px}.duel-auto-tag-selected small{font-size:11px}
+.duel-auto-tag-options{max-height:220px;overflow:auto;overscroll-behavior:contain}
+.duel-auto-tag-options>div{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-top:1px solid var(--border-subtle);font-size:12px}
+.duel-auto-tag-options>div>div{display:flex;gap:4px}.duel-auto-tag-options button{font-size:10px;padding:5px 7px}
+#duel-auto-save{width:100%;padding:11px;margin-top:20px}
+#duel-auto-save-status{font-size:12px;overflow-wrap:anywhere;min-height:18px}
+.duel-auto-save-panel form>small{font-size:11px}
+.duel-auto-overwrite{background:var(--warning-bg);border:1px solid var(--warning-line);border-radius:6px;padding:10px;margin-top:12px}
+.duel-auto-overwrite p{color:var(--warning-text);font-size:12px;margin:0 0 10px;overflow-wrap:anywhere}.duel-auto-overwrite>div{display:flex;gap:8px;justify-content:flex-end}.duel-auto-overwrite button{font-size:12px;padding:7px 10px}
+@media(max-width:1000px){.duel-recognition-layout{grid-template-columns:minmax(0,1fr) 220px;gap:16px}.duel-recognition-panel,.duel-recognition-controls,.duel-auto-save-panel{padding:16px}.duel-auto-preview-layout{grid-template-columns:minmax(0,1fr) 264px;gap:16px}}
+@media(max-width:760px){.duel-recognition-layout,.duel-auto-preview-layout{grid-template-columns:minmax(0,1fr)}.duel-auto-save-panel{position:static;max-height:none;overflow:visible}.duel-recognition-empty{min-height:240px}.duel-recognition-controls{display:grid;grid-template-columns:1fr 1fr}.duel-recognition-controls>span,.duel-recognition-controls>h3,.duel-recognition-controls>p{grid-column:1/-1}.duel-auto-tag-options{max-height:none}}

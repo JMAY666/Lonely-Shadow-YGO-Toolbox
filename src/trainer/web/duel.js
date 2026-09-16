@@ -3,7 +3,7 @@
 const duelDefaults = TutorialBindings.defaults;
 const duelLabels = TutorialBindings.labels;
 const duelStages = Object.freeze({mode:0,function:1,deck:2,order:3,hand:4,plans:5,tutorial:6,complete:7});
-const newDuel = () => ({stage:duelStages.mode,reached:duelStages.mode,mode:null,operationMode:null,deck:null,deckPage:'list',decks:[],first:false,count:5,hand:Array(5).fill(null),
+const newDuel = () => ({stage:duelStages.mode,reached:duelStages.mode,mode:null,operationMode:null,functionPage:'choice',automatic:DuelAutomatic.create(),deck:null,deckPage:'list',decks:[],first:false,count:5,hand:Array(5).fill(null),
   marks:new Set(),target:null,result:null,plan:null,routes:null,graph:null,position:null,ended:false,enabled:false,planSort:'shortest',favoritesOnly:false,session:crypto.randomUUID()});
 const duelUI = {state:newDuel(),busy:false,generation:0,message:'',detailPreview:false,handCount:5,bindings:{...duelDefaults},shortcutStatus:null,shortcutQueue:Promise.resolve(),hoverTimer:null,closeTimer:null,previewAnchor:null,previewRect:null,previewKind:null,previewId:null,previewSuppressed:null,handHoverSuppressed:null};
 const duelState = () => duelUI.state;
@@ -52,7 +52,7 @@ async function enterDuelModule() {
       duelUI.bindings=settings.bindings;
       if(settings.error)duelTell(settings.error);
     }
-    if(s.deck)await refreshDuelDeck();
+    if(s.deck&&s.operationMode!=='automatic')await refreshDuelDeck();
     if(s.result&&!s.ended) {
       let latest;
       try {latest=await api('/api/duel/match',{deck_id:s.deck.id,revision:s.deck.revision,hand_count:s.count,hand:s.hand});}
@@ -89,31 +89,33 @@ async function refreshDuelDeck() {
 function duelGo(stage) {
   const s=duelState();
   if(duelUI.busy||s.ended||stage>s.reached||stage<duelStages.mode)return;
+  if(s.operationMode==='automatic'&&stage>duelStages.deck)return;
   s.stage=stage;closeDuelPreview();closeReviewDetail();
   s.enabled=stage===duelStages.tutorial;
   renderDuel();void syncDuelShortcuts();
 }
 function duelReach(stage) {const s=duelState();s.stage=stage;s.reached=Math.max(s.reached,stage);}
 function duelButton(action,label,disabled=false,primary=false) {
-  return `<button ${['back-step','forward-step'].includes(action)?`aria-label="${action==='back-step'?'后退':'前进'}"`:''} data-duel-action="${action}" ${disabled||duelUI.busy?'disabled':''} class="${primary?'primary':''}">${label}</button>`;
+  return `<button type="button" ${['back-step','forward-step'].includes(action)?`aria-label="${action==='back-step'?'后退':'前进'}"`:''} data-duel-action="${action}" ${disabled||duelUI.busy?'disabled':''} class="${primary?'primary':''}">${label}</button>`;
 }
 function duelReadCard(code,extra={}) {
   const report={id:'duel-catalog',catalog:Object.fromEntries(app.cache),events:[],review:{nodes:[{id:'catalog',kind:'catalog',action_ids:[]}]}};
   return reviewCard({code,name:duelName(code),identity_known:true,...extra},'catalog',{report,face:true,zone:false,position:false,catalogue:true});
 }
-function duelDeckPreview() {
-  const s=duelState();
-  return `<div class="duel-section-heading"><h2>${escape(s.deck.name)}</h2></div>`+
-    zones.map(zone=>`<section class="duel-zone"><h3>${zoneNames[zone]} <small>${s.deck.deck[zone].length} 张</small></h3><div class="duel-card-grid">${s.deck.deck[zone].map((code,i)=>{
+function duelDeckPreview(deck=duelState().deck,marks=duelState().marks) {
+  return `<div class="duel-section-heading"><h2>${escape(deck.name)}</h2></div>`+
+    zones.map(zone=>`<section class="duel-zone"><h3>${zoneNames[zone]} <small>${deck.deck[zone].length} 张</small></h3><div class="duel-card-grid">${deck.deck[zone].map((code,i)=>{
       const key=`${zone}:${i}`;
-      return `<article class="duel-card ${s.marks.has(key)?'is-marked':''}" data-duel-mark-key="${key}">${duelReadCard(code,{duel_mark_key:key})}</article>`;
+      return `<article class="duel-card ${marks.has(key)?'is-marked':''}" data-duel-mark-key="${key}">${duelReadCard(code,{duel_mark_key:key})}</article>`;
     }).join('')||'<p>暂无卡牌</p>'}</div></section>`).join('');
 }
+function duelPreviewMarks() {const s=duelState();return s.operationMode==='automatic'?s.automatic.marks:s.marks;}
 function updateDuelMarkButton() {
-  const key=reviewUI.selected?.duel_mark_key,s=duelState(),button=$('#toggle-duel-card-mark');
-  button.hidden=moduleUI.current!=='duel'||s.stage!==duelStages.deck||s.deckPage!=='preview'||!key;
-  button.disabled=duelUI.busy;button.textContent=s.marks.has(key)?'取消标记':'添加标记';
-  button.setAttribute('aria-pressed',String(s.marks.has(key)));
+  const key=reviewUI.selected?.duel_mark_key,s=duelState(),button=$('#toggle-duel-card-mark'),marks=duelPreviewMarks();
+  const page=s.operationMode==='automatic'?s.automatic.page:s.deckPage;
+  button.hidden=moduleUI.current!=='duel'||s.stage!==duelStages.deck||page!=='preview'||!key;
+  button.disabled=duelUI.busy;button.textContent=marks.has(key)?'取消标记':'添加标记';
+  button.setAttribute('aria-pressed',String(marks.has(key)));
 }
 function duelCandidate(code) {
   const s=duelState(),stock=DuelModel.counts(s.deck.deck.main).get(code),used=DuelModel.counts(s.hand).get(code)||0,remaining=stock-used;
@@ -265,16 +267,23 @@ function renderDuel() {
   const s=duelState(),mainStage=Math.min(s.stage,duelStages.hand),stages=['模式选择','功能选择','卡组选择','决定先/后攻','卡组展开'];
   $('#duel').dataset.stage=String(s.stage);
   $('#duel-steps').innerHTML=stages.map((name,i)=>`<button data-duel-stage="${i}" ${i>s.reached||duelUI.busy?'disabled':''} ${i===mainStage?'aria-current="step"':''}><span>${i<mainStage?'✓':i+1}</span>${name}</button>`).join('');
-  $('#duel-substeps').hidden=s.stage!==duelStages.deck&&s.stage<duelStages.hand||s.stage>duelStages.tutorial;
-  $('#duel-substeps').setAttribute('aria-label',s.stage===duelStages.deck?'卡组选择流程':'卡组展开流程');
-  $('#duel-substeps').innerHTML=s.stage===duelStages.deck?['选择卡组','卡牌预览'].map((name,i)=>`<button data-duel-deck-page="${i?'preview':'list'}" ${i&&!s.deck?'disabled':''} ${s.deckPage===(i?'preview':'list')?'aria-current="step"':''}>${i+1}. ${name}</button>`).join(''):['准备起手','方案选择','展开教程'].map((name,i)=>`<button data-duel-stage="${i+duelStages.hand}" ${i+duelStages.hand>s.reached||duelUI.busy?'disabled':''} ${s.stage===i+duelStages.hand?'aria-current="step"':''}>${i+1}. ${name}</button>`).join('');
+  const automatic=s.operationMode==='automatic',deckPage=automatic?s.automatic.page:s.deckPage,hasDeck=automatic?!!s.automatic.deck:!!s.deck;
+  $('#duel-substeps').hidden=![duelStages.function,duelStages.deck,duelStages.hand,duelStages.plans,duelStages.tutorial].includes(s.stage);
+  $('#duel-substeps').setAttribute('aria-label',s.stage===duelStages.function?'功能选择流程':s.stage===duelStages.deck?'卡组选择流程':'卡组展开流程');
+  if(s.stage===duelStages.function)$('#duel-substeps').innerHTML=['手动或自动','平台选择'].map((name,i)=>`<button data-duel-function-page="${i?'platform':'choice'}" ${duelUI.busy||i&&!automatic?'disabled':''} ${s.functionPage===(i?'platform':'choice')?'aria-current="step"':''}>${i+1}. ${name}</button>`).join('');
+  else if(s.stage===duelStages.deck)$('#duel-substeps').innerHTML=[automatic?'卡组识别':'选择卡组','卡牌预览'].map((name,i)=>{
+    const page=i?'preview':automatic?'recognition':'list';
+    return `<button data-duel-deck-page="${page}" ${duelUI.busy||i&&!hasDeck?'disabled':''} ${deckPage===page?'aria-current="step"':''}>${i+1}. ${name}</button>`;
+  }).join('');
+  else $('#duel-substeps').innerHTML=['准备起手','方案选择','展开教程'].map((name,i)=>`<button data-duel-stage="${i+duelStages.hand}" ${i+duelStages.hand>s.reached||duelUI.busy?'disabled':''} ${s.stage===i+duelStages.hand?'aria-current="step"':''}>${i+1}. ${name}</button>`).join('');
   let body='',footer='';
   if(s.stage===duelStages.mode) {
     body=`<div class="duel-mode-grid"><button data-duel-action="bo1" class="duel-mode"><span class="duel-mode-symbol" aria-hidden="true">◇</span><strong>BO1</strong><span>单局模式</span></button><button class="duel-mode" disabled><span class="duel-mode-symbol" aria-hidden="true">◇◇</span><strong>BO3</strong><span>三局两胜</span><small>待开发</small></button></div>`;
   } else if(s.stage===duelStages.function) {
-    body=`<div class="duel-mode-grid"><button data-duel-action="manual" class="duel-mode"><strong>手动选择</strong><span>自行选择卡组与起手</span></button><button data-duel-action="automatic" class="duel-mode" disabled><strong>自动选择</strong><span>自动操作</span><small>待开发</small></button></div>`;
+    body=s.functionPage==='platform'&&automatic?duelPlatformPage():`<div class="duel-mode-grid"><button data-duel-action="manual" class="duel-mode"><strong>手动选择</strong><span>自行选择卡组与起手</span></button><button data-duel-action="automatic" class="duel-mode"><strong>自动选择</strong><span>从游戏平台识别卡组</span><small>界面预览</small></button></div>`;
   } else if(s.stage===duelStages.deck) {
-    if(s.deckPage==='preview'&&s.deck){body=duelDeckPreview();footer=duelButton('start-duel','开始决斗',false,true);}
+    if(automatic){body=deckPage==='preview'&&hasDeck?duelAutomaticPreview():duelRecognitionPage();if(deckPage==='preview'&&hasDeck)footer=duelButton('start-duel','开始决斗',false,true);}
+    else if(s.deckPage==='preview'&&s.deck){body=duelDeckPreview();footer=duelButton('start-duel','开始决斗',false,true);}
     else body=`<div class="duel-section-heading"><h2>选择卡组</h2>${duelButton('refresh-decks','刷新列表')}</div><div class="duel-deck-grid">${s.decks.map(d=>`<button class="duel-deck-box" data-duel-deck="${escape(d.id)}" aria-label="选择卡组：${escape(d.name)}">${deckBoxArt(d)}<strong>${escape(d.name)}</strong></button>`).join('')||'<p>暂无已保存卡组</p>'}</div>`;
   } else if(s.stage===duelStages.order) {
     body=`<div class="duel-mode-grid"><button class="duel-mode" data-duel-action="first"><strong>先手</strong></button><button class="duel-mode" disabled><strong>后手</strong><small>待开发</small></button></div>`;
@@ -288,6 +297,7 @@ function renderDuel() {
     footer=duelButton('new','再来一场',false,true);
   }
   $('#duel-body').innerHTML=body;$('#duel-footer').innerHTML=footer;$('#duel-footer').hidden=!footer;duelTell(duelUI.message);
+  if(s.stage===duelStages.deck&&automatic&&deckPage==='preview'&&hasDeck)mountDuelAutomaticPreview();
   if(s.forecast&&s.stage>=duelStages.plans&&s.stage<=duelStages.tutorial)renderDuelForecast();
   if(s.stage===duelStages.plans){$('#duel-plan-sort').onchange=event=>{s.planSort=event.target.value;renderDuel();};bindPlanFavorites($('#duel-body'));}
   if(duelUI.busy)$('#duel-body').querySelectorAll('button,input').forEach(el=>el.disabled=true);
@@ -480,7 +490,13 @@ $('#duel').addEventListener('click',run(async event=>{
   if(duelUI.busy)return;const s=duelState(),node=event.target.closest('[data-duel-node]'),button=event.target.closest('button');
   if(node){event.stopPropagation();closeDuelPreview(true);closeReviewDetail();if(s.plan?.temporary){await selectForecastNode(node.dataset.duelNode);return;}s.position={key:node.dataset.duelNode,choice:0};node.focus({preventScroll:true});paintDuelPosition();return;}
   if(!button||button.disabled)return;
-  if(button.dataset.duelDeckPage){s.deckPage=button.dataset.duelDeckPage;closeReviewDetail();closeDeckPreview();renderDuel();return;}
+  if(button.dataset.duelFunctionPage){s.functionPage=button.dataset.duelFunctionPage;duelTell('');renderDuel();return;}
+  if(button.dataset.duelDeckPage){if(s.operationMode==='automatic')s.automatic.page=button.dataset.duelDeckPage;else s.deckPage=button.dataset.duelDeckPage;closeReviewDetail();closeDeckPreview();duelTell('');renderDuel();return;}
+  if(button.dataset.duelAutoTag){
+    const draft=s.automatic,id=button.dataset.duelAutoTag,role=button.dataset.role,current=draft.primaryIds.includes(id)?'primary':draft.tagIds.includes(id)?'secondary':'';
+    DuelAutomatic.setRole(draft,id,current===role?'':role);draft.notice='TAG 已调整，保存后更新演示卡组。';
+    $('#duel-auto-tags').innerHTML=duelAutomaticTags();duelAutomaticSaveFeedback();return;
+  }
   if(button.dataset.reviewZone){event.stopPropagation();showDuelZone(button.dataset.reviewZone);return;}
   if(button.dataset.duelCloseZone!==undefined){$('#duel-zone-content').hidden=true;return;}
   if(button.dataset.duelStage!==undefined){duelGo(Number(button.dataset.duelStage));return;}
@@ -499,11 +515,12 @@ $('#duel').addEventListener('click',run(async event=>{
   if(button.dataset.duelPlan){chooseDuelPlan(button.dataset.duelPlan);return;}
   if(button.dataset.duelChoice!==undefined){s.position.choice=Number(button.dataset.duelChoice);paintDuelPosition(false);return;}
   const action=button.dataset.duelAction;if(!action)return;
+  if(await duelAutomaticAction(action))return;
   if(action==='back'){duelGo(s.stage-1);return;}
   if(action==='modular'){await launchModularFromDuel();return;}
   if(action==='report-outcome'){await openDuelObservation();return;}
   if(action==='bo1'){s.mode='BO1';duelReach(duelStages.function);duelTell('');renderDuel();return;}
-  if(action==='manual'){await duelWork(async()=>{s.decks=await api('/api/decks');s.operationMode='manual';duelReach(duelStages.deck);duelTell('');});return;}
+  if(action==='manual'){await duelWork(async()=>{s.decks=await api('/api/decks');if(s.operationMode!=='manual')invalidateDuel(duelStages.function);s.operationMode='manual';s.functionPage='choice';if(s.deck)await refreshDuelDeck();duelReach(duelStages.deck);duelTell('');});return;}
   if(action==='deck-list'){await duelWork(async()=>{s.decks=await api('/api/decks');s.deckPage='list';});return;}
   if(action==='refresh-decks'){await duelWork(async()=>{s.decks=await api('/api/decks');});return;}
   if(action==='start-duel'){await duelWork(async()=>{if(await refreshDuelDeck())duelReach(duelStages.order);});return;}
@@ -579,8 +596,8 @@ window.trainerDesktop?.onTutorialStatus(status=>{if(status.session===duelState()
 
 $('#toggle-duel-card-mark').onclick=()=>{
   const key=reviewUI.selected?.duel_mark_key,s=duelState();if(!key||duelUI.busy||s.stage!==duelStages.deck)return;
-  s.marks.has(key)?s.marks.delete(key):s.marks.add(key);
-  $('#duel-body').querySelectorAll('[data-duel-mark-key]').forEach(el=>el.classList.toggle('is-marked',s.marks.has(el.dataset.duelMarkKey)));
+  const marks=duelPreviewMarks();marks.has(key)?marks.delete(key):marks.add(key);
+  $('#duel-body').querySelectorAll('[data-duel-mark-key]').forEach(el=>el.classList.toggle('is-marked',marks.has(el.dataset.duelMarkKey)));
   updateDuelMarkButton();
 };
 $('#duel-preview').addEventListener('click',event=>{

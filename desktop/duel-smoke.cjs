@@ -84,11 +84,11 @@ module.exports=async function({page,application,root,evidence,pass}) {
   await click('bo1');await stage('function');
   assert.equal(await page.locator('#duel-steps [aria-current="step"]').getAttribute('data-duel-stage'),'1');
   assert(await page.locator('#duel-steps [data-duel-stage="2"]').isDisabled());
-  assert(await page.locator('#duel-substeps').isHidden());
+  assert.deepEqual(await page.locator('#duel-substeps button').allTextContents(),['1. 手动或自动','2. 平台选择']);
+  assert(await page.locator('[data-duel-function-page="platform"]').isDisabled());
   assert(await page.locator('#duel-footer').isHidden());
   const automatic=page.locator('[data-duel-action="automatic"]');
-  assert(await automatic.isDisabled());assert((await automatic.textContent()).includes('待开发'));
-  await automatic.dispatchEvent('click');await stage('function');
+  assert(await automatic.isEnabled());assert((await automatic.textContent()).includes('界面预览'));
   assert.equal(await page.evaluate(()=>duelState().operationMode),null);
   const verifyFunctionLayout=async()=>{
     await page.locator('#duel-steps').hover();
@@ -107,6 +107,7 @@ module.exports=async function({page,application,root,evidence,pass}) {
   await page.waitForFunction(()=>innerWidth===960);await verifyFunctionLayout();await page.screenshot({path:path.join(evidence,'duel-function-narrow.png')});
   await application.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().find(w=>!w.getParentWindow()).setContentSize(1280,900));
   await page.waitForFunction(()=>innerWidth===1280);
+  await require('./automatic-selection-smoke.cjs')({page,application,evidence,pass,existing:data.deck});
   await page.locator('#duel-steps [data-duel-stage="0"]').click();await stage('mode');
   await click('bo1');await stage('function');await click('manual');await stage('deck');
   assert.equal(await page.evaluate(()=>duelState().operationMode),'manual');
@@ -126,6 +127,11 @@ module.exports=async function({page,application,root,evidence,pass}) {
   assert((await page.locator('#duel-footer').boundingBox()).width<200);
   await page.screenshot({path:path.join(evidence,'duel-deck.png')});
   await page.locator('#duel-steps [data-duel-stage="1"]').click();await stage('function');
+  await click('automatic');await click('platform-ygopro');await stage('deck');
+  assert.equal(await page.evaluate(()=>duelState().deck.id),data.deck.id);
+  assert.equal(await page.locator('.duel-card.is-marked').count(),3);
+  await page.locator('#duel-steps [data-duel-stage="1"]').click();await stage('function');
+  await page.locator('[data-duel-function-page="choice"]').click();
   await click('manual');await stage('deck');
   assert.equal(await page.evaluate(()=>duelState().deck.id),data.deck.id);
   assert.equal(await page.evaluate(()=>duelState().deckPage),'preview');

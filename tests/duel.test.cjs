@@ -2,6 +2,7 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const model=require('../src/trainer/web/duel-model.js');
 const {normalize,defaults,createController}=require('../desktop/tutorial-shortcuts.cjs');
 const TutorialBindings=require('../src/trainer/web/tutorial-bindings.js');
+const DuelAutomatic=require('../src/trainer/web/duel-automatic.js');
 const vm=require('node:vm'),fs=require('node:fs'),path=require('node:path');
 
 test('shared hand counts prevent overflow from either candidate area and permit replacement',()=>{
@@ -49,7 +50,7 @@ test('shortcut conflicts, focused editing, failure rollback and lifecycle cleanu
 });
 test('source-deck refresh safely clears stale matches even when a count input is empty',async()=>{
   const source=fs.readFileSync(path.join(__dirname,'../src/trainer/web/duel.js'),'utf8');
-  const context=vm.createContext({crypto:require('node:crypto'),window:{},$:()=>({textContent:''}),DuelModel:model,TutorialBindings,
+  const context=vm.createContext({crypto:require('node:crypto'),window:{},$:()=>({textContent:''}),DuelModel:model,TutorialBindings,DuelAutomatic,
     api:async()=>({id:'deck',revision:'new',deck:{main:[1,1],extra:[],side:[]}})});
   vm.runInContext(source.slice(0,source.indexOf("$('#duel').addEventListener"))+'\nglobalThis.state=duelState();',context);
   Object.assign(context.state,{deck:{id:'deck',revision:'old'},count:NaN,result:{matches:['old']},plan:{id:'old'},stage:3,reached:6});
@@ -86,7 +87,7 @@ function previewFixture() {
   const source=fs.readFileSync(path.join(__dirname,'../src/trainer/web/duel.js'),'utf8');
   let time=0,id=0,opened=[];const timers=new Map();
   const panel={hidden:true,hovered:false,contains:()=>false,matches(){return this.hovered;}};
-  const context=vm.createContext({TutorialBindings,crypto:require('node:crypto'),window:{},document:{activeElement:null,querySelector:()=>null},$:()=>panel,reviewUI:{},closeReviewDetail(){},
+  const context=vm.createContext({TutorialBindings,DuelAutomatic,crypto:require('node:crypto'),window:{},document:{activeElement:null,querySelector:()=>null},$:()=>panel,reviewUI:{},closeReviewDetail(){},
     clearTimeout:id=>timers.delete(id),setTimeout:(fn,delay)=>{timers.set(++id,{fn,due:time+delay});return id;}});
   vm.runInContext(source.slice(0,source.indexOf("$('#duel').addEventListener"))+'\nglobalThis.ui=duelUI;',context);
   context.paintDuelPreview=()=>{panel.hidden=false;opened.push(context.ui.previewId);};
