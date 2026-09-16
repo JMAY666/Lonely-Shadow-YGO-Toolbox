@@ -1,6 +1,6 @@
 # YGOPro 对局数据读取路径
 
-记录日期：2026-09-17。用于后续开发，**已完成只读探测，尚未接入对局读取界面**。生产入口目前仍要求处于卡组编辑器；不要直接取消该校验，将残留卡组误报为当前对局数据。
+记录日期：2026-09-17。构筑和手牌的完整对局读取仍为研究路径；1.22.0 已将其中的开局状态和先后攻标记接入自动识别步骤。卡组捕捉入口仍要求处于编辑器，不得取消该校验后将残留卡组误报为当前数据。
 
 ## 适用客户端
 
@@ -22,6 +22,14 @@
 | 对局区域 vector | `G + 0x13a8 + 24 × (2 × zone + player)` | zone 顺序：牌库、手牌、怪兽区、魔陷区、墓地、除外、额外；每区两个玩家 |
 | 构筑卡牌编号 | `CardDataC* + 0` | `uint32`；类型位在 `+0x28` |
 | 对局卡牌编号 | `ClientCard* + 0x88` | `uint32 code`；不是构筑里的 CardDataC 结构，不能混用偏移 |
+| 对局基础状态 | `G + 0xe08` | `isStarted`；随后 `+1 isInDuel`、`+2 isFinished`、`+3 isReplay`、`+5 isFirst`、`+6 isTag`、`+7 isSingleMode` |
+| 回合和玩家类型 | `G + 0xe24` / `G + 0xf30` | 32 位回合号 / 8 位玩家类型；普通玩家类型小于 7 |
+| 准备窗口 | `read_u64(G + 0x3158)` | `wHostPrepare` |
+| 猜拳窗口 | `read_u64(G + 0x32d8)` | `wHand` |
+| 先后攻选择窗口 | `read_u64(G + 0x32f8)` | `wFTSelect` |
+| GUI 可见位 | 上述 GUI 对象 `+0xa8` | 8 位布尔，已结合对应虚表 getter/setter 和真实画面验证 |
+
+先后攻监测实现见 `src/trainer/ygopro_order.py` 和 `src/trainer/web/duel-order.js`。`STOC_DUEL_START` 会先令 `isStarted=true` 并清零回合，此时尚未完成猜拳；不能直接使用该时点的 `isFirst`。正式 `MSG_START` 赋值 `isInDuel` 和 `isFirst`，再等待第 1 回合确认结果，避免连续读取恰好落在字段赋值中间。
 
 vector 为三个 64 位指针 `[begin, end, capacity_end]`，元素为 64 位卡牌对象指针。必须验证有序边界、8 字节对齐、最大数量、可读范围，再读 `(end-begin)/8` 个指针。怪兽区与魔陷区容器含空位，指针 0 表示没有卡牌，不能当作有效卡牌解引用。
 

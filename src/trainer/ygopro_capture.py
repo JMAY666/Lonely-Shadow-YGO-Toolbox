@@ -18,6 +18,8 @@ PROFILES = {
     '55dd3e8ea4e9a0f24bb2b038e4c95f6e266140469be3480924ff1e57dda1e629': {
         'version': 'YGOPro 1.036.2 (x64)', 'deck': 0x6b4330,
         'game': 0x693e20, 'building': 0x114b, 'dragging': 0x1894, 'card_type': 0x28,
+        'duel_info': 0xe08, 'player_type': 0xf30, 'lobby_window': 0x3158,
+        'rps_window': 0x32d8, 'order_window': 0x32f8, 'gui_visible': 0xa8,
     },
 }
 ZONES = ('main', 'extra', 'side')
@@ -243,3 +245,54 @@ class Capture:
                                 'method': 'process-memory'}
                     previous = current
                 raise CaptureError('卡组持续变化，请停止操作后重新获取。')
+
+    def order(self, capture_id):
+        with self.lock:
+            attached = self.attached
+            if not attached or capture_id != attached['capture_id']:
+                raise CaptureError('进程捕捉已失效，请重新捕捉。')
+            with WindowsProcess(attached['pid']) as memory:
+                if memory.identity() != (attached['path'], attached['created']):
+                    self.attached = None
+                    raise CaptureError('YGOPro 进程已重新启动，请重新捕捉。')
+                base = memory.image_base(attached['pid'])
+                return read_order(memory, base, PROFILES[attached['image_hash']])
+
+
+def read_order(memory, base, profile):
+    """Use MSG_START's isFirst, gated by a completed first-turn transition."""
+    def sample():
+        game = struct.unpack('<Q', memory.read(base + profile['game'], 8))[0]
+        info = memory.read(game + profile['duel_info'], 34)
+        player = memory.read(game + profile['player_type'], 1)[0]
+        if any(value not in (0, 1) for value in info[:12]) or player > 7:
+            raise CaptureError('游戏状态正在变化，等待下一次读取。')
+        windows = []
+        for key in ('lobby_window', 'rps_window', 'order_window'):
+            pointer = struct.unpack('<Q', memory.read(game + profile[key], 8))[0]
+            visible = memory.read(pointer + profile['gui_visible'], 1)[0]
+            if visible not in (0, 1):raise CaptureError('游戏窗口状态无效，请重新捕捉。')
+            windows.append(bool(visible))
+        return (game, *info[:8], info[11], player, struct.unpack_from('<i', info, 28)[0], *windows)
+
+    first = sample(); second = sample()
+    if first != second:raise CaptureError('游戏状态正在变化，等待下一次读取。')
+    _, started, in_duel, finished, replay, _, is_first, tag, single, swapped, player, turn, lobby, rps, choosing = second
+    if not 0 <= turn <= 100000:raise CaptureError('回合数据无效，请重新捕捉。')
+    evidence = {'started':bool(started), 'in_duel':bool(in_duel), 'finished':bool(finished),
+                'is_first':bool(is_first), 'turn':turn, 'player_type':player,
+                'lobby_visible':lobby, 'rps_visible':rps, 'order_visible':choosing}
+    order = None
+    if replay or tag or single or swapped or player >= 7:
+        phase = 'unsupported'
+    elif lobby:
+        phase = 'waiting_start'
+    elif started and in_duel and not finished and turn >= 1:
+        phase = 'detected'; order = 'first' if is_first else 'second'
+    elif started and not finished:
+        phase = 'choose_order' if choosing else 'rps' if rps else 'waiting_choice'
+    elif finished:
+        phase = 'ended'
+    else:
+        phase = 'waiting_start'
+    return {'phase':phase, 'detected_order':order, 'evidence':evidence}

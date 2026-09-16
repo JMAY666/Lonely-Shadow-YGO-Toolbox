@@ -3,7 +3,7 @@
 const DuelAutomatic = (() => {
   const create = () => ({platform:null,page:'recognition',deck:null,name:'',marks:new Set(),
     tagIds:[],primaryIds:[],tags:[],suggestions:null,query:'',pending:null,notice:'',
-    connection:null,fresh:false,captureError:''});
+    connection:null,fresh:false,captureError:'',order:null});
   function setRole(draft,id,role) {
     if(!draft.tags.some(tag=>tag.id===id))return;
     if(role&&!draft.tagIds.includes(id)&&draft.tagIds.length>=30){draft.notice='最多选择 30 个 TAG。';return;}
@@ -25,6 +25,7 @@ const DuelAutomatic = (() => {
     draft.deck={...result,name:draft.name||'YGOPro 捕捉卡组'};
     if(!draft.name)draft.name=draft.deck.name;
     draft.fresh=true;draft.captureError='';draft.pending=null;draft.notice='';
+    draft.order=null;
   }
   return {create,setRole,payload,accept};
 })();
@@ -39,6 +40,9 @@ function duelProcessText(process) {
 async function captureDuelProcess(pid) {
   const dialog=$('#duel-capture-dialog'),draft=duelState().automatic;
   draft.fresh=false;draft.connection=null;draft.pending=null;
+  draft.order=null;if(typeof stopDuelOrderWatch==='function')stopDuelOrderWatch();
+  duelState().reached=Math.min(duelState().reached,duelStages.deck);
+  if(duelState().stage>duelStages.deck){duelReach(duelStages.deck);draft.page='recognition';}
   $('#duel-capture-status').textContent='正在捕捉 YGOPro.exe…';
   $('#duel-capture-processes').replaceChildren();
   $('#duel-capture-next').hidden=true;
@@ -120,6 +124,7 @@ function mountDuelAutomaticPreview() {
 }
 async function duelAutomaticAction(action) {
   const s=duelState(),draft=s.automatic;
+  if(typeof duelOrderAction==='function'&&await duelOrderAction(action))return true;
   if(action==='automatic') {
     await duelWork(async()=>{
       s.decks=await api('/api/decks');
@@ -150,7 +155,6 @@ async function duelAutomaticAction(action) {
   }
   if(action==='cancel-auto-overwrite'){draft.pending=null;duelAutomaticSaveFeedback();return true;}
   if(action==='confirm-auto-overwrite'){await saveDuelAutomatic(true);return true;}
-  if(action==='start-duel') {duelTell('卡牌预览已确认。自动决斗连接将在后续接入，当前不会启动决斗。');return true;}
   return false;
 }
 if(typeof document!=='undefined') {

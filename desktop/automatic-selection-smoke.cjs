@@ -93,7 +93,7 @@ module.exports=async function({page,application,evidence,pass,existing,live=fals
     await page.screenshot({path:path.join(evidence,'duel-automatic-preview-narrow.png')});
     await application.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().find(w=>!w.getParentWindow()).setContentSize(1280,900));
     await page.waitForFunction(()=>innerWidth===1280);
-    await click('start-duel');assert.match(await page.locator('#duel-message').textContent(),/不会启动决斗/);
+    await require('./duel-order-smoke.cjs')({page,application,evidence,pass});
     const after=await page.evaluate(async id=>({saved:id?await api('/api/deck?id='+encodeURIComponent(id)):null,editor:JSON.stringify(app.deck),active:app.active?.id||null}),existing?.id);
     assert.deepEqual(after,before);
     await page.locator('#duel-steps [data-duel-stage="1"]').click();

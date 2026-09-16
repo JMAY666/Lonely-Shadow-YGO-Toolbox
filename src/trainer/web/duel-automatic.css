@@ -8,6 +8,17 @@
 #duel-capture-processes button{margin-top:12px}
 .duel-capture-summary{font-size:12px;color:var(--text-muted);overflow-wrap:anywhere}
 .duel-capture-help{font-size:13px;line-height:1.8;border-left:3px solid var(--accent);padding:10px 12px;background:var(--surface-input);color:var(--text-main)}
+.duel-order-panel{max-width:780px;margin:36px auto 110px;padding:32px;border:1px solid var(--border-subtle);border-radius:14px;background:var(--surface-panel)}
+.duel-order-panel h2{font-size:26px;margin:12px 0 20px}.duel-order-panel>p{font-size:13px;line-height:1.9}
+.duel-order-process,#duel-order-last-check{font-size:12px;color:var(--text-muted)}
+.duel-order-status{display:flex;align-items:center;gap:10px;margin-top:28px;font-size:15px}
+.duel-order-dot{width:9px;height:9px;border-radius:50%;background:var(--text-muted)}.duel-order-dot.ready{background:var(--accent)}
+.duel-order-result{display:flex;flex-direction:column;align-items:center;gap:12px;padding:28px;margin:24px 0;border:1px solid var(--border-subtle);border-radius:10px;background:var(--surface-input)}
+.duel-order-result.resolved{border-color:var(--accent)}.duel-order-result>strong{font-size:40px;color:var(--accent)}.duel-order-result>span,.duel-order-result>small{font-size:12px}
+.duel-order-adjust{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px}.duel-order-adjust button{font-size:12px;padding:8px 14px}
+.duel-order-error{min-height:20px;color:var(--warning-text)}.duel-order-note{padding:8px 12px;border-left:3px solid var(--accent);background:var(--surface-input)}
+.duel-order-links{margin-top:20px}.duel-order-links button{font-size:12px}
+@media(max-width:760px){.duel-order-panel{margin:20px auto 100px;padding:20px}.duel-order-result>strong{font-size:30px}}
 .duel-page[data-stage="1"] .duel-mode-grid{min-height:calc(100dvh - var(--app-bar-height) - 158px)}
 .duel-page[data-stage="1"] .duel-platform{background-image:url('/brand/duel-ygopro.svg')}
 .duel-demo-notice{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;margin:12px 0 22px}
