@@ -1049,7 +1049,7 @@ class Handler(BaseHTTPRequestHandler):
                 files.update({'/deck-selection.js': 'deck-selection.js', '/deck-selection.css': 'deck-selection.css'})
                 files.update({'/deck-tags.js': 'deck-tags.js', '/deck-tags.css': 'deck-tags.css', '/theme.css': 'theme.css'})
                 files['/scrollbars.css'] = 'scrollbars.css'
-                for art in ('first', 'second', 'bo1', 'bo3'):
+                for art in ('first', 'second', 'bo1', 'bo3', 'manual', 'automatic'):
                     files[f'/brand/duel-{art}.svg'] = f'brand/duel-{art}.svg'
                 for name in ('duel.js', 'duel-forecast.js', 'duel-model.js', 'tutorial-bindings.js', 'duel.css', 'deck-tag-view.js', 'deck-appearance.js', 'superpre.js', 'superpre.css'):
                     files['/' + name] = name

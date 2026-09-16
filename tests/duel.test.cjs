@@ -52,9 +52,9 @@ test('source-deck refresh safely clears stale matches even when a count input is
   const context=vm.createContext({crypto:require('node:crypto'),window:{},$:()=>({textContent:''}),DuelModel:model,TutorialBindings,
     api:async()=>({id:'deck',revision:'new',deck:{main:[1,1],extra:[],side:[]}})});
   vm.runInContext(source.slice(0,source.indexOf("$('#duel').addEventListener"))+'\nglobalThis.state=duelState();',context);
-  Object.assign(context.state,{deck:{id:'deck',revision:'old'},count:NaN,result:{matches:['old']},plan:{id:'old'},stage:2,reached:5});
+  Object.assign(context.state,{deck:{id:'deck',revision:'old'},count:NaN,result:{matches:['old']},plan:{id:'old'},stage:3,reached:6});
   assert.equal(await context.refreshDuelDeck(),false);
-  assert.equal(context.state.stage,1);assert.equal(context.state.plan,null);assert.equal(context.state.result,null);
+  assert.equal(context.state.stage,2);assert.equal(context.state.plan,null);assert.equal(context.state.result,null);
   assert.equal(context.state.hand.length,0);assert.equal(context.state.deck.revision,'new');
   context.api=async()=>{throw new Error('missing');};
   await assert.rejects(context.refreshDuelDeck(),/无法读取所选卡组/);
@@ -100,7 +100,7 @@ test('ending a manual tutorial succeeds without a native session and stops only 
     const {context:c}=previewFixture(),calls=[],state={modularSession:active?'bound':undefined};
     c.app={active};c.ui.state=state;c.api=async(path,body)=>calls.push({path,body});
     c.syncDuelShortcuts=async()=>{};c.renderDuel=()=>{};
-    await c.endDuel();assert.equal(state.stage,6);assert.equal(state.ended,true);
+    await c.endDuel();assert.equal(state.stage,7);assert.equal(state.ended,true);
     assert.equal(calls.length,active?.id==='bound'?2:0);
   }
 });

@@ -39,7 +39,7 @@ module.exports=async({page,root,evidence,pass})=>{
       s.hand=data.initial.cards.filter(c=>c.controller===0&&c.location===2).map(c=>c.code);
       s.plan=temporaryDuelPlan(data,data.result.candidates[0]);s.routes=duelPlanRoutes(s.plan);s.graph=DuelModel.graph(s.routes);
       const next=reviewNodes(s.plan).find(n=>n.kind==='step'&&n.forecast_index===0);
-      s.position={key:'main/'+next.id,choice:0};s.stage=5;s.reached=5;s.forecast={showResults:false};renderDuel();
+      s.position={key:'main/'+next.id,choice:0};s.stage=duelStages.tutorial;s.reached=duelStages.tutorial;s.forecast={showResults:false};renderDuel();
     },data);
     assert(await page.locator('.forecast-step .compact-summon').count()>0);
     assert(await page.locator('.forecast-step .chain-arrow').count()>0);

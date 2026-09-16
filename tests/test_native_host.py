@@ -8,6 +8,7 @@ import sys
 import tempfile
 from types import SimpleNamespace
 import unittest
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src/trainer'))
 from desktop_host import NativeHost
@@ -88,6 +89,38 @@ class NativeCompositionTests(unittest.TestCase):
         self.assertTrue(state['timeline_accessible'])
         self.assertTrue(state['owns_stage_hit_test'])
         self.assertTrue(state['composition_compatible'])
+
+    def test_repeated_layer_repairs_do_not_reclip_resize_or_show_the_field(self):
+        self.host.layout({'hwnd':str(self.parent), 'visible':True, 'timeline':True,
+                          'x':18, 'y':132, 'width':1164, 'height':750,
+                          'viewportWidth':1200, 'viewportHeight':900}, self.store)
+        sibling = self.window(0, 0x56000000, 0, 0, 1200, 900, self.parent)
+        position = self.user.SetWindowPos
+        with patch.object(self.user, 'SetWindowPos', wraps=position) as move, \
+                patch.object(self.user, 'SetWindowRgn', wraps=self.user.SetWindowRgn) as clip, \
+                patch.object(self.user, 'ShowWindow', wraps=self.user.ShowWindow) as show:
+            for _ in range(8):
+                position(sibling, None, 0, 0, 1200, 900, 0x0010)
+                self.host.sync(self.store)
+                self.assertTrue(self.host.status(self.store, 'test')['owns_stage_hit_test'])
+            self.assertEqual(move.call_count, 8)
+            self.assertTrue(all(call.args[-1] & 0x000b == 0x000b for call in move.call_args_list),
+                            'Z-order repair must not move, resize or invalidate the renderer')
+            clip.assert_not_called()
+            show.assert_not_called()
+
+    def test_unchanged_hidden_and_visible_layouts_do_not_redraw(self):
+        for visible in [False, True]:
+            self.host.visible = visible
+            self.host.sync(self.store)
+            with patch.object(self.user, 'SetWindowPos', wraps=self.user.SetWindowPos) as move, \
+                    patch.object(self.user, 'SetWindowRgn', wraps=self.user.SetWindowRgn) as clip, \
+                    patch.object(self.user, 'ShowWindow', wraps=self.user.ShowWindow) as show:
+                for _ in range(8):
+                    self.host.sync(self.store)
+                move.assert_not_called()
+                clip.assert_not_called()
+                show.assert_not_called()
 
     def test_background_planning_child_never_becomes_a_visible_stage(self):
         self.store.planning = {'test'}

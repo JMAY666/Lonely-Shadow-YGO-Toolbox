@@ -5,8 +5,8 @@ module.exports=async({page,root,evidence,pass})=>{
   const requests=[];const observe=request=>{if(request.url().endsWith('/api/modular/dispatch')&&request.method()==='POST')requests.push(request.postDataJSON());};page.on('request',observe);
   await page.evaluate(async source=>{
     await refreshHistory();await switchModule('duel');duelUI.state=newDuel();const s=duelState();
-    s.deck=await api('/api/deck?id='+encodeURIComponent(source.deck));s.mode='BO1';s.first=true;s.count=3;s.hand=[1184620,1184620,1184620];
-    s.result=await api('/api/duel/match',{deck_id:s.deck.id,revision:s.deck.revision,hand_count:s.count,hand:s.hand});s.stage=4;s.reached=4;renderDuel();
+    s.deck=await api('/api/deck?id='+encodeURIComponent(source.deck));s.mode='BO1';s.operationMode='manual';s.first=true;s.count=3;s.hand=[1184620,1184620,1184620];
+    s.result=await api('/api/duel/match',{deck_id:s.deck.id,revision:s.deck.revision,hand_count:s.count,hand:s.hand});s.stage=duelStages.plans;s.reached=duelStages.plans;renderDuel();
   },source);
   const history=await page.evaluate(()=>api('/api/history'));
   await page.locator('[data-duel-action="modular"]').click();
@@ -35,7 +35,7 @@ module.exports=async({page,root,evidence,pass})=>{
   const host=await page.evaluate(id=>api('/api/native/status?id='+id),sid);assert.equal(host.visible,false);
   const journal=path.join(root,'runtime','_trainer','sessions',sid,'native.jsonl'),before=fs.readFileSync(journal);
   await page.locator('[data-duel-adopt]').first().click();
-  await page.waitForFunction(()=>duelState().stage===5&&duelState().plan?.temporary);
+  await page.waitForFunction(()=>duelState().stage===duelStages.tutorial&&duelState().plan?.temporary);
   assert(await page.locator('.forecast-step .location-icon').count()>0);
   assert(await page.locator('[data-duel-action="report-outcome"]').isVisible());
   await page.locator('[data-duel-node="main/final"]').click();
@@ -57,7 +57,7 @@ module.exports=async({page,root,evidence,pass})=>{
   await page.screenshot({path:path.join(evidence,'duel-temporary-plan.png'),preserveScroll:true});
   assert(!requests.some(r=>['auto','execute'].includes(r.intent)));
   await page.evaluate(()=>endDuel());
-  await page.waitForFunction(()=>duelState().stage===6);
+  await page.waitForFunction(()=>duelState().stage===duelStages.complete);
   await page.waitForFunction(id=>api('/api/native/status?id='+id).then(s=>!s.ready),sid,{timeout:20000});
   assert.deepEqual(await page.evaluate(()=>api('/api/history')),history);
   await page.evaluate(async source=>{
@@ -74,9 +74,9 @@ module.exports=async({page,root,evidence,pass})=>{
   await page.locator('#plan-favorites-only').click();
   await page.evaluate(async source=>{
     await switchModule('duel');duelUI.state=newDuel();const s=duelState();
-    s.deck=await api('/api/deck?id='+encodeURIComponent(source.deck));s.mode='BO1';s.first=true;s.count=3;s.hand=[1184620,55144522,55144522];
+    s.deck=await api('/api/deck?id='+encodeURIComponent(source.deck));s.mode='BO1';s.operationMode='manual';s.first=true;s.count=3;s.hand=[1184620,55144522,55144522];
     const plan=await api('/api/plan/'+source.plan);plan.favorite=(await api('/api/plan-favorites')).plans.includes(plan.id);
-    s.result={matches:[plan]};s.stage=4;s.reached=4;renderDuel();
+    s.result={matches:[plan]};s.stage=duelStages.plans;s.reached=duelStages.plans;renderDuel();
   },source.followup);
   await page.locator('#duel-plan-sort').selectOption('largest');
   await page.locator('[data-duel-action="favorites-only"]').click();

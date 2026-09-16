@@ -12,14 +12,17 @@ const label = packaged ? 'packaged' : 'development';
 const onlyCompromise=process.argv.includes('--compromise-only');
 const onlySelection=process.argv.includes('--selection-only');
 const onlyDuel=process.argv.includes('--duel-only');
+const onlyNative=process.argv.includes('--native-only');
 const onlyModular=process.argv.includes('--modular-only');
 const modularSuite=Object.entries({if:'YGO_MODULAR_IF_ONLY',mechanics:'YGO_MODULAR_MECHANICS_ONLY',precision:'YGO_MODULAR_PRECISION_ONLY',preferences:'YGO_MODULAR_PREFERENCES_ONLY',routes:'YGO_MODULAR_ADDITIONAL_ONLY',cross:'YGO_MODULAR_CROSS_ONLY',planning:'YGO_MODULAR_PLANNING_ONLY',pipeline:'YGO_MODULAR_PIPELINE_ONLY',forecast:'YGO_MODULAR_FORECAST_ONLY'}).find(([,key])=>process.env[key]==='1')?.[0]||'core';
-const profileSuffix=onlyModular?'-modular-'+modularSuite:onlyCompromise?'-compromise':onlySelection?'-selection':onlyDuel?'-duel':'';
+const profileSuffix=onlyModular?'-modular-'+modularSuite:onlyCompromise?'-compromise':onlySelection?'-selection':onlyDuel?'-duel':onlyNative?'-native':'';
 const runLabel=process.env.YGO_TEST_RUN||'';
 assert(/^[a-z0-9-]*$/.test(runLabel),'Isolated test run label must contain only letters, digits and hyphens');
 const runSuffix=profileSuffix+(runLabel?'-'+runLabel:'');
 const root = path.join(workspace, '.local', `desktop-check-${label}${runSuffix}`);
 const evidence = path.join(workspace, '.local', 'evidence', `electron-${label}${runSuffix}`);
+const importSource=process.env.YGO_DESKTOP_TEST_SOURCE||(onlyNative?path.join(root,'empty-import'):path.join(workspace,'.local','YGOPro-Lite'));
+if(onlyNative&&!process.env.YGO_DESKTOP_TEST_SOURCE)fs.mkdirSync(importSource,{recursive:true});
 fs.mkdirSync(evidence, { recursive: true });
 const executable = packaged ? path.resolve(workspace, process.env.YGO_PACKAGE_DIR||require('../package.json').build.directories.output, 'win-unpacked', require('../package.json').build.win.executableName + '.exe') : require('electron');
 const checks = [], errors = [];
@@ -34,7 +37,7 @@ if (packaged) env.PATH = path.join(process.env.SystemRoot, 'System32');
 function pass(text) { checks.push(text); console.log(`PASS ${text}`); }
 async function launch(first = false, testControl = true) {
   const args = [...(packaged ? [] : [workspace]), '--data-dir', root];
-  if (first) args.push('--import-from', process.env.YGO_DESKTOP_TEST_SOURCE || path.join(workspace, '.local', 'YGOPro-Lite'));
+  if (first) args.push('--import-from', importSource);
   application = await electron.launch({ executablePath: executable, args,
     env: {...env, YGO_DESKTOP_TEST: testControl ? '1' : '0'}, timeout: 120000 });
   page = await application.firstWindow();
@@ -281,10 +284,22 @@ async function activatePot(sid) {
   pass('Desktop window, isolated renderer, embedded Python and local catalog');
   await page.locator('#module-decks').click();
   await page.waitForFunction(()=>moduleUI.current==='decks'&&!moduleUI.switching);
-  const {deck,deckId} = await require('./deck-management-smoke.cjs')({page,application,evidence,label,pass});
-  await require('./deck-tags-smoke.cjs')({page,application,deckId,deck,evidence,pass});
-  await require('./modules-smoke.cjs')({page,application,deckId,deck,pass,evidence});
-  await require('./duel-smoke.cjs')({page,application,root,evidence,pass});
+  let deck,deckId;
+  if(onlyNative) {
+    ({deck,deckId}=await page.evaluate(async()=>{
+      const deck={main:Array.from({length:40},(_,i)=>i%2?1184620:55144522),extra:[23995346],side:[55144522]};
+      const saved=await api('/api/decks',{name:'原生场地验收 '+crypto.randomUUID(),deck});
+      await api('/api/card-favorites',{id:55144522,favorite:true});
+      await switchModule('decks');await openDeck(saved.id);await switchModule('expansion');await deckList();
+      return {deck,deckId:saved.id};
+    }));
+    await openSavedDeck(deckId);
+  } else {
+    ({deck,deckId}=await require('./deck-management-smoke.cjs')({page,application,evidence,label,pass}));
+    await require('./deck-tags-smoke.cjs')({page,application,deckId,deck,evidence,pass});
+    await require('./modules-smoke.cjs')({page,application,deckId,deck,pass,evidence});
+    await require('./duel-smoke.cjs')({page,application,root,evidence,pass});
+  }
   await page.evaluate(()=>switchModule('expansion'));
   if (process.argv.includes('--decks-only')) {
     const savedTags = (await page.evaluate(id=>api('/api/deck?id='+encodeURIComponent(id)),deckId)).tag_selection;
@@ -369,6 +384,28 @@ async function activatePot(sid) {
   await page.locator('#navigation-toggle').click();
   assertComposition(await hostWait(sessionId,s=>s.visible&&Math.abs(s.bounds.width-expandedStage.width)<3&&s.owns_stage_hit_test));
   pass('Collapsing and reopening the left navigation resizes the live native stage and preserves its session');
+  // Wait for the collapse/reopen requests and ResizeObserver to settle before
+  // measuring idle polling. A continuously changing layout never passes this gate.
+  let stableHost,stableCycles=0;
+  for(let i=0;i<20&&stableCycles<3;i++) {
+    await page.evaluate(()=>syncNativeHost());await new Promise(resolve=>setTimeout(resolve,250));
+    const sample=await hostWait(sessionId,s=>s.visible&&s.owns_stage_hit_test&&s.timeline_accessible);
+    stableCycles=stableHost&&JSON.stringify(sample.layout_updates)===JSON.stringify(stableHost.layout_updates)&&JSON.stringify(sample.bounds)===JSON.stringify(stableHost.bounds)?stableCycles+1:0;
+    stableHost=sample;
+  }
+  assert.equal(stableCycles,3,'Native placement must settle after navigation resizing');
+  const stability=[];
+  for(let i=0;i<12;i++) {
+    await page.evaluate(async()=>{await refreshHistory();await refreshTimeline();await syncNativeHost();});
+    await new Promise(resolve=>setTimeout(resolve,250));
+    const sample=await hostWait(sessionId,s=>s.visible&&s.owns_stage_hit_test);
+    stability.push({bounds:sample.bounds,updates:sample.layout_updates});
+    fs.writeFileSync(path.join(evidence,'native-stability.json'),JSON.stringify(stability,null,2));
+    assert.deepEqual(sample.bounds,stableHost.bounds,'Idle polling must keep the native field bounds stable');
+    assert.equal(sample.layout_updates.region,stableHost.layout_updates.region,'Idle polling must not reset the clipping region');
+    assert.equal(sample.layout_updates.visibility,stableHost.layout_updates.visibility,'Idle polling must not hide/show the field');
+  }
+  pass('Native field stays visible across 12 polling cycles without repeated clipping or hide/show');
   fs.writeFileSync(path.join(evidence, 'native-host.json'), JSON.stringify(host, null, 2));
   await page.screenshot({path: path.join(evidence, 'training-shell.png')});
   const stage = await page.locator('#native-stage').boundingBox();
@@ -546,6 +583,11 @@ async function activatePot(sid) {
   assert.equal(stopped.end_reason, 'client_closed');
   assert(fs.existsSync(path.join(interruptedPath, 'report.json')));
   pass('Closing the app during native training flushes an interrupted report and cleans up');
+  if(onlyNative) {
+    assert.deepEqual(errors,[]);
+    fs.writeFileSync(path.join(evidence,'result.json'),JSON.stringify({label,embedded:true,globalInput:false,checks,errors,root,sessionId,interrupted},null,2));
+    return;
+  }
   await launch();
   await openSavedDeck(deckId);
   await page.waitForFunction(id=>deckSelection.selected?.id===id&&!deckSelection.loading,deckId);

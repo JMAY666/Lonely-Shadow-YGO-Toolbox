@@ -49,7 +49,7 @@ function bindPlanFavorites(container) {
       renderPlanList();
       const detail=$('#saved-plan-favorite');
       if(detail){const plan=planLibraryUI.plans.find(p=>p.id===detail.dataset.id);if(plan){detail.innerHTML=planFavoriteButton(plan);bindPlanFavorites(detail);}}
-      if(typeof duelState==='function'&&duelState().stage===4)renderDuel();
+      if(typeof duelState==='function'&&duelState().stage===duelStages.plans)renderDuel();
     } finally {
       planLibraryUI.favoriteBusy.delete(id);
       for(const control of document.querySelectorAll('[data-plan-favorite]'))if(control.dataset.planFavorite===id)control.disabled=false;

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
+<defs><linearGradient id="panel" x2="1" y2="1"><stop stop-color="#243a41"/><stop offset="1" stop-color="#14252d"/></linearGradient><radialGradient id="glow"><stop stop-color="#91b974" stop-opacity=".18"/><stop offset="1" stop-color="#91b974" stop-opacity="0"/></radialGradient><linearGradient id="card" x2="0.8" y2="1"><stop stop-color="#385547"/><stop offset="1" stop-color="#203b39"/></linearGradient><linearGradient id="accent" x2="1" y2="1"><stop stop-color="#d3e7af"/><stop offset="1" stop-color="#7ea179"/></linearGradient></defs>
+<rect width="600" height="600" fill="url(#panel)"/><circle cx="300" cy="232" r="260" fill="url(#glow)"/>
+<g fill="none" stroke="#6e8a82" opacity=".14"><path d="M0 100H600M0 200H600M0 300H600M0 400H600M100 0V600M200 0V600M300 0V600M400 0V600M500 0V600"/><circle cx="300" cy="250" r="185"/><circle cx="300" cy="250" r="201"/></g>
+<path d="M26 98V26H98M502 26H574V98M26 502V574H98M502 574H574V502" fill="none" stroke="#89a77f" stroke-width="2" opacity=".45"/>
+<g stroke="#8ba89a" fill="none" stroke-width="3" stroke-linecap="round"><path d="M246 154v-42h-58M300 154V92M354 154v-42h58M210 208h-65M210 264h-80M210 320h-65M390 208h65M390 264h80M390 320h65M246 358v42h-58M300 358v58M354 358v42h58"/></g>
+<g fill="#304943" stroke="#a8c398" stroke-width="2"><circle cx="182" cy="112" r="7"/><circle cx="300" cy="85" r="7"/><circle cx="418" cy="112" r="7"/><circle cx="137" cy="208" r="7"/><circle cx="122" cy="264" r="7"/><circle cx="137" cy="320" r="7"/><circle cx="463" cy="208" r="7"/><circle cx="478" cy="264" r="7"/><circle cx="463" cy="320" r="7"/><circle cx="182" cy="400" r="7"/><circle cx="300" cy="423" r="7"/><circle cx="418" cy="400" r="7"/></g>
+<rect x="210" y="154" width="180" height="204" rx="20" fill="url(#card)" stroke="#afca98" stroke-width="3"/><rect x="225" y="170" width="150" height="172" rx="12" fill="none" stroke="#8fac80" opacity=".5"/>
+<path d="m310 193-49 76h36l-11 52 53-82h-38Z" fill="#b9d692" fill-opacity=".2" stroke="url(#accent)" stroke-width="4" stroke-linejoin="round"/>
+<path d="M70 462H530" stroke="#8cab82" opacity=".22"/><path d="m292 461 8-8 8 8-8 8Z" fill="#a5c688" opacity=".8"/>
+</svg>

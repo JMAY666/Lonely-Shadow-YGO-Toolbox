@@ -5,8 +5,8 @@ module.exports=async({page,root,evidence,pass})=>{
   const record=request=>{if(request.url().endsWith('/api/modular/dispatch')&&request.method()==='POST')requests.push(request.postDataJSON());};page.on('request',record);
   await page.evaluate(async source=>{
     await refreshHistory();await switchModule('duel');duelUI.state=newDuel();const s=duelState();
-    s.deck=await api('/api/deck?id='+encodeURIComponent(source.deck));s.mode='BO1';s.first=true;s.count=5;s.hand=source.hand;
-    s.result={matches:[]};s.stage=4;s.reached=4;
+    s.deck=await api('/api/deck?id='+encodeURIComponent(source.deck));s.mode='BO1';s.operationMode='manual';s.first=true;s.count=5;s.hand=source.hand;
+    s.result={matches:[]};s.stage=duelStages.plans;s.reached=duelStages.plans;
     const sources=(await api('/api/modular/library')).sources.filter(p=>Object.values(source.plans).includes(p.id));
     s.forecast={sources,selected:sources.map(p=>p.id),preference:'shortest',precise:false,generation:0,showResults:true};renderDuel();
   },source);

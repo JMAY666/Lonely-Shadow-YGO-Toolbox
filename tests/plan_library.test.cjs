@@ -23,9 +23,9 @@ test('favorite filter composes with folder and text searches without changing st
 });
 
 test('out-of-order favorite acknowledgements never roll back another item',async()=>{
-  const pending={},plans=[{id:'a',favorite:false},{id:'b',favorite:false}],duel={stage:4,result:{matches:structuredClone(plans)}};
+  const pending={},plans=[{id:'a',favorite:false},{id:'b',favorite:false}],duel={stage:5,result:{matches:structuredClone(plans)}};
   const c=setup('plan-library.js',{$:id=>id==='#saved-plan-favorite'?null:{},document:{querySelectorAll:()=>[]},
-    api:(_url,body)=>new Promise(resolve=>pending[body.id]=resolve),duelState:()=>duel});
+    api:(_url,body)=>new Promise(resolve=>pending[body.id]=resolve),duelState:()=>duel,duelStages:{plans:5}});
   c.renderPlanList=()=>{};c.renderDuel=()=>{};
   vm.runInContext('globalThis.favoriteState=planLibraryUI',c);c.favoriteState.plans=plans;
   const buttons=['a','b'].map(id=>({dataset:{planFavorite:id},getAttribute:()=> 'false'}));

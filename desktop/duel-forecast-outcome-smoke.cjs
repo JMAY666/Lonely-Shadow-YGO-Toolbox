@@ -4,8 +4,8 @@ module.exports=async({page,evidence,pass})=>{
   const source=JSON.parse(fs.readFileSync(path.join(evidence,'forecast-sources.json'),'utf8')).draw;
   await page.evaluate(async source=>{
     await refreshHistory();await switchModule('duel');duelUI.state=newDuel();const s=duelState();
-    s.deck=await api('/api/deck?id='+encodeURIComponent(source.deck));s.mode='BO1';s.first=true;s.count=3;s.hand=[55144522,1184620,1184620];
-    s.result=await api('/api/duel/match',{deck_id:s.deck.id,revision:s.deck.revision,hand_count:s.count,hand:s.hand});s.stage=4;s.reached=4;
+    s.deck=await api('/api/deck?id='+encodeURIComponent(source.deck));s.mode='BO1';s.operationMode='manual';s.first=true;s.count=3;s.hand=[55144522,1184620,1184620];
+    s.result=await api('/api/duel/match',{deck_id:s.deck.id,revision:s.deck.revision,hand_count:s.count,hand:s.hand});s.stage=duelStages.plans;s.reached=duelStages.plans;
     const sources=(await api('/api/modular/library')).sources.filter(item=>item.id===source.plan);
     s.forecast={sources,selected:[source.plan],preference:'shortest',precise:false,generation:0,showResults:true};renderDuel();
   },source);

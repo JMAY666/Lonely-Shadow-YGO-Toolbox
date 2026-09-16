@@ -3,6 +3,7 @@ import ctypes
 from ctypes import wintypes as w
 import json
 import math
+import threading
 import time
 import uuid
 
@@ -38,6 +39,8 @@ class NativeHost:
         self.gdi.CreateRectRgn.restype = w.HANDLE
         self.gdi.DeleteObject.argtypes = [w.HANDLE]
         self.last_placement = {}
+        self.layout_lock = threading.RLock()
+        self.layout_updates = {'position': 0, 'region': 0, 'visibility': 0}
 
     def pid(self, hwnd):
         result = w.DWORD()
@@ -61,10 +64,13 @@ class NativeHost:
             if not self.user.GetClientRect(hwnd, ctypes.byref(client)):
                 raise ValueError('无法读取主窗口尺寸')
             scale = (client.right - client.left) / vw
-            self.rect = tuple(round(v * scale) for v in (x, y, width, height))
-            self.timeline = body.get('timeline') is True
-        self.hwnd, self.visible = hwnd, visible
-        self.sync(store)
+            rect = tuple(round(v * scale) for v in (x, y, width, height))
+        with self.layout_lock:
+            if visible:
+                self.rect = rect
+                self.timeline = body.get('timeline') is True
+            self.hwnd, self.visible = hwnd, visible
+            self.sync(store)
         return {'embedded': True}
 
     def environment(self, background=False):
@@ -110,25 +116,56 @@ class NativeHost:
         return overlaps
 
     def sync(self, store):
+        # HTTP layout updates and the monitor share the same placement cache.
+        with self.layout_lock:
+            self._sync(store)
+
+    def _sync(self, store):
         for sid in list(store.processes):
             if sid in getattr(store, 'planning', set()): continue
             hwnd = self.child(store, sid)
             if not hwnd: continue
             placement = (hwnd, self.rect, self.visible, self.timeline)
-            if self.last_placement.get(sid) == placement and (not self.visible or self.stage_hit() == hwnd): continue
+            previous = self.last_placement.get(sid)
+            fresh = previous is None or previous[0] != hwnd
+            moved = fresh or previous[1][:2] != self.rect[:2]
+            resized = fresh or previous[1][2:] != self.rect[2:]
+            clipped = resized or previous[3] != self.timeline
+            shown = fresh or previous[2] != self.visible
+            raised = self.visible and self.stage_hit() != hwnd
             x, y, width, height = self.rect
-            if not self.user.SetWindowPos(hwnd, None, x, y, width, height, 0x0010):
-                raise ctypes.WinError(ctypes.get_last_error())
+            if moved or resized or raised:
+                # A sibling-order repair must not resize/reposition the OpenGL
+                # surface. Reapplying its region with redraw erased it each tick.
+                flags = 0x0010  # SWP_NOACTIVATE
+                if not moved: flags |= 0x0002  # SWP_NOMOVE
+                if not resized: flags |= 0x0001  # SWP_NOSIZE
+                if not raised: flags |= 0x0004  # SWP_NOZORDER
+                if not moved and not resized: flags |= 0x0008  # SWP_NOREDRAW; engine keeps rendering
+                if not self.user.SetWindowPos(hwnd, None, x, y, width, height, flags):
+                    raise ctypes.WinError(ctypes.get_last_error())
+                if self.test_control: self.layout_updates['position'] += 1
             # Only clip the original 310/1024 card-info column. Field coordinates,
             # phase controls, selection dialogs and the render resolution stay intact.
-            region = self.gdi.CreateRectRgn(round(width * 310 / 1024), 0, width, height) if self.timeline else None
-            if not self.user.SetWindowRgn(hwnd, region, True):
-                if region: self.gdi.DeleteObject(region)
-                raise ctypes.WinError(ctypes.get_last_error())
-            self.user.ShowWindow(hwnd, 4 if self.visible else 0)  # SW_SHOWNOACTIVATE / SW_HIDE
+            if clipped:
+                region = self.gdi.CreateRectRgn(round(width * 310 / 1024), 0, width, height) if self.timeline else None
+                if self.timeline and not region:
+                    raise ctypes.WinError(ctypes.get_last_error())
+                if not self.user.SetWindowRgn(hwnd, region, True):
+                    if region: self.gdi.DeleteObject(region)
+                    raise ctypes.WinError(ctypes.get_last_error())
+                if self.test_control: self.layout_updates['region'] += 1
+            if shown:
+                self.user.ShowWindow(hwnd, 4 if self.visible else 0)  # SW_SHOWNOACTIVATE / SW_HIDE
+                if self.test_control: self.layout_updates['visibility'] += 1
             self.last_placement[sid] = placement
 
     def status(self, store, sid):
+        # Read bounds, clipping and counters from one completed placement.
+        with self.layout_lock:
+            return self._status(store, sid)
+
+    def _status(self, store, sid):
         hwnd = self.child(store, sid)
         if not hwnd: return {'ready': False}
         rect = w.RECT(); self.user.GetWindowRect(hwnd, ctypes.byref(rect))
@@ -142,6 +179,7 @@ class NativeHost:
         try: frame = json.loads((store.session_path(sid) / 'frame-ready.json').read_text('utf8'))
         except (OSError, ValueError): frame = {}
         return {'ready': True, 'pid': self.pid(hwnd), 'hwnd': str(hwnd), 'parent': str(self.hwnd),
+                **({'layout_updates': dict(self.layout_updates)} if self.test_control else {}),
                 'frame_ready': bool(frame), 'frame_ms': frame.get('time_ms'),
                 'owns_stage_hit_test': hit == hwnd, 'stage_hit_hwnd': str(hit),
                 'timeline_accessible': self.timeline and self.user.ChildWindowFromPointEx(self.hwnd, sidebar, 0) != hwnd,

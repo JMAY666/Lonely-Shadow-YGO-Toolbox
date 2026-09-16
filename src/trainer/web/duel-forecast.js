@@ -101,7 +101,7 @@ function renderForecastTerminal(node,report) {
 }
 function renderDuelForecast() {
   const s=duelState(),f=s.forecast;if(!f)return;
-  if(s.stage===5&&!f.showResults){
+  if(s.stage===duelStages.tutorial&&!f.showResults){
     const info=document.createElement('p');info.id='duel-forecast-progress';info.textContent=`本局临时方案 · 已确认 ${s.plan.confirmed} 步。下一步表示已照做；出现偏差请在对应步骤报告实际情况。`;
     $('#duel-body').prepend(info);return;
   }
@@ -144,7 +144,7 @@ function forecastCandidateTerminal(candidate) {
 async function launchModularFromDuel() {
   const s=duelState();if(!s.deck||s.hand.some(c=>!c))throw new Error('请先确认卡组并填写完整起手');
   let anchor=null;
-  if(s.stage===5&&s.plan&&!s.plan.temporary){
+  if(s.stage===duelStages.tutorial&&s.plan&&!s.plan.temporary){
     const active=s.graph.nodes.find(n=>n.key===s.position.key),node=duelNodeSource(active).node;
     if(node.kind!=='step')throw new Error('请选择普通方案中已完成的步骤，再生成展开后续');
     anchor={plan:s.plan.id,revision:s.plan.edit_revision||0,route:active.route,node:node.id,number:node.number};
@@ -180,7 +180,7 @@ async function adoptDuelForecast(candidateId) {
     f.data=data;f.showResults=false;s.plan=temporaryDuelPlan(data,data.result.candidates[0]);
     s.routes=duelPlanRoutes(s.plan);s.graph=DuelModel.graph(s.routes);
     const first=reviewNodes(s.plan).find(n=>n.kind==='step'&&n.forecast_index===0);
-    s.position={key:'main/'+(first?.id||'final'),choice:0};s.enabled=true;s.ended=false;duelReach(5);duelTell('');
+    s.position={key:'main/'+(first?.id||'final'),choice:0};s.enabled=true;s.ended=false;duelReach(duelStages.tutorial);duelTell('');
   }finally{f.busy=false;renderDuel();void syncDuelShortcuts();}
 }
 async function advanceDuelForecast() {
