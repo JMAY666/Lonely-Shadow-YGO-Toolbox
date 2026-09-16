@@ -4,10 +4,10 @@ from pathlib import Path
 from types import SimpleNamespace
 import sys
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src/trainer'))
-from duel_planner import route_context, confirm, projected, commit_projection
+from duel_planner import route_context, confirm, projected, commit_projection, observe
 from modular import Modular
 
 
@@ -27,6 +27,22 @@ class ForecastStateTests(unittest.TestCase):
             with self.assertRaises(ValueError): route_context(self.modular, body)
         self.assertEqual(self.ctx['forecast_route'], before)
         self.modular.bridge.assert_not_called()
+
+    def test_interruption_is_applied_to_the_action_after_an_empty_response_acknowledgement(self):
+        actor={'instance_id':1,'code':1,'controller':0,'location':4}
+        self.ctx['forecast_route']['candidate']['steps']=[
+            {'path_end':1,'automatic':True,'decision':{'selection':[{'kind':'pass'}]}},
+            {'path_end':2,'decision':{'selection':[{'kind':'activate','card':{'code':1}}]},'bindings':[]}]
+        before={'state':{'cards':[actor]},'raw':'0b00','player':0}
+        after={'state':{'cards':[actor,{'instance_id':9,'code':10,'controller':1,'location':16}]},'raw':'0b00','player':0,'batches':[]}
+        self.modular.store.catalog=SimpleNamespace(cards={10:{'extra':False}})
+        self.modular.bridge.side_effect=[before,after]
+        self.modular.search=Mock(return_value={'status':'found','candidates':[]})
+        with patch('duel_planner.advance_facts',return_value={'facts':[{'code':1}]}):
+            result=observe(self.modular,{'id':'forecast','route':'route','index':0,'through':1,'kind':'interruption','cards':[10]})
+        self.assertEqual(self.modular.bridge.call_args_list[0].args[2],['a'])
+        self.assertEqual(self.modular.bridge.call_args_list[1].args[2],['b'])
+        self.assertEqual(result['confirmed'],2)
 
     def test_group_confirmation_requires_actual_random_outcomes(self):
         self.ctx['forecast_route']['candidate']['observation_required'] = [2, 2]

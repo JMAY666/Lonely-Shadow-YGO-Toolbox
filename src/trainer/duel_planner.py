@@ -46,6 +46,8 @@ def response(modular, sid, ctx, result=None):
 
 def generate(modular, body):
     store = modular.store; created = not body.get('id')
+    refresh = body.get('refresh', False)
+    if type(refresh) is not bool: raise ValueError('重新生成开关无效')
     if created:
         with store.lock:
             saved = store.get_deck(body.get('deck_id', ''))
@@ -84,7 +86,7 @@ def generate(modular, body):
         if created and anchor:
             from duel_continuation import replay_anchor
             replay_anchor(modular, sid, ctx, anchor)
-        result = modular.search(sid)
+        result = modular.search(sid, refresh=refresh)
         ctx['forecast_meta']['inputs']['sources'] = result['token'][2]
         ctx['forecast_touched'] = time.monotonic()
         return response(modular, sid, ctx, result)
@@ -152,10 +154,11 @@ def observe(modular, body):
         raise ValueError('请填写实际卡牌，可重复；卡牌必须存在于本地卡库')
     if kind == 'interruption' and any(modular.store.catalog.cards[c].get('extra') for c in codes):
         raise ValueError('请填写从手牌发动的阻抗卡及其实际手牌费用')
-    if kind != 'interruption':
-        through = body.get('through', index)
-        if type(through) is not int or not index <= through < len(route['candidate']['steps']): raise ValueError('步骤填报范围无效')
-        index = through
+    through = body.get('through', index)
+    if type(through) is not int or not index <= through < len(route['candidate']['steps']): raise ValueError('步骤填报范围无效')
+    if kind != 'interruption': index = through
+    else:
+        while index < through and route['candidate']['steps'][index].get('automatic'): index += 1
     candidate = route['candidate']; steps = candidate['steps']; step = steps[index]
     start = steps[index-1]['path_end'] if index else 0; prefix = candidate['path'][:start]
     before = modular.bridge(sid, route['base'], prefix)

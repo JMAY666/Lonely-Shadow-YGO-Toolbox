@@ -111,19 +111,30 @@ function renderDuelForecast() {
   $('#duel-brain-toggle').onclick=()=>{f.collapsed=!f.collapsed;const button=$('#duel-brain-toggle');button.setAttribute('aria-expanded',String(!f.collapsed));button.innerHTML=`<span aria-hidden="true">${f.collapsed?'▾':'▴'}</span>${f.collapsed?'展开':'收起'}`;$('#duel-brain-content').hidden=f.collapsed;};
   $('#duel-brain-search').insertAdjacentHTML('beforebegin','<label>目标场上卡号 <input id="duel-brain-goal" type="text" placeholder="可留空"></label>');
   $('#duel-brain-goal').value=(f.goal||[]).join(' ');
-  const changed=()=>{f.selected=[...panel.querySelectorAll('[data-brain-source]:checked')].map(el=>el.dataset.brainSource);f.preference=$('#duel-brain-preference').value;f.precise=$('#duel-brain-precise').checked;f.goal=$('#duel-brain-goal').value.trim().split(/[\s,，]+/).filter(Boolean).map(Number);return searchDuelBrain();};
-  for(const input of panel.querySelectorAll('input,select'))input.onchange=run(changed);
-  $('#duel-brain-search').onclick=run(changed);paintForecastResults();
+  const changed=refresh=>{f.selected=[...panel.querySelectorAll('[data-brain-source]:checked')].map(el=>el.dataset.brainSource);f.preference=$('#duel-brain-preference').value;f.precise=$('#duel-brain-precise').checked;f.goal=$('#duel-brain-goal').value.trim().split(/[\s,，]+/).filter(Boolean).map(Number);return searchDuelBrain({refresh});};
+  for(const input of panel.querySelectorAll('input,select'))input.onchange=run(()=>changed(false));
+  $('#duel-brain-search').onclick=run(()=>changed(true));paintForecastResults();
+}
+function forecastSearchNotice(result) {
+  if(!result)return '';
+  const count=result.candidates?.length||0;
+  if(result.limited)return `搜索尚未完成：已达到本轮预算，目前 ${count} 条只是已发现的路线，不能据此判断其他偏好没有不同方案。切换偏好或重新生成会重新搜索。`;
+  if(result.complete===false)return '部分来源或后续条件尚未确认，当前候选不代表所有可能路线。';
+  if(count===1)return '当前来源和设置下只找到一条可用路线，暂无其他候选可比较，各偏好可能推荐同一条。';
+  return '按当前偏好比较所有已发现候选；若同一路线同时占优，多种偏好可以推荐相同路线。';
 }
 function paintForecastResults() {
   const f=duelState().forecast,summary=$('#duel-brain-summary');if(!f||!summary)return;
   const candidates=f.data?.result?.candidates||[];
-  const cache=f.data?.result?.cache,cacheText=cache?.result_hit?' · 已复用候选缓存':cache?.probe_hits?` · 复用 ${cache.probe_hits} 次步骤校验`:'';
+  const result=f.data?.result,preferenceLabel={shortest:'步骤最少',largest:'终场最大',balanced:'平均值（均衡）',safest:'稳妥优先'}[f.preference];
+  const cache=result?.cache,cacheText=cache?.result_hit?' · 同一偏好的完整搜索结果':cache?.probe_hits?` · 复用 ${cache.probe_hits} 次规则校验`:'';
   const duration=Number.isFinite(f.data?.result?.seconds)?` · ${f.data.result.seconds} 秒`:'';
-  summary.textContent=f.busy?'正在后台计算；当前页面与已确认进度保留。':f.error|| (f.data?`已生成 ${candidates.length} 条路线${candidates.length?'，采用后查看步骤图。':'。当前来源未找到后续，可调整来源或补充实际情况后重试。'}${cacheText}${duration}`:'选择展开来源后生成路线。');
-  $('#duel-brain-compact-status').textContent=f.busy?'正在计算…':f.error?'生成未完成':f.data?`${candidates.length} 条候选${cacheText}`:'';
+  summary.textContent=f.busy?`正在按「${preferenceLabel}」重新计算；当前页面与已确认进度保留。`:f.error|| (f.data?`已找到 ${candidates.length} 条路线 · 当前偏好：${preferenceLabel}${result.coverage?` · 来源续接检查 ${result.coverage.checked}/${result.coverage.total}`:''}${cacheText}${duration}。${forecastSearchNotice(result)}`:'选择展开来源后生成路线。');
+  $('#duel-brain-compact-status').textContent=f.busy?'正在计算…':f.error?'生成未完成':f.data?`${candidates.length} 条候选${result.complete===false?' · 搜索尚未完成':''}`:'';
   $('#duel-brain-search').disabled=!!f.busy;
-  $('#duel-brain-routes').innerHTML=candidates.map((c,i)=>`<article class="modular-route"><h3>路线 ${i+1} · ${c.remaining} 次剩余决策</h3><p>${c.observation_required?'到随机结果处暂停，填写实际卡牌后续算':c.conditional?'包含未确定条件':'已通过后台引擎校验'}</p><p>标记终场 ${c.evaluation.marked_cards||0} 张 · 标记效果 ${c.evaluation.marked_effects||0} 项${f.preference==='balanced'?` · 平均 ${c.ranking?.average??0}`:''}</p><p>${escape(c.evaluation.basis)}</p>${forecastCandidateTerminal(c)}<details><summary>查看步骤与来源</summary><ol>${c.steps.map(step=>`<li>${escape(forecastStepText(step,f.data.catalog))}<small> · ${escape(step.source.name)}</small></li>`).join('')}</ol></details><button data-duel-adopt="${c.id}" ${f.busy?'disabled':''}>采用临时方案并进入下一步</button></article>`).join('');
+  const checks=result?.coverage?.routes||[],states={queued:'尚未检查',checking:'检查未完成',checked:'已完成续接检查',goal_reached:'已匹配终场标记',blocked:'原路线不能直接续接',no_start:'当前窗口无可直接续接动作',needs_observation:'等待实际随机结果'};
+  const coverage=checks.length?`<details class="forecast-source-checks"><summary>各来源原路线的检查结果</summary><ul>${checks.map(c=>`<li>${escape(c.source.route_name||c.source.name)}：${escape(states[c.status]||c.status)} · ${c.checked}/${c.total}${c.reason?` · ${escape(c.reason)}`:''}</li>`).join('')}</ul></details>`:'';
+  $('#duel-brain-routes').innerHTML=coverage+candidates.map((c,i)=>`<article class="modular-route"><h3>路线 ${i+1} · ${c.remaining} 次剩余决策${i===0?` · ${preferenceLabel}当前推荐`:''}</h3>${c.terminal_source?`<p>终场标记来源：${escape(c.terminal_source.route_name||c.terminal_source.name)}</p>`:''}${f.preference==='safest'?`<p>稳妥性：${c.robustness?.status==='evaluated'?'已校验限定的灰流丽场景':'尚未充分评估，不能视为低风险'}</p>`:''}<p>${c.observation_required?'到随机结果处暂停，填写实际卡牌后续算':c.conditional?'包含未确定条件':'已通过后台引擎校验'}</p><p>标记终场 ${c.evaluation.marked_cards||0} 张 · 标记效果 ${c.evaluation.marked_effects||0} 项${f.preference==='balanced'?` · 平均 ${c.ranking?.average??0}`:''}</p><p>${escape(c.evaluation.basis)}</p>${forecastCandidateTerminal(c)}<details><summary>查看步骤与来源</summary><ol>${c.steps.map(step=>`<li>${escape(forecastStepText(step,f.data.catalog))}<small> · ${escape(step.source.name)}</small></li>`).join('')}</ol></details><button data-duel-adopt="${c.id}" ${f.busy?'disabled':''}>采用临时方案并进入下一步</button></article>`).join('');
   for(const button of $('#duel-brain-routes').querySelectorAll('[data-duel-adopt]'))button.onclick=run(()=>adoptDuelForecast(button.dataset.duelAdopt));
 }
 function forecastCandidateTerminal(candidate) {
@@ -143,17 +154,18 @@ async function launchModularFromDuel() {
     const sources=library.sources.filter(source=>source.status==='ready');
     s.forecast={sources,selected:sources.map(source=>source.id),preference:s.planSort||'shortest',precise:false,generation:0,showResults:true,anchor};
   }
-  s.forecast.showResults=true;s.forecast.collapsed=false;renderDuel();await searchDuelBrain();
+  s.forecast.showResults=true;s.forecast.collapsed=false;renderDuel();await searchDuelBrain({refresh:true});
 }
-async function searchDuelBrain() {
+async function searchDuelBrain({refresh=false}={}) {
   const s=duelState(),f=s.forecast;if(!f)return;
+  f.refreshQueued=!!f.refreshQueued||refresh;
   ++f.generation;f.queued=true;f.data=null;f.error='';if(s.plan?.temporary)s.plan.stale=true;
   if(f.busy){paintForecastResults();return;}
   f.busy=true;
   try {while(f.queued&&s===duelState()&&s.forecast===f){
-    f.queued=false;const generation=f.generation;paintForecastResults();
+    f.queued=false;const generation=f.generation,forceRefresh=f.refreshQueued;f.refreshQueued=false;paintForecastResults();
     let data;
-    try{data=await modularDispatch('duel','plan',{id:f.id,anchor:!f.id?f.anchor:undefined,deck_id:s.deck.id,revision:s.deck.revision,hand_count:s.count,hand:[...s.hand],sources:[...f.selected],preference:f.preference,precise:f.precise,goal:[...(f.goal||[])]});}
+    try{data=await modularDispatch('duel','plan',{id:f.id,anchor:!f.id?f.anchor:undefined,refresh:forceRefresh,deck_id:s.deck.id,revision:s.deck.revision,hand_count:s.count,hand:[...s.hand],sources:[...f.selected],preference:f.preference,precise:f.precise,goal:[...(f.goal||[])]});}
     catch(error){if(generation!==f.generation)continue;throw error;}
     if(s!==duelState()||s.forecast!==f){void modularDispatch('duel','plan-close',{id:data.id}).catch(()=>{});return;}
     f.id=data.id;if(generation===f.generation)f.data=data;

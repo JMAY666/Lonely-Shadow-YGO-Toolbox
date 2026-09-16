@@ -49,6 +49,7 @@ module.exports=async({page,root,evidence,pass})=>{
     pass('Combo 3 continuation uses material pictures, summon and effect arrows, location maps and frozen prefix labels');
   }
   if(process.env.YGO_MODULAR_PIPELINE_ONLY==='1')await require('./duel-forecast-smoke.cjs')({page,root,evidence,pass});
+  if(process.env.YGO_MODULAR_PLANNING_ONLY==='1')await require('./planning-preferences-smoke.cjs')({page,root,evidence,pass});
   if(process.env.YGO_MODULAR_FORECAST_ONLY==='1')await require('./duel-forecast-outcome-smoke.cjs')({page,evidence,pass});
   await page.evaluate(async()=>{await refreshHistory();flow.restarting=false;await switchModule('modular');});
   assert(await page.locator('#modular').isVisible());

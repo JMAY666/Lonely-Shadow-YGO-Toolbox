@@ -40,6 +40,11 @@ def main(runtime, url, evidence):
         return value if not value['answered'] and value['player']==0 else None
     def current(): return wait(state)
     def answer(raw, expected=None):
+        # The internal file transport has one request slot. A manual test
+        # response must not overwrite a concurrent background planning probe.
+        status=api('/api/modular/state/'+sid)
+        if not status.get('auto') and status.get('busy'):
+            wait(lambda:not api('/api/modular/state/'+sid).get('busy'),timeout=90)
         before=expected or current(); folder=runtime/'_trainer/sessions'/sid; lease=uuid.uuid4().hex
         (folder/'modular-lease.txt').write_text(lease,encoding='ascii')
         temp=folder/'acceptance-request.tmp';temp.write_text(f"answer {before['version']} {lease} 0 1\n{raw}\n",encoding='ascii');temp.replace(folder/'modular.request')
@@ -78,13 +83,13 @@ def main(runtime, url, evidence):
         nonlocal sid
         sid=identifier
         request=evidence/'modular-layout.request';request.write_text('layout',encoding='ascii');wait(lambda:not request.exists())
-    def save(mark_field=False):
+    def save(mark_field=False, mark_codes=None):
         report=finish()
         body={'id':sid,'name':report['name'],'notes':'TEST ONLY isolated source'}
         if mark_field:
             from copy import deepcopy
             edits=deepcopy(report.get('annotations') or {})
-            edits['final_marks']={str(c['instance_id']):{'marked':True,'effects':{}} for c in report['final_state']['cards'] if c['controller']==0 and c['location'] in (4,8)}
+            edits['final_marks']={str(c['instance_id']):{'marked':True,'effects':{}} for c in report['final_state']['cards'] if c['controller']==0 and c['location'] in (4,8) and (mark_codes is None or c['code'] in mark_codes)}
             body['annotations']=edits
         preview=api('/api/plans/preview',body)
         plan=api('/api/plans/save',{**body,'annotations':preview['annotations'],'confirmation':preview['confirmation']})
@@ -98,6 +103,10 @@ def main(runtime, url, evidence):
             elif p['message']==19:choose(option=1)
             else:raise AssertionError(json.dumps(p))
         raise AssertionError('Unsettled core')
+    if os.environ.get('YGO_MODULAR_PLANNING_ONLY')=='1':
+        from modular_planning_preferences import run
+        run(api,start,choose,idle,save,evidence)
+        return
     if os.environ.get('YGO_MODULAR_FORECAST_ONLY')=='1':
         from modular_forecast import run
         run(runtime,evidence,api,start,current,answer,choose,save)

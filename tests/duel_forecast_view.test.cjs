@@ -65,3 +65,12 @@ test('field-card activation uses the shared activation label and one placed card
   const html=c.renderForecastStep(node,{temporary:true,confirmed:0,review:{nodes:[node]},catalog:{10:{type:0x80002}},annotations:{}});
   assert.match(html,/发动场地魔法卡/);assert.equal((html.match(/pics\/10.jpg/g)||[]).length,1);assert.match(html,/location-icon/);
 });
+
+test('a single partial candidate is clearly distinguished from one fully searched route',()=>{
+  const c=setup();
+  const limited=c.forecastSearchNotice({limited:true,complete:false,candidates:[{}]});
+  assert.match(limited,/搜索尚未完成/);assert.match(limited,/不能据此判断其他偏好/);
+  const complete=c.forecastSearchNotice({limited:false,complete:true,candidates:[{}]});
+  assert.match(complete,/只找到一条/);assert.match(complete,/各偏好可能推荐同一条/);
+  assert.doesNotMatch(complete,/搜索尚未完成/);
+});

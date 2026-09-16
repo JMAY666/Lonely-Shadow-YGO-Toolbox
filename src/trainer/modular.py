@@ -11,16 +11,79 @@ from modular_decisions import (bind, digest, evaluation, integer, model, next_pr
                                bind_variants, semantic_equal, snapshot_matches, canonical_state)
 from report import read_journal
 from timeline import route_rows
-from card_semantics import effect_clause
+from card_semantics import effect_clause, zone_name
 from module_graph import decision_boundaries, decision_id
 from module_conditions import branch_condition, condition_matches, facts_from_report, advance_facts
-from plan_endboard import attach_terminal_marks, marked_terminal, marked_evaluation
+from plan_endboard import attach_terminal_marks, marked_terminal, marked_evaluation, satisfied_marked_terminal
 from planning_cache import PlanningCache
 
 
 PREFERENCES = ('shortest', 'largest', 'balanced', 'safest')
 LIMITS = {'seconds': 32, 'nodes': 320, 'depth': 48, 'candidates': 24}
 EXTRACTOR_VERSION = 10
+
+
+class RouteFrontier:
+    """Give each recorded continuation a turn before exploring mixed paths."""
+    def __init__(self):
+        self.guided, self.mixed = deque(), deque()
+
+    def __bool__(self):
+        return bool(self.guided or self.mixed)
+
+    def append(self, item):
+        (self.guided if item[-1] else self.mixed).append(item)
+
+    def appendleft(self, item):
+        # Finishing (or failing) one source must not let its mixed descendants
+        # spend the whole budget before the other selected sources are tried.
+        if item[-1]: self.guided.append(item)
+        else: self.mixed.appendleft(item)
+
+    def popleft(self):
+        return (self.guided if self.guided else self.mixed).popleft()
+
+
+def empty_response_edge(prompt, guide, raw):
+    """An extra empty response window is an engine acknowledgement, not a move."""
+    choices = prompt.get('choices', [])
+    if prompt.get('message') != 16 or len(choices) != 1 or choices[0]['semantic']['kind'] != 'pass':
+        return None
+    response = choices[0]['response']
+    return {**guide[0], 'id': digest(['engine_empty_response', guide[0]['id'], raw]),
+            'decision': semantic_response(prompt, response), 'delta': [], 'automatic': True,
+            'terminal': False, 'if_condition': None, '_keep_guide': True,
+            'source': {**guide[0]['source'], 'automatic_window': True}}
+
+
+def route_signature(candidate, precise):
+    def normalized(value):
+        if isinstance(value, dict):
+            return {k: normalized(v) for k, v in value.items() if precise or k != 'sequence'}
+        if isinstance(value, list): return [normalized(v) for v in value]
+        return value
+    decisions = []
+    for step in candidate['steps']:
+        if step.get('automatic'): continue
+        decision = step.get('bound_decision') or step['decision']
+        if not precise and all(s.get('kind') == 'place' for s in decision.get('selection', [])): continue
+        decisions.append(normalized(decision))
+    return digest([decisions, candidate.get('observation_required'), candidate['conditional']])
+
+
+def guide_block_reason(edge, current, catalog):
+    if current.get('_unknown_draws'): return '仍有随机结果未确认，暂时无法核对来源所需区域'
+    cards = current['state'].get('cards', [])
+    required = Counter((s['card']['code'], s['card']['location']) for s in edge['decision'].get('selection', [])
+                       if s.get('card', {}).get('code') and s['card'].get('controller') == 0)
+    for (code, location), count in required.items():
+        own = [c for c in cards if c.get('controller') == 0 and c.get('code') == code]
+        available = sum(c.get('location') == location for c in own)
+        if available < count:
+            name = catalog.get(code, {}).get('name', str(code))
+            elsewhere = '、'.join(dict.fromkeys(zone_name(c.get('location', 0)) for c in own if c.get('location') != location))
+            return f'下一步需要「{name}」在{zone_name(location)} ×{count}，当前可用 {available}' + (f'；可见副本在{elsewhere}' if elsewhere else '')
+    return '当前窗口、效果次数或选择条件与来源不同，无法直接续接'
 
 
 def message(code):
@@ -551,31 +614,42 @@ class Modular:
     def valid_token(self, sid, expected):
         self.library.sync()
         current = self.state(sid)
-        return current['running'] and not current['answered'] and self.token(current, self.context(sid)) == expected
+        actual = self.token(current, self.context(sid))
+        valid = current['running'] and not current['answered'] and actual == expected
+        if not valid and self.context(sid).get('forecast_meta'):
+            self.audit(self.context(sid), 'search_invalidated', running=current['running'], answered=current['answered'],
+                       state_changed=actual[:2] != expected[:2], sources_changed=actual[2] != expected[2],
+                       preference_changed=actual[3] != expected[3])
+        return valid
 
-    def search(self, sid, **options):
+    def search(self, sid, *, refresh=False, **options):
         with self.search_lock:
             ctx = self.context(sid)
             if 'forecast_meta' not in ctx: return self._search(sid, **options)
             self.library.sync(); state = self.state(sid); expected = self.token(state, ctx)
             if not state['running'] or state['answered'] or state['player'] != 0:
                 raise ValueError('引擎尚未开放我方决策')
-            key = digest([state, expected[2], ctx['precise'], ctx['goal'], ctx.get('original_goal'),
+            key = digest([state, expected[2], ctx['precise'], ctx['goal'], ctx.get('original_goal'), ctx['preference'],
                           ctx.get('forecast_steps'), options, EXTRACTOR_VERSION])
             started = time.monotonic(); before = self.planning_cache.stats.copy()
-            result = self.planning_cache.get('search', sid, key)
+            if refresh: self.planning_cache.discard(sid, 'search')
+            result = None if refresh else self.planning_cache.get('search', sid, key)
+            if result is not None and not result.get('complete'): result = None
             hit = result is not None
             if hit:
                 if not self.valid_token(sid, expected): raise ValueError('stale_state_source_or_preference')
                 result.update(token=expected, preference=ctx['preference'])
                 for candidate in result['candidates']:
                     candidate['token'] = expected
-                    candidate['id'] = digest([expected, [s['edge'] for s in candidate['steps']]])
+                    candidate['id'] = digest([expected, candidate['path'], candidate.get('terminal_goal_id', 'observation')])
                 self.rank(result['candidates'], ctx['preference'])
             else:
                 result = self._search(sid, **options)
-                self.planning_cache.put('search', sid, key, result)
+                # A partial search is evidence of work left, never a reusable
+                # final answer. Preference changes have their own search key.
+                if result.get('complete'): self.planning_cache.put('search', sid, key, result)
             result['cache'] = {'result_hit': hit,
+                'scope': 'completed_search' if hit else 'verified_probes',
                 'probe_hits': self.planning_cache.stats['probe_hits'] - before['probe_hits'],
                 'probe_misses': self.planning_cache.stats['probe_misses'] - before['probe_misses']}
             result['computed_seconds'] = result['seconds']
@@ -591,35 +665,60 @@ class Modular:
         expected = self.token(state, ctx); preference = ctx['preference']; goal = ctx['goal'][:]
         actual_history=self.decision_history(sid) + ctx.get('forecast_steps', [])
         edges = self.library.edges(ctx['selected']); bounds = {**LIMITS, **(limits or {})}
+        forecast = 'forecast_meta' in ctx
+        marked_goals = [e for e in edges if e.get('terminal') and e.get('terminal_marks')] if forecast else []
         actual_facts=facts_from_report(self.store._report(sid)) if any(edge.get('if_condition') for edge in edges) else []
         state.setdefault('_if_memory', {'chains':{},'facts':actual_facts})
         longest = max((len(r['edges']) for source in ctx['selected'] for r in self.library.entries.get(source, {}).get('routes', [])), default=0)
         bounds['depth'] = min(128, max(bounds['depth'], longest+8))
-        start = time.monotonic(); queue = deque()
+        start = time.monotonic(); queue = RouteFrontier() if forecast else deque(); source_checks = {}
         by_route = {}
         root_prompt = model(state['raw'], state['state'], state.get('effects'))
         for edge in edges: by_route.setdefault((edge['source']['plan'], edge['source']['route']), []).append(edge)
-        for route in by_route.values():
+        for route_key, route in by_route.items():
             eligible = [i for i,e in enumerate(route) if (not ctx['precise'] or snapshot_matches(e['before'],state['state'])) and bind_variants(e['decision'], root_prompt,precise=ctx['precise'],limit=1)]
             first = min(eligible, key=lambda i: (boundary_distance(route[i]['before'], state['state']), i)) if eligible else None
+            source_checks[route_key] = {'source': deepcopy(route[0]['source']), 'status': 'queued' if first is not None else 'no_start',
+                                        'checked': 0, 'total': len(route[first:]) if first is not None else 0}
             if first is not None: queue.append((seed or state, [], [], frozenset(), False, route[first:]))
         # Verify each applicable recorded continuation before spending the rest
         # of the budget on freely mixed paths. Starting hands are never equated.
         queue.append((seed or state, [], [], frozenset(), False, None))
         incomplete_sources = any(r['unknown'] for source in ctx['selected'] for r in self.library.entries.get(source, {}).get('routes', []))
-        candidates, rejected, nodes, limited, unknown = [], Counter(), 0, False, bool(incomplete_sources)
+        candidates = {} if forecast else []
+        rejected, nodes, limited, unknown = Counter(), 0, False, bool(incomplete_sources)
+        probe_start = self.planning_cache.stats['probe_misses'] if forecast else 0
+        def budget_used():
+            return self.planning_cache.stats['probe_misses'] - probe_start if forecast else nodes
+        def remember(candidate):
+            if not forecast:
+                candidates.append(candidate); return
+            signature = route_signature(candidate, ctx['precise'])
+            previous = candidates.get(signature)
+            matching = list((previous or {}).get('satisfied_goal_sources', []))
+            source = candidate.get('terminal_source')
+            if source and source not in matching: matching.append(deepcopy(source))
+            if previous is None or (resource_rank(candidate['evaluation']), -candidate['remaining']) > (resource_rank(previous['evaluation']), -previous['remaining']):
+                candidates[signature] = candidate
+            candidates[signature]['satisfied_goal_sources'] = matching
         queued_paths = {()}
         # Keep different provenances when paths reach the same state: a source
         # prefix is a preference, never the only legal continuation.
         while queue:
-            if nodes >= bounds['nodes'] or time.monotonic()-start >= bounds['seconds'] or len(candidates) >= bounds['candidates']:
+            if budget_used() >= bounds['nodes'] or time.monotonic()-start >= bounds['seconds'] or (len(candidates) >= bounds['candidates']*(8 if forecast else 1) and (not forecast or not queue.guided)):
                 limited = True; break
             current, path, steps, seen, uncertain, guide = queue.popleft()
+            check = source_checks[(guide[0]['source']['plan'], guide[0]['source']['route'])] if guide else None
+            if check: check['status'] = 'checking'
             if len(steps) >= bounds['depth']: limited = True; continue
             if not self.valid_token(sid, expected): raise ValueError('stale_state_source_or_preference')
             try: prompt = model(current['raw'], current['state'], current.get('effects'))
-            except (ValueError, TypeError): unknown = True; continue
-            if prompt.get('unsupported'): unknown = True; continue
+            except (ValueError, TypeError):
+                if check: check.update(status='blocked', reason='当前决策窗口无法读取')
+                unknown = True; continue
+            if prompt.get('unsupported'):
+                if check: check.update(status='blocked', reason='当前决策窗口尚不支持')
+                unknown = True; continue
             applicable = {}
             for edge in guide[:1] if guide else edges:
                 if ctx['precise'] and (current.get('_unknown_draws') or not snapshot_matches(edge['before'],current['state'])):
@@ -631,7 +730,12 @@ class Modular:
                     if any((binding.get('card') or {}).get('instance_id') in current.get('_unknown_draws', []) for binding in response_bindings(prompt,response)):
                         unknown=True;rejected['后续需要尚未确定的随机结果身份']+=1;continue
                     applicable.setdefault(response, []).append(edge)
+            if not applicable and guide and 'forecast_meta' in ctx:
+                acknowledgement = empty_response_edge(prompt, guide, current['raw'])
+                if acknowledgement:
+                    applicable[prompt['choices'][0]['response']] = [acknowledgement]
             if not applicable:
+                if check: check.update(status='blocked', reason=guide_block_reason(guide[0], current, self.store.catalog.cards))
                 if guide: queue.append((current, path, steps, seen, uncertain, None))
                 rejected['当前合法窗口没有来源动作；资源、区域、效果次数或时机不匹配'] += 1
                 if not path:
@@ -650,7 +754,7 @@ class Modular:
             for response, origins in applicable.items():
                 if steps: origins.sort(key=lambda edge: (edge['source']['route'] != steps[-1]['source']['route'],
                     edge['source']['position'] <= steps[-1]['source']['position'], abs(edge['source']['position']-steps[-1]['source']['position']-1)))
-                if nodes >= bounds['nodes'] or time.monotonic()-start >= bounds['seconds']: limited = True; break
+                if budget_used() >= bounds['nodes'] or time.monotonic()-start >= bounds['seconds']: limited = True; break
                 nodes += 1; extended = path+[current['raw']+':'+response]
                 try:
                     following = self.bridge(sid, state, extended, scenario)
@@ -711,12 +815,16 @@ class Modular:
                                 'engine_effect': selected['effect'], 'effect': {'description_id': selected['effect'].get('description')}},
                                 {str(k): v for k, v in self.store.catalog.cards.items()})
                         route = steps+[step]
+                        if check and not edge.get('_keep_guide'):
+                            check['checked'] = check['total'] - len(guide) + 1
+                            if len(guide) == 1: check['status'] = 'checked'
                         new_unknown = uncertain_cards - set(current.get('_unknown_draws', []))
                         if 'forecast_meta' in ctx and new_unknown:
+                            if check: check['status'] = 'needs_observation'
                             terminal = forecast_state(following['state'], uncertain_cards)
                             slots = [c.get('location') for c in following['state']['cards'] if c.get('instance_id') in new_unknown]
                             pending_terminal = marked_terminal({}, terminal)
-                            candidates.append({'id': digest([expected, [s['edge'] for s in route]]), 'steps': route,
+                            remember({'id': digest([expected, extended, 'observation']), 'steps': route,
                                 'remaining': sum(not s['automatic'] for s in route), 'terminal': terminal,
                                 **pending_terminal,
                                 'evaluation': {**evaluation(terminal, self.store.catalog.cards), **marked_evaluation(pending_terminal)}, 'goal_met': False,
@@ -724,25 +832,40 @@ class Modular:
                                 'reason': '到达随机结果步骤，请填写实际抽牌或堆墓结果后继续计算',
                                 'robustness': {'status': 'unassessed', 'scenarios': []}, 'path': extended, 'token': expected})
                             continue
-                        if edge['terminal'] and bytes.fromhex(following['raw'])[0] in (10,11) and not following['state'].get('chain_depth') and terminal_matches(edge,following['state'],route,actual_history,ctx['precise']):
+                        terminals = []
+                        visible_terminal = forecast_state(following['state'], uncertain_cards)
+                        if bytes.fromhex(following['raw'])[0] in (10,11) and not following['state'].get('chain_depth'):
+                            for goal_edge in marked_goals:
+                                if not condition_matches(goal_edge.get('if_condition'), if_memory.get('facts', []), following['state']): continue
+                                marked = satisfied_marked_terminal(goal_edge, visible_terminal, ctx['precise'])
+                                if marked: terminals.append((goal_edge, marked))
+                            if edge['terminal'] and (not forecast or not edge.get('terminal_marks')) and terminal_matches(edge,following['state'],route,actual_history,ctx['precise']):
+                                terminals.append((edge, marked_terminal(edge, visible_terminal, ctx['precise'])))
+                        reached_goals = set()
+                        for goal_edge, marked in terminals:
                             if any(c.get('instance_id') in uncertain_cards and c.get('location') in (4,8) for c in following['state']['cards']):
                                 unknown=True;continue
-                            terminal = forecast_state(following['state'],uncertain_cards)
-                            marked = marked_terminal(edge, terminal, ctx['precise'])
+                            terminal = visible_terminal
                             ev = evaluation(terminal, self.store.catalog.cards)
-                            if 'forecast_meta' in ctx: ev.update(marked_evaluation(marked))
+                            if forecast: ev.update(marked_evaluation(marked))
                             actual = Counter(c.get('code') for c in terminal['cards'] if c.get('controller') == 0 and c.get('location') in (4, 8))
-                            candidate = {'id': digest([expected, [s['edge'] for s in route]]), 'steps': route,
-                                'terminal_source':edge['source'], 'terminal_if':edge.get('if_condition'),
+                            candidate = {'id': digest([expected, extended, goal_edge['id']]) if forecast else digest([expected, [s['edge'] for s in route]]), 'steps': route,
+                                'terminal_goal_id': goal_edge['id'], 'terminal_source':goal_edge['source'], 'terminal_if':goal_edge.get('if_condition'),
                                 'remaining': sum(not s['automatic'] for s in route), 'terminal': terminal, 'evaluation': ev, **marked,
                                 'goal_met': not (Counter(goal)-actual), 'conditional': condition,
                                 'validation': 'conditional' if condition else 'engine_verified',
-                                'reason': '每次选择均来自来源方案；隔离引擎已到达对应场上目标，手牌与可用权限按本局实际资源显示',
+                                'reason': '路径来自来源中的合法决策与空响应确认；引擎已到达标记终场目标，未标记中间牌不作为终场要求' if forecast else '每次选择均来自来源方案；隔离引擎已到达对应场上目标，手牌与可用权限按本局实际资源显示',
                                 'robustness': {'status': 'unassessed', 'scenarios': []},
                                 'path': extended, 'token': expected}
                             candidate['original_goal_met'] = original_goal_met(ctx,terminal)
-                            candidates.append(candidate)
-                        remaining_guide = guide[1:] if guide else None
+                            remember(candidate)
+                            if candidate['goal_met']: reached_goals.add(goal_edge['id'])
+                        if marked_goals and all(g['id'] in reached_goals for g in marked_goals):
+                            # No extra play can improve a marked goal already
+                            # satisfied here. Explore earlier alternatives next.
+                            if check: check['status'] = 'goal_reached'
+                            continue
+                        remaining_guide = (guide if edge.get('_keep_guide') else guide[1:]) if guide else None
                         queue_key = (tuple(extended), remaining_guide[0]['id'] if remaining_guide else None)
                         if queue_key not in queued_paths:
                             queued_paths.add(queue_key)
@@ -751,19 +874,21 @@ class Modular:
                                 queue.appendleft(continuation)
                             else: queue.append(continuation)
                 except ValueError as error:
+                    if check: check.update(status='blocked', reason=message(str(error)))
                     if 'stale' in str(error): raise
                     if 'limit' in str(error): limited = True
                     elif 'unknown' in str(error) or str(error) in ('ai_unavailable', 'script_error', 'prompt_changed'): unknown = True
                     else: rejected[str(error)] += 1
-        unique = {c['id']: c for c in candidates}
-        candidates = list(unique.values())
+        candidates = list(candidates.values()) if forecast else list({c['id']: c for c in candidates}.values())
+        verified_nodes = budget_used()
         if scenario == 0 and candidates and state['state'].get('turn_player') == 0:
             # One named, repeatable interference model; no claims beyond its scope.
             stress = self.search(sid, scenario=1, limits={**bounds, 'seconds': min(4, bounds['seconds']), 'nodes': min(80, bounds['nodes'])})
             for candidate in candidates:
                 key = candidate['steps'][0]['decision']
                 alternatives = [c for c in stress['candidates'] if c['steps'][0]['decision'] == key]
-                retained = any(terminal_key(c['terminal']) == terminal_key(candidate['terminal']) and resource_rank(c['evaluation']) >= resource_rank(candidate['evaluation']) for c in alternatives)
+                declared_goal = next((g for g in marked_goals if g['id'] == candidate.get('terminal_goal_id')), None)
+                retained = any(satisfied_marked_terminal(declared_goal, c['terminal'], ctx['precise']) for c in alternatives) if declared_goal else any(terminal_key(c['terminal']) == terminal_key(candidate['terminal']) and resource_rank(c['evaluation']) >= resource_rank(candidate['evaluation']) for c in alternatives)
                 candidate['robustness'] = {'status': 'evaluated' if alternatives or not stress['limited'] else 'limited',
                     'scenarios': [{'name': '假设对手手牌只有一张灰流丽，沿用内置基础 AI 响应',
                                    'continued': bool(alternatives), 'limited': stress['limited'],
@@ -775,14 +900,21 @@ class Modular:
             for candidate in candidates:
                 signature = digest(candidate['terminal'])
                 if signature not in evaluated:
-                    evaluated[signature] = self.evaluate_terminal(sid, state, candidate) if time.monotonic() < evaluation_deadline else {
+                    evaluated[signature] = {'confirmed_response': 0, 'interruptions': None,
+                        'response_evaluation': '未评估未来对手回合；临时方案按来源标记比较终场'} if forecast else self.evaluate_terminal(sid, state, candidate) if time.monotonic() < evaluation_deadline else {
                         'confirmed_response': 0, 'interruptions': None, 'response_evaluation': '未评估：本次终场评价达到计算边界'}
                 candidate['evaluation'].update(evaluated[signature])
         # Always keep attainable alternatives when the desired goal is unavailable.
         self.rank(candidates, preference)
+        if forecast: candidates = candidates[:bounds['candidates']]
         result = {'token': expected, 'candidates': candidates, 'preference': preference, 'precise':ctx['precise'],
                   'status': 'found' if candidates else 'limited' if limited else 'incomplete' if unknown or any(e['status'] != 'ready' for e in self.library.entries.values() if e['id'] in ctx['selected']) else 'no_route',
-                  'limited': limited, 'nodes': nodes, 'seconds': round(time.monotonic()-start, 3), 'limits': bounds,
+                  'limited': limited, 'nodes': nodes, 'new_verifications': verified_nodes,
+                  'seconds': round(time.monotonic()-start, 3), 'limits': bounds,
+                  'complete': not limited and not unknown and (scenario != 0 or preference != 'safest' or all(c['robustness']['status'] == 'evaluated' for c in candidates)),
+                  'coverage': {'total': len(source_checks),
+                               'checked': sum(c['status'] not in ('queued', 'checking') for c in source_checks.values()),
+                               'routes': list(source_checks.values())},
                   'evaluation_limits': {'interference_seconds': 4, 'terminal_seconds': 4, 'terminal_probe_seconds': 2.5},
                   'rejected': dict(rejected), 'start': self.visible_state(state), 'goal': goal,
                   'notice': '范围仅限所选来源与搜索预算，不代表规则上无解；未知对手信息、随机结果和未评估阻抗不会标成确定成功'}

@@ -23,9 +23,9 @@ module.exports=async({page,root,evidence,pass})=>{
   await page.locator('#duel-brain-preference').selectOption('balanced');
   await page.waitForFunction(()=>!duelState().forecast.busy);
   const warm=await page.evaluate(()=>duelState().forecast.data.result);
-  assert.equal(warm.cache.result_hit,true);assert.equal(warm.cache.probe_misses,0);
+  assert.equal(warm.cache.result_hit,false);assert(warm.cache.probe_hits>0);
   fs.writeFileSync(path.join(evidence,'planning-cache-timing.json'),JSON.stringify({cold:diagnostic.data.result.seconds,warm:warm.seconds,cache:warm.cache},null,2));
-  pass(`Repeated forecast reuses candidates without engine calls (${diagnostic.data.result.seconds}s cold, ${warm.seconds}s warm)`);
+  pass(`Preference change searches again while reusing verified probes (${diagnostic.data.result.seconds}s first, ${warm.seconds}s reranked)`);
   await page.evaluate(async source=>{duelState().forecast.selected=[source.plan];renderDuel();await searchDuelBrain();},source);
   const changedSources=await page.evaluate(()=>duelState().forecast.data.result);
   assert.equal(changedSources.cache.result_hit,false,'A changed source set cannot reuse stale candidates');

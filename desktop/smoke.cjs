@@ -13,7 +13,7 @@ const onlyCompromise=process.argv.includes('--compromise-only');
 const onlySelection=process.argv.includes('--selection-only');
 const onlyDuel=process.argv.includes('--duel-only');
 const onlyModular=process.argv.includes('--modular-only');
-const modularSuite=Object.entries({if:'YGO_MODULAR_IF_ONLY',mechanics:'YGO_MODULAR_MECHANICS_ONLY',precision:'YGO_MODULAR_PRECISION_ONLY',preferences:'YGO_MODULAR_PREFERENCES_ONLY',routes:'YGO_MODULAR_ADDITIONAL_ONLY',cross:'YGO_MODULAR_CROSS_ONLY',pipeline:'YGO_MODULAR_PIPELINE_ONLY',forecast:'YGO_MODULAR_FORECAST_ONLY'}).find(([,key])=>process.env[key]==='1')?.[0]||'core';
+const modularSuite=Object.entries({if:'YGO_MODULAR_IF_ONLY',mechanics:'YGO_MODULAR_MECHANICS_ONLY',precision:'YGO_MODULAR_PRECISION_ONLY',preferences:'YGO_MODULAR_PREFERENCES_ONLY',routes:'YGO_MODULAR_ADDITIONAL_ONLY',cross:'YGO_MODULAR_CROSS_ONLY',planning:'YGO_MODULAR_PLANNING_ONLY',pipeline:'YGO_MODULAR_PIPELINE_ONLY',forecast:'YGO_MODULAR_FORECAST_ONLY'}).find(([,key])=>process.env[key]==='1')?.[0]||'core';
 const profileSuffix=onlyModular?'-modular-'+modularSuite:onlyCompromise?'-compromise':onlySelection?'-selection':onlyDuel?'-duel':'';
 const runLabel=process.env.YGO_TEST_RUN||'';
 assert(/^[a-z0-9-]*$/.test(runLabel),'Isolated test run label must contain only letters, digits and hyphens');
@@ -34,7 +34,7 @@ if (packaged) env.PATH = path.join(process.env.SystemRoot, 'System32');
 function pass(text) { checks.push(text); console.log(`PASS ${text}`); }
 async function launch(first = false, testControl = true) {
   const args = [...(packaged ? [] : [workspace]), '--data-dir', root];
-  if (first) args.push('--import-from', path.join(workspace, '.local', 'YGOPro-Lite'));
+  if (first) args.push('--import-from', process.env.YGO_DESKTOP_TEST_SOURCE || path.join(workspace, '.local', 'YGOPro-Lite'));
   application = await electron.launch({ executablePath: executable, args,
     env: {...env, YGO_DESKTOP_TEST: testControl ? '1' : '0'}, timeout: 120000 });
   page = await application.firstWindow();

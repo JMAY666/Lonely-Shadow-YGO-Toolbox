@@ -44,3 +44,11 @@ def marked_evaluation(terminal):
             'marked_effects': sum(sum(bool(v) for v in t['mark'].get('effects', {}).values()) for t in active),
             'mark_status': terminal['terminal_mark_status'],
             'basis': '终场只按来源标记且匹配当前区域的卡牌数、标记效果数比较；未标记资源不计分，标记效果不等于可用阻抗次数'}
+
+
+def satisfied_marked_terminal(edge, state, precise=False):
+    """Unmarked incidental cards are not prerequisites for a declared goal."""
+    result = marked_terminal(edge, state, precise)
+    if result['terminal_mark_status'] != 'complete': return None
+    if any(t['card'].get('disabled') for t in result['terminal_targets']): return None
+    return result
