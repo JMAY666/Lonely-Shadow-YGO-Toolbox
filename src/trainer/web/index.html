@@ -31,6 +31,7 @@
     <button id="module-decks" data-module-target="decks" class="module-link"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="3" width="12" height="17" rx="2"/><path d="M5 6H3v15h12v-1m-3-13h4m-4 4h4"/></svg><span>卡组编辑</span></button>
     <button id="module-expansion" data-module-target="expansion" class="module-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4v8h13M5 12v8m13-15v7m0-7-3 3m3-3 3 3"/><circle cx="5" cy="4" r="2"/><circle cx="5" cy="20" r="2"/><circle cx="18" cy="19" r="2"/><path d="M18 12v5"/></svg><span>展开</span><small id="module-expansion-status" hidden>进行中</small></button>
     <button id="module-duel" data-module-target="duel" class="module-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 3 17 17m-1-17L3 20M3 3l1 5 4-4M21 3l-1 5-4-4M2 16l6 6m8 0 6-6"/></svg><span>决斗</span></button>
+    <button id="module-modular" data-module-target="modular" class="module-link"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="3" width="7" height="7" rx="2"/><rect x="15" y="14" width="7" height="7" rx="2"/><path d="M9 6h9v8M5 10v8h10"/></svg><span>模块化</span></button>
     <button id="module-tags" data-module-target="tags" class="module-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h8l10 10-8 8L3 11Z"/><circle cx="8" cy="8" r="1.5"/></svg><span>TAG 管理</span></button>
   </nav>
 </aside>
@@ -68,6 +69,15 @@
       <div class="selection-tools"><p>悬停查看详情 · 点击固定 · 在浮层中添加起手候选标记</p><span id="selection-picked-count">已标记 0 张</span><button id="copy-selection-names" disabled title="同名合并，以 + 分隔">复制标记卡名</button><button id="clear-selection-picks" disabled>清空标记</button></div>
       <div id="selection-cards" aria-label="卡组卡牌预览"></div>
     </div>
+  </section>
+  <section id="modular" class="modular-page" aria-label="模块化展开" hidden>
+    <header class="modular-heading"><div><div class="eyebrow">DATA &amp; DECISION HUB</div><h1>模块化</h1><p>汇集卡组与展开原始数据，为决斗提供可追溯的路线和决策。</p></div><button id="modular-refresh">刷新来源状态</button></header>
+    <div id="modular-data" class="modular-data" aria-label="数据来源与调用方"></div>
+    <div class="modular-setup">
+      <section class="modular-panel"><h2>展开提供的来源模块</h2><details><summary>用固定起手验证调度（可选）</summary><label>卡组<select id="modular-deck"></select></label><label>实际起手卡号（空格分隔，可重复）<input id="modular-hand" type="text" placeholder="也可先在展开中配置起手，再进入此页面"></label><button id="modular-start">使用此起手开始</button></details><p>已进行中的展开直接使用当前局面；先后手和对手配置可在原展开前置设计中设置。</p><div id="modular-sources"></div></section>
+      <section class="modular-panel"><h2>路线偏好</h2><label><input id="modular-precise" type="checkbox"> 精确匹配</label><p id="modular-matching">默认自适应匹配；调整区域细节后仍需逐步通过规则引擎。</p><label>排序<select id="modular-preference"><option value="shortest">步骤最少</option><option value="largest">终场最大</option><option value="safest">稳妥优先</option></select></label><label>希望终场保留的场上卡号（可留空）<input id="modular-goal" type="text" placeholder="目标无法到达时仍展示替代终场"></label><div class="modular-toolbar"><button id="modular-search" class="primary">从当前局面查找路线</button><button id="modular-auto" aria-pressed="false">启用内置 YGO AI</button><button id="modular-finish">展开结束</button></div><p id="modular-status" role="status">手动模式 · 进入页面不会自动操作</p></section>
+    </div>
+    <div class="modular-workspace"><section><h2>当前真实局面</h2><p id="modular-snapshot"></p><div id="modular-current-cards" class="modular-cards"></div><div id="modular-field"></div><details><summary>路线变化与执行记录</summary><p>以下输入已由引擎进入后继快照；效果是否成功以实际结算为准。</p><ol id="modular-actual"></ol><pre id="modular-audit"></pre></details></section><section><h2>可达路线与终场</h2><div id="modular-routes"></div></section></div>
   </section>
   <section id="editor" aria-label="卡组编辑工作区" hidden>
     <div id="design-deck-edit" class="training-banner" hidden><strong id="design-deck-edit-title"></strong><span>应用后只更新本次前置设计。也可以从卡组管理中选择或导入其他卡组。</span><button id="cancel-design-deck-edit">取消编辑并返回</button></div>
@@ -189,7 +199,7 @@
   </dialog>
   <dialog id="flow-dialog" class="delete-dialog" aria-labelledby="flow-message"><form method="dialog"><h2 id="flow-message"></h2><p id="flow-warning"></p><div class="delete-actions"><button id="flow-cancel" value="cancel" autofocus>取消</button><button id="flow-confirm" value="confirm">确认</button></div></form></dialog>
   <section id="training" hidden aria-label="展开场地">
-    <header class="training-toolbar"><div><h2 id="training-title">展开场地</h2><p id="training-description">过程正在记录，展开结束后检查草稿并保存方案。</p><span id="expansion-timer" hidden></span><span id="timer-expired" role="status" hidden>倒计时已结束，场地可继续操作。</span></div><button id="training-report">查看记录</button><button id="return-conditions">返回修改条件</button><button id="restart-expansion">重新展开</button><button id="finish-training" class="danger">展开结束</button></header>
+    <header class="training-toolbar"><div><h2 id="training-title">展开场地</h2><p id="training-description">过程正在记录，展开结束后检查草稿并保存方案。</p><span id="expansion-timer" hidden></span><span id="timer-expired" role="status" hidden>倒计时已结束，场地可继续操作。</span></div><button id="training-modular">模块化续展</button><button id="training-report">查看记录</button><button id="return-conditions">返回修改条件</button><button id="restart-expansion">重新展开</button><button id="finish-training" class="danger">展开结束</button></header>
     <div id="native-stage">
       <aside id="expansion-timeline" aria-label="展开时间轴">
         <header><h3>展开时间轴</h3><small>回到某一步完成后的场地</small></header>
@@ -267,7 +277,8 @@
   <p id="plan-tutorial-status" role="status"></p>
 </dialog>
 <script src="/deck-tag-view.js"></script><script src="/activation.js"></script><script src="/report-view.js"></script><script src="/deck-manager.js"></script><script src="/app.js"></script><script src="/expansion.js"></script><script src="/timeline.js"></script><script src="/review.js"></script><script src="/plan-tutorial.js"></script><script src="/plan-library.js"></script><script src="/tag-manager.js"></script><script src="/compromise.js"></script><script src="/compromise-tutorial.js"></script>
-<script src="/deck-selection.js"></script><script src="/modules.js"></script>
+<link rel="stylesheet" href="/modular.css">
+<script src="/modular.js"></script><script src="/deck-selection.js"></script><script src="/modules.js"></script>
 <script src="/deck-tags.js"></script>
 <script src="/deck-appearance.js"></script><script src="/duel-model.js"></script><script src="/tutorial-bindings.js"></script><script src="/duel.js"></script>
 </body>

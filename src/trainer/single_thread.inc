@@ -179,6 +179,7 @@
         if(result & PROCESSOR_END) break;
     }
     TrainingFinish(pduel, "engine_ended");
+    TrainingModularClose();
     end_duel(pduel);
     pduel = 0;
     if(!is_closing) {

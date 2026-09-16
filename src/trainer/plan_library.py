@@ -80,6 +80,7 @@ class PlanLibrary:
             if not backup.exists(): self.write(backup, plan)
             plan['classification'] = selected
             plan['edit_revision'] = plan.get('edit_revision', 0) + 1
+            self.store.modular.sources_changing([plan['id']])
             self.write(target, plan)
             return plan
 
@@ -168,6 +169,7 @@ class PlanLibrary:
             imported = deepcopy(plan)
             imported.update(id=identifier, selected_deck='', plan_stage='saved', saved_ms=self.clock(), edit_revision=1,
                             classification=selection, imported=True, import_fingerprint=digest)
+            self.store.modular.sources_changing([identifier])
             if vocabulary != self.document():
                 original_vocabulary = self.document()
                 vocabulary['revision'] += 1

@@ -30,10 +30,14 @@
       let previous = anchor;
       steps.forEach((step, index) => {
         const node = add(route, step, (anchor ? anchor.column + 1 : 0) + index, row);
-        if (previous) edges.push({from:previous.key,to:node.key,branch:!!anchor && index === 0,
+        if (previous && (!route.model.stepLinks || anchor && index === 0)) edges.push({from:previous.key,to:node.key,branch:!!anchor && index === 0,
           label:anchor && index === 0 ? `${route.label} · ${route.source.timing || '分叉'}` : route.label});
         previous = node;
       });
+      if(route.model.stepLinks)for(const link of route.model.stepLinks) {
+        const from=route.id+'/'+link.from,to=route.id+'/'+link.to;
+        if(byId.has(from)&&byId.has(to))edges.push({...link,from,to,branch:false,label:route.label});
+      }
     });
     return {nodes,edges,start:nodes.find(n => n.route === 'main' && n.id !== 'initial')?.key || nodes[0]?.key};
   }

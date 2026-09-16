@@ -53,6 +53,7 @@ function displayView(view) {
   if (view !== 'decks') setLibraryOpen(false, false);
   $('#home').hidden = view !== 'home';
   $('#duel').hidden = view !== 'duel';
+  $('#modular').hidden = view !== 'modular';
   const selecting = view === 'decks' && typeof moduleUI !== 'undefined' && moduleUI.current === 'expansion' && !activeDesignDeckEdit();
   $('#editor').hidden = view !== 'decks' || selecting;
   $('#deck-selection').hidden = !selecting;
@@ -74,8 +75,14 @@ function displayView(view) {
 }
 async function syncNativeHost() {
   if (!window.trainerDesktop) return;
-  if ($('#training').hidden || (typeof flow !== 'undefined' && flow.confirming) || (typeof rewindState !== 'undefined' && rewindState.busy)) return window.trainerDesktop.updateLayout({visible:false});
+  const brainVisible=typeof modularFieldVisible==='function'&&modularFieldVisible();
+  if (($('#training').hidden && ($('#modular').hidden || !app.active) && !brainVisible) || (typeof flow !== 'undefined' && flow.confirming) || (typeof rewindState !== 'undefined' && rewindState.busy)) return window.trainerDesktop.updateLayout({visible:false});
   const box = $('#native-stage').getBoundingClientRect();
+  if (!$('#modular').hidden || brainVisible) {
+    const top=Math.max(box.y,0),left=Math.max(box.x,0),width=Math.min(box.right,innerWidth)-left,height=Math.min(box.bottom,innerHeight)-top;
+    if(width<200||height<200)return window.trainerDesktop.updateLayout({visible:false});
+    return window.trainerDesktop.updateLayout({visible:true,x:left,y:top,width,height,viewportWidth:innerWidth,viewportHeight:innerHeight,timeline:true});
+  }
   return window.trainerDesktop.updateLayout({visible:true,x:box.x,y:box.y,width:box.width,height:box.height,
     viewportWidth:window.innerWidth,viewportHeight:window.innerHeight, timeline:true});
 }
@@ -604,6 +611,13 @@ async function saveDeck() {
   } finally { app.busy = false; dirty(); updateDetailCounts(); }
 }
 async function refreshHistory(){
+  // Large frozen module sources must not cause overlapping polling requests
+  // to continually supersede each other and leave a stopped duel visible.
+  if(app.historyPending)return app.historyPending;
+  app.historyPending=refreshHistoryOnce();
+  try{return await app.historyPending;}finally{app.historyPending=null;}
+}
+async function refreshHistoryOnce(){
   const previous=app.active;
   const generation=app.historyGeneration=(app.historyGeneration||0)+1;
   const history=await api('/api/history');

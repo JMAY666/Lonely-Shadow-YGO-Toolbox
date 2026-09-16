@@ -1,6 +1,6 @@
 {
   "name": "lonely-shadow-yu-gi-oh-toolbox",
-  "version": "1.15.2",
+  "version": "1.16.0",
   "private": true,
   "description": "Lonely-Shadow-Yu-Gi-Oh-Toolbox：卡组编辑、展开练习、方案管理与 BO1 决斗辅助",
   "main": "desktop/main.cjs",
@@ -16,7 +16,9 @@
     "test:packaged": "node desktop/package-branding-check.cjs && node desktop/smoke.cjs --packaged",
     "test:deletion": "node desktop/deletion-smoke.cjs",
     "build:icons": "electron scripts/build-icons.cjs",
-    "test:upgrade": "node desktop/upgrade-smoke.cjs"
+    "test:upgrade": "node desktop/upgrade-smoke.cjs",
+    "test:modular": "node scripts/test-modular.cjs",
+    "test:modular:packaged": "node scripts/test-modular.cjs --packaged"
   },
   "devDependencies": {
     "electron": "44.3.0",
@@ -28,7 +30,7 @@
     "productName": "Lonely-Shadow-Yu-Gi-Oh-Toolbox",
     "asar": true,
     "directories": {
-      "output": "release/1.15.2"
+      "output": "release/1.16.0"
     },
     "files": [
       "desktop/main.cjs",

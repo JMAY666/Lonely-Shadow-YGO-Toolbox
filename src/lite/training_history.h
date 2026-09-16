@@ -28,4 +28,5 @@ bool TrainingOpponentTick(intptr_t engine, const std::vector<unsigned char>& pro
 void TrainingPublishOpponent(intptr_t engine, const unsigned char* prompt, size_t len);
 bool TrainingAutoResponse(intptr_t engine, int prompt);
 bool TrainingRetry(intptr_t engine);
+void TrainingModularClose();
 }

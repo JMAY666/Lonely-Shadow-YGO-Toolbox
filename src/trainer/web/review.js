@@ -28,7 +28,7 @@ function reviewRandomDraw(c,node=reviewNode(),report=reviewUI.report) {
     }
     reviewDrawCache.set(report,draws);
   }
-  const n=node==='final'?{kind:'final'}:typeof node==='string'?(report.review?.nodes||reviewUI.nodes).find(n=>n.id===node):node;
+  const n=node==='final'?{kind:'final'}:typeof node==='string'?reviewNodes(report).find(n=>n.id===node):node;
   const refs=(n?.action_ids||[]).flatMap(id=>(report.actions||[]).find(a=>a.id===id)?.evidence_refs||[id]);
   const end=n?.kind==='final'?Infinity:n?.state_ref??n?.range?.[1]??Math.max(0,...refs.map(id=>Number(String(id).split(':')[0])||0));
   return reviewDrawCache.get(report).get(String(c.instance_id))?.find(d=>d.seq<=end)||null;
@@ -59,6 +59,45 @@ function reviewFallback(r) {
   nodes.push({id:'final',kind:'final',state:final,state_ref:r.final_state_ref,action_ids:[]});
   return nodes.map((n,i)=>({...n,number:i+1}));
 }
+function reviewModuleNode(node, report=reviewUI.report) {
+  const graph=report?.review?.module_graph;
+  if(!graph||!node?.module_id)return node;
+  const module=graph.modules.find(m=>m.id===node.module_id);
+  return {...node,state:module?.state??null,module_status:module?.status||'incomplete',
+    previous:graph.step_links.filter(e=>e.to===node.id).map(e=>e.from),
+    next:graph.step_links.filter(e=>e.from===node.id).map(e=>e.to)};
+}
+function reviewNodes(report) {
+  if(!report)return [];
+  const steps=report.review?.nodes||reviewFallback(report),graph=report.review?.module_graph;
+  if(!graph)return steps;
+  const byId=new Map(steps.map(n=>[n.id,n]));
+  return graph.step_order.map(id=>byId.get(id)).filter(Boolean).map(n=>reviewModuleNode(n,report));
+}
+function reviewAdjacent(node,direction,report=reviewUI.report) {
+  const nodes=report?.review?reviewNodes(report):reviewUI.nodes;
+  if(report?.review?.module_graph) {
+    const ids=reviewModuleNode(node,report)[direction==='back'?'previous':'next'];
+    return nodes.find(n=>n.id===ids[0]);
+  }
+  return nodes[nodes.findIndex(n=>n.id===node.id)+(direction==='back'?-1:1)];
+}
+// Project module connectivity through compacted/hidden action groups. Skipping
+// a visible Step never creates an executable edge or erases its decision path.
+function reviewStepLinks(report, visibleIds) {
+  const graph=report.review?.module_graph;if(!graph)return null;
+  const visible=new Set(visibleIds),result=[];
+  for(const start of visible) {
+    const queue=graph.step_links.filter(e=>e.from===start).map(e=>({...e,seen:new Set([start])}));
+    while(queue.length) {
+      const edge=queue.shift();if(edge.seen.has(edge.to))continue;
+      if(visible.has(edge.to)){result.push({from:start,to:edge.to,module_path:edge.module_path,status:edge.status});continue;}
+      const seen=new Set([...edge.seen,edge.to]);
+      for(const next of graph.step_links.filter(e=>e.from===edge.to))queue.push({...next,seen,module_path:[...edge.module_path,...next.module_path]});
+    }
+  }
+  return result;
+}
 function mountReview(r) {
   if(typeof adoptBranchRoot==='function' && !r._route)adoptBranchRoot(r);
   const changed=reviewUI.report?.id!==r.id;
@@ -72,7 +111,7 @@ function mountReview(r) {
   } else if(!editable)flow.draft=null;
   const same=reviewUI.report?.record_count===r.record_count && reviewUI.report?.status===r.status && reviewUI.report?.edit_revision===r.edit_revision && reviewUI.report?.plan_stage===r.plan_stage && !changed;
   reviewUI.report=r;
-  reviewUI.nodes=r.review?.nodes || reviewFallback(r);
+  reviewUI.nodes=reviewNodes(r);
   if(changed || !reviewUI.nodes.some(n=>n.id===reviewUI.node)) {
     reviewUI.node=reviewUI.nodes[0].id;reviewUI.selected=null;reviewUI.zone=null;reviewUI.pending=null;
   }
@@ -157,6 +196,7 @@ function boardSide(n, side, report=reviewUI.report) {
     ${boardCards(n,side,8).some(c=>c.sequence>=6)?`<div class="legacy-pendulum">${[6,7].map(i=>boardSlot(n,side,8,i,i===6?'记录中的左灵摆位':'记录中的右灵摆位',report)).join('')}</div>`:''}</div>`;
 }
 function renderBoard(n, report=reviewUI.report) {
+  n=reviewModuleNode(n,report);
   if(!n.state)return '<div class="review-unavailable">此节点未记录完整状态。原始动作仍可查看，不能用终场代替本步场面。</div>';
   const extra=(n.state.cards||[]).filter(c=>c.location===4&&c.sequence>=5&&!c.overlay_target);
   const shared=[0,1].map(i=>`<div class="board-slot shared-slot"><span class="slot-label">共享额外怪兽区 ${i+1}</span>${extra.filter(c=>(c.controller===0?c.sequence-5:6-c.sequence)===i).map(c=>reviewCard(c,n.id,{report,materials:reviewMaterials(n,c).length})).join('')||'<span class="vacant">—</span>'}</div>`).join('');
@@ -166,8 +206,8 @@ function renderBoard(n, report=reviewUI.report) {
 function renderReviewNode() {
   const n=reviewNode();if(!n)return;
   const editable=!!flow.draft, edit=reviewEdits().nodes[n.id]||{};
-  const index=reviewUI.nodes.indexOf(n);
-  $('#review-center').innerHTML=`<header class="review-node-header"><div><small>Step ${n.number} / ${reviewUI.nodes.length}</small><h2 id="current-node-title">${escape(reviewTitle(n))}</h2></div><div><button data-review-node="${escape(reviewUI.nodes[Math.max(0,index-1)].id)}" ${index===0?'disabled':''} aria-label="上一步">←</button><button data-review-node="${escape(reviewUI.nodes[Math.min(reviewUI.nodes.length-1,index+1)].id)}" ${index===reviewUI.nodes.length-1?'disabled':''} aria-label="下一步">→</button><button id="review-log-toggle" aria-controls="review-log" aria-expanded="${reviewUI.drawer}">${reviewUI.drawer?'收起':'展开'}日志</button></div></header>
+  const previous=reviewAdjacent(n,'back'),following=reviewAdjacent(n,'forward');
+  $('#review-center').innerHTML=`<header class="review-node-header"><div><small>Step ${n.number} / ${reviewUI.nodes.length}</small><h2 id="current-node-title">${escape(reviewTitle(n))}</h2></div><div><button data-review-node="${escape(previous?.id||n.id)}" ${!previous?'disabled':''} aria-label="上一步">←</button><button data-review-node="${escape(following?.id||n.id)}" ${!following?'disabled':''} aria-label="下一步">→</button><button id="review-log-toggle" aria-controls="review-log" aria-expanded="${reviewUI.drawer}">${reviewUI.drawer?'收起':'展开'}日志</button></div></header>
     <p class="review-detail-help">悬停卡牌查看信息，点击可固定；素材详情可返回上一级。</p>
     <div class="review-board">${renderBoard(n)}</div><div id="review-zone-content" class="review-zone-popover" role="dialog" aria-label="区域卡牌" hidden></div>${n.kind==='final'?`<section id="review-final-marks" class="node-explanation">${reviewFinalCards(n)}</section>`:''}
     <div class="node-explanation"><label for="review-step-name">步骤名称 <small>留空使用默认名称</small></label><input id="review-step-name" maxlength="80" value="${escape(edit.name||'')}" ${editable?'':'disabled'}><label for="review-step-notes">${n.kind==='final'?'终场整体说明':'步骤备注'}</label><textarea id="review-step-notes" maxlength="4000" rows="3" ${editable?'':'disabled'} placeholder="操作目的、关键选择或注意事项">${escape(edit.notes||'')}</textarea>
@@ -184,7 +224,7 @@ function renderReviewNode() {
 }
 function provenance(card,n,r=reviewUI.report) {
   if(!reviewKnown(card)||card.instance_id===undefined||card.instance_id===null)return [];
-  const nodes=r.review?.nodes||(r===reviewUI.report?reviewUI.nodes:reviewFallback(r)), id=card.instance_id, end=n.state_ref??(n.kind==='final'?Infinity:0), result=[];
+  const nodes=reviewNodes(r), id=card.instance_id, end=n.state_ref??(n.kind==='final'?Infinity:0), result=[];
   if((r.initial_hand||[]).some(c=>c.instance_id===id))result.push({node:nodes[0]||n,text:'本次实际初始手牌'});
   for(const e of r.events||[]) {
     if(e.native_seq>end || !(e.cards||[]).some(c=>c.instance_id===id))continue;
@@ -249,7 +289,7 @@ function openReviewDetail(button,{hover=false}={}) {
   const inside=!!button.closest('#review-card-popover');
   if(hover&&reviewUI.detailPinned&&!inside)return;
   const r=(app.view==='history'&&item.report?.id===reviewUI.report?.id?reviewUI.report:item.report)||reviewUI.report;
-  const nodes=r.review?.nodes||(r===reviewUI.report?reviewUI.nodes:reviewFallback(r));
+  const nodes=reviewNodes(r);
   const n=nodes.find(n=>n.id===item.node);if(!n)return;
   const current=(n.state?.cards||[]).find(c=>c.instance_id!=null&&c.instance_id===item.card.instance_id)||item.card;
   cancelReviewHover();
@@ -308,11 +348,12 @@ function closeReviewDetail(focus=false) {
   reviewUI.selected=null;reviewUI.anchor=null;reviewUI.detailNode=null;reviewUI.detailReport=null;reviewUI.detailHistory=[];reviewUI.detailPinned=false;
 }
 function reviewLogContext(report=reviewUI.report, mode=reviewUI.logMode) {
-  return {report,mode,nodes:report.review?.nodes||(report===reviewUI.report?reviewUI.nodes:reviewFallback(report)),
+  return {report,mode,nodes:report.review?reviewNodes(report):report===reviewUI.report?reviewUI.nodes:reviewNodes(report),
     edits:report===reviewUI.report?reviewEdits():{...emptyEdits(),...report.annotations},
     editable:report===reviewUI.report&&app.view==='history'&&!!flow.draft};
 }
 function renderRecordedStep(report,n,mode='compact') {
+  n=reviewModuleNode(n,report);
   const context={...reviewLogContext(report,mode),editable:false,edits:{...emptyEdits(),...report.annotations}};
   if(n.kind==='initial')return `<div class="compact-cards">${(report.initial_hand?.length?report.initial_hand:boardCards(n,0,2)).map(c=>reviewLogCard(c,n.id,{report,zone:false})).join('')}</div>`;
   if(n.kind==='final')return reviewFinalCards(n,report,context.edits,{compact:mode==='compact'});
@@ -436,11 +477,11 @@ function requirementRows(items=[], nodes=reviewUI.nodes) {
 }
 function summaryHtml(summary, savedPlan=null) {
   const edits=savedPlan?.annotations||reviewEdits();
-  const nodes=savedPlan?.review?.nodes||reviewUI.nodes;
+  const nodes=savedPlan?reviewNodes(savedPlan):reviewUI.nodes;
   return `<section class="confirmation-section"><h2>起手条件</h2>${requirementRows(summary.opening,nodes)}<p>任意牌的必要数量必须满足；身份不限不代表可以省略。</p></section>
     <section class="confirmation-section"><h2>展开使用资源</h2><h3>主卡组</h3>${requirementRows(summary.main,nodes)}<h3>EX 额外卡组</h3>${requirementRows(summary.extra,nodes)}</section>
     <section class="confirmation-section"><h2>随机依赖</h2>${summary.random?.length?`${requirementRows(summary.random,nodes)}<p class="review-warning">本路线依赖途中抽到指定卡牌，不属于已验证的稳定展开。</p>`:'<p>未识别到已使用的指定随机命中。</p>'}</section>
-    <section class="confirmation-section"><h2>终场摘要</h2>${reviewFinalCards({id:'final',state:(savedPlan||reviewUI.report).review?.nodes?.find(n=>n.kind==='final')?.state||(savedPlan||reviewUI.report).final_state},savedPlan||reviewUI.report,edits,{compact:!savedPlan})}${summary.final?.notes?`<p class="preserve-lines">${escape(summary.final.notes)}</p>`:''}</section>
+    <section class="confirmation-section"><h2>终场摘要</h2>${reviewFinalCards({id:'final',state:reviewNodes(savedPlan||reviewUI.report).find(n=>n.kind==='final')?.state||(savedPlan||reviewUI.report).final_state},savedPlan||reviewUI.report,edits,{compact:!savedPlan})}${summary.final?.notes?`<p class="preserve-lines">${escape(summary.final.notes)}</p>`:''}</section>
     <p class="review-warning">${escape(summary.basis||'按本次实际记录统计')}${(summary.warnings||[]).map(w=>'<br>'+escape(w)).join('')}</p>${summary.note?`<p class="preserve-lines">用户核对说明：${escape(summary.note)}</p>`:''}`;
 }
 async function previewReview() {
@@ -585,7 +626,7 @@ document.addEventListener('pointerout',e=>{
 });
 document.addEventListener('keydown',e=>{
   if(!e.defaultPrevented&&(typeof moduleUI==='undefined'||moduleUI.current==='expansion')&&app.view==='history'&&!document.querySelector('dialog[open]')&&['ArrowLeft','ArrowRight'].includes(e.key)&&!e.altKey&&!e.ctrlKey&&!e.metaKey&&!e.shiftKey&&!e.target.closest('input,textarea,select,[contenteditable=true],[role=dialog]')&&!reviewUI.selected&&$('#review-zone-content')?.hidden!==false) {
-    const i=reviewUI.nodes.indexOf(reviewNode()),n=reviewUI.nodes[i+(e.key==='ArrowLeft'?-1:1)];
+    const n=reviewAdjacent(reviewNode(),e.key==='ArrowLeft'?'back':'forward');
     if(n){e.preventDefault();selectReviewNode(n.id);}return;
   }
   if(e.key!=='Escape')return;
@@ -637,6 +678,7 @@ function bindReviewMarks(c,edits,editable) {
   document.querySelectorAll('[data-final-effect-note]').forEach(b=>b.oninput=()=>{get().effects[b.dataset.finalEffectNote].note=b.value;reviewUI.pending=null;refreshFinalMarks();});
 }
 function reviewFinalCards(n,report=reviewUI.report,edits=reviewEdits(),{compact=true}={}) {
+  n=reviewModuleNode(n,report);
   const cards=(n.state?.cards||[]).filter(c=>edits.final_marks?.[String(c.instance_id)]?.marked).sort((a,b)=>a.controller-b.controller||a.location-b.location||a.sequence-b.sequence);
   return `<h3>终场有效卡牌</h3><div class="marked-final-cards">${cards.map(c=>{const mark=edits.final_marks[String(c.instance_id)],parts=reviewEffectParts(report.catalog?.[c.code]?.desc);return `<article>${reviewCard(c,n.id,{report,name:true,face:true,zone:false})}${!compact?reviewLocationIcon(c):''}${!compact||![4,8].includes(c.location)?`<small class="marked-location">${escape(reviewPlace(c))}</small>`:''}${edits.cards?.[String(c.instance_id)]?.trim()?`<p class="marked-note">${escape(edits.cards[String(c.instance_id)])}</p>`:''}${parts.filter(p=>mark.effects?.[p.key]).map(p=>`<div class="marked-effect"><strong>✓ ${escape(p.label)}效果</strong>${!compact?`<p class="marked-effect-original">${escape(p.text)}</p>`:''}${mark.effects[p.key].note?.trim()?`<p class="marked-note">${escape(mark.effects[p.key].note)}</p>`:''}</div>`).join('')}</article>`;}).join('')||'<p>点击终场卡牌（含墓地、除外区）勾选标记与有效效果。</p>'}</div>`;
 }

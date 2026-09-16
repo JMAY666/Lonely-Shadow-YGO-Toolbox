@@ -50,10 +50,21 @@ def atomic_bytes(path, data):
     tmp = path.with_name(path.name + '.' + uuid.uuid4().hex + '.tmp')
     with tmp.open('xb') as f:
         f.write(data); f.flush(); os.fsync(f.fileno())
-    os.replace(tmp, path)
+    for attempt in range(20):
+        try:
+            os.replace(tmp, path)
+            break
+        except PermissionError:
+            if attempt==19:raise
+            time.sleep(.02)
 
 
-def read_json(path): return json.loads(path.read_text(encoding='utf-8'))
+def read_json(path):
+    for attempt in range(20):
+        try:return json.loads(path.read_text(encoding='utf-8'))
+        except PermissionError:
+            if attempt==19:raise
+            time.sleep(.01)
 
 
 def safe_child(root, relative):
@@ -131,8 +142,11 @@ class Store:
         self.plans.mkdir(exist_ok=True)
         self.catalog = Catalog(self.runtime)
         self.lock = threading.RLock()
+        self.history_plan_names = {}
         self.library = PlanLibrary(self, read_json, atomic_json, now)
         self.compromise = Compromise(self, read_json, atomic_json, atomic_bytes)
+        from modular import Modular
+        self.modular = Modular(self, read_json, atomic_json, atomic_bytes)
         self.processes = {}
         self.closing = False
         self.job = None
@@ -426,7 +440,13 @@ class Store:
                 if (self.plans / 'deleted' / (meta['id'] + '.json')).exists(): meta['plan_stage'] = 'deleted'
                 elif (self.plans / (meta['id'] + '.json')).exists():
                     meta['plan_stage'] = 'saved'
-                    meta['name'] = read_json(self.plans / (meta['id'] + '.json'))['name']
+                    plan = self.plans / (meta['id'] + '.json')
+                    stat = plan.stat(); stamp = (stat.st_mtime_ns, stat.st_size, stat.st_ino)
+                    cached = self.history_plan_names.get(meta['id'])
+                    if not cached or cached[0] != stamp:
+                        cached = (stamp, read_json(plan)['name'])
+                        self.history_plan_names[meta['id']] = cached
+                    meta['name'] = cached[1]
                 result.append({k: meta.get(k) for k in ('id', 'name', 'started_ms', 'ended_ms', 'status', 'end_reason', 'plan_stage', 'deck_name', 'compromise')})
             except (ValueError, OSError, KeyError, TypeError):
                 result.append({'id': p.parent.name, 'name': '记录元数据损坏（原文件保留）', 'status': 'damaged', 'started_ms': 0})
@@ -631,6 +651,8 @@ class Store:
             snapshot['requirements'] = requirements(report, annotations)
             snapshot['edit_revision'] = 1
             snapshot['classification'] = self.library.selection(snapshot)
+            self.modular.library.freeze(snapshot)
+            self.modular.sources_changing([snapshot['id']])
             atomic_json(target, snapshot)
             # The immutable plan file is the commit point. Repairable display metadata comes second.
             meta.update(plan_stage='saved', name=name)
@@ -705,6 +727,8 @@ class Store:
             plan['branches'] = edited.get('branches', [])
             plan['branches_revision'] = edited.get('branches_revision', 0)
             plan['edit_revision'] = plan.get('edit_revision', 0) + 1
+            self.modular.library.freeze(plan)
+            self.modular.sources_changing([plan['id']])
             atomic_json(target, plan)
             return plan
 
@@ -716,6 +740,7 @@ class Store:
             # Atomic removal from the formal list, with a local recovery copy / late-save tombstone.
             deleted = self.plans / 'deleted' / target.name
             deleted.parent.mkdir(exist_ok=True)
+            self.modular.sources_changing([plan['id']])
             target.replace(deleted)
             return {'id': plan['id'], 'deleted': True}
 
@@ -861,6 +886,11 @@ class Handler(BaseHTTPRequestHandler):
                 maximum = MAX_BYTES if path in ('/api/plans/import', '/api/plans/import-preview') else 1_000_000 if path == '/api/tags/save' else 100_000
                 if not 0 < length < maximum: raise ValueError('请求长度无效，分享文件上限为 20 MB')
                 body = json.loads(self.rfile.read(length))
+                if path == '/api/modular/dispatch': return self.send(store.modular.dispatch(body))
+                if path == '/api/modular/configure': return self.send(store.modular.configure(body))
+                if path == '/api/modular/search': return self.send(store.modular.public_result(store.modular.search(body['id'])))
+                if path == '/api/modular/execute': return self.send(store.modular.execute(body))
+                if path == '/api/modular/auto': return self.send(store.modular.automatic(body))
                 if path == '/api/tags/save': return self.send(store.library.edit_tag(body))
                 if path == '/api/plans/classify': return self.send(store.library.save_selection(body))
                 if path == '/api/plans/import-preview': return self.send(store.library.import_document(body, preview=True))
@@ -871,8 +901,7 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/duel/settings': return self.send(store.duel_settings(body))
                 if path == '/api/decks/delete': return self.send(store.delete_deck(body))
                 if path == '/api/duel/match':
-                    from duel import match
-                    return self.send(match(store, body))
+                    return self.send(store.modular.dispatch({**body,'consumer':'duel','intent':'match'})['result'])
                 if path == '/api/decks/rename': return self.send(store.rename_deck(body))
                 if path == '/api/desktop/layout' and store.host: return self.send(store.host.layout(body, store))
                 if path == '/api/native/test' and store.host: return self.send(store.host.test_event(store, body))
@@ -893,6 +922,12 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/shutdown':
                     self.send({'ok': True}); threading.Thread(target=self.server.shutdown, daemon=True).start(); return
             else:
+                if path == '/api/modular/data': return self.send(store.modular.data())
+                if path == '/api/modular/library': return self.send(store.modular.library.sync())
+                if path.startswith('/api/modular/source/'):
+                    store.modular.library.sync()
+                    return self.send(store.modular.library.entries[path.rsplit('/', 1)[1]])
+                if path.startswith('/api/modular/state/'): return self.send(store.modular.status(path.rsplit('/', 1)[1]))
                 if path == '/api/bootstrap': return self.send({'token': self.server.token, 'cards': len(store.catalog.cards), 'sources': store.catalog.sources, 'runtime': str(store.runtime), 'embedded': bool(store.host)})
                 if path == '/api/native/status' and store.host: return self.send(store.host.status(store, query['id'][0]))
                 if path.startswith('/api/native/frame/') and store.host and store.host.test_control:
@@ -921,8 +956,12 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/tags': return self.send({'tags': list(store.library.all_tags().values()), 'revision': store.library.document()['revision']})
                 if path.startswith('/api/tag-members/'): return self.send(store.library.members(path.rsplit('/', 1)[1]))
                 if path.startswith('/api/plan-export/'): return self.send(store.library.export(path.rsplit('/', 1)[1]))
-                if path.startswith('/api/plan/'): return self.send(read_json(store.plan_path(path.rsplit('/', 1)[1])))
-                if path.startswith('/api/report/'): return self.send(store.report(path.rsplit('/', 1)[1]))
+                if path.startswith('/api/plan/'):
+                    from card_semantics import display_effects
+                    return self.send(display_effects(read_json(store.plan_path(path.rsplit('/', 1)[1]))))
+                if path.startswith('/api/report/'):
+                    from card_semantics import display_effects
+                    return self.send(display_effects(store.report(path.rsplit('/', 1)[1])))
                 if path.startswith('/api/timeline/'): return self.send(store.timeline(path.rsplit('/', 1)[1]))
                 if path.startswith('/api/opponent/state/'): return self.send(store.compromise.opponent(path.rsplit('/', 1)[1]))
                 if path.startswith('/api/branch-resources/'):
@@ -958,12 +997,18 @@ class Handler(BaseHTTPRequestHandler):
                     files['/' + name] = name
                 if path in files:
                     p = WEB / files[path]; return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0] + '; charset=utf-8')
-                if path in ('/activation.js', '/plan-library.js', '/plan-library.css', '/tag-manager.js', '/tag-manager.css', '/compromise.js', '/compromise.css', '/compromise-tutorial.js', '/opponent.html', '/opponent.js'):
+                if path in ('/modular.js', '/modular.css', '/activation.js', '/plan-library.js', '/plan-library.css', '/tag-manager.js', '/tag-manager.css', '/compromise.js', '/compromise.css', '/compromise-tutorial.js', '/opponent.html', '/opponent.js'):
                     p = WEB / path[1:]; return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0] + '; charset=utf-8')
             self.send({'error': '内容不存在'}, status=404)
         except (ValueError, KeyError, FileNotFoundError, TypeError) as exc:
-            self.send({'error': str(exc)}, status=400)
+            if self.path.startswith('/api/modular/'):
+                from modular import message
+                self.send({'error': message(str(exc)), 'code': str(exc)}, status=400)
+            else: self.send({'error': str(exc)}, status=400)
         except Exception:
+            if self.server.store.host and self.server.store.host.test_control:
+                import traceback
+                traceback.print_exc()
             self.send({'error': '本地读写失败，原始数据已保留；请检查磁盘空间与日志'}, status=500)
 
     def do_GET(self): self.dispatch()

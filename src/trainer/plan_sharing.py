@@ -5,7 +5,7 @@ import json
 import re
 
 FORMAT, VERSION, MAX_BYTES = 'ygo-trainer-plan', 1, 20 * 1024 * 1024
-PLAN_FIELDS = set('name deck_name deck catalog expansion events actions initial_hand initial_hand_ref final_state final_state_ref review annotations requirements started_ms ended_ms duration_ms status end_reason loaded_verified warnings limitations statistics raw_statistics statistics_note report_version record_count active_record_count rule branches'.split())
+PLAN_FIELDS = set('name deck_name deck catalog expansion events actions initial_hand initial_hand_ref final_state final_state_ref review annotations requirements started_ms ended_ms duration_ms status end_reason loaded_verified warnings limitations statistics raw_statistics statistics_note report_version record_count active_record_count rule branches modular_source'.split())
 EXPANSION_FIELDS = set('name notes conditions actual_opening opponent_ai opponent_responses opponent_config turn_order player_lp opponent_lp timer'.split())
 CARD_FIELDS = set('id name desc type alias setcode level atk def race attribute extra script_available'.split()) | {f'str{i}' for i in range(1, 17)}
 REF = re.compile(r'^[a-zA-Z0-9:_-]{1,100}$')
@@ -13,6 +13,9 @@ REF = re.compile(r'^[a-zA-Z0-9:_-]{1,100}$')
 
 def portable(plan):
     result = {key: deepcopy(value) for key, value in plan.items() if key in PLAN_FIELDS}
+    if 'modular_source' in result:
+        result['modular_source'].pop('engine', None)
+        result['modular_source'].pop('scripts', None)
     result['expansion'] = {key: value for key, value in result.get('expansion', {}).items() if key in EXPANSION_FIELDS}
     opponent = result['expansion'].get('opponent_config')
     if opponent:
@@ -101,6 +104,9 @@ def validate(document):
         need(value is None or isinstance(value, dict) and isinstance(value.get('cards'), list), '场面快照无效')
         if value and 'lp' in value: need(isinstance(value['lp'], list) and len(value['lp']) == 2 and all(type(v) is int for v in value['lp']), '生命值记录无效')
     state(plan.get('final_state'))
+    if 'modular_source' in plan:
+        from modular_decisions import validate_source
+        validate_source(plan['modular_source'])
     review = plan.get('review')
     if review is not None:
         need(isinstance(review, dict) and isinstance(review.get('nodes'), list), '回看节点无效')
@@ -150,6 +156,9 @@ def validate(document):
             need(isinstance(source.get('cards', []), list) and isinstance(source.get('timing'), str) and isinstance(source.get('operation'), str), '分支位置说明无效')
             hand = branch['conditions'].get('hand')
             need(isinstance(hand, list) and len(hand) <= 60 and all(type(code) is int and 0 < code < 2**32 for code in hand), '分支场景手牌无效')
+            if 'if' in branch['conditions']:
+                from module_conditions import validate_if
+                validate_if(branch['conditions']['if'],{int(code):card for code,card in plan['catalog'].items()})
             for premise in branch['premises']:
                 need(isinstance(premise, dict) and all(isinstance(premise.get(key), list) for key in ('source_cards', 'affected_cards', 'evidence_refs'))
                      and isinstance(premise.get('result'), str), '分支实际事件无效')

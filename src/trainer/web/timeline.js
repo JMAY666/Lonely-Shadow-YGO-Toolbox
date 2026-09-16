@@ -35,7 +35,8 @@ function renderRewind(data) {
   }).join('') + (data.pending?.length ? `<li class="rewind-pending"><span>正在处理 · 完成后可恢复</span>${data.pending.map(timelineStep).join('')}</li>` : '') || '<li>正在等待可恢复的初始状态……</li>';
 }
 async function refreshTimeline() {
-  if(rewindState.fetching || rewindState.submitting || !app.active || (app.view!=='training' && !rewindState.busy)) return;
+  const visible=app.view==='training'||app.view==='modular'||typeof modularFieldVisible==='function'&&modularFieldVisible();
+  if(rewindState.fetching || rewindState.submitting || !app.active || (!visible && !rewindState.busy)) return;
   rewindState.fetching=true;
   const id=app.active.id;
   const generation=rewindState.generation;
@@ -65,7 +66,7 @@ async function refreshTimeline() {
       if(focused)document.querySelector(`[data-rewind="${focused}"]:not(:disabled)`)?.focus({preventScroll:true});
       if(!focused)document.querySelector('[aria-current="step"]')?.scrollIntoView({block:'nearest'});
     }
-    if(changed){updateStart();await syncNativeHost();if(!busy && app.view==='training')await waitNativeFrame(id);}
+    if(changed){updateStart();await syncNativeHost();if(!busy && visible)await waitNativeFrame(id);}
   } catch(e) { $('#rewind-status').textContent=`时间轴更新失败：${e.message}`; }
   finally {rewindState.fetching=false;}
 }

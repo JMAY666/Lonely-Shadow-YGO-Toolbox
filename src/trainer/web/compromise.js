@@ -1,11 +1,14 @@
 'use strict';
 
 const branchUI={root:null,key:null,selected:null,viewing:false,resources:false,drafts:new Map(),cards:new Map(),config:null,window:null,busy:false};
+const branchIfLabels={recorded:'按实际干扰生成 IF',activation_negated:'发动被无效',effect_negated:'效果被无效',resource_moved:'关键场上卡被效果移走',unconditional:'按合法资源接续，不限定干扰'};
+const branchIf=value=>({kind:value?.kind||'recorded',required:value?.required||[]});
+const branchConditions=value=>({hand:value.hand,expected_action:value.expected_action,note:value.note,if:branchIf(value.if)});
 const branchMenu={context:null,anchor:null};
 const selectedBranch=()=>branchUI.root?.branches?.find(b=>b.id===branchUI.selected);
 function branchConfigurationDirty() {
   const d=branchUI.config,b=d&&branchUI.root?.branches?.find(b=>b.id===d.id);
-  return !!b&&(d.name!==b.name||JSON.stringify({hand:d.hand,expected_action:d.expected_action,note:d.note})!==JSON.stringify(b.conditions));
+  return !!b&&(d.name!==b.name||JSON.stringify(branchConditions(d))!==JSON.stringify(branchConditions(b.conditions)));
 }
 const branchName=code=>branchUI.cards.get(Number(code))?.name||branchUI.root?.catalog?.[code]?.name||String(code);
 const branchRestoreMessage=code=>({replay_mismatch:'重放结果与原始记录不一致',state_mismatch:'完整状态校验未通过',
@@ -40,7 +43,7 @@ function updateBranchNav() {
 }
 function branchControls(id) {
   const branches=branchUI.root?.branches||[];
-  const nodes=branchUI.root?.review?.nodes||[],groups=new Map();
+  const nodes=reviewNodes(branchUI.root),groups=new Map();
   if(!branches.length)return `<section id="${id}" class="branch-controls"><div class="branch-map-caption"><strong>主线 · ${nodes.length} 个步骤</strong><span>从步骤右键创建妥协分支</span></div></section>`;
   for(const b of branches){const key=b.source.node_id;if(!groups.has(key))groups.set(key,[]);groups.get(key).push(b);}
   const ordered=[...groups].sort((a,b)=>nodes.findIndex(n=>n.id===a[0])-nodes.findIndex(n=>n.id===b[0]));
@@ -98,6 +101,8 @@ function branchPremises(branch, edit=false) {
   return `<section class="branch-premises"><h3>${escape(branch.name)} · 分支前提</h3><p>起点：${escape(branch.source.operation)} · ${escape(branch.source.timing)}${branch.source.chain_depth?` · 连锁 ${branch.source.chain_depth}`:''}</p>
     ${branch.valid===false?`<p class="review-warning">${escape(branch.invalid_reason)}</p>`:''}
     <details><summary>预设条件（配置不代表发动或生效）</summary><div class="branch-cards">${Object.entries(branch.conditions.hand.reduce((a,c)=>(a[c]=(a[c]||0)+1,a),{})).map(([code,n])=>`${branchCards([{code,name:branchName(code)}])}<span>×${n}</span>`).join('')||'未配置对手手牌'}</div><p>${escape(branch.conditions.note||'')}</p></details>
+    <p><strong>IF：${escape(branchIfLabels[branch.conditions.if?.kind||'recorded'])}</strong> · ${branch.if_condition?.status==='verified'?'打断事件已确认，补点条件逐局核验':'条件尚待实际事件确认'}</p>
+    <p>首次补点资源：${(branch.conditions.if?.required||[]).map(r=>`${escape(branchName(r.code))} ×${r.count}（${escape(reviewPlace({controller:0,location:r.location}))}）`).join('、')||'按记录中的合法选择与引擎权限检验'}</p>
     <h4>实际记录</h4>${observedBranchFacts(branch).map(p=>`<div class="branch-event">${branchCards(p.source_cards)}<b>→</b>${p.affected_cards.length?branchCards(p.affected_cards):'<span>受影响卡牌未确认</span>'}<div><strong>${escape(p.result)}</strong><small>连锁 ${p.chain_group??'?'} / ${p.chain_link??'?'} · ${escape(p.basis)} · 证据 ${escape(p.evidence_refs.join('、'))}</small>${p.note?`<p>${escape(p.note)}</p>`:''}${edit&&!p.confirmed?`<button data-branch-associate="${escape(p.source_action)}">补充关联或说明</button>`:''}</div></div>`).join('')||'<p>尚无已记录的对方发动；预设卡牌不会显示为实际阻抗。</p>'}
     ${branch.report?`<details><summary>接管原始操作 · ${(branch.report.control_records||[]).length} 条</summary><ol>${(branch.report.control_records||[]).map(r=>`<li>记录 ${r.seq} · ${r.kind==='response'?`对手手动选择（规则窗口 ${r.prompt}）`:`${r.manual?'接管对手':'交还 AI 托管'}`}</li>`).join('')}</ol></details>`:'<p>尚未进入妥协场，无分支终场。</p>'}</section>`;
 }
@@ -220,6 +225,7 @@ async function openBranchDesign() {
 }
 function renderBranchDesign() {
   const b=selectedBranch(),d=branchUI.config;if(!b||!d)return;
+  d.if=branchIf(d.if);
   const counts=d.hand.reduce((a,c)=>(a[c]=(a[c]||0)+1,a),{});
   $('#compromise-design').innerHTML=`<header><div class="eyebrow">COMPROMISE / SETUP</div><h1>妥协场构建前置</h1><p>当前方案：${escape(branchUI.root.name)}<br>当前分支：${escape(b.name)}<br>分支起点：${escape(b.source.operation)} · ${escape(b.source.timing)} · 节点 #${b.source.checkpoint}</p></header>
     <div class="branch-setup-grid"><section class="panel"><label>分支名称<input id="branch-name" maxlength="80" value="${escape(d.name)}"></label><label>预期受干扰的我方操作<select id="branch-expected"><option value="">暂不标记</option>${branchUI.root.actions.filter(a=>a.cards.some(c=>c.controller===0)).map(a=>`<option value="${escape(a.id)}" ${d.expected_action===a.id?'selected':''}>${escape((a.heading||a.summary).slice(0,100))}</option>`).join('')}</select></label><label>预设条件说明<textarea id="branch-note" rows="3" maxlength="4000">${escape(d.note)}</textarea></label><p>下列卡牌只替换本分支场景中的对手手牌，不改变来源卡组。是否可以发动、响应与实际结算均由规则引擎决定。</p><h2>对手场景手牌 · ${d.hand.length} 张</h2><div class="branch-cards">${Object.entries(counts).map(([c,n])=>`<div class="branch-hand-item">${branchCards([{code:c,name:branchName(c)}])}<label>数量<input data-branch-count="${c}" type="number" min="0" max="60" value="${n}"></label><button data-branch-remove="${c}">移除</button></div>`).join('')||'<p>空手牌，可从右侧搜索添加。</p>'}</div><p id="branch-setup-status" role="status">${b.operation?.status==='error'?'恢复失败：'+escape(b.operation.error)+'，主线与原始记录保留。':b.session_id?'已有一次妥协尝试，可查看结果，或修改条件后重新进入。':'尚未进入场地；创建和配置均未正式保存。'}</p><div class="plan-actions"><button id="branch-enter" class="primary" ${app.active?'disabled':''}>进入妥协场</button><button id="branch-return">返回方案调整</button><button id="branch-delete" class="danger">删除当前分支</button></div></section>
@@ -227,6 +233,10 @@ function renderBranchDesign() {
   $('#branch-name').oninput=e=>d.name=e.target.value;
   $('#branch-expected').onchange=e=>d.expected_action=e.target.value||null;
   $('#branch-note').oninput=e=>d.note=e.target.value;
+  $('#branch-note').parentElement.insertAdjacentHTML('beforebegin',`<section class="branch-if-editor"><h2>IF 与补点入口</h2><label>发生什么变化<select id="branch-if-kind">${Object.entries(branchIfLabels).map(([key,label])=>`<option value="${key}" ${d.if.kind===key?'selected':''}>${escape(label)}</option>`).join('')}</select></label><p>受影响的具体操作使用上方选择；发动无效与效果无效分别检查。费用、次数、仍生效的限制按实际引擎记录保留。</p><div id="branch-if-resources">${d.if.required.map((r,i)=>`<p>${escape(branchName(r.code))} · ${escape(reviewPlace({controller:0,location:r.location}))} ×${r.count} <button data-if-remove="${i}">移除</button></p>`).join('')}</div><div class="modular-toolbar"><label>补点卡牌<select id="branch-if-card">${Object.entries(branchUI.root.catalog||{}).map(([code,c])=>`<option value="${code}">${escape(c.name)}</option>`).join('')}</select></label><label>区域<select id="branch-if-zone">${[2,4,8,16,32,64].map(zone=>`<option value="${zone}">${escape(reviewPlace({controller:0,location:zone}))}</option>`).join('')}</select></label><label>份数<input id="branch-if-count" type="number" min="1" max="60" value="1"></label><button id="branch-if-add">添加首次补点条件</button></div><p>此处是可选的入口条件；后续实际消耗与再次使用由引擎逐步检验。设置条件不代表干扰已经发生。</p></section>`);
+  $('#branch-if-kind').onchange=e=>d.if.kind=e.target.value;
+  $('#branch-if-add').onclick=()=>{const count=Number($('#branch-if-count').value),code=Number($('#branch-if-card').value);if(!code||!Number.isInteger(count)||count<1||count>60)return notice('请选择有效卡牌与份数');d.if.required.push({code,location:Number($('#branch-if-zone').value),count});renderBranchDesign();};
+  document.querySelectorAll('[data-if-remove]').forEach(button=>button.onclick=()=>{d.if.required.splice(Number(button.dataset.ifRemove),1);renderBranchDesign();});
   document.querySelectorAll('[data-branch-count]').forEach(input=>input.onchange=()=>{
     const n=Number(input.value),code=Number(input.dataset.branchCount);
     if(!Number.isInteger(n)||n<0||n>60)return notice('数量需为 0–60 的整数');
@@ -246,8 +256,8 @@ function renderBranchDesign() {
 }
 async function saveBranchConfiguration() {
   const d=branchUI.config,b=selectedBranch();if(!d||d.id!==b?.id)return;
-  const conditions={hand:d.hand,expected_action:d.expected_action,note:d.note};
-  if(d.name===b.name&&JSON.stringify(conditions)===JSON.stringify(b.conditions))return;
+  const conditions=branchConditions(d);
+  if(d.name===b.name&&JSON.stringify(conditions)===JSON.stringify(branchConditions(b.conditions)))return;
   const cached=branchUI.drafts.get(b.id);
   if(cached&&b.report&&JSON.stringify(cached.annotations)!==cached.originalAnnotations) {
     branchUI.root=await api('/api/branches/update',{id:branchUI.root.id,branch_id:b.id,revision:branchUI.root.branches_revision,annotations:cached.annotations});

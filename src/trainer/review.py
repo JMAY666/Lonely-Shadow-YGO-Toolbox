@@ -8,8 +8,9 @@ from copy import deepcopy
 import hashlib
 import json
 import re
+from module_graph import attach_modules
 
-REVIEW_VERSION = 1
+REVIEW_VERSION = 2
 
 
 def digest(value):
@@ -98,13 +99,16 @@ def make_review(report, rows):
                                   any(word in warning for word in ('采集序号不连续', '冲突的重复序号', '未完成或损坏', '原始记录 '))
                                   for warning in report.get('warnings', []))),
              'boundary_note': '节点显示记录范围结束后的快照；同一批次及跨边界的连锁动作合并展示。'}
+    attach_modules(value, report, rows)
     value['revision'] = digest(value)
     return value
 
 
 def legacy_review(report):
     """Do not source a saved plan's missing states from a possibly changed session."""
-    if report.get('review'): return report['review']
+    if report.get('review'):
+        # Frozen revisions and annotation IDs stay stable when viewing old plans.
+        return attach_modules(deepcopy(report['review']), report)
     review = make_review(report, [])
     # Only the hand is known at the initial boundary. Other regions remain unknown.
     if report.get('initial_hand'):
@@ -112,6 +116,8 @@ def legacy_review(report):
                  'sequence': i} for i, c in enumerate(report['initial_hand'])], 'partial': True}
     review['complete'] = False
     review['boundary_note'] = '旧方案未保存逐步快照：初始仅显示已记录手牌，缺失的步骤状态标为未知；原文件保持不变。'
+    review.pop('module_graph', None)
+    attach_modules(review, report)
     review['revision'] = digest({k: v for k, v in review.items() if k != 'revision'})
     return review
 

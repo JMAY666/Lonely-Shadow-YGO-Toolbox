@@ -41,9 +41,10 @@ def route_rows(rows):
 def timeline_nodes(rows, actions):
     # The ordinary live timeline retains its familiar settled operation nodes.
     # Fine-grained response checkpoints are exposed separately by compromise.py.
-    boundaries = [r for r in rows if r.get('kind') == 'checkpoint' and
-                  ('restorable' not in r or r.get('player') == 0 and r.get('prompt') in (10, 11)
-                   and not r.get('state', {}).get('chain_depth', 0))]
+    from module_graph import decision_boundaries, decision_id
+    boundaries = [entry['node'] for entry in decision_boundaries(rows) if
+                  ('restorable' not in entry['node'] or entry['node'].get('player') == 0 and entry['node'].get('prompt') in (10, 11)
+                   and not entry['node'].get('state', {}).get('chain_depth', 0))]
     nodes, used = [], set()
     for index, row in enumerate(boundaries):
         steps = []
@@ -59,7 +60,7 @@ def timeline_nodes(rows, actions):
                               'observed_summary': action.get('observed_summary')})
                 used.add(number)
         state = row['state']
-        nodes.append({'id': row['node'], 'ordinal': index, 'initial': index == 0, 'steps': steps,
+        nodes.append({'id': row['node'], 'module_id': decision_id(row), 'ordinal': index, 'initial': index == 0, 'steps': steps,
                       'turn': state['turn'], 'phase': state['phase'], 'lp': state['lp']})
     pending = [{'number': i, 'kind': a['kind'], 'summary': a['summary'], 'cards': a['cards']}
                for i, a in enumerate(actions, 1) if i not in used]

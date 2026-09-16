@@ -4,6 +4,14 @@ const fs=require('node:fs');
 const path=require('node:path');
 const vm=require('node:vm');
 const source=fs.readFileSync(path.join(__dirname,'../src/trainer/web/app.js'),'utf8');
+test('slow history refresh is shared by timer and navigation instead of starving the current state',async()=>{
+  let reads=0,resolve;
+  const c=vm.createContext({app:{},refreshHistoryOnce:()=>{reads++;return new Promise(r=>{resolve=r;});}});
+  vm.runInContext(source.slice(source.indexOf('async function refreshHistory(){'),source.indexOf('async function refreshHistoryOnce(){')),c);
+  const first=c.refreshHistory(),second=c.refreshHistory();assert.equal(reads,1);
+  resolve('completed');assert.equal(await first,'completed');assert.equal(await second,'completed');
+  const next=c.refreshHistory();assert.equal(reads,2);resolve('new');assert.equal(await next,'new');
+});
 function context(current) {
   const context=vm.createContext({moduleUI:{current,editorOwner:current,expansionView:'training'},
     flow:{deckEdit:{target:'opponent'}},document:{},window:{}});

@@ -12,7 +12,9 @@ const label = packaged ? 'packaged' : 'development';
 const onlyCompromise=process.argv.includes('--compromise-only');
 const onlySelection=process.argv.includes('--selection-only');
 const onlyDuel=process.argv.includes('--duel-only');
-const profileSuffix=onlyCompromise?'-compromise':onlySelection?'-selection':onlyDuel?'-duel':'';
+const onlyModular=process.argv.includes('--modular-only');
+const modularSuite=Object.entries({if:'YGO_MODULAR_IF_ONLY',mechanics:'YGO_MODULAR_MECHANICS_ONLY',precision:'YGO_MODULAR_PRECISION_ONLY',preferences:'YGO_MODULAR_PREFERENCES_ONLY',routes:'YGO_MODULAR_ADDITIONAL_ONLY',cross:'YGO_MODULAR_CROSS_ONLY',pipeline:'YGO_MODULAR_PIPELINE_ONLY'}).find(([,key])=>process.env[key]==='1')?.[0]||'core';
+const profileSuffix=onlyModular?'-modular-'+modularSuite:onlyCompromise?'-compromise':onlySelection?'-selection':onlyDuel?'-duel':'';
 const root = path.join(workspace, '.local', `desktop-check-${label}${profileSuffix}`);
 const evidence = path.join(workspace, '.local', 'evidence', `electron-${label}${profileSuffix}`);
 fs.mkdirSync(evidence, { recursive: true });
@@ -63,7 +65,7 @@ async function launch(first = false, testControl = true) {
   assert.equal(identity.data,path.join(root,'electron'));
   if(testControl)assert.deepEqual(await application.evaluate(()=>globalThis.brandingAcceptance),{windowIconExists:true,loadingImage:true,loadingTitlebar:process.platform==='win32'});
   if(first&&!onlyDuel)await require('./titlebar-smoke.cjs')({application,page,pass,evidence});
-  assert.deepEqual(await page.locator('.primary-rail nav button>span').allTextContents(),['首页','卡组编辑','展开','决斗','TAG 管理']);
+  assert.deepEqual(await page.locator('.primary-rail nav button>span').allTextContents(),['首页','卡组编辑','展开','决斗','模块化','TAG 管理']);
   assert.equal(await page.locator('#expansion-navigation #nav-tags, #manage-tags').count(),0);
   const tagPosition=await page.locator('#module-tags').boundingBox();
   assert(tagPosition.y>700,'TAG management stays at the bottom of the 900px primary column');
@@ -184,6 +186,11 @@ async function activatePot(sid) {
 
 (async () => {
   await launch(true);
+  if(onlyModular) {
+    await require('./modular-smoke.cjs')({page,application,root,evidence,pass});
+    await close();assert.deepEqual(errors,[]);
+    fs.writeFileSync(path.join(evidence,'modular-result.json'),JSON.stringify({checks,errors},null,2));return;
+  }
   if(onlyDuel) {
     await require('./duel-smoke.cjs')({page,application,root,evidence,pass});
     await close();assert.deepEqual(errors,[]);

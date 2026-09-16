@@ -119,8 +119,21 @@ static void status() {
 static void operation(const std::string& token, const char* state, const char* error = "") {
     atomicFile("rewind-operation.json", "{\"token\":\"" + token + "\",\"status\":\"" + state + "\",\"error\":\"" + error + "\"}");
 }
+static LONG WINAPI trainingCrashDiagnostic(EXCEPTION_POINTERS* info) {
+    std::ofstream out(TrainingPath("native-crash.txt"));
+    const auto base = reinterpret_cast<uintptr_t>(GetModuleHandleA(nullptr));
+    out << std::hex << "code " << info->ExceptionRecord->ExceptionCode << " offset "
+        << reinterpret_cast<uintptr_t>(info->ExceptionRecord->ExceptionAddress) - base << '\n';
+    out << "rax " << info->ContextRecord->Rax << " rbx " << info->ContextRecord->Rbx << " rcx " << info->ContextRecord->Rcx
+        << " rdx " << info->ContextRecord->Rdx << " rsi " << info->ContextRecord->Rsi << " rdi " << info->ContextRecord->Rdi << '\n';
+    void* frames[48]{};
+    const auto count = CaptureStackBackTrace(0, 48, frames, nullptr);
+    for(USHORT i = 0; i < count; ++i) out << reinterpret_cast<uintptr_t>(frames[i]) - base << '\n';
+    return EXCEPTION_EXECUTE_HANDLER;
+}
 void TrainingHistoryInit(std::function<intptr_t()> factory, std::function<void(const std::vector<unsigned char>&)> show) {
     makeDuel = factory; showDuel = show;
+    if(TrainingTestControlled()) SetUnhandledExceptionFilter(trainingCrashDiagnostic);
 }
 bool TrainingRestoring() { return restoring; }
 std::recursive_mutex& TrainingInputMutex() { return historyMutex; }
@@ -260,10 +273,12 @@ void TrainingCheckpoint(intptr_t engine, const unsigned char* prompt, size_t len
     cursor = node.id; atNode = true;
     TrainingWrite("\"kind\":\"checkpoint\",\"node\":" + std::to_string(node.id) + ",\"revision\":" + std::to_string(revision)
         + ",\"restorable\":true,\"prompt\":" + std::to_string(prompt[0]) + ",\"player\":" + std::to_string(TrainingPromptPlayer(prompt, len))
-        + ",\"state\":" + node.state);
+        + ",\"raw\":\"" + encode(node.prompt) + "\",\"effects\":" + TrainingDecisionEffects(engine) + ",\"state\":" + node.state);
     checkpoints.push_back(std::move(node));
     status();
 }
+#include "training_modular.inc"
+
 void TrainingPublishOpponent(intptr_t engine, const unsigned char* prompt, size_t len) {
     std::lock_guard<std::recursive_mutex> lock(historyMutex);
     mainGame->singleSignal.Reset();
@@ -271,6 +286,7 @@ void TrainingPublishOpponent(intptr_t engine, const unsigned char* prompt, size_
     pendingPlayer = TrainingPromptPlayer(prompt, len);
     pendingAnswered = false;
     ++promptVersion;
+    modularPublish(engine);
     if(!TrainingBranchActive()) return;
     atomicFile("opponent-state.json", "{\"version\":" + std::to_string(promptVersion) + ",\"manual\":" + (opponentManual ? "true" : "false")
         + ",\"player\":" + std::to_string(pendingPlayer) + ",\"answered\":false,\"raw\":\"" + encode(pendingPrompt)
@@ -400,7 +416,7 @@ bool TrainingResumeBranch(intptr_t& engine, std::vector<unsigned char>& prompt) 
             if(item.kind != CoreCall::Response && item.kind != CoreCall::Integer && item.kind != CoreCall::Scene && !item.bytes.empty()
                 && !std::equal(item.bytes.begin(), item.bytes.end(), buffer.begin())) throw std::runtime_error("replay_mismatch");
         }
-        if(TrainingState(candidate) != node.state) throw std::runtime_error("state_mismatch");
+        if(TrainingComparableState(TrainingState(candidate)) != TrainingComparableState(node.state)) throw std::runtime_error("state_mismatch");
         end_duel(candidate); candidate = makeDuel();
         size_t boundary = replay.size();
         while(boundary && replay[boundary - 1].kind != CoreCall::Process) --boundary;
@@ -432,7 +448,7 @@ bool TrainingResumeBranch(intptr_t& engine, std::vector<unsigned char>& prompt) 
             if(i >= boundary && length > 0) item.bytes.assign(buffer.begin(), buffer.begin() + length);
             item.result = result; persist(item); calls.push_back(std::move(item));
         }
-        if(replayError || TrainingState(candidate, true) != node.maskedState) throw std::runtime_error("scene_changes_prior_state");
+        if(replayError || TrainingComparableState(TrainingState(candidate, true)) != TrainingComparableState(node.maskedState)) throw std::runtime_error("scene_changes_prior_state");
         const auto previous = engine; engine = candidate; candidate = 0; end_duel(previous);
         nextNode = lastNode; opponentManual = true;
         rebuildingView = true; presentationNode = &node; resumeCalls.clear();
@@ -480,6 +496,7 @@ void TrainingSubmitResponse(intptr_t& engine, unsigned char* bytes, size_t len) 
     pendingAnswered = true;
     TrainingResponse(bytes, len);
     set_responseb(engine, bytes);
+    modularPublish(engine);
 }
 void TrainingWait(intptr_t& engine, const unsigned char* prompt, size_t len) {
     {
@@ -487,6 +504,7 @@ void TrainingWait(intptr_t& engine, const unsigned char* prompt, size_t len) {
         status();
     }
     while(!TrainingStopping()) {
+        if(modularTick(engine)) return;
         if(TrainingOpponentTick(engine, {prompt, prompt + len})) return;
         // Only the duel thread reads rewind requests, at an engine input boundary.
         std::ifstream request(TrainingPath("rewind.request"));
@@ -515,7 +533,7 @@ void TrainingWait(intptr_t& engine, const unsigned char* prompt, size_t len) {
                     if(call.kind != CoreCall::Response && call.kind != CoreCall::Integer && !call.bytes.empty()
                             && !std::equal(call.bytes.begin(), call.bytes.end(), buffer.begin())) throw std::runtime_error("replay_mismatch");
                 }
-                if(TrainingState(candidate) != node->state) throw std::runtime_error("state_mismatch");
+                if(TrainingComparableState(TrainingState(candidate)) != TrainingComparableState(node->state)) throw std::runtime_error("state_mismatch");
                 // Test-only failure injection exercises the real transaction after reconstruction.
                 if(TrainingTestControlled() && GetFileAttributesA(TrainingPath("test-rewind-fail").c_str()) != INVALID_FILE_ATTRIBUTES)
                     throw std::runtime_error("test_validation_failed");

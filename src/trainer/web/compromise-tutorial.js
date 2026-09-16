@@ -8,7 +8,7 @@ function buildBranchedTutorial(plan,include=true) {
     // A compact log can hide a routine material cleanup. If the user selected
     // that exact boundary, retain its real action as a connector anchor instead
     // of silently drawing the arrow from a different visible action.
-    const sourceNode=plan.review?.nodes?.find(n=>n.id===b.source.node_id);
+    const sourceNode=reviewNodes(plan).find(n=>n.id===b.source.node_id);
     const sourceAction=plan.actions?.find(a=>a.id===b.source.action_id);
     if(b.valid!==false&&sourceNode?.kind==='step'&&sourceAction) {
       const main=routes[0].model;
@@ -31,6 +31,7 @@ function buildBranchedTutorial(plan,include=true) {
     if(!facts.length)facts.push({sources:[...new Set(b.conditions.hand)].map(code=>({code,name:plan.catalog?.[code]?.name||route.catalog?.[code]?.name||String(code)})),affected:b.source.cards||[],text:'尚未记录为实际阻抗',label:'预设条件'});
     routes.push({id:b.id,label:b.name,source:b.source,valid:b.valid!==false,model,facts});
   }
+  routes[0].model.stepLinks=reviewStepLinks(plan,['initial',...routes[0].model.steps.map(s=>s.id),'final']);
   return {name:plan.name,routes};
 }
 function layoutBranchedTutorial(model) {

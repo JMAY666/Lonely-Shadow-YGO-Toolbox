@@ -7,7 +7,7 @@ function cardActivation(action, report) {
   const native=action.engine_effect||event?.engine_effect;
   const card=action.cards?.[0]||event?.cards?.[0]||{};
   const type=Number(report?.catalog?.[card.code]?.type||0);
-  if(!(type&6))return null;
+  if(!(type&6)&&!(type&0x1000000))return null;
   if(Number.isInteger(native?.effect_type)) {
     if(!(native.effect_type&0x10))return null;
   } else {
@@ -18,6 +18,7 @@ function cardActivation(action, report) {
       e.message===50&&e.destination?.location===8&&e.origin?.location!==8&&(e.destination.position&5));
     if(!placed)return null;
   }
+  if(type&0x1000000)return '发动灵摆卡';
   return type&2?(type&0x80000?'发动场地魔法卡':type&0x20000?'发动永续魔法卡':type&0x40000?'发动装备魔法卡':type&0x10000?'发动速攻魔法卡':type&0x80?'发动仪式魔法卡':'发动魔法卡'):
     type&0x20000?'发动永续陷阱卡':type&0x100000?'发动反击陷阱卡':'发动陷阱卡';
 }

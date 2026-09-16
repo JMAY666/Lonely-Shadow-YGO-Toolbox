@@ -96,7 +96,7 @@ function tutorialAction(action,node,plan) {
 }
 function buildPlanTutorial(plan,includeBranches=false) {
   if(includeBranches && typeof buildBranchedTutorial==='function')return buildBranchedTutorial(plan,includeBranches);
-  const nodes=plan.review?.nodes||reviewFallback(plan),edits=plan.annotations||{};
+  const nodes=reviewNodes(plan),edits=plan.annotations||{};
   const actions=new Map((plan.actions||[]).map(a=>[a.id,a]));
   const steps=[];
   for(const n of nodes.filter(n=>n.kind==='step')) {
@@ -106,7 +106,7 @@ function buildPlanTutorial(plan,includeBranches=false) {
     const notes=[];
     if(edit.notes?.trim())notes.push({text:tutorialNote(edit.notes),color:'note'});
     if(!active.length)notes.push({text:'本节点没有已记录操作',color:'muted'});
-    steps.push({id:n.id,number:n.number,title:tutorialNote(edit.name||''),actions:groupedLogActions(active,plan).map(a=>tutorialAction(a,n,plan)),notes});
+    steps.push({id:n.id,number:n.number,module_id:n.module_id,module_ids:n.module_ids,module_status:n.module_status,title:tutorialNote(edit.name||''),actions:groupedLogActions(active,plan).map(a=>tutorialAction(a,n,plan)),notes});
   }
   let opening=plan.requirements?.opening;
   const openingKnown=Array.isArray(opening);
@@ -137,6 +137,7 @@ function buildPlanTutorial(plan,includeBranches=false) {
   if(plan.review?.complete===false)warnings.push('部分步骤快照缺失；流程按已记录动作展示。');
   warnings.push(...(plan.requirements?.warnings||[]));
   return {name:plan.name||plan.expansion?.name||'展开',opening,openingKnown,finalCards,steps,warnings,
+    stepLinks:reviewStepLinks(plan,['initial',...steps.map(n=>n.id),'final']),
     finalNote:tutorialNote(plan.requirements?.final?.notes||edits.nodes?.final?.notes),
     conditionsNote:tutorialNote(plan.requirements?.note||edits.conditions_note),note:tutorialNote(plan.expansion?.notes)};
 }

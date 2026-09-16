@@ -61,6 +61,14 @@ test('source-deck refresh safely clears stale matches even when a count input is
   assert.equal(context.state.deck,null);assert.equal(context.state.deckPage,'list');
 });
 
+test('module Step links govern navigation instead of adjacency in the display array',()=>{
+  const graph=model.graph([{id:'main',label:'主线',model:{steps:[{id:'s1',number:1},{id:'s2',number:2}],
+    stepLinks:[{from:'initial',to:'s1',module_path:['1','2']},{from:'s1',to:'final',module_path:['2','4']}]}}]);
+  assert.equal(model.navigate(graph,{key:'main/s1',choice:0},'forward').key,'main/final');
+  assert(!graph.edges.some(e=>e.to==='main/s2'));
+  assert.deepEqual(graph.edges.find(e=>e.from==='main/s1').module_path,['2','4']);
+});
+
 test('all foreground actions resolve the same saved keys as the background controller',()=>{
   const sent=[],registered=new Map(),bindings=normalize({back:'left',forward:'Shift+Control+f9',up:'up',down:'down',end:'Alt+Enter'});
   const ctl=createController({registry:{register(key,fn){registered.set(key,fn);return true;},unregister(key){registered.delete(key);}},send:value=>sent.push(value.action),isFocused:()=>false});
@@ -86,6 +94,16 @@ function previewFixture() {
   const advance=ms=>{time+=ms;for(const [id,timer] of [...timers])if(timer.due<=time){timers.delete(id);timer.fn();}};
   return {context,panel,anchor,advance,timers,opened};
 }
+
+test('ending a manual tutorial succeeds without a native session and stops only its own bound session',async()=>{
+  for(const active of [null,{id:'unrelated'},{id:'bound'}]) {
+    const {context:c}=previewFixture(),calls=[],state={modularSession:active?'bound':undefined};
+    c.app={active};c.ui.state=state;c.api=async(path,body)=>calls.push({path,body});
+    c.syncDuelShortcuts=async()=>{};c.renderDuel=()=>{};
+    await c.endDuel();assert.equal(state.stage,6);assert.equal(state.ended,true);
+    assert.equal(calls.length,active?.id==='bound'?2:0);
+  }
+});
 
 test('step hover has one fixed delay; descendant transitions and old close timers cannot restart or hide it',()=>{
   const r=previewFixture(),a=r.anchor('a'),b=r.anchor('b'),c=r.context;
@@ -142,9 +160,11 @@ test('pointer down cancels a pending preview and graph movement cannot rearm it 
 
 test('final notes retain full text and instance ownership without revealing a random card through effect text',()=>{
   const {context:c}=previewFixture(),long='保存的终场说明。'.repeat(60);
+  c.structuredClone=structuredClone;
   c.escape=value=>String(value??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
   c.reviewRandomDraw=card=>card.instance_id===2;
   const source=fs.readFileSync(path.join(__dirname,'../src/trainer/web/review.js'),'utf8');
+  vm.runInContext(source.slice(source.indexOf('function reviewFallback'),source.indexOf('function mountReview')),c);
   vm.runInContext(source.slice(source.indexOf('function reviewEffectParts'),source.indexOf('function reviewMarkEditor')),c);
   const plan={catalog:{10:{desc:'①：可见的完整效果。'},11:{desc:'①：随机卡牌的隐藏身份。'}},requirements:{final:{notes:long}},
     annotations:{nodes:{final:{notes:long}},cards:{1:'这张卡的说明',2:'抽牌的用户备注'},final_marks:{1:{marked:true,effects:{0:{note:'完整效果备注。'.repeat(60)}}},2:{marked:true,effects:{0:{note:'保留随机卡备注'}}}}},

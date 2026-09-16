@@ -12,6 +12,8 @@ import uuid
 from report import read_journal
 from timeline import route_rows
 from review import annotations_for, bounds, legacy_review, requirements
+from module_graph import decision_boundaries, decision_id
+from module_conditions import validate_if, branch_condition
 
 
 def branch_points(report, rows):
@@ -20,8 +22,9 @@ def branch_points(report, rows):
     actions = report.get('actions', [])
     nodes = legacy_review(report)['action_nodes']
     points = []
-    for row in active:
-        if row.get('kind') != 'checkpoint' or not row.get('restorable'): continue
+    for entry in decision_boundaries(active):
+        row = entry['node']
+        if not row.get('restorable'): continue
         state, seq = row['state'], row['seq']
         response = row.get('player') == 1 and row.get('prompt') in (12, 16) and state.get('chain_depth', 0) > 0
         idle = row.get('player') == 0 and row.get('prompt') in (10, 11) and not state.get('chain_depth', 0)
@@ -34,7 +37,7 @@ def branch_points(report, rows):
         action = max(candidates, key=lambda a: bounds(a)[0], default=None)
         if response and not action: continue
         node_id = nodes.get(action['id']) if action else 'initial'
-        points.append({'checkpoint': row['node'], 'seq': seq, 'node_id': node_id,
+        points.append({'checkpoint': row['node'], 'module_id': decision_id(row), 'seq': seq, 'node_id': node_id,
             'action_id': action['id'] if action else None, 'cards': deepcopy(action['cards']) if action else [],
             'operation': action.get('heading') or action['summary'] if action else '初始手牌',
             'timing': '发动后的响应窗口' if response else '结算后' if action else '首次操作前',
@@ -131,6 +134,12 @@ class Compromise:
         doc = self.document(report)
         result['branches_revision'] = doc['revision']
         result['branches'] = self.snapshots(report, doc)
+        if result['branches'] and result.get('review',{}).get('module_graph'):
+            result['review']['module_graph']['branch_links']=[{'from_step':b['source']['node_id'],
+                'from_module':b['source'].get('module_id',str(b['source']['checkpoint'])),
+                'route':b['id'],'if_condition':deepcopy(b['if_condition'])} for b in result['branches']]
+        elif result.get('review',{}).get('module_graph'):
+            result['review']['module_graph'].pop('branch_links',None)
         if result['branches']:
             result['requirements'] = requirements(report)
         folder = self.store.session_path(report['id'])
@@ -167,6 +176,7 @@ class Compromise:
                             (r.get('kind') == 'opponent_control' or r.get('kind') == 'response' and r.get('actor') == 'opponent_manual')]
                     branch['premises'] = deepcopy(frozen.get('premises', [])) if frozen and branch.get('associations') == frozen.get('associations') else premises(current, branch['source']['seq'], rows, branch.get('associations'))
                     branch['report'] = current
+            branch['if_condition'] = branch_condition(report,branch)
         return result
 
     def validate_save(self, report):
@@ -197,7 +207,8 @@ class Compromise:
             if not replay.exists() or not (folder / 'core-calls.txt').exists(): raise ValueError('缺少完整引擎重放记录，此节点只能回看')
             source = {**point, 'main_revision': legacy_review(base)['revision'], 'replay_sha256': hashlib.sha256(replay.read_bytes()).hexdigest()}
             doc['branches'].append({'id': str(uuid.uuid4()), 'name': f"妥协分支 {len(doc['branches']) + 1}", 'source': source,
-                'conditions': {'hand': point['opponent_hand'], 'expected_action': point['action_id'], 'note': ''},
+                'conditions': {'hand': point['opponent_hand'], 'expected_action': point['action_id'], 'note': '',
+                               'if':{'kind':'recorded','required':[]}},
                 'premises': [], 'annotations': None, 'associations': {}})
         return self.mutate(body['id'], body.get('revision'), change)
 
@@ -231,7 +242,8 @@ class Compromise:
                 if action is not None and action not in [a['id'] for a in base['actions']]: raise ValueError('预期受干扰操作已失效')
                 note = value.get('note', '')
                 if not isinstance(note, str) or len(note) > 4000: raise ValueError('条件说明过长')
-                conditions = {'hand': hand, 'expected_action': action, 'note': note}
+                conditions = {'hand': hand, 'expected_action': action, 'note': note,
+                              'if':validate_if(value.get('if',branch['conditions'].get('if')),self.store.catalog.cards)}
                 if Counter(hand) != Counter(branch['conditions']['hand']) and branch.get('session_id'):
                     retire(branch)
                 branch['conditions'] = conditions

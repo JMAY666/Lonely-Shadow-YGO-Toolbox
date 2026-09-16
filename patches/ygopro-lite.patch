@@ -1402,7 +1402,7 @@
  #include "duelclient.h"
  #include "game.h"
  #include "data_manager.h"
-@@ -14,173 +21,219 @@
+@@ -14,173 +21,220 @@
  Replay SingleMode::last_replay;
  size_t SingleMode::last_replay_response_size = 0;
  
@@ -1762,6 +1762,7 @@
 +        if(result & PROCESSOR_END) break;
 +    }
 +    TrainingFinish(pduel, "engine_ended");
++    TrainingModularClose();
 +    end_duel(pduel);
 +    pduel = 0;
 +    if(!is_closing) {
@@ -1777,7 +1778,7 @@
  }
  bool SingleMode::SinglePlayAnalyze(unsigned char* msg, unsigned int len) {
  	unsigned char* offset, * pbuf = msg;
-@@ -196,9 +249,8 @@
+@@ -196,9 +250,8 @@
  				last_replay.RemoveData(last_replay_response_size);
  				last_replay_response_size = 0;
  			}
@@ -1789,7 +1790,7 @@
  			}
  			break;
  		}
-@@ -207,12 +259,12 @@
+@@ -207,12 +260,12 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			/*int data = */BufferIO::Read<int32_t>(pbuf);
  			if(player == 0)
@@ -1804,7 +1805,7 @@
  			return false;
  		}
  		case MSG_SELECT_BATTLECMD: {
-@@ -222,9 +274,8 @@
+@@ -222,9 +275,8 @@
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 8 + 2;
  			SinglePlayRefresh();
@@ -1816,7 +1817,7 @@
  			}
  			break;
  		}
-@@ -243,27 +294,24 @@
+@@ -243,27 +295,24 @@
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 11 + 3;
  			SinglePlayRefresh();
@@ -1850,7 +1851,7 @@
  			}
  			break;
  		}
-@@ -271,9 +319,8 @@
+@@ -271,9 +320,8 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 4;
@@ -1862,7 +1863,7 @@
  			}
  			break;
  		}
-@@ -283,9 +330,8 @@
+@@ -283,9 +331,8 @@
  			pbuf += 3;
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 8;
@@ -1874,7 +1875,7 @@
  			}
  			break;
  		}
-@@ -296,9 +342,8 @@
+@@ -296,9 +343,8 @@
  			pbuf += count * 8;
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 8;
@@ -1886,7 +1887,7 @@
  			}
  			break;
  		}
-@@ -306,9 +351,8 @@
+@@ -306,9 +352,8 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 9 + count * 14;
@@ -1898,7 +1899,7 @@
  			}
  			break;
  		}
-@@ -316,18 +360,16 @@
+@@ -316,18 +361,16 @@
  		case MSG_SELECT_DISFIELD: {
  			player = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 5;
@@ -1921,7 +1922,7 @@
  			}
  			break;
  		}
-@@ -336,9 +378,8 @@
+@@ -336,9 +379,8 @@
  			pbuf += 4;
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 9;
@@ -1933,7 +1934,7 @@
  			}
  			break;
  		}
-@@ -350,9 +391,8 @@
+@@ -350,9 +392,8 @@
  			pbuf += count * 11;
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 11;
@@ -1945,7 +1946,7 @@
  			}
  			break;
  		}
-@@ -360,9 +400,8 @@
+@@ -360,9 +401,8 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 7;
@@ -1957,7 +1958,7 @@
  			}
  			break;
  		}
-@@ -370,14 +409,14 @@
+@@ -370,14 +410,14 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 7;
@@ -1974,7 +1975,7 @@
  			break;
  		}
  		case MSG_CONFIRM_CARDS: {
-@@ -385,12 +424,12 @@
+@@ -385,12 +425,12 @@
  			pbuf += 1;
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 7;
@@ -1989,7 +1990,7 @@
  			SinglePlayRefreshDeck(player);
  			break;
  		}
-@@ -398,53 +437,53 @@
+@@ -398,53 +438,53 @@
  			/*int oplayer = */BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 4;
@@ -2052,7 +2053,7 @@
  			SinglePlayRefresh();
  			break;
  		}
-@@ -458,85 +497,85 @@
+@@ -458,85 +498,85 @@
  			int cs = pbuf[10];
  			/*int cp = pbuf[11];*/
  			pbuf += 16;
@@ -2154,7 +2155,7 @@
  			SinglePlayRefresh();
  			SinglePlayRefreshDeck(0);
  			SinglePlayRefreshDeck(1);
-@@ -544,12 +583,12 @@
+@@ -544,12 +584,12 @@
  		}
  		case MSG_CHAIN_NEGATED: {
  			pbuf++;
@@ -2169,7 +2170,7 @@
  			break;
  		}
  		case MSG_CARD_SELECTED:
-@@ -557,143 +596,140 @@
+@@ -557,143 +597,140 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 4;
@@ -2341,7 +2342,7 @@
  			}
  			break;
  		}
-@@ -702,26 +738,25 @@
+@@ -702,26 +739,25 @@
  			player = BufferIO::Read<uint8_t>(pbuf);
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += 4 * count;
@@ -2373,7 +2374,7 @@
  			SinglePlayRefreshDeck(player);
  			SinglePlayRefreshExtra(player);
  			break;
-@@ -748,7 +783,7 @@
+@@ -748,7 +784,7 @@
  			}
  			count = BufferIO::Read<uint8_t>(pbuf);
  			pbuf += count * 15;
@@ -2382,7 +2383,7 @@
  			SinglePlayReload();
  			mainGame->gMutex.lock();
  			mainGame->dField.RefreshAllCards();
-@@ -791,7 +826,7 @@
+@@ -791,7 +827,7 @@
  	return is_continuing;
  }
  inline void SingleMode::ReloadLocation(int player, int location, int flag, std::vector<unsigned char>& queryBuffer) {
@@ -2391,7 +2392,7 @@
  	mainGame->dField.UpdateFieldCard(mainGame->LocalPlayer(player), location, queryBuffer.data());
  }
  void SingleMode::SinglePlayRefresh(int flag) {
-@@ -823,7 +858,7 @@
+@@ -823,7 +859,7 @@
  }
  void SingleMode::SinglePlayRefreshSingle(int player, int location, int sequence, int flag) {
  	unsigned char queryBuffer[0x1000];
@@ -2400,7 +2401,7 @@
  	mainGame->dField.UpdateCard(mainGame->LocalPlayer(player), location, sequence, queryBuffer);
  }
  void SingleMode::SinglePlayReload() {
-@@ -847,9 +882,11 @@
+@@ -847,9 +883,11 @@
  	ReloadLocation(1, LOCATION_REMOVED, flag, queryBuffer);
  }
  uint32_t SingleMode::MessageHandler(intptr_t fduel, uint32_t type) {
@@ -2425,7 +2426,7 @@
  	static void SinglePlayThread();
 --- a/gframe/training_history.cpp
 +++ b/gframe/training_history.cpp
-@@ -0,0 +1,547 @@
+@@ -0,0 +1,565 @@
 +// Reconstruct a second, independent Lua/core instance before changing the live duel.
 +// Record every core call made by the adapter, including queries that can evaluate Lua.
 +#include "training_support.h"
@@ -2547,8 +2548,21 @@
 +static void operation(const std::string& token, const char* state, const char* error = "") {
 +    atomicFile("rewind-operation.json", "{\"token\":\"" + token + "\",\"status\":\"" + state + "\",\"error\":\"" + error + "\"}");
 +}
++static LONG WINAPI trainingCrashDiagnostic(EXCEPTION_POINTERS* info) {
++    std::ofstream out(TrainingPath("native-crash.txt"));
++    const auto base = reinterpret_cast<uintptr_t>(GetModuleHandleA(nullptr));
++    out << std::hex << "code " << info->ExceptionRecord->ExceptionCode << " offset "
++        << reinterpret_cast<uintptr_t>(info->ExceptionRecord->ExceptionAddress) - base << '\n';
++    out << "rax " << info->ContextRecord->Rax << " rbx " << info->ContextRecord->Rbx << " rcx " << info->ContextRecord->Rcx
++        << " rdx " << info->ContextRecord->Rdx << " rsi " << info->ContextRecord->Rsi << " rdi " << info->ContextRecord->Rdi << '\n';
++    void* frames[48]{};
++    const auto count = CaptureStackBackTrace(0, 48, frames, nullptr);
++    for(USHORT i = 0; i < count; ++i) out << reinterpret_cast<uintptr_t>(frames[i]) - base << '\n';
++    return EXCEPTION_EXECUTE_HANDLER;
++}
 +void TrainingHistoryInit(std::function<intptr_t()> factory, std::function<void(const std::vector<unsigned char>&)> show) {
 +    makeDuel = factory; showDuel = show;
++    if(TrainingTestControlled()) SetUnhandledExceptionFilter(trainingCrashDiagnostic);
 +}
 +bool TrainingRestoring() { return restoring; }
 +std::recursive_mutex& TrainingInputMutex() { return historyMutex; }
@@ -2688,10 +2702,12 @@
 +    cursor = node.id; atNode = true;
 +    TrainingWrite("\"kind\":\"checkpoint\",\"node\":" + std::to_string(node.id) + ",\"revision\":" + std::to_string(revision)
 +        + ",\"restorable\":true,\"prompt\":" + std::to_string(prompt[0]) + ",\"player\":" + std::to_string(TrainingPromptPlayer(prompt, len))
-+        + ",\"state\":" + node.state);
++        + ",\"raw\":\"" + encode(node.prompt) + "\",\"effects\":" + TrainingDecisionEffects(engine) + ",\"state\":" + node.state);
 +    checkpoints.push_back(std::move(node));
 +    status();
 +}
++#include "training_modular.inc"
++
 +void TrainingPublishOpponent(intptr_t engine, const unsigned char* prompt, size_t len) {
 +    std::lock_guard<std::recursive_mutex> lock(historyMutex);
 +    mainGame->singleSignal.Reset();
@@ -2699,6 +2715,7 @@
 +    pendingPlayer = TrainingPromptPlayer(prompt, len);
 +    pendingAnswered = false;
 +    ++promptVersion;
++    modularPublish(engine);
 +    if(!TrainingBranchActive()) return;
 +    atomicFile("opponent-state.json", "{\"version\":" + std::to_string(promptVersion) + ",\"manual\":" + (opponentManual ? "true" : "false")
 +        + ",\"player\":" + std::to_string(pendingPlayer) + ",\"answered\":false,\"raw\":\"" + encode(pendingPrompt)
@@ -2828,7 +2845,7 @@
 +            if(item.kind != CoreCall::Response && item.kind != CoreCall::Integer && item.kind != CoreCall::Scene && !item.bytes.empty()
 +                && !std::equal(item.bytes.begin(), item.bytes.end(), buffer.begin())) throw std::runtime_error("replay_mismatch");
 +        }
-+        if(TrainingState(candidate) != node.state) throw std::runtime_error("state_mismatch");
++        if(TrainingComparableState(TrainingState(candidate)) != TrainingComparableState(node.state)) throw std::runtime_error("state_mismatch");
 +        end_duel(candidate); candidate = makeDuel();
 +        size_t boundary = replay.size();
 +        while(boundary && replay[boundary - 1].kind != CoreCall::Process) --boundary;
@@ -2860,7 +2877,7 @@
 +            if(i >= boundary && length > 0) item.bytes.assign(buffer.begin(), buffer.begin() + length);
 +            item.result = result; persist(item); calls.push_back(std::move(item));
 +        }
-+        if(replayError || TrainingState(candidate, true) != node.maskedState) throw std::runtime_error("scene_changes_prior_state");
++        if(replayError || TrainingComparableState(TrainingState(candidate, true)) != TrainingComparableState(node.maskedState)) throw std::runtime_error("scene_changes_prior_state");
 +        const auto previous = engine; engine = candidate; candidate = 0; end_duel(previous);
 +        nextNode = lastNode; opponentManual = true;
 +        rebuildingView = true; presentationNode = &node; resumeCalls.clear();
@@ -2908,6 +2925,7 @@
 +    pendingAnswered = true;
 +    TrainingResponse(bytes, len);
 +    set_responseb(engine, bytes);
++    modularPublish(engine);
 +}
 +void TrainingWait(intptr_t& engine, const unsigned char* prompt, size_t len) {
 +    {
@@ -2915,6 +2933,7 @@
 +        status();
 +    }
 +    while(!TrainingStopping()) {
++        if(modularTick(engine)) return;
 +        if(TrainingOpponentTick(engine, {prompt, prompt + len})) return;
 +        // Only the duel thread reads rewind requests, at an engine input boundary.
 +        std::ifstream request(TrainingPath("rewind.request"));
@@ -2943,7 +2962,7 @@
 +                    if(call.kind != CoreCall::Response && call.kind != CoreCall::Integer && !call.bytes.empty()
 +                            && !std::equal(call.bytes.begin(), call.bytes.end(), buffer.begin())) throw std::runtime_error("replay_mismatch");
 +                }
-+                if(TrainingState(candidate) != node->state) throw std::runtime_error("state_mismatch");
++                if(TrainingComparableState(TrainingState(candidate)) != TrainingComparableState(node->state)) throw std::runtime_error("state_mismatch");
 +                // Test-only failure injection exercises the real transaction after reconstruction.
 +                if(TrainingTestControlled() && GetFileAttributesA(TrainingPath("test-rewind-fail").c_str()) != INVALID_FILE_ATTRIBUTES)
 +                    throw std::runtime_error("test_validation_failed");
@@ -2975,7 +2994,7 @@
 +}
 --- a/gframe/training_history.h
 +++ b/gframe/training_history.h
-@@ -0,0 +1,31 @@
+@@ -0,0 +1,32 @@
 +#pragma once
 +#include <cstddef>
 +#include <cstdint>
@@ -3006,10 +3025,231 @@
 +void TrainingPublishOpponent(intptr_t engine, const unsigned char* prompt, size_t len);
 +bool TrainingAutoResponse(intptr_t engine, int prompt);
 +bool TrainingRetry(intptr_t engine);
++void TrainingModularClose();
++}
+--- a/gframe/training_modular.inc
++++ b/gframe/training_modular.inc
+@@ -0,0 +1,217 @@
++// Included in training_history.cpp: all engine work stays on the duel thread.
++// A probe reconstructs a disposable core. It never replaces the live engine.
++static bool modularDecisionWaiting(intptr_t engine) {
++    const auto f = reinterpret_cast<duel*>(engine)->game_field;
++    if(f->core.units.empty() || f->core.units.front().step == 0) return false;
++    switch(f->core.units.front().type) {
++    case PROCESSOR_SELECT_IDLECMD: case PROCESSOR_SELECT_BATTLECMD:
++    case PROCESSOR_SELECT_EFFECTYN: case PROCESSOR_SELECT_YESNO: case PROCESSOR_SELECT_OPTION:
++    case PROCESSOR_SELECT_CARD: case PROCESSOR_SELECT_UNSELECT_CARD: case PROCESSOR_SELECT_CHAIN:
++    case PROCESSOR_SELECT_PLACE: case PROCESSOR_SELECT_DISFIELD: case PROCESSOR_SELECT_POSITION:
++    case PROCESSOR_SELECT_TRIBUTE_P: case PROCESSOR_SELECT_COUNTER: case PROCESSOR_SELECT_SUM:
++    case PROCESSOR_SORT_CARD: case PROCESSOR_ANNOUNCE_RACE: case PROCESSOR_ANNOUNCE_ATTRIB:
++    case PROCESSOR_ANNOUNCE_CARD: case PROCESSOR_ANNOUNCE_NUMBER: case PROCESSOR_ROCK_PAPER_SCISSORS:
++        return true;
++    default: return false;
++    }
++}
++struct ModularProbeCache {
++    intptr_t engine = 0;
++    uint64_t version = 0;
++    unsigned scenario = 0;
++    std::vector<std::string> path, batches;
++    std::vector<unsigned char> boundary;
++    bool ended = false;
++};
++static ModularProbeCache modularCache;
++void TrainingModularClose() {
++    std::lock_guard<std::recursive_mutex> lock(historyMutex);
++    if(modularCache.engine) end_duel(modularCache.engine);
++    modularCache = {};
++}
++static std::string modularState(intptr_t engine) {
++    auto result = TrainingState(engine);
++    result.pop_back();
++    const auto f = reinterpret_cast<duel*>(engine)->game_field;
++    std::ostringstream out;
++    out << result << ",\"normal_summons_used\":[" << f->core.summon_count[0] << ',' << f->core.summon_count[1]
++        << "],\"effect_usage\":[";
++    bool first = true;
++    for(int p = 0; p < 3; ++p) {
++        std::map<uint32_t, int32_t> ordered(f->core.effect_count_code[p].begin(), f->core.effect_count_code[p].end());
++        for(const auto& item : ordered) {
++            if(!first) out << ',';
++            first = false;
++            out << "{\"player\":" << p << ",\"key\":" << item.first << ",\"used\":" << item.second << '}';
++        }
++    }
++    out << "],\"restrictions\":\"engine_replay\"}";
++    return out.str();
++}
++static void modularPublish(intptr_t engine) {
++    atomicFile("modular-state.json", "{\"version\":" + std::to_string(promptVersion)
++        + ",\"revision\":" + std::to_string(revision) + ",\"node\":" + std::to_string(cursor)
++        + ",\"player\":" + std::to_string(pendingPlayer) + ",\"answered\":" + (pendingAnswered ? "true" : "false")
++        + ",\"raw\":\"" + encode(pendingPrompt) + "\",\"effects\":" + TrainingDecisionEffects(engine) + ",\"state\":" + modularState(engine) + '}');
++}
++static bool modularTick(intptr_t engine) {
++    std::ifstream request(TrainingPath("modular.request"));
++    if(!request) return false;
++    std::string command, token, encoded;
++    uint64_t expected;
++    unsigned scenario, count;
++    if(!(request >> command >> expected >> token >> scenario >> count)) return false;
++    if(token.size() != 32 || token.find_first_not_of("0123456789abcdef") != std::string::npos) return false;
++    std::vector<std::string> path;
++    for(unsigned i = 0; i < count && i <= 256 && request >> encoded; ++i) path.push_back(encoded);
++    request.close(); DeleteFileA(TrainingPath("modular.request").c_str());
++    if(TrainingTestControlled()) {
++        std::ostringstream trace;
++        trace << command << ' ' << expected << ' ' << scenario << '\n';
++        for(const auto& step : path) trace << step << '\n';
++        atomicFile("modular-probe.txt", trace.str());
++    }
++    std::lock_guard<std::recursive_mutex> lock(historyMutex);
++    intptr_t candidate = 0;
++    bool submitted = false;
++    try {
++        if(count > 256 || path.size() != count || scenario > 2) throw std::runtime_error("invalid_request");
++        if(expected != promptVersion || pendingAnswered || restoring) throw std::runtime_error("stale_state");
++        if(command == "answer") {
++            if(count != 1 || scenario || pendingPlayer != 0) throw std::runtime_error("invalid_request");
++            // The server commits a one-use lease containing source/preference versions.
++            // Removing it cancels a queued action before it enters the core.
++            std::ifstream lease(TrainingPath("modular-lease.txt"));
++            std::string authorized; lease >> authorized; lease.close();
++            if(authorized != token) throw std::runtime_error("stale_lease");
++            auto bytes = decode(path[0]);
++            if(bytes.empty() || bytes.size() > 64) throw std::runtime_error("invalid_response");
++            const auto size = bytes.size(); bytes.resize(64);
++            DeleteFileA(TrainingPath("modular-lease.txt").c_str());
++            TrainingResponse(bytes.data(), size, "modular_ai", pendingPrompt[0]);
++            set_responseb(engine, bytes.data()); pendingAnswered = true; submitted = true;
++            {
++                std::lock_guard<std::mutex> viewLock(mainGame->gMutex);
++                mainGame->dField.HideMenu();
++                for(auto window : {mainGame->wQuery, mainGame->wOptions, mainGame->wPosSelect, mainGame->wCardSelect,
++                        mainGame->wANNumber, mainGame->wANCard, mainGame->wANAttribute, mainGame->wANRace})
++                    window->setVisible(false);
++                mainGame->btnCancelOrFinish->setVisible(false);
++            }
++            modularPublish(engine);
++            atomicFile("modular-result.json", "{\"token\":\"" + token + "\",\"status\":\"submitted\"}");
++            return true;
++        }
++        if(command != "probe") throw std::runtime_error("invalid_request");
++        restoring = true; replayError = false;
++        std::vector<unsigned char> buffer(SIZE_QUERY_BUFFER + SIZE_MESSAGE_BUFFER);
++        const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(4);
++        const bool cached = modularCache.engine && modularCache.version == expected && modularCache.scenario == scenario
++            && path.size() >= modularCache.path.size() && std::equal(modularCache.path.begin(), modularCache.path.end(), path.begin());
++        const size_t completed = cached ? modularCache.path.size() : 0;
++        std::vector<std::string> batches = cached ? modularCache.batches : std::vector<std::string>{};
++        std::vector<unsigned char> boundaryBytes = cached ? modularCache.boundary : pendingPrompt;
++        bool ended = cached && modularCache.ended;
++        if(cached) { candidate = modularCache.engine; modularCache.engine = 0; }
++        else {
++        if(modularCache.engine) { end_duel(modularCache.engine); modularCache.engine = 0; }
++        candidate = makeDuel();
++        if(!candidate) throw std::runtime_error("create_failed");
++        const auto replay = [&] (const CoreCall& source) {
++            if(TrainingStopping() || std::chrono::steady_clock::now() > deadline) throw std::runtime_error("search_limit");
++            auto call = source;
++            if(buffer.size() < call.bytes.size()) buffer.resize(call.bytes.size());
++            const auto result = execute(candidate, call, buffer.data(), &buffer);
++            if(result != call.result || replayError) throw std::runtime_error("replay_mismatch");
++            if(call.kind != CoreCall::Response && call.kind != CoreCall::Integer && call.kind != CoreCall::Scene
++                && !std::equal(call.bytes.begin(), call.bytes.end(), buffer.begin())) throw std::runtime_error("replay_mismatch");
++        };
++        size_t length = calls.size();
++        if(resumeFromNode) {
++            const auto node = std::find_if(checkpoints.begin(), checkpoints.end(), [](const Checkpoint& n){return n.id == cursor;});
++            if(node == checkpoints.end()) throw std::runtime_error("node_unavailable");
++            length = node->calls;
++        }
++        for(size_t i = 0; i < length; ++i) replay(calls[i]);
++        if(resumeFromNode) for(const auto& call : resumeCalls) replay(call);
++        if(TrainingComparableState(TrainingState(candidate)) != TrainingComparableState(TrainingState(engine))) {
++            if(TrainingTestControlled()) atomicFile("modular-state-mismatch.json", "{\"live\":" + TrainingState(engine) + ",\"probe\":" + TrainingState(candidate) + '}');
++            throw std::runtime_error("state_mismatch");
++        }
++        if(scenario) {
++            // Explicit hypothetical scenario, only in this disposable engine:
++            // opponent has one Ash Blossom and no other hidden hand resources.
++            const auto f = reinterpret_cast<duel*>(candidate)->game_field;
++            f->core.simple_ai_responses = true;
++            const auto hand = f->player[1].list_hand;
++            for(auto c : hand) f->remove_card(c);
++            new_card(candidate, scenario == 1 ? 14558127 : 55144522, 1, 1, LOCATION_HAND, 0, POS_FACEDOWN_DEFENSE);
++            if(scenario == 2) {
++                const auto deck = f->player[1].list_main;
++                for(auto c : deck) f->remove_card(c);
++                for(int i = 0; i < 3; ++i) new_card(candidate, 1184620, 1, 1, LOCATION_DECK, 0, POS_FACEDOWN_DEFENSE);
++            }
++        }
++        }
++        auto& probeCore = reinterpret_cast<duel*>(candidate)->game_field->core;
++        probeCore.modular_probe = true;
++        if(!cached) probeCore.modular_private_cards.clear();
++        for(size_t step = completed; step < path.size(); ++step) {
++            probeCore.modular_private_cards.clear();
++            const auto& guarded = path[step];
++            if(ended) throw std::runtime_error("past_end");
++            const auto separator = guarded.find(':');
++            if(separator == std::string::npos) throw std::runtime_error("missing_prompt_guard");
++            const auto guard = decode(guarded.substr(0, separator));
++            const auto answer = guarded.substr(separator + 1);
++            if(guard.empty() || boundaryBytes.size() < guard.size() || !std::equal(guard.rbegin(), guard.rend(), boundaryBytes.rbegin()))
++                throw std::runtime_error("prompt_changed");
++            if(!modularDecisionWaiting(candidate)) throw std::runtime_error("not_a_decision");
++            if(answer == "ai") {
++                CoreCall call{CoreCall::Auto};
++                if(execute(candidate, call, buffer.data(), &buffer) != 64) throw std::runtime_error("ai_unavailable");
++            } else {
++                auto bytes = decode(answer);
++                if(bytes.empty() || bytes.size() > 64) throw std::runtime_error("invalid_response");
++                bytes.resize(64); set_responseb(candidate, bytes.data());
++            }
++            batches.clear();
++            bool waiting = false;
++            for(unsigned ticks = 0; ticks < 10000; ++ticks) {
++                if(TrainingStopping() || std::chrono::steady_clock::now() > deadline) throw std::runtime_error("search_limit");
++                CoreCall call{CoreCall::Process};
++                const auto result = execute(candidate, call, buffer.data(), &buffer);
++                const auto n = result & PROCESSOR_BUFFER_LEN;
++                if(replayError) throw std::runtime_error("script_error");
++                if(n) {
++                    boundaryBytes.assign(buffer.begin(), buffer.begin() + n);
++                    batches.push_back(encode(boundaryBytes));
++                }
++                if(n && buffer[0] == MSG_RETRY) throw std::runtime_error("illegal_response");
++                ended = (result & PROCESSOR_END) != 0;
++                // PROCESSOR_WAIT is also used for reveal/animation barriers. It
++                // is not a legal decision window and must not consume a response.
++                waiting = (result & PROCESSOR_WAITING) != 0 && modularDecisionWaiting(candidate);
++                if(ended || waiting) break;
++            }
++            if(!ended && !waiting) throw std::runtime_error("search_limit");
++        }
++        std::ostringstream out;
++        out << "{\"token\":\"" << token << "\",\"status\":\"ok\",\"version\":" << expected
++            << ",\"ended\":" << (ended ? "true" : "false") << ",\"effects\":" << TrainingDecisionEffects(candidate)
++            << ",\"state\":" << modularState(candidate) << ",\"batches\":[";
++        for(size_t i = 0; i < batches.size(); ++i) { if(i) out << ','; out << '"' << batches[i] << '"'; }
++        out << "],\"private_cards\":[";
++        bool firstPrivate = true;
++        for(const auto id : probeCore.modular_private_cards) { if(!firstPrivate) out << ','; firstPrivate = false; out << id; }
++        out << "]}";
++        modularCache = {candidate, expected, scenario, path, batches, boundaryBytes, ended};
++        candidate = 0; restoring = false;
++        atomicFile("modular-result.json", out.str());
++    } catch(const std::exception& error) {
++        if(candidate) end_duel(candidate);
++        restoring = false;
++        try { atomicFile("modular-result.json", "{\"token\":\"" + token + "\",\"status\":\"error\",\"error\":\"" + error.what() + "\"}"); } catch(...) {}
++    }
++    return submitted;
 +}
 --- a/gframe/training_support.cpp
 +++ b/gframe/training_support.cpp
-@@ -0,0 +1,354 @@
+@@ -0,0 +1,411 @@
 +// Local recorder for the pinned YGOPro core. No rule decisions are inferred from text.
 +#include "training_support.h"
 +#include "game.h"
@@ -3019,6 +3259,7 @@
 +#include "client_card.h"
 +#include "../ocgcore/duel.h"
 +#include "../ocgcore/field.h"
++#include "../ocgcore/interpreter.h"
 +#include "../ocgcore/card.h"
 +#include "../ocgcore/effect.h"
 +#include "../ocgcore/ocgapi.h"
@@ -3180,15 +3421,49 @@
 +    }
 +    return result + '"';
 +}
++static int functionLine(effect* e, int reference) {
++    if(!reference) return 0;
++    auto L = e->pduel->lua->lua_state;
++    const auto top = lua_gettop(L);
++    lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
++    lua_Debug info{};
++    const auto line = lua_isfunction(L, -1) && lua_getinfo(L, ">S", &info) ? info.linedefined : 0;
++    lua_settop(L, top);
++    return line;
++}
 +static std::string describeEffect(effect* e) {
 +    if(!e) return "null";
 +    const auto handler = e->get_handler();
 +    std::ostringstream out;
 +    out << "{\"effect_id\":" << e->id << ",\"effect_handle\":" << e->ref_handle << ",\"description\":" << e->description
-+        << ",\"effect_type\":" << e->type << ",\"event_code\":" << e->code << ",\"range\":" << e->range
++        << ",\"effect_type\":" << e->type << ",\"event_code\":" << e->code << ",\"range\":" << e->range << ",\"category\":" << e->category
 +        << ",\"owner_code\":" << (e->owner ? std::to_string(e->owner->data.code) : "null")
 +        << ",\"handler_instance\":" << (handler ? std::to_string(handler->cardid) : "null")
-+        << ",\"handler_code\":" << (handler ? std::to_string(handler->data.code) : "null") << '}';
++        << ",\"handler_code\":" << (handler ? std::to_string(handler->data.code) : "null")
++        << ",\"count_code\":" << e->count_code << ",\"count_remaining\":" << unsigned(e->count_limit)
++        << ",\"count_max\":" << unsigned(e->count_limit_max)
++        << ",\"property_flags\":[\"" << e->flag[0] << "\",\"" << e->flag[1] << "\"]"
++        << ",\"self_range\":" << e->s_range << ",\"opponent_range\":" << e->o_range
++        << ",\"effect_value\":" << (e->is_flag(EFFECT_FLAG_FUNC_VALUE) ? "null" : std::to_string(e->value))
++        << ",\"value_line\":" << (e->is_flag(EFFECT_FLAG_FUNC_VALUE) ? functionLine(e, e->value) : 0)
++        << ",\"condition_line\":" << functionLine(e, e->condition) << ",\"cost_line\":" << functionLine(e, e->cost)
++        << ",\"target_line\":" << functionLine(e, e->target) << ",\"operation_line\":" << functionLine(e, e->operation)
++        << ",\"labels\":[";
++    for(size_t i = 0; i < e->label.size(); ++i) { if(i) out << ','; out << e->label[i]; }
++    out << "]}";
++    return out.str();
++}
++std::string TrainingDecisionEffects(intptr_t engine) {
++    const auto f = reinterpret_cast<duel*>(engine)->game_field;
++    std::ostringstream out;
++    out << "{\"context\":" << describeEffect(f->core.reason_effect) << ",\"choices\":[";
++    bool first = true;
++    for(const auto& chain : f->core.select_chains) {
++        if(!first) out << ',';
++        first = false;
++        out << describeEffect(chain.triggering_effect);
++    }
++    out << "]}";
 +    return out.str();
 +}
 +bool TrainingActive() { return !session.empty(); }
@@ -3200,6 +3475,20 @@
 +    journal << "{\"session\":\"" << session << "\",\"seq\":" << ++sequence << ",\"time_ms\":" << now << ',' << body << "}\n";
 +    journal.flush();
 +    if(!journal) { stopping = true; closing = true; }
++}
++std::string TrainingComparableState(std::string state) {
++    // Lua registry references may differ after garbage collection in an
++    // independently rebuilt VM. They identify evidence within one VM only.
++    // Keep the effect's registration ID, handler, callbacks, values and flags.
++    const std::string key = ",\"effect_handle\":";
++    size_t at = 0;
++    while((at = state.find(key, at)) != std::string::npos) {
++        size_t end = at + key.size();
++        if(end < state.size() && state[end] == '-') ++end;
++        while(end < state.size() && state[end] >= '0' && state[end] <= '9') ++end;
++        state.erase(at, end - at);
++    }
++    return state;
 +}
 +std::string TrainingState(intptr_t engine, bool omitOpponentHand) {
 +    const auto d = reinterpret_cast<duel*>(engine);
@@ -3220,6 +3509,7 @@
 +            << ",\"owner\":" << unsigned(c->owner) << ",\"controller\":" << unsigned(c->overlay_target ? c->overlay_target->current.controler : c->current.controler)
 +            << ",\"location\":" << unsigned(c->overlay_target ? LOCATION_OVERLAY : c->current.location)
 +            << ",\"sequence\":" << unsigned(c->current.sequence) << ",\"position\":" << unsigned(c->current.position)
++            << ",\"status_flags\":" << c->status << ",\"disabled\":" << ((c->status & STATUS_DISABLED) ? "true" : "false")
 +            << ",\"overlay_target\":" << (c->overlay_target ? std::to_string(c->overlay_target->cardid) : "null")
 +            << ",\"reason\":" << c->current.reason
 +            << ",\"reason_card_instance\":" << (c->current.reason_card ? std::to_string(c->current.reason_card->cardid) : "null")
@@ -3228,6 +3518,13 @@
 +        for(const auto material : c->material_cards) materials.push_back(material->cardid);
 +        std::sort(materials.begin(), materials.end());
 +        for(size_t i = 0; i < materials.size(); ++i) { if(i) out << ','; out << materials[i]; }
++        out << "],\"counters\":[";
++        bool firstCounter = true;
++        for(const auto& counter : c->counters) {
++            if(!firstCounter) out << ',';
++            firstCounter = false;
++            out << "{\"type\":" << counter.first << ",\"count\":" << counter.second << '}';
++        }
 +        out << "],\"reason_effect\":" << describeEffect(c->current.reason_effect) << '}';
 +    }
 +    out << "],\"chain_depth\":" << f->core.current_chain.size() << ",\"chains\":[";
@@ -3366,7 +3663,7 @@
 +}
 --- a/gframe/training_support.h
 +++ b/gframe/training_support.h
-@@ -0,0 +1,25 @@
+@@ -0,0 +1,27 @@
 +#pragma once
 +#include <cstddef>
 +#include <cstdint>
@@ -3374,6 +3671,7 @@
 +#include "training_history.h"
 +
 +namespace ygo {
++std::string TrainingDecisionEffects(intptr_t engine);
 +bool TrainingActive();
 +bool TrainingEmbedded();
 +bool TrainingOpening();
@@ -3387,6 +3685,7 @@
 +void TrainingWrite(const std::string& body);
 +void TrainingCapture(intptr_t engine, const char* kind, const unsigned char* bytes = nullptr, size_t len = 0);
 +std::string TrainingState(intptr_t engine, bool omitOpponentHand = false);
++std::string TrainingComparableState(std::string state);
 +void TrainingResponse(const unsigned char* bytes, size_t len, const char* actor = "user", int prompt = -1);
 +bool TrainingAnalyze(intptr_t engine, unsigned char* bytes, size_t len);
 +void TrainingFinish(intptr_t engine, const char* reason);
@@ -3479,15 +3778,28 @@
  		SetForegroundWindow(HWnd);
 --- a/ocgcore/field.h
 +++ b/ocgcore/field.h
-@@ -307,6 +307,8 @@
+@@ -307,6 +307,10 @@
  	int32_t spe_effect[2]{};
  	int32_t last_select_hint[2]{ 0 };
  	uint32_t duel_options{ 0 };
 +	uint8_t first_player{ 0 };
 +	bool simple_ai_responses{ true };
++	bool modular_probe{ false };
++	std::set<uint32_t> modular_private_cards;
  	int32_t duel_rule{ CURRENT_RULE };
  	uint32_t copy_reset{ 0 };
  	int32_t copy_reset_count{ 0 };
+--- a/ocgcore/libduel.cpp
++++ b/ocgcore/libduel.cpp
+@@ -2580,6 +2580,8 @@
+ 	auto cit = pduel->game_field->player[playerid].list_main.rbegin();
+ 	for(uint32_t i = 0; i < count && cit != pduel->game_field->player[playerid].list_main.rend(); ++i, ++cit)
+ 		pgroup->container.insert(*cit);
++	if(pduel->game_field->core.modular_probe && playerid == 0)
++		for(auto card : pgroup->container) pduel->game_field->core.modular_private_cards.insert(card->cardid);
+ 	interpreter::group2value(L, pgroup);
+ 	return 1;
+ }
 --- a/ocgcore/ocgapi.cpp
 +++ b/ocgcore/ocgapi.cpp
 @@ -119,7 +119,7 @@
@@ -3499,6 +3811,16 @@
  }
  void end_duel(intptr_t pduel) {
  	duel* pd = (duel*)pduel;
+--- a/ocgcore/operations.cpp
++++ b/ocgcore/operations.cpp
+@@ -4412,6 +4412,7 @@
+ 		int32_t i = 0;
+ 		for(auto cit = player[playerid].list_main.rbegin(); i < count && cit != player[playerid].list_main.rend(); ++cit, ++i) {
+ 			uint32_t dest = LOCATION_GRAVE;
++			if(core.modular_probe && playerid == 0) core.modular_private_cards.insert((*cit)->cardid);
+ 			(*cit)->sendto_param.location = LOCATION_GRAVE;
+ 			(*cit)->current.reason_effect = core.reason_effect;
+ 			(*cit)->current.reason_player = core.reason_player;
 --- a/ocgcore/playerop.cpp
 +++ b/ocgcore/playerop.cpp
 @@ -14,6 +14,15 @@

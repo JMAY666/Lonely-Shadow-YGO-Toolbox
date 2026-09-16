@@ -3,7 +3,7 @@
 // The standalone editor and temporary preparation edits keep independent buffers.
 // Expansion's first step uses a separate, read-only saved-deck selection.
 const moduleUI = {current:'home', editorOwner:'decks', expansionView:'decks', switching:false, railCollapsed:false,
-  editors:{decks:null, expansion:null}, scroll:{home:0,decks:0,expansion:0,duel:0,tags:0}};
+  editors:{decks:null, expansion:null}, scroll:{home:0,decks:0,expansion:0,duel:0,tags:0,modular:0}};
 const editorKeys = ['deck','representatives','deckTags','deckTagNames','id','revision','sourceName','dirty','undo','savedState','selected','offset','deckPage','libraryTab','targetZone'];
 const emptyDetail = $('#card-detail').innerHTML;
 function captureEditor() {
@@ -32,7 +32,7 @@ function updateShellHeight() {
 function updateModuleChrome() {
   document.body.dataset.module = moduleUI.current;
   $('#expansion-navigation').hidden = moduleUI.current !== 'expansion';
-  for (const name of ['home','decks','expansion','duel','tags']) {
+  for (const name of ['home','decks','expansion','duel','tags','modular']) {
     const button = $(`#module-${name}`);
     button.classList.toggle('active', moduleUI.current===name);
     button.disabled = moduleUI.switching;
@@ -57,14 +57,15 @@ function toggleNavigation() {
   updateShellHeight();
 }
 async function switchModule(target) {
-  if (!['home','decks','expansion','duel','tags'].includes(target) || target===moduleUI.current) return;
+  if (!['home','decks','expansion','duel','tags','modular'].includes(target) || target===moduleUI.current) return;
   if (moduleUI.switching || app.busy || flow.busy || flow.saving || flow.confirming || rewindState.busy || tagManagerUI.busy || (typeof duelUI!=='undefined'&&duelUI.busy) || document.querySelector('dialog[open]')) {
     notice('当前操作尚未完成，请完成后再切换模块。'); return;
   }
   moduleUI.switching = true;
   const previous = moduleUI.current;
   moduleUI.scroll[previous] = window.scrollY;
-  const destination = ['home','tags','duel'].includes(target) ? moduleUI.editorOwner : target;
+  const destination = ['home','tags','duel','modular'].includes(target) ? moduleUI.editorOwner : target;
+  if (previous === 'modular') leaveModular();
   if (previous === 'duel') await leaveDuelModule();
   // Capture before hiding the drawer or invalidating any asynchronous rendering.
   if (['decks','expansion'].includes(previous)) moduleUI.editors[moduleUI.editorOwner] = captureEditor();
@@ -100,6 +101,7 @@ async function switchModule(target) {
     }
     if (target==='tags'&&!tagManagerUI.dirty) await refreshTagManager().catch(error=>notice(error.message));
     if (target==='duel') await enterDuelModule();
+    if (target==='modular') await enterModular();
     window.scrollTo(0,moduleUI.scroll[target]);
     await syncNativeHost();
     if (app.active && previous==='expansion') notice('展开继续记录中。返回“展开”可继续操作。');

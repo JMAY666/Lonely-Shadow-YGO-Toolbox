@@ -310,8 +310,22 @@ bool SingleMode::StartPlay() {''')
 
     # Opt-in training policy; normal callers keep the pinned engine's defaults and player identities.
     t=read('ocgcore/field.h')
-    t=replace(t, '\tuint32_t duel_options{ 0 };', '\tuint32_t duel_options{ 0 };\n\tuint8_t first_player{ 0 };\n\tbool simple_ai_responses{ true };')
+    t=replace(t, '\tuint32_t duel_options{ 0 };', '\tuint32_t duel_options{ 0 };\n\tuint8_t first_player{ 0 };\n\tbool simple_ai_responses{ true };\n\tbool modular_probe{ false };\n\tstd::set<uint32_t> modular_private_cards;')
     save('ocgcore/field.h', t)
+    # Observation only: private top-deck results must not become planning facts.
+    # These fields are enabled exclusively on a disposable modular probe.
+    t=read('ocgcore/operations.cpp')
+    t=replace(t, '\t\t\t(*cit)->sendto_param.location = LOCATION_GRAVE;',
+              '\t\t\tif(core.modular_probe && playerid == 0) core.modular_private_cards.insert((*cit)->cardid);\n\t\t\t(*cit)->sendto_param.location = LOCATION_GRAVE;')
+    save('ocgcore/operations.cpp', t)
+    t=read('ocgcore/libduel.cpp')
+    start=t.index('int32_t scriptlib::duel_get_decktop_group(')
+    end=t.index('\n}',start)
+    part=t[start:end]
+    part=replace(part, '\tinterpreter::group2value(L, pgroup);',
+        '\tif(pduel->game_field->core.modular_probe && playerid == 0)\n\t\tfor(auto card : pgroup->container) pduel->game_field->core.modular_private_cards.insert(card->cardid);\n\tinterpreter::group2value(L, pgroup);')
+    t=t[:start]+part+t[end:]
+    save('ocgcore/libduel.cpp', t)
     t=read('ocgcore/ocgapi.cpp')
     t=replace(t, 'pd->game_field->add_process(PROCESSOR_TURN, 0, 0, 0, 0, 0);',
               'pd->game_field->add_process(PROCESSOR_TURN, 0, 0, 0, pd->game_field->core.first_player, 0);')

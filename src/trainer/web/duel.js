@@ -6,6 +6,8 @@ const newDuel = () => ({stage:0,reached:0,mode:null,deck:null,deckPage:'list',de
   marks:new Set(),target:null,result:null,plan:null,routes:null,graph:null,position:null,ended:false,enabled:false,session:crypto.randomUUID()});
 const duelUI = {state:newDuel(),busy:false,generation:0,message:'',detailPreview:false,handCount:5,bindings:{...duelDefaults},shortcutStatus:null,shortcutQueue:Promise.resolve(),hoverTimer:null,closeTimer:null,previewAnchor:null,previewRect:null,previewKind:null,previewId:null,previewSuppressed:null,handHoverSuppressed:null};
 const duelState = () => duelUI.state;
+const duelInputKey=s=>JSON.stringify([s.deck?.id,s.deck?.revision,s.hand]);
+const duelEngineBound=s=>!!app.active&&s.modularSession===app.active.id&&s.modularInput===duelInputKey(s);
 const duelRouteCache=new WeakMap();
 function duelPlanRoutes(plan) {
   if(!duelRouteCache.has(plan))duelRouteCache.set(plan,buildBranchedTutorial(plan,true).routes);
@@ -17,7 +19,8 @@ function duelPlanBranches(plan) {
   return (plan.branches||[]).filter(branch=>branch.valid!==false&&reachable.has(branch.id));
 }
 function duelPlanCounts(plan) {
-  return `<span class="duel-plan-counts"><small class="duel-plan-step-count">主线 ${duelPlanStepCount(plan)} 步</small><small class="duel-plan-branch-count">可用分支 ${duelPlanBranches(plan).length}</small></span>`;
+  const modular=plan.modular_source;
+  return `<span class="duel-plan-counts"><small class="duel-plan-step-count">主线 ${duelPlanStepCount(plan)} 步</small><small class="duel-plan-branch-count">可用分支 ${duelPlanBranches(plan).length}</small><small>${modular?.edges?.length?`模块连接 ${modular.edges.length} · 使用时逐步校验`:'模块资料待补充'}</small></span>`;
 }
 const duelHandCount = () => duelUI.handCount;
 const blankDuelHand = count => Number.isSafeInteger(count)&&count>=1&&count<=(duelState().deck?.deck?.main?.length||0) ? Array(count).fill(null) : [];
@@ -59,6 +62,7 @@ async function enterDuelModule() {
   });
 }
 async function leaveDuelModule() {
+  if($('#duel-brain-field')?.contains($('#native-stage')))restoreModularField();
   duelState().enabled=false;
   closeDuelPreview();closeDeckPreview();closeReviewDetail();
   await syncDuelShortcuts();
@@ -130,7 +134,7 @@ function duelRegion(c) {
   return ({1:'主卡组',2:'手牌区',4:'怪兽区',8:c.sequence===5?'场地区':'魔陷区',16:'墓地',32:'除外区',64:'额外卡组'})[c.location]||'位置未记录';
 }
 function duelSummaryCards(plan,kind,limit=Infinity) {
-  const final=plan.review?.nodes?.find(n=>n.kind==='final')||{id:'final',state:plan.final_state};
+  const final=reviewNodes(plan).find(n=>n.kind==='final')||{id:'final',state:plan.final_state};
   const marks=plan.annotations?.final_marks||{};
   const marked=(final.state?.cards||[]).filter(c=>marks[String(c.instance_id)]?.marked);
   const cards=kind==='opening'?plan.requirements?.opening||[]:marked.length?marked:plan.requirements?.final?.cards||[];
@@ -144,7 +148,7 @@ function duelPlanSummary(plan,detailed=false) {
   return `<h3>${escape(plan.name)}</h3>${duelPlanCounts(plan)}${plan.expansion?.notes?`<p class="preserve-lines">${escape(plan.expansion.notes)}</p>`:''}<section><h4>起手</h4><div class="duel-summary-cards">${duelSummaryCards(plan,'opening')||'<span>无指定起手</span>'}</div></section><section><h4>终场</h4><div class="duel-summary-cards">${duelSummaryCards(plan,'final')||'<span>未记录终场卡牌</span>'}</div>${duelFinalNotes(plan,detailed)}</section>${detailed?duelBranchDetails(plan)+renderPlanTutorialSvg(buildPlanTutorial(plan,true)):''}`;
 }
 function duelFinalNotes(plan,detailed=false) {
-  const final=plan.review?.nodes?.find(node=>node.kind==='final'),edits=plan.annotations||{};
+  const final=reviewNodes(plan).find(node=>node.kind==='final'),edits=plan.annotations||{};
   const general=[...new Set([edits.nodes?.[final?.id||'final']?.notes,plan.requirements?.final?.notes].map(note=>String(note||'').trim()).filter(Boolean))];
   const cards=(final?.state?.cards||plan.final_state?.cards||[]).filter(card=>edits.final_marks?.[String(card.instance_id)]?.marked);
   const notes=cards.map(card=>{
@@ -165,7 +169,7 @@ function duelFinalNotes(plan,detailed=false) {
 function duelBranchDetails(plan) {
   const branches=duelPlanBranches(plan);if(!branches.length)return '';
   return `<section class="duel-branch-list"><h4>分支详情</h4>${branches.map(branch=>{
-    const report=branch.report,source=branch.source||{},node=plan.review?.nodes?.find(node=>node.id===source.node_id);
+    const report=branch.report,source=branch.source||{},node=reviewNodes(plan).find(node=>node.id===source.node_id);
     const at=source.node_id==='initial'?'起手':node?.number!=null?`主线 Step ${node.number}`:'记录的分支起点';
     const named=card=>card.name||report.catalog?.[card.code]?.name||plan.catalog?.[card.code]?.name||`卡号 ${card.code}`;
     const hand=[...DuelModel.counts(branch.conditions?.hand||[])].map(([code,count])=>`${named({code})} ×${count}`).join('、');
@@ -176,11 +180,11 @@ function duelBranchDetails(plan) {
 }
 function duelMatchesPage() {
   const result=duelState().result;if(!result)return '';
-  return `<div class="duel-section-heading"><h2>方案选择</h2>${duelButton('rematch','刷新')}</div><div class="duel-plan-grid">${result.matches.map(plan=>`<button class="duel-plan" data-duel-plan="${escape(plan.id)}"><span class="duel-plan-heading"><strong>${escape(plan.name)}</strong>${duelPlanCounts(plan)}</span>${plan.expansion?.notes?`<span class="duel-plan-note">${escape(plan.expansion.notes)}</span>`:''}<span class="duel-tile-cards">${duelSummaryCards(plan,'opening',3)}</span><span class="duel-tile-arrow" aria-hidden="true">↓</span><span class="duel-tile-cards">${duelSummaryCards(plan,'final',4)}</span></button>`).join('')||`<div class="duel-empty"><h3>${escape(result.reason||'暂无可用方案')}</h3>${duelButton('edit-hand','调整起手')}</div>`}</div>`;
+  return `<div class="duel-section-heading"><h2>方案选择</h2><div class="duel-actions">${duelButton('modular','调用模块化大脑')}${duelButton('rematch','刷新')}</div></div><p>可进入真实引擎比较跨方案路线与终场。手动教程的前进标记不视为引擎已执行。</p><div class="duel-plan-grid">${result.matches.map(plan=>`<button class="duel-plan" data-duel-plan="${escape(plan.id)}"><span class="duel-plan-heading"><strong>${escape(plan.name)}</strong>${duelPlanCounts(plan)}</span>${plan.expansion?.notes?`<span class="duel-plan-note">${escape(plan.expansion.notes)}</span>`:''}<span class="duel-tile-cards">${duelSummaryCards(plan,'opening',3)}</span><span class="duel-tile-arrow" aria-hidden="true">↓</span><span class="duel-tile-cards">${duelSummaryCards(plan,'final',4)}</span></button>`).join('')||`<div class="duel-empty"><h3>${escape(result.reason||'暂无可用方案')}</h3>${duelButton('edit-hand','调整起手')}</div>`}</div>`;
 }
 function duelNodeSource(node) {
   const s=duelState(),report=node.route==='main'?s.plan:s.plan.branches.find(b=>b.id===node.route)?.report;
-  const nodes=report.review?.nodes||reviewFallback(report);
+  const nodes=reviewNodes(report);
   const recorded=nodes.find(n=>n.id===node.id)||nodes.find(n=>n.kind===node.id);
   return {report,node:recorded||{id:node.id,kind:node.id,action_ids:[],state:null}};
 }
@@ -249,9 +253,10 @@ function mountDuelGraphResize() {
 }
 function duelTutorialPage() {
   const s=duelState();
-  return `<div class="duel-section-heading"><h2>${escape(s.plan.name)}</h2><div class="duel-actions">${duelButton('toggle-shortcuts',s.enabled?'暂停快捷键':'启用快捷键')}${duelButton('shortcuts','快捷键设置')}</div></div><p id="duel-shortcut-status" role="status"></p>${duelGraphHtml()}<div id="duel-graph-resize" class="duel-graph-resize" role="separator" tabindex="0" aria-label="调整教程图高度" aria-orientation="horizontal" aria-valuemin="200" aria-valuemax="1800" title="拖动调整教程图高度；双击恢复默认"><span></span></div><div id="duel-route-choice" class="duel-route-choice"></div><article id="duel-current-detail" class="duel-current-detail"></article><div id="duel-zone-content" class="review-zone-popover" role="dialog" aria-label="区域卡牌" hidden></div>`;
+  return `<div class="duel-section-heading"><h2>${escape(s.plan.name)}</h2><div class="duel-actions">${duelButton('toggle-shortcuts',s.enabled?'暂停快捷键':'启用快捷键')}${duelButton('shortcuts','快捷键设置')}${duelButton('modular',duelEngineBound(s)?'继续本局调度':'调用模块化大脑')}</div></div><p id="duel-shortcut-status" role="status"></p>${duelGraphHtml()}<div id="duel-graph-resize" class="duel-graph-resize" role="separator" tabindex="0" aria-label="调整教程图高度" aria-orientation="horizontal" aria-valuemin="200" aria-valuemax="1800" title="拖动调整教程图高度；双击恢复默认"><span></span></div><div id="duel-route-choice" class="duel-route-choice"></div><article id="duel-current-detail" class="duel-current-detail"></article><div id="duel-zone-content" class="review-zone-popover" role="dialog" aria-label="区域卡牌" hidden></div>`;
 }
 function renderDuel() {
+  if($('#duel-brain-field')?.contains($('#native-stage')))restoreModularField();
   closeDuelPreview();
   const s=duelState(),mainStage=Math.min(s.stage,3),stages=['模式选择','卡组选择','决定先/后攻','卡组展开'];
   $('#duel').dataset.stage=String(s.stage);
@@ -277,6 +282,15 @@ function renderDuel() {
     footer=duelButton('new','再来一场',false,true);
   }
   $('#duel-body').innerHTML=body;$('#duel-footer').innerHTML=footer;$('#duel-footer').hidden=!footer;duelTell(duelUI.message);
+  if(s.modularSession&&s.stage>=4&&s.stage<=5&&!duelEngineBound(s)){
+    $('#duel-body').insertAdjacentHTML('afterbegin','<section class="modular-panel"><p>本局引擎保留其原始构筑与起手。当前输入尚未应用到该对局，可到数据中心查看或结束原局。</p><button data-duel-action="inspect-brain">查看原局调度</button></section>');
+  }
+  if(s.modularSession&&s.stage>=4&&s.stage<=5&&duelEngineBound(s)){
+    const panel=document.createElement('section');panel.className='modular-panel duel-brain';panel.id='duel-modular-status';
+    panel.innerHTML='<h3>模块化大脑 · 本局调度</h3><div id="duel-brain-controls"></div><p id="duel-brain-summary">正在读取同一对局的真实进度…</p><div class="duel-brain-output"><div id="duel-brain-field"></div><div id="duel-brain-routes"></div></div>';
+    $('#duel-body').prepend(panel);void refreshDuelModular().catch(error=>duelTell(error.message));
+    if(app.active?.id===s.modularSession){mountModularField($('#duel-brain-field'));void syncNativeHost();}
+  }
   if(duelUI.busy)$('#duel-body').querySelectorAll('button,input').forEach(el=>el.disabled=true);
   if(s.stage===5){
     $('#duel-graph-scroll').querySelectorAll('button,input,textarea').forEach(el=>el.tabIndex=-1);
@@ -316,9 +330,48 @@ function duelNavigate(action) {
   s.position=DuelModel.navigate(s.graph,s.position,action);paintDuelPosition();
 }
 async function endDuel() {
+  if(app.active && duelState().modularSession===app.active.id){
+    await api('/api/modular/auto',{id:app.active.id,enabled:false});
+    await api('/api/stop',{id:app.active.id});
+  }
   const s=duelState();s.enabled=false;s.ended=true;s.stage=6;s.reached=6;s.session=crypto.randomUUID();
   closeDuelPreview();closeReviewDetail();await syncDuelShortcuts();renderDuel();
 }
+async function refreshDuelModular(){
+  const s=duelState(),panel=$('#duel-modular-status');if(!s.modularSession||!panel||moduleUI.current!=='duel')return;
+  const value=await modularDispatch('duel','status',{id:s.modularSession});if(s!==duelState()||!panel.isConnected)return;
+  duelUI.brainStatus=value;
+  $('#duel-brain-summary').textContent=`${value.auto?'AI 自动':'手动／暂停'} · 已确认 ${value.actual_count??0} 次实际决策 · ${value.reason} · 当前局面版本 ${value.state?.version??'等待中'}`;
+  if(panel.dataset.session!==s.modularSession){
+    panel.dataset.session=s.modularSession;
+    $('#duel-brain-controls').innerHTML=`<p>构筑来自卡组编辑，来源来自展开记录。调度与规则验证由模块化完成，结果在本窗口使用。</p><details><summary>参与调度的来源</summary><div class="duel-brain-sources">${value.library.sources.map(source=>`<label><input type="checkbox" data-brain-source="${escape(source.id)}" ${value.selected.includes(source.id)?'checked':''}>${escape(source.name)} · ${source.connections} 个连接</label>`).join('')}</div></details><div class="modular-toolbar"><label><input id="duel-brain-precise" type="checkbox"> 精确匹配</label><label>偏好 <select id="duel-brain-preference"><option value="shortest">步骤最少</option><option value="largest">终场最大</option><option value="safest">稳妥优先</option></select></label><label>目标场上卡号 <input id="duel-brain-goal" placeholder="可留空"></label><button id="duel-brain-search">调度可达路线</button><button id="duel-brain-auto"></button><button data-duel-action="inspect-brain">查看数据中心</button></div>`;
+    $('#duel-brain-preference').value=value.preference;$('#duel-brain-precise').checked=!!value.precise;$('#duel-brain-goal').value=value.goal.join(' ');
+    $('#duel-brain-search').onclick=run(()=>searchDuelBrain());
+    for(const input of panel.querySelectorAll('[data-brain-source],#duel-brain-preference,#duel-brain-goal,#duel-brain-precise'))input.onchange=run(()=>searchDuelBrain());
+    $('#duel-brain-auto').onclick=run(async()=>{await modularDispatch('duel','auto',{id:s.modularSession,enabled:!duelUI.brainStatus.auto});await refreshDuelModular();});
+  }
+  $('#duel-brain-auto').textContent=value.auto?'停止 AI':'启用内置 YGO AI';
+  const ready=!!value.state?.running&&value.state.player===0&&!value.state.answered;
+  $('#duel-brain-search').disabled=!ready;
+  $('#duel-brain-auto').disabled=!value.auto&&!ready;
+  const key=JSON.stringify([value.result?.token,value.result?.candidates.map(c=>c.id),value.pending,value.busy]);
+  if(panel.dataset.result!==key){
+    panel.dataset.result=key;$('#duel-brain-routes').innerHTML=modularRoutesHtml(value);
+    for(const button of panel.querySelectorAll('[data-modular-execute]'))button.onclick=run(async()=>{await modularDispatch('duel','execute',{id:s.modularSession,candidate:button.dataset.modularExecute});await refreshDuelModular();});
+  }
+  await syncNativeHost();
+}
+async function searchDuelBrain(){
+  const s=duelState();if(!s.modularSession)return;
+  await modularDispatch('duel','configure',{id:s.modularSession,
+    sources:[...document.querySelectorAll('[data-brain-source]:checked')].map(el=>el.dataset.brainSource),
+    preference:$('#duel-brain-preference').value,precise:$('#duel-brain-precise').checked,goal:$('#duel-brain-goal').value.trim().split(/[\s,，]+/).filter(Boolean).map(Number)});
+  if(duelUI.brainBusy){duelUI.brainQueued=true;return;}
+  duelUI.brainBusy=true;$('#duel-brain-summary').textContent='模块化正在按当前真实局面调度与校验…';
+  try{await modularDispatch('duel','search',{id:s.modularSession});await refreshDuelModular();}
+  finally{duelUI.brainBusy=false;if(duelUI.brainQueued&&s===duelState()&&$('#duel-brain-controls')){duelUI.brainQueued=false;void searchDuelBrain().catch(error=>duelTell(error.message));}}
+}
+
 async function chooseDuelDeck(id) {
   const s=duelState(),saved=await api(`/api/deck?id=${encodeURIComponent(id)}`);
   await Promise.all([...new Set(zones.flatMap(z=>saved.deck[z]))].map(code=>card(code).catch(()=>{})));
@@ -478,6 +531,8 @@ $('#duel').addEventListener('click',run(async event=>{
   if(button.dataset.duelChoice!==undefined){s.position.choice=Number(button.dataset.duelChoice);paintDuelPosition(false);return;}
   const action=button.dataset.duelAction;if(!action)return;
   if(action==='back'){duelGo(s.stage-1);return;}
+  if(action==='modular'){await launchModularFromDuel();return;}
+  if(action==='inspect-brain'){await switchModule('modular');return;}
   if(action==='bo1'){await duelWork(async()=>{s.decks=await api('/api/decks');s.mode='BO1';duelReach(1);});return;}
   if(action==='deck-list'){await duelWork(async()=>{s.decks=await api('/api/decks');s.deckPage='list';});return;}
   if(action==='refresh-decks'){await duelWork(async()=>{s.decks=await api('/api/decks');});return;}
@@ -600,3 +655,5 @@ document.addEventListener('pointermove',event=>{
   const suppressed=duelUI.handHoverSuppressed;if(!suppressed)return;
   const r=suppressed.rect;if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)duelUI.handHoverSuppressed=null;
 });
+
+setInterval(()=>{if(moduleUI.current==='duel'&&duelState().modularSession)void refreshDuelModular().catch(()=>{});},1200);

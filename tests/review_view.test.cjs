@@ -11,6 +11,22 @@ function setup(extra={}){
   vm.runInContext(source+'\nglobalThis.r={reviewUI,reviewHover,openReviewDetail,backReviewDetail,closeReviewDetail,scheduleReviewHover,scheduleReviewDetailClose,renderBoard,reviewCard,reviewLogAction,provenance,reviewTitle,reviewFallback,previewReview,summaryHtml,reviewRandomDraw,reviewFinalCards,reviewEffectParts,compactCleanup,reviewLocationIcon};',context);
   return {...context.r,context};
 }
+
+test('Step boards and tutorial node order use canonical modules while frozen annotations stay unchanged',()=>{
+  const r=setup();
+  const plan={id:'modular',actions:[],catalog:{},review:{nodes:[
+    {id:'step:b',kind:'step',number:3,module_id:'b',state:{cards:[{code:999}]}},
+    {id:'step:a',kind:'step',number:2,module_id:'a',state:{cards:[]}}],
+    module_graph:{schema:1,modules:[{id:'a',state:{cards:[{instance_id:4,code:42,name:'真实模块',controller:0,location:4,sequence:1}]}},
+      {id:'b',state:null}],step_order:['step:a','step:b'],step_links:[{from:'step:a',to:'step:b',module_path:['a','b']}]}},
+    annotations:{nodes:{'step:a':{notes:'原批注'}}}};
+  const frozen=JSON.stringify(plan),nodes=r.context.reviewNodes(plan);
+  assert.deepEqual(Array.from(nodes,n=>n.id),['step:a','step:b']);
+  assert.match(r.renderBoard(nodes[0],plan),/真实模块/);
+  assert.match(r.renderBoard(nodes[1],plan),/未记录完整状态/);
+  assert(!r.renderBoard(nodes[1],plan).includes('999'));
+  assert.equal(JSON.stringify(plan),frozen);
+});
 test('XYZ host shows its own body plus material count, while attached copies do not occupy monster slots',()=>{
   const r=setup();r.reviewUI.report={catalog:{10:{type:0x800001}}};
   const node={id:'step',number:2,kind:'step',state:{cards:[{instance_id:1,code:10,controller:0,location:4,sequence:0},

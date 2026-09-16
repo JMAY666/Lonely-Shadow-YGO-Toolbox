@@ -9,7 +9,7 @@ from card_semantics import material_method, summon_method
 from timeline import route_rows
 from review import make_review
 
-REPORT_VERSION = 10
+REPORT_VERSION = 12
 
 LIMITS = [
     '事件时间为引擎批次采集时间；同批事件用字节偏移确定先后。',
@@ -221,6 +221,7 @@ def build_report(meta, rows, issues):
                         n = b[15]
                         e.update(cards=[ref(location(b, 4), u32(b))], chain=n,
                                  triggering_controller=b[8],
+                                 triggering_location=b[9], triggering_sequence=b[10],
                                  effect={'description_id': u32(b, 11), 'semantic_result': '未知'})
                         for native_chain in row['state'].get('chains', []):
                             if native_chain.get('link') == n:

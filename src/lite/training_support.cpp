@@ -7,6 +7,7 @@
 #include "client_card.h"
 #include "../ocgcore/duel.h"
 #include "../ocgcore/field.h"
+#include "../ocgcore/interpreter.h"
 #include "../ocgcore/card.h"
 #include "../ocgcore/effect.h"
 #include "../ocgcore/ocgapi.h"
@@ -168,15 +169,49 @@ static std::string quote(const wchar_t* value) {
     }
     return result + '"';
 }
+static int functionLine(effect* e, int reference) {
+    if(!reference) return 0;
+    auto L = e->pduel->lua->lua_state;
+    const auto top = lua_gettop(L);
+    lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
+    lua_Debug info{};
+    const auto line = lua_isfunction(L, -1) && lua_getinfo(L, ">S", &info) ? info.linedefined : 0;
+    lua_settop(L, top);
+    return line;
+}
 static std::string describeEffect(effect* e) {
     if(!e) return "null";
     const auto handler = e->get_handler();
     std::ostringstream out;
     out << "{\"effect_id\":" << e->id << ",\"effect_handle\":" << e->ref_handle << ",\"description\":" << e->description
-        << ",\"effect_type\":" << e->type << ",\"event_code\":" << e->code << ",\"range\":" << e->range
+        << ",\"effect_type\":" << e->type << ",\"event_code\":" << e->code << ",\"range\":" << e->range << ",\"category\":" << e->category
         << ",\"owner_code\":" << (e->owner ? std::to_string(e->owner->data.code) : "null")
         << ",\"handler_instance\":" << (handler ? std::to_string(handler->cardid) : "null")
-        << ",\"handler_code\":" << (handler ? std::to_string(handler->data.code) : "null") << '}';
+        << ",\"handler_code\":" << (handler ? std::to_string(handler->data.code) : "null")
+        << ",\"count_code\":" << e->count_code << ",\"count_remaining\":" << unsigned(e->count_limit)
+        << ",\"count_max\":" << unsigned(e->count_limit_max)
+        << ",\"property_flags\":[\"" << e->flag[0] << "\",\"" << e->flag[1] << "\"]"
+        << ",\"self_range\":" << e->s_range << ",\"opponent_range\":" << e->o_range
+        << ",\"effect_value\":" << (e->is_flag(EFFECT_FLAG_FUNC_VALUE) ? "null" : std::to_string(e->value))
+        << ",\"value_line\":" << (e->is_flag(EFFECT_FLAG_FUNC_VALUE) ? functionLine(e, e->value) : 0)
+        << ",\"condition_line\":" << functionLine(e, e->condition) << ",\"cost_line\":" << functionLine(e, e->cost)
+        << ",\"target_line\":" << functionLine(e, e->target) << ",\"operation_line\":" << functionLine(e, e->operation)
+        << ",\"labels\":[";
+    for(size_t i = 0; i < e->label.size(); ++i) { if(i) out << ','; out << e->label[i]; }
+    out << "]}";
+    return out.str();
+}
+std::string TrainingDecisionEffects(intptr_t engine) {
+    const auto f = reinterpret_cast<duel*>(engine)->game_field;
+    std::ostringstream out;
+    out << "{\"context\":" << describeEffect(f->core.reason_effect) << ",\"choices\":[";
+    bool first = true;
+    for(const auto& chain : f->core.select_chains) {
+        if(!first) out << ',';
+        first = false;
+        out << describeEffect(chain.triggering_effect);
+    }
+    out << "]}";
     return out.str();
 }
 bool TrainingActive() { return !session.empty(); }
@@ -188,6 +223,20 @@ void TrainingWrite(const std::string& body) {
     journal << "{\"session\":\"" << session << "\",\"seq\":" << ++sequence << ",\"time_ms\":" << now << ',' << body << "}\n";
     journal.flush();
     if(!journal) { stopping = true; closing = true; }
+}
+std::string TrainingComparableState(std::string state) {
+    // Lua registry references may differ after garbage collection in an
+    // independently rebuilt VM. They identify evidence within one VM only.
+    // Keep the effect's registration ID, handler, callbacks, values and flags.
+    const std::string key = ",\"effect_handle\":";
+    size_t at = 0;
+    while((at = state.find(key, at)) != std::string::npos) {
+        size_t end = at + key.size();
+        if(end < state.size() && state[end] == '-') ++end;
+        while(end < state.size() && state[end] >= '0' && state[end] <= '9') ++end;
+        state.erase(at, end - at);
+    }
+    return state;
 }
 std::string TrainingState(intptr_t engine, bool omitOpponentHand) {
     const auto d = reinterpret_cast<duel*>(engine);
@@ -208,6 +257,7 @@ std::string TrainingState(intptr_t engine, bool omitOpponentHand) {
             << ",\"owner\":" << unsigned(c->owner) << ",\"controller\":" << unsigned(c->overlay_target ? c->overlay_target->current.controler : c->current.controler)
             << ",\"location\":" << unsigned(c->overlay_target ? LOCATION_OVERLAY : c->current.location)
             << ",\"sequence\":" << unsigned(c->current.sequence) << ",\"position\":" << unsigned(c->current.position)
+            << ",\"status_flags\":" << c->status << ",\"disabled\":" << ((c->status & STATUS_DISABLED) ? "true" : "false")
             << ",\"overlay_target\":" << (c->overlay_target ? std::to_string(c->overlay_target->cardid) : "null")
             << ",\"reason\":" << c->current.reason
             << ",\"reason_card_instance\":" << (c->current.reason_card ? std::to_string(c->current.reason_card->cardid) : "null")
@@ -216,6 +266,13 @@ std::string TrainingState(intptr_t engine, bool omitOpponentHand) {
         for(const auto material : c->material_cards) materials.push_back(material->cardid);
         std::sort(materials.begin(), materials.end());
         for(size_t i = 0; i < materials.size(); ++i) { if(i) out << ','; out << materials[i]; }
+        out << "],\"counters\":[";
+        bool firstCounter = true;
+        for(const auto& counter : c->counters) {
+            if(!firstCounter) out << ',';
+            firstCounter = false;
+            out << "{\"type\":" << counter.first << ",\"count\":" << counter.second << '}';
+        }
         out << "],\"reason_effect\":" << describeEffect(c->current.reason_effect) << '}';
     }
     out << "],\"chain_depth\":" << f->core.current_chain.size() << ",\"chains\":[";
