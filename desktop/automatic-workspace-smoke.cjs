@@ -24,6 +24,11 @@ module.exports=async({page,application,root,evidence,pass})=>{
   branch.actions=[{...action,id:'30:0',evidence_refs:['30:0']}];branch.events=branch.actions;
   branch.review.nodes=[branch.review.nodes[0],{...branch.review.nodes[1],id:'b1',number:3,seq_end:30,action_ids:['30:0']},branch.review.nodes.at(-1)];
   plan.branches=[{id:'branch',name:'自动可用分支',valid:true,source:{node_id:'s1',seq:10,timing:'结算后'},report:branch,conditions:{hand:[]}}];
+  for(const p of [plan,branch]){
+    const nodes=p.review.nodes;nodes.forEach(n=>{n.module_id='fixture:'+n.id;});
+    p.review.module_graph={schema:1,modules:nodes.map((n,i)=>({id:n.module_id,seq:i,player:0,state:n.state})),
+      connections:nodes.slice(1).map((n,i)=>({from:nodes[i].module_id,to:n.module_id,response_refs:[i],decision:{selection:[]}})),step_order:nodes.map(n=>n.id),step_links:nodes.slice(1).map((n,i)=>({from:nodes[i].id,to:n.id,from_module:nodes[i].module_id,to_module:n.module_id,module_path:[nodes[i].module_id,n.module_id],status:'recorded'}))};
+  }
   const planPath=path.join(root,'runtime/_trainer/plans',plan.id+'.json');fs.writeFileSync(planPath,JSON.stringify(plan));const original=fs.readFileSync(planPath);
   const input={name:data.deck.name,deck:data.deck.deck,tag_selection:data.deck.tag_selection,hand,round_id:'round-'+id,snapshot_id:'snapshot-'+id,turn_order:'first'};
   const revision=crypto.createHash('sha256').update(JSON.stringify(stable(input))).digest('hex');

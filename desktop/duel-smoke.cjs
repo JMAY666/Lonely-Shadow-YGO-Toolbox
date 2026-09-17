@@ -29,12 +29,18 @@ module.exports=async function({page,application,root,evidence,pass}) {
   const state={cards:[{instance_id:1,code:1184620,name:data.catalog[1184620].name,controller:0,owner:0,location:4,sequence:0,position:1,identity_known:true},{instance_id:2,code:55144522,name:data.catalog[55144522].name,controller:0,owner:0,location:2,sequence:0,identity_known:true},{instance_id:3,code:23995346,name:data.catalog[23995346].name,controller:0,owner:0,location:16,sequence:0,identity_known:true}],lp:[8000,8000],phase:4,turn:1};
   const node=(id,number,action)=>({id,kind:'step',number,action_ids:[action],state,seq_end:Number(action.split(':')[0])});
   const action=(id)=>({id,kind:'operation',message:61,cards:[{code:1184620,name:data.catalog[1184620].name,controller:0,owner:0,identity_known:true,location:4,sequence:0,position:1}],evidence_refs:[id],summary:'合成测试：通常召唤',results:[]});
-  const makePlan=()=>({id:crypto.randomUUID(),name:'合成决斗主线 '+key,deck_name:data.deck.name,deck:data.deck.deck,plan_stage:'saved',saved_ms:Date.now(),edit_revision:0,
+  const makePlan=()=>{const p=({id:crypto.randomUUID(),name:'合成决斗主线 '+key,deck_name:data.deck.name,deck:data.deck.deck,plan_stage:'saved',saved_ms:Date.now(),edit_revision:0,
     expansion:{name:'合成教程',notes:'隔离验收数据，不代表真实合法展开。',conditions:{slots:[55144522,55144522,null,null,null],banned:[]}},
     classification:{tag_ids:[data.tag.id],primary_ids:[data.tag.id],mode:'manual'},catalog:data.catalog,
     requirements:{main:[row(55144522,2),row(1184620)],extra:[],opening:[row(55144522,2),row(null)],random:[],warnings:[],final:{cards:[],notes:'合成终场说明'}},
     review:{complete:true,revision:'synthetic',nodes:[{id:'initial',kind:'initial',action_ids:[],state},node('s1',1,'10:0'),node('s2',2,'20:0'),node('s3',3,'30:0'),{id:'final',kind:'final',action_ids:[],state}]},
     initial_hand:[state.cards[1]],events:[action('10:0'),action('20:0'),action('30:0')],actions:[action('10:0'),action('20:0'),action('30:0')],annotations:{nodes:{s1:{name:'开始展开',notes:'逐步说明 <保持原文>'}},effects:{},cards:{1:'终场卡牌备注 <保持原文>\n'+'完整备注不得截断。'.repeat(24)},final_marks:{1:{marked:true,effects:{0:{note:'终场效果备注：保留此效果作为后续资源。'}}},2:{marked:true,effects:{}},3:{marked:true,effects:{}}}},branches:[],final_state:state});
+    // Synthetic layout fixture explicitly records empty resource decisions;
+    // legacy missing-evidence rejection has separate real-core coverage.
+    const nodes=p.review.nodes;nodes.forEach(n=>{n.module_id='fixture:'+n.id;});
+    p.review.module_graph={schema:1,modules:nodes.map((n,i)=>({id:n.module_id,seq:i,player:0,state:n.state})),
+      connections:nodes.slice(1).map((n,i)=>({from:nodes[i].module_id,to:n.module_id,response_refs:[i],decision:{selection:[]}})),
+      step_order:nodes.map(n=>n.id),step_links:nodes.slice(1).map((n,i)=>({from:nodes[i].id,to:n.id,from_module:nodes[i].module_id,to_module:n.module_id,module_path:[nodes[i].module_id,n.module_id],status:'recorded'}))};return p;};
   const plan=makePlan();
   for(const [id,count] of [['allowed',1],['blocked',2],['alternative',1]]) {
     const report=makePlan();report.requirements.extra=[row(23995346,count)];
@@ -193,7 +199,8 @@ module.exports=async function({page,application,root,evidence,pass}) {
   const result=await page.evaluate(()=>duelState().result);
   assert.equal(result.matches.length,1);assert.equal(result.matches[0].branches.length,2);
   assert.equal(result.counts.resources,1);assert.equal(result.counts.opening,1);assert.equal(result.counts.incomplete,1);assert.equal(result.counts.turn_order,1);
-  assert(!(await page.locator('#duel-body').textContent()).match(/Tag ID|妥协分支|资源不足|可选.*个/));
+  assert(!(await page.locator('.duel-plan-grid').textContent()).match(/Tag ID|妥协分支|资源不足|可选.*个/));
+  assert.match(await page.locator('.duel-condition-results').textContent(),/资源不足/,'Excluded routes now explain the failed condition');
   const tile=page.locator(`[data-duel-plan="${plan.id}"]`);assert(await tile.locator('img').count()>3);
   assert.equal(await tile.locator('.duel-plan-step-count').textContent(),'主线 3 步');
   assert.equal(await tile.locator('.duel-plan-branch-count').textContent(),'可用分支 2');

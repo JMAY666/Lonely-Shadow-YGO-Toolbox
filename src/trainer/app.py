@@ -183,6 +183,7 @@ class Store:
         catalog = Catalog(self.runtime)
         builtins = builtin_tags(self.runtime)
         self.catalog, self.library.builtins = catalog, builtins
+        self.modular.precompute.invalidate_all()
         with self.modular.lock:
             for sid in self.modular.sessions: self.modular.planning_cache.discard(sid)
             self.modular.sessions.clear()
@@ -897,6 +898,7 @@ class Store:
         """Close only native processes launched here; preserve interrupted journals and reports."""
         with self.lock:
             self.closing = True
+            self.modular.precompute.invalidate_all()
             owned = [p for p in self.processes.values() if p.poll() is None]
         if self.host: self.host.close_children(self)
         if os.name == 'nt':

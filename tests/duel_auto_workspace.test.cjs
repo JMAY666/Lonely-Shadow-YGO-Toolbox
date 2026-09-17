@@ -23,6 +23,7 @@ test('closing an automatic workspace detaches pending search callbacks without t
   const state={plan:{id:'manual'},automatic:{workspace}},requests=[];
   const scope=vm.createContext({module:{exports:{}},duelState:()=>state,clearTimeout,structuredClone,
     $:()=>null,api:async(url,body)=>{requests.push({url,body});},autoDuelObservationDialog:{open:false}});
+  vm.runInContext(fs.readFileSync(path.join(__dirname,'../src/trainer/web/duel-forecast.js'),'utf8').split('const observationDialog=')[0],scope);
   vm.runInContext(source,scope);await vm.runInContext('disposeAutoDuel()',scope);
   assert.equal(state.automatic.workspace,null);assert.equal(workspace.forecast,null);assert.equal(forecast.generation,5);
   assert.equal(state.plan.id,'manual');assert.equal(requests[0].body.context_id,'owned');

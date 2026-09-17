@@ -38,8 +38,8 @@ module.exports=async({page,root,evidence,pass})=>{
     const journal=path.join(root,'runtime/_trainer/sessions',opening.id,'native.jsonl'),nativeBefore=fs.readFileSync(journal);
     const refusal=await page.evaluate(async id=>{try{await modularDispatch('duel','plan-close',{id});return '';}catch(e){return e.message;}},opening.id);
     assert.match(refusal,/其他流程/,'Manual workflow cannot close an automatic forecast');
-    await page.locator('#auto-duel-brain-preference').selectOption('balanced');await page.waitForFunction(()=>!autoDuelState().forecast.busy);
-    assert((await page.evaluate(()=>autoDuelState().forecast.data.result.cache.probe_hits))>0);
+    await page.locator('#auto-duel-brain-preference').selectOption('balanced');await page.waitForFunction(()=>!autoDuelState().forecast.busy&&autoDuelState().forecast.data?.result?.preference==='balanced');
+    assert.equal(await page.evaluate(()=>autoDuelState().forecast.data.result.cache.prepared_hit),true);
     await page.locator('[data-auto-duel-adopt]').first().click();await page.waitForFunction(()=>autoDuelState().plan?.temporary&&duelState().stage===6);
     assert(await page.locator('#auto-duel-tutorial .forecast-step .location-icon').count()>0);
     await page.locator('[data-auto-duel-node="main/final"]').click();await page.waitForFunction(()=>autoDuelState().plan.confirmed===1);
@@ -65,7 +65,7 @@ module.exports=async({page,root,evidence,pass})=>{
     await page.locator('#duel-substeps [data-duel-stage="5"]').click();const restarted=await generate();
     assert.notEqual(restarted.id,continuation.id);assert.equal(restarted.confirmed,0);assert.equal(restarted.prefix.length,0);assert.equal(restarted.anchor,null);
     assert(restarted.result.candidates.some(c=>c.steps.some(s=>(s.bound_decision||s.decision).selection.some(c=>c.kind==='summon'))));
-    await page.waitForFunction(id=>api('/api/native/status?id='+id).then(s=>!s.ready),continuation.id,{timeout:20000});
+    assert.equal((await page.evaluate(id=>api('/api/native/status?id='+id),continuation.id)).ready,true,'Opening preparation preserves the confirmed tutorial');
     await page.screenshot({path:path.join(evidence,'automatic-opening-regeneration.png')});
     await page.evaluate(()=>endAutoDuel());
     await page.waitForFunction(id=>api('/api/native/status?id='+id).then(s=>!s.ready),restarted.id,{timeout:20000});

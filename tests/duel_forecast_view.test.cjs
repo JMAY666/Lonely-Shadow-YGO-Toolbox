@@ -83,24 +83,24 @@ function navigationFixture({temporary=true,anchor=null,confirmed=2,stage='plans'
     plan:{id:'source',temporary,confirmed},forecast:{id:'old-session',generation:0,anchor,selected:['source'],
       sources:[{id:'source'}],preference:'largest',precise:true,goal:[99],data:{confirmed}},
     graph:{nodes:[{key:'main/step',route:'main'}]},position:{key:'main/step'}};
-  const c=vm.createContext({structuredClone,duelState:()=>state,duelStages:stages,renderDuel(){},syncDuelShortcuts:async()=>{},
+  const c=vm.createContext({structuredClone,clearTimeout(){},setTimeout(){return 1;},duelState:()=>state,duelStages:stages,renderDuel(){},syncDuelShortcuts:async()=>{},
     duelNodeSource:()=>({node:{id:'step',kind:'step',number:9}}),
     api:async()=>({sources:[{id:'source',status:'ready'}]}),
-    modularDispatch:async(consumer,intent,body)=>{requests.push({consumer,intent,...body});return {id:body.id||'new-session',confirmed:0,result:{candidates:[]}};}});
+    modularDispatch:async(consumer,intent,body)=>{requests.push({consumer,intent,...body});return {job:'prepared',version:'v1',status:'ready',id:body.id||'new-session',data:{id:body.id||'new-session',confirmed:0,result:{preference:body.preference,candidates:[]}}};}});
   const source=fs.readFileSync(path.join(__dirname,'../src/trainer/web/duel-forecast.js'),'utf8');
   vm.runInContext(source.slice(0,source.indexOf('const observationDialog=')),c);
   vm.runInContext('paintForecastResults=()=>{};',c);
   return {c,state,requests,stages};
 }
 
-test('opening generation replaces both confirmed and saved-Step forecasts without inheriting their progress',async()=>{
+test('opening preparation preserves the previous tutorial and uses a separate origin',async()=>{
   for(const anchor of [null,{plan:'source',node:'step',number:9}]){
     const {c,state,requests,stages}=navigationFixture({anchor});
     await c.launchModularFromDuel();
-    assert.equal(requests[0].intent,'plan-close');assert.equal(requests[0].id,'old-session');
-    const request=requests.find(r=>r.intent==='plan');assert.equal(request.id,undefined);assert.equal(request.anchor,null);
+    assert(!requests.some(r=>r.intent==='plan-close'));
+    const request=requests.find(r=>r.intent==='plan-prepare');assert.equal(request.id,undefined);assert.equal(request.anchor,null);
     assert.equal(request.preference,'largest');assert.equal(request.precise,true);assert.deepEqual([...request.goal],[99]);
-    assert.equal(state.forecast.id,'new-session');assert.equal(state.plan,null);assert.equal(state.reached,stages.plans);
+    assert.equal(state.forecast.id,'new-session');assert.equal(state.plan.confirmed,2);assert.equal(state.tutorialForecast.id,'old-session');
     assert.match(c.forecastStartText(state),/起手/);
   }
 });
@@ -108,7 +108,7 @@ test('opening generation replaces both confirmed and saved-Step forecasts withou
 test('tutorial continuation keeps its session and confirmed prefix',async()=>{
   const {c,state,requests}=navigationFixture({stage:'tutorial'});
   await c.launchModularFromDuel();
-  assert.equal(requests.length,1);assert.equal(requests[0].id,'old-session');assert.equal(state.plan.confirmed,2);
+  assert.equal(requests.filter(r=>r.intent==='plan-prepare').length,1);assert.equal(requests[0].id,'old-session');assert.equal(state.plan.confirmed,2);
   assert.match(c.forecastStartText(state),/已确认操作/);
 });
 
@@ -118,11 +118,73 @@ test('browsing the plan list hides continuation controls without discarding the 
   assert.equal(state.forecast,forecast);assert.equal(state.plan,plan);
 });
 
+test('ready opening clicks and preference switches do not restart preparation or follow shortcut sessions',async()=>{
+  const {c,state,requests}=navigationFixture();state.session='duel-owner';
+  await c.launchModularFromDuel();const first=state.forecast;
+  state.session='new-shortcut-registration';
+  await c.launchModularFromDuel();first.preference='safest';await c.searchDuelBrain();
+  assert.equal(requests.filter(r=>r.intent==='plan-prepare').length,1);
+  assert(requests.filter(r=>r.intent==='plan-poll').every(r=>r.session==='duel-owner'));
+  assert.equal(state.plan.confirmed,2);assert.equal(state.forecast,first);
+});
+
+test('an explicit temporary preference survives preparation of a separate opening',async()=>{
+  const {c,state}=navigationFixture();state.session='duel-owner';state.planSort='shortest';
+  state.forecast.preference='safest';state.forecast.preferenceManual=true;
+  await c.launchModularFromDuel();
+  assert.equal(state.forecast.preference,'safest');assert.equal(state.forecast.preferenceManual,true);
+});
+
+test('changing settings during the first search does not reuse its cancelled startup engine',async()=>{
+  const {c,state,requests}=navigationFixture();
+  const f=state.forecast;f.slot='opening';f.busy=true;f.job='running';f.inputKey='previous';f.goal=[44];
+  await c.searchDuelBrain();
+  assert.equal(requests.find(r=>r.intent==='plan-prepare').id,undefined);
+  assert.equal(state.plan.confirmed,2);
+});
+
+test('an unfinished ordinary-Step reconstruction restarts its anchor while an adopted prefix keeps its engine',async()=>{
+  for(const adopted of [false,true]){
+    const {c,state,requests}=navigationFixture({stage:'tutorial',anchor:{plan:'source',node:'step',number:9}});
+    const f=state.forecast;f.slot='continuation';f.busy=true;f.job='running';f.inputKey='previous';f.adopted=adopted;
+    await c.searchDuelBrain();const request=requests.find(r=>r.intent==='plan-prepare');
+    assert.equal(request.id,adopted?'old-session':undefined);
+    if(!adopted)assert.equal(request.anchor.node,'step');
+    assert.equal(state.plan.confirmed,2);
+  }
+});
+
+test('failed new settings cannot resurrect a previous job by switching preferences',async()=>{
+  const {c,state,requests}=navigationFixture();const f=state.forecast;
+  f.slot='opening';f.job='old-job';f.inputKey='old-input';f.selected=[];
+  c.modularDispatch=async(consumer,intent,body)=>{requests.push({intent,...body});if(intent==='plan-prepare')throw Error('请选择来源');return {};};
+  await c.searchDuelBrain();assert.equal(f.job,null);assert.equal(f.data,null);assert.match(f.error,/请选择/);
+  f.preference='safest';await c.searchDuelBrain();
+  assert(!requests.some(r=>r.intent==='plan-poll'));assert(requests.some(r=>r.intent==='plan-cancel'&&r.job==='old-job'));
+});
+
+test('late preparation after input replacement cannot populate the new forecast',async()=>{
+  const {c,state,requests}=navigationFixture();state.session='duel-owner';let resolve;
+  c.modularDispatch=async(consumer,intent,body)=>{
+    if(intent==='plan-prepare')return new Promise(done=>{resolve=done;});
+    requests.push({intent,...body});return {};
+  };
+  const waiting=c.prepareDuelOpening(state);await new Promise(setImmediate);
+  const old=state.openingForecast;c.dropDuelForecast(state);
+  state.hand=[9,8,7];state.planningSession='new-round';state.forecast=state.openingForecast={generation:0};
+  resolve({job:'late',version:'old'});await waiting;
+  assert.equal(state.forecast.data,undefined);assert.equal(old.released,true);
+  assert(requests.some(r=>r.intent==='plan-cancel'&&r.job==='late'&&r.session==='duel-owner'));
+});
+
 test('a new ordinary tutorial Step replaces the previous anchor',async()=>{
   const {c,state,requests}=navigationFixture({stage:'tutorial',temporary:false,anchor:{plan:'source',node:'old-step',number:8}});
   await c.launchModularFromDuel();
-  const request=requests.find(r=>r.intent==='plan');assert.equal(request.id,undefined);assert.equal(request.anchor.node,'step');
+  const request=requests.find(r=>r.intent==='plan-prepare'&&r.slot==='continuation');assert.equal(request.id,undefined);assert.equal(request.anchor.node,'step');
   assert.match(c.forecastStartText(state),/Step 9/);
+  const count=requests.filter(r=>r.intent==='plan-prepare').length;
+  state.forecast.preference='balanced';await c.searchDuelBrain();
+  assert.equal(requests.filter(r=>r.intent==='plan-prepare').length,count,'Assigning the native session ID does not change the continuation origin');
 });
 
 test('a late confirmation cannot navigate or mutate a replacement opening forecast',async()=>{

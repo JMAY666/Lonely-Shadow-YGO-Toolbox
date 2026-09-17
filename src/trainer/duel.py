@@ -1,6 +1,7 @@
 """Read-only BO1 matching against the saved library. No engine or plan writes."""
 from collections import Counter
 from copy import deepcopy
+from implicit_conditions import check as check_implicit
 
 
 class Incomplete(ValueError):
@@ -65,9 +66,11 @@ def project(plan, deck, hand):
     alternatives, so do not sum their inventories or include the side deck."""
     if plan.get('expansion', {}).get('turn_order', 'first') == 'second':
         return None, 'turn_order', '此方案记录为后手展开，本期仅支持先攻展开'
+    banned = plan.get('expansion', {}).get('conditions', {}).get('banned', [])
+    if set(banned).intersection(hand):
+        return None, 'opening', '起手包含手动设置的禁止上手卡牌'
     try:
-        error = resource_error(plan, deck)
-        if error: return None, 'resources', error
+        main_resource_error = resource_error(plan, deck)
         error = shortage(plan.get('requirements'), 'opening', hand)
         if error: return None, 'opening', '起手条件不满足：' + error
     except Incomplete as exc:
@@ -75,7 +78,12 @@ def project(plan, deck, hand):
     nodes = plan.get('review', {}).get('nodes', [])
     if not any(n.get('kind') == 'step' for n in nodes):
         return None, 'incomplete', '条件待补全：缺少可导航的步骤记录'
+    condition = check_implicit(plan, deck, hand)
+    if main_resource_error: condition = {**condition, 'status': 'unmet', 'reason': main_resource_error}
+    main_condition = condition
     result = deepcopy(plan)
+    result['requirements']['implicit'] = condition['implicit']
+    result['duel_validation'] = condition['reason']
     result['branches'] = []
     excluded = []
     anchors = {n['id'] for n in nodes}
@@ -93,11 +101,32 @@ def project(plan, deck, hand):
         elif not isinstance(source.get('seq'), (int, float)):
             reason = '分叉时点待补全'
         else:
-            try: reason = resource_error(branch['report'], deck)
+            try:
+                reason = resource_error(branch['report'], deck)
+                if not reason:
+                    condition = check_implicit(branch['report'], deck, hand)
+                    if condition['status'] != 'satisfied': reason = condition['reason']
             except (Incomplete, AttributeError, TypeError): reason = '条件待补全：分支资源无法可靠读取'
         if reason: excluded.append({'id': branch.get('id'), 'name': branch.get('name'), 'reason': reason})
         else: result['branches'].append(deepcopy(branch))
     result['duel_excluded_branches'] = excluded
+    if main_condition['status'] != 'satisfied':
+        # An IF branch after an interruption is not an unconditional opening
+        # alternative merely because its remaining card counts happen to fit.
+        alternatives = [b for b in result['branches'] if b.get('if_condition', {}).get('kind') == 'unconditional'
+                        and b.get('if_condition', {}).get('status') == 'verified'
+                        and not b.get('premises') and not any(e.get('message') in (75, 76) or
+                            e.get('message') == 70 and any(c.get('controller') == 1 for c in e.get('cards', []))
+                            for e in b['report'].get('events', []))]
+        if alternatives:
+            branch = alternatives[0]
+            alternative = deepcopy(branch['report'])
+            alternative.update(id=plan['id'], name=plan.get('name', '')+' · '+branch.get('name', '分支'),
+                expansion=deepcopy(plan.get('expansion', {})), branches=[],
+                duel_source_route=branch['id'], duel_original_reason=main_condition['reason'],
+                duel_excluded_branches=excluded, duel_validation='原主线不满足；当前展示已记录的独立分支，步骤按该分支执行')
+            return alternative, '', ''
+        return None, 'resources' if main_resource_error else {'unmet': 'implicit', 'pending': 'incomplete', 'random': 'random'}[main_condition['status']], main_condition['reason']
     return result, '', ''
 
 
@@ -111,7 +140,7 @@ def match(store, body):
         favorites = set(store.plan_favorites()['plans'])
         selected = set(saved['tag_selection']['tag_ids']) & vocabulary.keys()
         result = {'matches': [], 'excluded': [], 'tag_ids': sorted(selected),
-                  'counts': {'total': 0, 'tags': 0, 'resources': 0, 'opening': 0, 'incomplete': 0, 'turn_order': 0}}
+                  'counts': {'total': 0, 'tags': 0, 'resources': 0, 'opening': 0, 'incomplete': 0, 'turn_order': 0, 'implicit': 0, 'random': 0}}
         if not selected:
             result['reason'] = '当前卡组没有可用 Tag，请在卡组编辑中设置并保存'
             return result

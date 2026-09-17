@@ -32,7 +32,7 @@ function invalidateDuel(stage) {
   if(typeof dropDuelForecast==='function')dropDuelForecast(s);
   ++duelUI.generation;
   s.result=s.plan=s.routes=s.graph=s.position=null;s.ended=false;s.reached=Math.min(s.reached,stage);
-  s.session=crypto.randomUUID();s.enabled=false;
+  s.session=crypto.randomUUID();s.planningSession=s.session;s.enabled=false;
   void syncDuelShortcuts();
 }
 async function duelWork(fn) {
@@ -195,7 +195,7 @@ function duelMatchesPage() {
   const s=duelState(),result=s.result;if(!result)return '';
   // Score against the full matched set so a favorite filter never changes scores.
   const ranked=DuelModel.rankPlans(result.matches,s.planSort,duelPlanStepCount).filter(r=>!s.favoritesOnly||r.plan.favorite);
-  return `<div class="duel-section-heading"><h2>方案选择</h2><div class="duel-actions">${duelButton('modular','生成临时方案')}${duelButton('rematch','刷新')}</div></div><div class="duel-plan-filters"><label>方案排序 <select id="duel-plan-sort">${[['shortest','步骤最少'],['largest','终场最大'],['balanced','平均值（均衡）']].map(([value,label])=>`<option value="${value}" ${s.planSort===value?'selected':''}>${label}</option>`).join('')}</select></label><button data-duel-action="favorites-only" aria-pressed="${s.favoritesOnly}">★ 只看收藏</button><small>${ranked.length} / ${result.matches.length} 个方案</small></div><p class="duel-sort-basis">终场只比较已标记卡牌数，再比较标记效果数。平均值为步骤得分与终场排名得分各占 50%，仅用于当前方案比较。</p><div class="duel-plan-grid">${ranked.map(({plan,cards,effects,average})=>`<article class="duel-plan-tile ${plan.favorite?'is-favorite':''}"><button class="duel-plan" data-duel-plan="${escape(plan.id)}"><span class="duel-plan-heading"><strong>${escape(plan.name)}</strong>${duelPlanCounts(plan)}</span><small>${cards?`标记终场 ${cards} 张 · 效果 ${effects} 项`:'未标记有效终场'}${s.planSort==='balanced'?` · 平均 ${average.toFixed(1)}`:''}</small>${plan.expansion?.notes?`<span class="duel-plan-note">${escape(plan.expansion.notes)}</span>`:''}<span class="duel-tile-cards">${duelSummaryCards(plan,'opening',3)}</span><span class="duel-tile-arrow" aria-hidden="true">↓</span><span class="duel-tile-cards">${duelSummaryCards(plan,'final',4)||'<small>未标记终场卡牌</small>'}</span></button>${planFavoriteButton(plan)}</article>`).join('')||`<div class="duel-empty"><h3>${escape(s.favoritesOnly?'当前匹配结果中没有收藏方案':result.reason||'暂无可用方案')}</h3>${s.favoritesOnly?duelButton('favorites-only','查看全部方案'):duelButton('edit-hand','调整起手')}</div>`}</div>`;
+  return `<div class="duel-section-heading"><h2>方案选择</h2><div class="duel-actions">${duelButton('modular','生成临时方案')}${duelButton('rematch','刷新')}</div></div><div class="duel-plan-filters"><label>方案排序 <select id="duel-plan-sort">${[['shortest','步骤最少'],['largest','终场最大'],['balanced','平均值（均衡）']].map(([value,label])=>`<option value="${value}" ${s.planSort===value?'selected':''}>${label}</option>`).join('')}</select></label><button data-duel-action="favorites-only" aria-pressed="${s.favoritesOnly}">★ 只看收藏</button><small>${ranked.length} / ${result.matches.length} 个方案</small></div><p class="duel-sort-basis">终场只比较已标记卡牌数，再比较标记效果数。平均值为步骤得分与终场排名得分各占 50%，仅用于当前方案比较。</p>${duelConditionResults(result)}<div class="duel-plan-grid">${ranked.map(({plan,cards,effects,average})=>`<article class="duel-plan-tile ${plan.favorite?'is-favorite':''}"><button class="duel-plan" data-duel-plan="${escape(plan.id)}"><span class="duel-plan-heading"><strong>${escape(plan.name)}</strong>${duelPlanCounts(plan)}</span><small>${cards?`标记终场 ${cards} 张 · 效果 ${effects} 项`:'未标记有效终场'}${s.planSort==='balanced'?` · 平均 ${average.toFixed(1)}`:''}</small>${plan.expansion?.notes?`<span class="duel-plan-note">${escape(plan.expansion.notes)}</span>`:''}${plan.duel_original_reason?`<small>${escape(plan.duel_validation)}：${escape(plan.duel_original_reason)}</small>`:""}<span class="duel-tile-cards">${duelSummaryCards(plan,'opening',3)}</span><span class="duel-tile-arrow" aria-hidden="true">↓</span><span class="duel-tile-cards">${duelSummaryCards(plan,'final',4)||'<small>未标记终场卡牌</small>'}</span></button>${planFavoriteButton(plan)}</article>`).join('')||`<div class="duel-empty"><h3>${escape(s.favoritesOnly?'当前匹配结果中没有收藏方案':result.reason||'暂无可用方案')}</h3>${s.favoritesOnly?duelButton('favorites-only','查看全部方案'):duelButton('edit-hand','调整起手')}</div>`}</div>`;
 }
 function duelNodeSource(node) {
   const s=duelState(),report=node.route==='main'?s.plan:s.plan.branches.find(b=>b.id===node.route)?.report;
@@ -274,6 +274,8 @@ function renderDuel() {
   if($('#duel-brain-field')?.contains($('#native-stage')))restoreModularField();
   closeDuelPreview();
   const s=duelState(),mainStage=Math.min(s.stage,duelStages.hand),stages=['模式选择','功能选择','卡组选择','决定先/后攻','卡组展开'];
+  if(typeof selectForecastStage==='function')selectForecastStage(s);
+  if(s.stage===duelStages.plans&&s.operationMode==='manual'&&s.result&&!s.openingForecast)void prepareDuelOpening(s);
   $('#duel').dataset.stage=String(s.stage);
   $('#duel-steps').innerHTML=stages.map((name,i)=>`<button data-duel-stage="${i}" ${i>s.reached||duelUI.busy||s.operationMode==='automatic'&&(i===duelStages.hand&&!DuelOrder.confirmed(s.automatic.order)||i===duelStages.order&&!s.automatic.order?.frame?.monitor_id)?'disabled':''} ${i===mainStage?'aria-current="step"':''}><span>${i<mainStage?'✓':i+1}</span>${name}</button>`).join('');
   const automatic=s.operationMode==='automatic',deckPage=automatic?s.automatic.page:s.deckPage,hasDeck=automatic?!!s.automatic.deck&&s.automatic.fresh:!!s.deck;
@@ -373,6 +375,7 @@ async function chooseDuelDeck(id) {
 async function matchDuel(force=false) {
   const s=duelState(),error=DuelModel.handError(s.deck.deck,s.count,s.hand);
   if(error)throw new Error(error);
+  void prepareDuelOpening(s);
   if(s.result&&!force){duelReach(duelStages.plans);return;}
   const generation=++duelUI.generation;
   const result=await api('/api/duel/match',{deck_id:s.deck.id,revision:s.deck.revision,hand_count:s.count,hand:s.hand});
@@ -381,7 +384,8 @@ async function matchDuel(force=false) {
 }
 function chooseDuelPlan(id) {
   const s=duelState(),plan=s.result.matches.find(p=>p.id===id);if(!plan)return;
-  if(s.forecast)dropDuelForecast(s);
+  if(s.tutorialForecast)releasePreparedForecast(s,s.tutorialForecast);
+  s.tutorialForecast=s.forecast=null;
   if(s.plan!==plan||s.ended) {
     s.plan=plan;s.routes=duelPlanRoutes(plan);s.graph=DuelModel.graph(s.routes);
     s.position={key:s.graph.start,choice:0};s.ended=false;s.session=crypto.randomUUID();

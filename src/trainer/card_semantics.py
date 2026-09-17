@@ -215,7 +215,8 @@ def display_effects(report):
                       selected_effect_text=clause['text'],effect_text_source=clause['source'])
     for branch in result.get('branches',[]):
         if branch.get('report'):branch['report']=display_effects(branch['report'])
-    return result
+    from implicit_conditions import attach
+    return attach(result, branches=False)
 
 
 def material_method(reason):

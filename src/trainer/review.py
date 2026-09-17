@@ -287,6 +287,9 @@ def requirements(report, annotations=None):
         if event.get('message') == 90 and event.get('id') != report.get('initial_hand_ref'):
             for card in event.get('cards', []):
                 if card.get('instance_id') is not None: drawn.setdefault(str(card['instance_id']), event['id'])
+    from implicit_conditions import extract
+    evidence = extract({**report, 'review': review})
+    for instance in evidence['random_instances']: drawn.setdefault(instance, 'uncertain-deck-result')
     buckets = {'main': {}, 'extra': {}, 'opening': {}, 'random': {}}
     unknown = []
     for key, entries in uses.items():
@@ -332,7 +335,8 @@ def requirements(report, annotations=None):
     used_refs = {ref for a in actions.values() for ref in a.get('evidence_refs', [])}
     if any(c.get('instance_id') is None for e in report.get('events', []) if e['id'] in used_refs for c in e.get('cards', [])):
         unknown.append('部分动作缺少卡牌实例，份数与起手条件需要人工核对')
-    return {**{k: list(v.values()) for k, v in buckets.items()}, 'cost_candidates': candidates,
+    implicit = extract({**report, 'review': review}, {i for row in buckets['opening'].values() if row.get('code') is None and row.get('constraint') == '任意手牌' for i in row['instances']})
+    return {**{k: list(v.values()) for k, v in buckets.items()}, 'cost_candidates': candidates, 'implicit': implicit,
             'warnings': list(dict.fromkeys(unknown)), 'note': edits['conditions_note'],
             'basis': '按本次路线中实际使用的卡牌实例统计；不是对所有替代路线的最小条件证明。',
             'final': {'cards': [c for c in (nodes['final'].get('state') or {}).get('cards', [])

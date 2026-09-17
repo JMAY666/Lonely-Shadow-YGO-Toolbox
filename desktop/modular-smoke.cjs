@@ -3,7 +3,7 @@ const {spawn}=require('node:child_process');
 const path=require('node:path');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
-module.exports=async({page,root,evidence,pass})=>{
+module.exports=async({page,application,root,evidence,pass})=>{
   await page.evaluate(async()=>{flow.restarting=true;displayView('training');await syncNativeHost();});
   const service=require(path.join(root,'runtime','_trainer','service.json'));
   const layoutRequest=path.join(evidence,'modular-layout.request');
@@ -52,7 +52,8 @@ module.exports=async({page,root,evidence,pass})=>{
     await require('./duel-forecast-smoke.cjs')({page,root,evidence,pass});
     await require('./automatic-forecast-smoke.cjs')({page,root,evidence,pass});
   }
-  if(process.env.YGO_MODULAR_PLANNING_ONLY==='1')await require('./planning-preferences-smoke.cjs')({page,root,evidence,pass});
+  if(process.env.YGO_MODULAR_IMPLICIT_ONLY==='1')await require('./implicit-conditions-smoke.cjs')({page,root,evidence,pass});
+  if(process.env.YGO_MODULAR_PLANNING_ONLY==='1')await require(process.env.YGO_PRECOMPUTE_RACES_ONLY==='1'?'./precompute-races-smoke.cjs':'./planning-preferences-smoke.cjs')({page,application,root,evidence,pass});
   if(process.env.YGO_MODULAR_FORECAST_ONLY==='1')await require('./duel-forecast-outcome-smoke.cjs')({page,evidence,pass});
   await page.evaluate(async()=>{await refreshHistory();flow.restarting=false;await switchModule('modular');});
   assert(await page.locator('#modular').isVisible());

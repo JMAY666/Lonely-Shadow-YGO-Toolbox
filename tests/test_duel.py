@@ -17,7 +17,7 @@ def rows(code, count=1, **extra):
 def plan():
     return {'id': str(uuid.uuid4()), 'name': '合成主线', 'classification': {'mode': 'manual', 'tag_ids': ['custom:a'], 'primary_ids': []},
             'requirements': {'main': [rows(1, 2)], 'extra': [rows(9)], 'opening': [rows(1, 2)], 'warnings': []},
-            'review': {'nodes': [{'id': 'initial', 'kind': 'initial'}, {'id': 's1', 'kind': 'step'}]}, 'branches': []}
+            'review': {'complete': True, 'nodes': [{'id': 'initial', 'kind': 'initial', 'state': {'cards': []}}, {'id': 's1', 'kind': 'step'}], 'module_graph': {'modules': [{'id': 'a', 'player': 0}], 'connections': [{'from': 'a', 'decision': {'selection': []}}]}}, 'branches': []}
 
 
 class DuelRulesTests(unittest.TestCase):

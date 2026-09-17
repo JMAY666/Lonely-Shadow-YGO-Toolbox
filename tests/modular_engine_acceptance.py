@@ -99,10 +99,21 @@ def main(runtime, url, evidence):
         for _ in range(20):
             s=current(); p=model(s['raw'],s['state'],s.get('effects'))
             if p['message']==11:return s
-            if p['message']==16:choose('pass')
-            elif p['message']==19:choose(option=1)
+            # Empty native windows can settle between reads. Submit against
+            # the exact version we inspected instead of selecting from a
+            # second, possibly newer prompt inside choose().
+            if p['message']==16:
+                choice=next(c for c in p['choices'] if c['semantic']['kind']=='pass')
+                answer(choice['response'],s)
+            elif p['message']==19:
+                choice=next(c for c in p['choices'] if c['semantic'].get('value')==1)
+                answer(choice['response'],s)
             else:raise AssertionError(json.dumps(p))
         raise AssertionError('Unsettled core')
+    if os.environ.get('YGO_MODULAR_IMPLICIT_ONLY')=='1':
+        from modular_implicit import run
+        run(api,start,current,answer,choose,save,evidence)
+        return
     if os.environ.get('YGO_MODULAR_PLANNING_ONLY')=='1':
         from modular_planning_preferences import run
         run(api,start,choose,idle,save,evidence)

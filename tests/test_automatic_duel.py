@@ -111,5 +111,17 @@ class AutomaticDuelsTests(unittest.TestCase):
         self.assertEqual(calls[-1]['id'],'late-owned-engine')
         self.assertEqual(calls[-1]['automatic_context'],value['context_id'])
 
+    def test_late_queued_preparation_is_cancelled_even_without_an_engine_id(self):
+        value=self.prepare();service=self.store.automatic_duel
+        def dispatch(request):
+            service.close({'context_id':value['context_id']})
+            return {'result':{'id':None,'job':'late-job','inputs':{}}}
+        self.store.modular.dispatch=dispatch
+        with patch.object(self.store.modular.precompute,'close_owner') as close:
+            with self.assertRaisesRegex(ValueError,'迟到'):
+                service.dispatch({'context_id':value['context_id'],'intent':'plan-prepare','session':'round'})
+            self.assertEqual(close.call_count,2)
+            close.assert_called_with('automatic-duel',value['context_id'])
+
 
 if __name__=='__main__':unittest.main()

@@ -6,7 +6,7 @@ source edges. A legacy observation is never promoted to a decision.
 """
 from copy import deepcopy
 
-from modular_decisions import digest, model, public_state, semantic_response
+from modular_decisions import digest, model, public_state, semantic_response, response_bindings
 
 
 def decision_id(row):
@@ -66,7 +66,7 @@ def attach_modules(review, report, rows=None):
                     decision = semantic_response(prompt, entry['responses'][0]['raw'])
                     exact = all(not c.get('effect') or c['effect'].get('operation_line') is not None
                                 for c in decision.get('selection', []))
-                    edge.update(decision=decision, status='recorded' if exact else 'incomplete', reusable=exact)
+                    edge.update(decision=decision, bindings=response_bindings(prompt, entry['responses'][0]['raw']), status='recorded' if exact else 'incomplete', reusable=exact)
                 except (ValueError, KeyError, IndexError, TypeError, StopIteration):
                     pass
         connections.append(edge)

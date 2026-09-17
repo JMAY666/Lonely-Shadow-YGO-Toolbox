@@ -22,7 +22,7 @@ function automaticDeckContext(){const d=duelState().automatic;return {name:d.nam
 async function disposeAutoDuel(){
   const draft=duelState().automatic,s=draft.workspace;draft.workspace=null;closeAutoDuelPreview();
   if(!s)return;++s.generation;s.enabled=false;s.ended=true;
-  if(s.forecast){++s.forecast.generation;s.forecast=null;}
+  dropDuelForecast(s);
   if(autoDuelObservationDialog.open)autoDuelObservationDialog.close();
   await api('/api/automatic-duel/close',{context_id:s.context.context_id}).catch(()=>{});
 }
@@ -34,6 +34,7 @@ async function prepareAutoDuelWorkspace(){
   const context=await api('/api/automatic-duel/context',{monitor_id:frame.monitor_id,round_id:frame.round_id,snapshot_id:frame.opening.snapshot_id});
   if(d!==duelState().automatic||d.order?.frame.round_id!==frame.round_id){await api('/api/automatic-duel/close',{context_id:context.context_id});return null;}
   const s=AutoDuelModel.create(context);d.workspace=s;
+  void prepareDuelOpening(s);
   try{s.result=await api('/api/automatic-duel/match',{context_id:context.context_id});}
   catch(error){s.message=error.message;}
   return s;
@@ -50,7 +51,8 @@ async function chooseAutoDuelPlan(id){await autoDuelWork(async s=>{
   const candidate=s.result?.matches.find(p=>p.id===id);if(!candidate)return;
   const generation=++s.generation,plan=await api('/api/automatic-duel/select',{context_id:s.context.context_id,plan_id:id,revision:candidate.automatic_revision});
   if(s!==autoDuelState()||generation!==s.generation)return;
-  dropAutoDuelForecast(s);s.plan=plan;s.routes=duelPlanRoutes(plan);s.graph=DuelModel.graph(s.routes);
+  if(s.tutorialForecast)releasePreparedForecast(s,s.tutorialForecast);
+  s.tutorialForecast=s.forecast=null;s.plan=plan;s.routes=duelPlanRoutes(plan);s.graph=DuelModel.graph(s.routes);
   s.position={key:s.graph.start,choice:0};s.enabled=true;s.ended=false;s.session='automatic-'+crypto.randomUUID();
   closeAutoDuelPreview();closeReviewDetail();autoDuelTell('');autoDuelReach(duelStages.tutorial);
 });void syncAutoDuelShortcuts();}
@@ -61,6 +63,7 @@ async function toggleAutoDuelFavorite(id){await autoDuelWork(async s=>{
   if(s!==autoDuelState())return;plan.favorite=data.plans.includes(id);if(s.plan?.id===id)s.plan.favorite=plan.favorite;
 });}
 function autoDuelWorkspacePage(){
+  if(autoDuelState())selectForecastStage(autoDuelState());
   const s=autoDuelState();
   if(!s)return '<section id="auto-duel-workspace" class="auto-duel-workspace"><p>自动工作区尚未就绪，请返回起手确认后重试。</p></section>';
   const stage=duelState().stage;s.stage=stage;
@@ -112,10 +115,10 @@ function autoDuelNavigate(action){
   closeAutoDuelPreview();closeReviewDetail();s.position=DuelModel.navigate(s.graph,s.position,action);paintAutoDuelPosition();
 }
 async function endAutoDuel(){await autoDuelWork(async s=>{
-  if(s.forecast)++s.forecast.generation;s.forecast=null;await api('/api/automatic-duel/close',{context_id:s.context.context_id});
+  dropDuelForecast(s);await api('/api/automatic-duel/close',{context_id:s.context.context_id});
   if(s!==autoDuelState())return;s.enabled=false;s.ended=true;s.session='automatic-'+crypto.randomUUID();autoDuelReach(duelStages.complete);closeAutoDuelPreview();
 });await syncAutoDuelShortcuts();}
-function dropAutoDuelForecast(s){const f=s.forecast;if(!f)return;s.forecast=null;++f.generation;if(f.id)void api('/api/automatic-duel/dispatch',{context_id:s.context.context_id,intent:'plan-close',id:f.id}).catch(()=>{});}
+function dropAutoDuelForecast(s){dropDuelForecast(s);}
 async function autoDuelDispatch(intent,body){const s=autoDuelState();return api('/api/automatic-duel/dispatch',{...body,context_id:s.context.context_id,intent});}
 function paintAutoDuelShortcutStatus(){const el=$('#auto-duel-shortcut-status');if(el){el.textContent=autoDuelView.shortcutStatus?.error||'';el.hidden=!el.textContent;}}
 function syncAutoDuelShortcuts(inactive=false){

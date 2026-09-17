@@ -10,13 +10,15 @@ from modular_decisions import model, public_state, bind_variants
 from module_conditions import advance_facts
 
 
-def context(modular, body):
+def context(modular, body, *, allow_stale=False):
     sid = body.get('id'); ctx = modular.sessions.get(sid, {})
     if not ctx.get('forecast_meta') or sid not in modular.store.planning:
         raise ValueError('本局临时方案已结束，请重新生成')
     meta=ctx['forecast_meta']
     if meta.get('consumer','duel')!=body.get('consumer','duel') or meta.get('automatic_context')!=body.get('automatic_context'):
         raise ValueError('临时方案属于其他流程，不能跨工作区操作')
+    if not allow_stale and meta.get('rules_version') and meta['rules_version'] != modular.precompute.rules():
+        raise ValueError('规则资源已变化，原教程进度保留；当前引擎需重新建立，不能采用旧资源的候选或确认后续')
     ctx['forecast_touched'] = time.monotonic()
     return sid, ctx
 
@@ -47,7 +49,7 @@ def response(modular, sid, ctx, result=None):
             'confirmed': len(ctx.get('forecast_steps', [])), 'route': (ctx.get('forecast_route') or {}).get('id')}
 
 
-def generate(modular, body):
+def generate(modular, body, on_started=None):
     store = modular.store; created = not body.get('id')
     refresh = body.get('refresh', False)
     if type(refresh) is not bool: raise ValueError('重新生成开关无效')
@@ -68,11 +70,12 @@ def generate(modular, body):
                 'opponent_ai': False, 'turn_order': 'first'}, planning=True)
         sid = session['id']; ctx = modular.context(sid)
     else: sid, ctx = context(modular, body)
+    if on_started: on_started(sid, ctx)
     try:
         if created:
             deadline = time.monotonic() + 30
             while time.monotonic() < deadline:
-                if store.closing: raise ValueError('应用正在退出，已停止生成')
+                if store.closing or ctx.get('forecast_cancelled'): raise ValueError('预计算已取消')
                 try: state = modular.state(sid)
                 except ValueError: state = None
                 if state and state['running'] and not state['answered'] and state.get('player') == 0 and state.get('raw'): break
@@ -81,6 +84,7 @@ def generate(modular, body):
             else: raise ValueError('后台规则引擎尚未就绪，请重试')
             meta = modular.read(store.session_path(sid) / 'session.json')
             ctx['forecast_meta'] = {'catalog': deepcopy(meta['catalog']), 'initial': public_state(state['state']),
+                'rules_version': modular.precompute.rules(),
                 'consumer':body.get('consumer','duel'),'automatic_context':body.get('automatic_context'),
                 'inputs': {'deck': saved['revision'], 'engine': meta['engine_sha256'], 'scripts': meta['scripts_sha256']}}
             ctx['forecast_steps'] = []
@@ -90,8 +94,27 @@ def generate(modular, body):
         if created and anchor:
             from duel_continuation import replay_anchor
             replay_anchor(modular, sid, ctx, anchor)
-        result = modular.search(sid, refresh=refresh)
+        result = modular.search(sid, refresh=refresh, **({'all_preferences': True} if body.get('all_preferences') else {}))
+        if body.get('all_preferences'):
+            from modular import PREFERENCES
+            bank = {}
+            for preference in PREFERENCES:
+                # The search and scores are preference-independent until here;
+                # retain the complete discovered pool before each top-N cut.
+                ranked = {**result, 'candidates': list(result['candidates'])}
+                modular.rank(ranked['candidates'], preference)
+                ranked['candidates'] = ranked['candidates'][:result['limits']['candidates']]
+                ranked['preference'] = preference
+                if preference == 'safest' and any(c['robustness']['status'] != 'evaluated' for c in ranked['candidates']): ranked['complete'] = False
+                bank[preference] = ranked
+            ctx['forecast_bank'] = bank
+            import json
+            if len(json.dumps(bank, ensure_ascii=False).encode('utf-8')) > 16 * 1024 * 1024:
+                ctx.pop('forecast_bank', None)
+                raise ValueError('本轮候选超过后台缓存容量，请减少来源后重试；未缩减搜索范围或冒充无路线')
+            result = ctx['result'] = bank[body.get('preference', 'shortest')]
         ctx['forecast_meta']['inputs']['sources'] = result['token'][2]
+        ctx.pop('forecast_partial', None)
         ctx['forecast_touched'] = time.monotonic()
         return response(modular, sid, ctx, result)
     except Exception:
@@ -101,10 +124,16 @@ def generate(modular, body):
 
 def adopt(modular, body):
     sid, ctx = context(modular, body); result = ctx.get('result') or {}
+    if ctx.get('forecast_job') and body.get('job') != ctx['forecast_job']:
+        raise ValueError('请使用当前预计算任务及状态版本采用候选')
+    if body.get('preference') and ctx.get('forecast_bank'):
+        result = ctx['forecast_bank'].get(body['preference']) or {}
+        ctx['result'] = result
     candidate = next((c for c in result.get('candidates', []) if c['id'] == body.get('candidate')), None)
     if not candidate or not modular.valid_token(sid, candidate['token']): raise ValueError('候选来源或本局进度已变化，请重新生成')
     ctx['forecast_route'] = {'id': uuid.uuid4().hex, 'candidate': deepcopy(candidate),
         'base': modular.state(sid), 'prefix': deepcopy(ctx.get('forecast_steps', [])), 'confirmed': 0}
+    if body.get('job'): modular.precompute.adopted(body['job'])
     return response(modular, sid, ctx, {'candidates': [candidate], 'status': result['status']})
 
 
@@ -132,6 +161,8 @@ def commit_projection(ctx, value):
     revision = max(ctx.get('forecast_revision', 0), value['revision']) + 1
     value['revision'] = revision
     ctx.update(forecast_revision=revision, forecast_state=value)
+    ctx.pop('forecast_bank', None)
+    ctx.pop('forecast_job', None)
 
 
 def confirm(modular, body):
@@ -226,5 +257,5 @@ def dispatch(modular, intent, body):
     if intent == 'plan-adopt': return adopt(modular, body)
     if intent == 'plan-confirm': return confirm(modular, body)
     if intent == 'plan-observe': return observe(modular, body)
-    sid, ctx = context(modular, body); inputs = ctx['forecast_meta']['inputs']; close(modular, sid)
+    sid, ctx = context(modular, body, allow_stale=True); inputs = ctx['forecast_meta']['inputs']; close(modular, sid)
     return {'closed': True, 'inputs': inputs}

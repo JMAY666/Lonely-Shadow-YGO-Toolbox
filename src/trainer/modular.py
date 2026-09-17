@@ -422,6 +422,8 @@ class Modular:
         self.search_lock = threading.RLock()
         self.planning_lock = threading.Lock()
         self.planning_cache = PlanningCache()
+        from duel_precompute import Precompute
+        self.precompute = Precompute(self)
         self.providers = {}
         self.consumers = {'duel', 'automatic-duel', 'expansion', 'modular'}
         self.register_provider('decks', '卡组编辑', self.deck_input_version)
@@ -458,9 +460,14 @@ class Modular:
         handlers={'configure':self.configure,'search':lambda body:self.public_result(self.search(body['id'])),
                   'execute':self.execute,'auto':self.automatic,'status':lambda body:self.status(body['id'])}
         if intent=='data':result=self.data();versions=None
+        elif intent in ('plan-prepare','plan-poll','plan-cancel') and consumer in ('duel','automatic-duel'):
+            result = self.precompute.dispatch(intent, request)
+            versions = result.get('inputs', {})
         elif intent in ('plan','plan-adopt','plan-confirm','plan-observe','plan-close') and consumer in ('duel','automatic-duel'):
             from duel_planner import dispatch
-            with self.planning_lock: result=dispatch(self,intent,request)
+            with self.planning_lock:
+                if intent == 'plan-adopt' and request.get('job'): self.precompute.validate_adoption(request)
+                result=dispatch(self,intent,request)
             versions=result['inputs']
         elif intent=='match':
             from duel import match
@@ -496,7 +503,7 @@ class Modular:
             return self.sessions[sid]
 
     def save(self, ctx):
-        value = {k: v for k, v in ctx.items() if k not in ('result', 'busy', 'followup', 'forecast_state', 'forecast_route')}
+        value = {k: v for k, v in ctx.items() if k not in ('result', 'busy', 'followup', 'forecast_state', 'forecast_route', 'forecast_bank', 'forecast_progress', 'forecast_partial')}
         self.write(self.store.session_path(ctx['id']) / 'modular.json', value)
 
     def audit(self, ctx, kind, **values):
@@ -615,6 +622,7 @@ class Modular:
         return [state['version'], state['revision'], sources, ctx['preference_version']]
 
     def valid_token(self, sid, expected):
+        if self.sessions.get(sid, {}).get('forecast_cancelled') or self.store.closing: return False
         self.library.sync()
         current = self.state(sid)
         actual = self.token(current, self.context(sid))
@@ -662,7 +670,7 @@ class Modular:
                 if hit: self.audit(ctx, 'planning_cache_hit', candidates=len(result['candidates']))
             return result
 
-    def _search(self, sid, *, scenario=0, seed=None, limits=None):
+    def _search(self, sid, *, scenario=0, seed=None, limits=None, all_preferences=False):
         ctx = self.context(sid); self.library.sync(); state = self.state(sid)
         if not state['running'] or state['answered'] or state['player'] != 0: raise ValueError('引擎尚未开放我方决策')
         expected = self.token(state, ctx); preference = ctx['preference']; goal = ctx['goal'][:]
@@ -708,6 +716,14 @@ class Modular:
         # Keep different provenances when paths reach the same state: a source
         # prefix is a preference, never the only legal continuation.
         while queue:
+            if forecast and scenario == 0 and nodes % 16 == 0:
+                ctx['forecast_progress'] = {'nodes': nodes, 'seconds': round(time.monotonic()-start, 3),
+                    'candidates': len(candidates), 'checked': sum(c['status'] not in ('queued', 'checking') for c in source_checks.values()),
+                    'total': len(source_checks), 'phase': '共享路线搜索与规则校验'}
+                ctx['forecast_partial'] = self.public_result({'candidates': list(candidates.values())[:4],
+                    'complete': False, 'limited': True, 'status': 'searching', 'preference': preference,
+                    'seconds': round(time.monotonic()-start, 3), 'coverage': {'total': len(source_checks),
+                    'checked': ctx['forecast_progress']['checked'], 'routes': deepcopy(list(source_checks.values()))}})
             if budget_used() >= bounds['nodes'] or time.monotonic()-start >= bounds['seconds'] or (len(candidates) >= bounds['candidates']*(8 if forecast else 1) and (not forecast or not queue.guided)):
                 limited = True; break
             current, path, steps, seen, uncertain, guide = queue.popleft()
@@ -887,7 +903,8 @@ class Modular:
         verified_nodes = budget_used()
         if scenario == 0 and candidates and state['state'].get('turn_player') == 0:
             # One named, repeatable interference model; no claims beyond its scope.
-            stress = self.search(sid, scenario=1, limits={**bounds, 'seconds': min(4, bounds['seconds']), 'nodes': min(80, bounds['nodes'])})
+            if forecast: ctx['forecast_progress'] = {'nodes': nodes, 'candidates': len(candidates), 'phase': '四种偏好评价与限定干扰校验'}
+            stress = self.search(sid, scenario=1, all_preferences=all_preferences, limits={**bounds, 'seconds': min(4, bounds['seconds']), 'nodes': min(80, bounds['nodes'])})
             for candidate in candidates:
                 key = candidate['steps'][0]['decision']
                 alternatives = [c for c in stress['candidates'] if c['steps'][0]['decision'] == key]
@@ -910,7 +927,23 @@ class Modular:
                 candidate['evaluation'].update(evaluated[signature])
         # Always keep attainable alternatives when the desired goal is unavailable.
         self.rank(candidates, preference)
-        if forecast: candidates = candidates[:bounds['candidates']]
+        if forecast:
+            positions = {key: [e['source']['position'] for e in route] for key, route in by_route.items()}
+            for candidate in candidates:
+                adaptations, previous = [], None
+                for step in candidate['steps']:
+                    source = step['source']
+                    if source.get('automatic_window'): continue
+                    position = source.get('position', 0)
+                    route_key = (source.get('plan'), source.get('route'))
+                    index = positions.get(route_key, []).index(position) if position in positions.get(route_key, []) else -1
+                    if previous is None and index > 0:
+                        adaptations.append(f"从当前局面接入「{source.get('route_name', source.get('name'))}」第 {position+1} 个决策点；此前步骤以本局已确认记录为准")
+                    elif previous and (route_key != previous['_route_key'] or index != previous['_index']+1):
+                        adaptations.append(f"由「{previous.get('route_name', previous.get('name'))}」第 {previous.get('position', 0)+1} 个决策，接续「{source.get('route_name', source.get('name'))}」第 {position+1} 个决策")
+                    previous = {**source, '_route_key': route_key, '_index': index}
+                candidate['adaptations'] = list(dict.fromkeys(adaptations))
+        if forecast and not all_preferences: candidates = candidates[:bounds['candidates']]
         result = {'token': expected, 'candidates': candidates, 'preference': preference, 'precise':ctx['precise'],
                   'status': 'found' if candidates else 'limited' if limited else 'incomplete' if unknown or any(e['status'] != 'ready' for e in self.library.entries.values() if e['id'] in ctx['selected']) else 'no_route',
                   'limited': limited, 'nodes': nodes, 'new_verifications': verified_nodes,

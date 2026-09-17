@@ -107,12 +107,12 @@ class AutomaticDuels:
 
     def dispatch(self,body):
         intent=body.get('intent')
-        if intent not in ('plan','plan-adopt','plan-confirm','plan-observe','plan-close'):
+        if intent not in ('plan','plan-adopt','plan-confirm','plan-observe','plan-close','plan-prepare','plan-poll','plan-cancel'):
             raise ValueError('自动模式推演操作无效')
         with self.lock:
             context=self.context(body.get('context_id'));sid=body.get('id')
             if sid and sid not in context['planner_ids']:raise ValueError('临时方案不属于当前自动工作区')
-            if not sid and intent!='plan':raise ValueError('请先生成本局临时方案')
+            if not sid and intent not in ('plan','plan-prepare','plan-poll','plan-cancel'):raise ValueError('请先生成本局临时方案')
             request=self.request(context,body,intent)
         result=self.store.modular.dispatch(request)['result']
         result_sid=result.get('id')
@@ -123,6 +123,9 @@ class AutomaticDuels:
                 if intent=='plan-close':context['planner_ids']=[p for p in context['planner_ids'] if p!=sid]
                 self.save(context)
         if closed:
+            # A queued preparation may be created after close_owner ran, and
+            # can return before it has a native session ID to close.
+            self.store.modular.precompute.close_owner('automatic-duel', context['id'])
             if result_sid:self.store.modular.dispatch(self.request(context,{'id':result_sid},'plan-close'))
             raise ValueError('自动工作区已切换，迟到的推演已关闭。')
         return result
@@ -132,6 +135,7 @@ class AutomaticDuels:
             context=self.context(body.get('context_id'),active=False)
             context['closed']=True;context['closed_ms']=self.now();self.save(context)
             sessions=list(context['planner_ids'])
+        self.store.modular.precompute.close_owner('automatic-duel', context['id'])
         for sid in sessions:
             if sid in self.store.planning:
                 try:self.store.modular.dispatch(self.request(context,{'id':sid},'plan-close'))

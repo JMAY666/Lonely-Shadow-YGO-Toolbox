@@ -85,7 +85,7 @@ class ReviewProjectionTests(unittest.TestCase):
         self.assertEqual([(c['code'],c['count']) for c in summary['extra']],[(201,1)])
         self.assertEqual([(c['code'],c['count']) for c in summary['opening']],[(101,2)])
 
-    def test_effect_and_rule_combined_move_still_counts_a_used_deck_resource(self):
+    def test_combined_move_without_a_recorded_selection_needs_review(self):
         report,rows=fixture()
         deck_card=card(55,102,1)
         for row in rows: row['state']['cards'].append(deck_card.copy())
@@ -93,7 +93,8 @@ class ReviewProjectionTests(unittest.TestCase):
         report['events']=[moved];report['actions']=[action(moved)]
         report['review']=make_review(report,rows)
         summary=requirements(report)
-        self.assertEqual([(x['code'],x['count']) for x in summary['main']],[(102,1)])
+        self.assertEqual([(x['code'],x['count']) for x in summary['random']],[(102,1)])
+        self.assertEqual(summary['implicit']['status'],'pending')
         self.assertEqual(summary['opening'],[])
 
     def test_opponent_condition_without_movement_and_hidden_information(self):

@@ -21,12 +21,13 @@ module.exports=async({page,root,evidence,pass})=>{
   await page.locator('#duel-brain-toggle').click();
   assert.equal(await page.locator('#duel-brain-content').isVisible(),true);
   await page.locator('#duel-brain-preference').selectOption('balanced');
-  await page.waitForFunction(()=>!duelState().forecast.busy);
+  await page.waitForFunction(()=>!duelState().forecast.busy&&duelState().forecast.data?.result?.preference==='balanced');
   const warm=await page.evaluate(()=>duelState().forecast.data.result);
-  assert.equal(warm.cache.result_hit,false);assert(warm.cache.probe_hits>0);
+  assert.equal(warm.cache.prepared_hit,true);
   fs.writeFileSync(path.join(evidence,'planning-cache-timing.json'),JSON.stringify({cold:diagnostic.data.result.seconds,warm:warm.seconds,cache:warm.cache},null,2));
-  pass(`Preference change searches again while reusing verified probes (${diagnostic.data.result.seconds}s first, ${warm.seconds}s reranked)`);
+  pass(`Preference change reuses the shared prepared search (${diagnostic.data.result.seconds}s first, ${warm.seconds}s reranked)`);
   await page.evaluate(async source=>{duelState().forecast.selected=[source.plan];renderDuel();await searchDuelBrain();},source);
+  await page.waitForFunction(()=>!duelState().forecast.busy&&!!duelState().forecast.data,null,{timeout:90000});
   const changedSources=await page.evaluate(()=>duelState().forecast.data.result);
   assert.equal(changedSources.cache.result_hit,false,'A changed source set cannot reuse stale candidates');
   assert(changedSources.cache.probe_hits>0,'Overlapping prefixes reuse previous engine checks');
@@ -112,7 +113,7 @@ module.exports=async({page,root,evidence,pass})=>{
   assert.equal(restarted.prefix.length,0);
   assert(restarted.result.candidates.some(c=>c.steps.some(s=>(s.bound_decision||s.decision).selection.some(choice=>choice.kind==='summon'))),
     'Opening generation restores the normal summon consumed by the old prefix');
-  await page.waitForFunction(id=>api('/api/native/status?id='+id).then(s=>!s.ready),continuation.id,{timeout:20000});
+  assert.equal((await page.evaluate(id=>api('/api/native/status?id='+id),continuation.id)).ready,true,'Opening preparation preserves the confirmed tutorial');
   await page.screenshot({path:path.join(evidence,'duel-opening-after-continuation.png')});
   pass('Returning from saved-Step continuation generates from the opening; tutorial replan retains the confirmed prefix');
   await page.evaluate(()=>endDuel());
