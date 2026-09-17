@@ -25,6 +25,7 @@ import webbrowser
 
 from report import REPORT_VERSION, build_report, read_journal
 from expansion import OPPONENT, draw_opening, plan_text, validate_conditions, training_settings
+import opening_conditions
 from timeline import route_rows, timeline_nodes
 from review import annotations_for, confirmation_key, legacy_review, requirements
 from plan_library import PlanLibrary, search_cards
@@ -553,7 +554,7 @@ class Store:
                 expansion = deepcopy(retry_meta['expansion'])
             elif design is not None:
                 name, notes = plan_text(design)
-                conditions = validate_conditions(deck['main'], design.get('conditions'))
+                conditions = validate_conditions(deck['main'], design.get('conditions'), self.catalog.cards)
                 settings = training_settings(design)
                 opponent = deepcopy(design.get('opponent_config') or OPPONENT)
                 if not isinstance(opponent, dict): raise ValueError('对手卡组配置无效')
@@ -562,10 +563,10 @@ class Store:
                 if settings['opponent_ai']:
                     self.validate(opponent.get('deck'), training=True)
                     opponent['conditions'] = validate_conditions(opponent['deck']['main'], opponent.get('conditions',
-                        {'slots': opponent.get('opening', [None]*5), 'banned': []}))
-                    opponent_hand, opponent_rest = draw_opening(opponent['deck']['main'], opponent['conditions'])
+                        {'slots': opponent.get('opening', [None]*5), 'banned': []}), self.catalog.cards)
+                    opponent_hand, opponent_rest = draw_opening(opponent['deck']['main'], opponent['conditions'], catalog=self.catalog.cards)
                     opponent.update(actual_opening=opponent_hand, draw_order=opponent_hand + opponent_rest)
-                hand, remaining = draw_opening(deck['main'], conditions)
+                hand, remaining = draw_opening(deck['main'], conditions, catalog=self.catalog.cards)
                 expansion = {'name': name, 'notes': notes, 'conditions': conditions, **settings,
                              'opponent_config': opponent,
                              'actual_opening': hand, 'draw_order': hand + remaining,
@@ -639,7 +640,9 @@ class Store:
         if not report.get('expansion'): raise ValueError('此旧记录没有前置设计配置')
         expansion = deepcopy(report['expansion'])
         expansion.update(training_settings(expansion))
-        expansion['conditions'] = validate_conditions(report['deck']['main'], expansion['conditions'])
+        # Reopening is an editable draft, even if the current catalog no longer
+        # satisfies its predicates. Preview/start revalidate; history stays frozen.
+        expansion['conditions'] = opening_conditions.normalize(report['deck']['main'], expansion['conditions'])
         opponent = expansion.get('opponent_config') or deepcopy(OPPONENT)
         opponent.setdefault('conditions', {'hand_count': 5, 'slots': opponent.get('opening', [None]*5), 'banned': []})
         expansion['opponent_config'] = opponent
@@ -1009,6 +1012,9 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/decks/rename': return self.send(store.rename_deck(body))
                 if path == '/api/desktop/layout' and store.host: return self.send(store.host.layout(body, store))
                 if path == '/api/native/test' and store.host: return self.send(store.host.test_event(store, body))
+                if path == '/api/opening/preview':
+                    store.validate(body.get('deck'))
+                    return self.send(opening_conditions.preview(body['deck']['main'], body.get('conditions'), store.catalog.cards, body.get('focus')))
                 if path == '/api/start': return self.send(store.start(body['deck_id'], body.get('design')))
                 if path == '/api/branches/create': return self.send(store.compromise.create(body))
                 if path == '/api/branches/update': return self.send(store.compromise.update(body))
@@ -1054,6 +1060,7 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/deck': return self.send(store.get_deck(query['id'][0]))
                 if path == '/api/history': return self.send(store.history())
                 if path == '/api/opponent': return self.send(OPPONENT)
+                if path == '/api/opening/schema': return self.send(opening_conditions.schema())
                 if path.startswith('/api/design/'): return self.send(store.design_from(path.rsplit('/', 1)[1]))
                 if path.startswith('/api/ready/'):
                     return self.send({'ready': (store.session_path(path.rsplit('/', 1)[1]) / 'ready.json').exists()})
@@ -1098,6 +1105,7 @@ class Handler(BaseHTTPRequestHandler):
                 files = {'/': 'index.html', '/app.js': 'app.js', '/expansion.js': 'expansion.js', '/timeline.js': 'timeline.js', '/report-view.js': 'report-view.js', '/review.js': 'review.js', '/review.css': 'review.css', '/plan-tutorial.js': 'plan-tutorial.js', '/plan-tutorial.css': 'plan-tutorial.css', '/review-back.svg': 'review-back.svg', '/style.css': 'style.css', '/card-back.svg': 'card-back.svg'}
                 files.update({'/modules.js': 'modules.js', '/modules.css': 'modules.css', '/app-icon.svg': 'brand/app.svg', '/deck-manager.js': 'deck-manager.js', '/deck-manager.css': 'deck-manager.css'})
                 files.update({'/deck-selection.js': 'deck-selection.js', '/deck-selection.css': 'deck-selection.css'})
+                files.update({f'/{name}': name for name in ('opening-rules.js', 'condition-editor.js', 'condition-cards.css', 'condition-card.svg')})
                 files.update({'/deck-tags.js': 'deck-tags.js', '/deck-tags.css': 'deck-tags.css', '/theme.css': 'theme.css'})
                 files['/scrollbars.css'] = 'scrollbars.css'
                 for art in ('first', 'second', 'bo1', 'bo3', 'manual', 'automatic', 'ygopro'):

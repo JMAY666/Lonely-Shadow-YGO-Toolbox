@@ -148,6 +148,7 @@ async function previewPlanImport() {
     if($('#plan-import-file').files[0]!==file)return;
     planLibraryUI.importDocument=document;planLibraryUI.preview=preview;
     $('#plan-import-preview').innerHTML=`<h3>${escape(preview.name)}</h3><p>${preview.steps} 项操作 · 主卡组 ${preview.deck_count.main} · 额外 ${preview.deck_count.extra} · 副卡组 ${preview.deck_count.side}</p>${tagChips(preview.tags)}<p>${preview.duplicate_id?'这个文件已导入，将打开已有方案。':'将新建独立方案，保留现有同名方案。'}</p>${preview.notes.map(n=>`<p>${escape(n)}</p>`).join('')}${preview.missing_cards.length?`<p>本地缺少 ${preview.missing_cards.length} 张卡的资源，可先回看冻结资料；再次展开前需补齐资源。</p>`:''}`;
+    if(typeof OpeningRules!=='undefined'&&OpeningRules.has(document.plan?.expansion?.conditions))$('#plan-import-preview').insertAdjacentHTML('beforeend',OpeningRules.summary(document.plan));
     $('#confirm-import-plan').disabled=false;
   }catch(e){if($('#plan-import-file').files[0]===file)$('#plan-import-status').textContent=`无法导入：${e.message}`;}
 }

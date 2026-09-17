@@ -16,8 +16,9 @@ const onlyAutomatic=process.argv.includes('--automatic-only');
 const onlyAutomaticWorkspace=process.argv.includes('--automatic-workspace-only');
 const onlyNative=process.argv.includes('--native-only');
 const onlyModular=process.argv.includes('--modular-only');
+const onlyConditions=process.argv.includes('--conditions-only');
 const modularSuite=Object.entries({implicit:'YGO_MODULAR_IMPLICIT_ONLY',if:'YGO_MODULAR_IF_ONLY',mechanics:'YGO_MODULAR_MECHANICS_ONLY',precision:'YGO_MODULAR_PRECISION_ONLY',preferences:'YGO_MODULAR_PREFERENCES_ONLY',routes:'YGO_MODULAR_ADDITIONAL_ONLY',cross:'YGO_MODULAR_CROSS_ONLY',planning:'YGO_MODULAR_PLANNING_ONLY',pipeline:'YGO_MODULAR_PIPELINE_ONLY',forecast:'YGO_MODULAR_FORECAST_ONLY'}).find(([,key])=>process.env[key]==='1')?.[0]||'core';
-const profileSuffix=onlyModular?'-modular-'+modularSuite:onlyCompromise?'-compromise':onlySelection?'-selection':onlyDuel?'-duel':onlyAutomatic?'-automatic':onlyAutomaticWorkspace?'-automatic-workspace':onlyNative?'-native':'';
+const profileSuffix=onlyConditions?'-conditions':onlyModular?'-modular-'+modularSuite:onlyCompromise?'-compromise':onlySelection?'-selection':onlyDuel?'-duel':onlyAutomatic?'-automatic':onlyAutomaticWorkspace?'-automatic-workspace':onlyNative?'-native':'';
 const runLabel=process.env.YGO_TEST_RUN||'';
 assert(/^[a-z0-9-]*$/.test(runLabel),'Isolated test run label must contain only letters, digits and hyphens');
 const runSuffix=profileSuffix+(runLabel?'-'+runLabel:'');
@@ -199,6 +200,10 @@ async function activatePot(sid) {
 
 (async () => {
   await launch(true);
+  if(onlyConditions){
+    await require('./condition-cards-smoke.cjs')({page,nativeWait,hostWait,waitHistory,pass,evidence});
+    await close();assert.deepEqual(errors,[]);fs.writeFileSync(path.join(evidence,'conditions-result.json'),JSON.stringify({checks,errors},null,2));return;
+  }
   if(onlyAutomaticWorkspace){
     await require('./automatic-workspace-smoke.cjs')({page,application,root,evidence,pass});
     await close();assert.deepEqual(errors,[]);fs.writeFileSync(path.join(evidence,'automatic-workspace-result.json'),JSON.stringify({checks,errors},null,2));return;
@@ -681,6 +686,7 @@ async function activatePot(sid) {
   await page.locator('#finish-training').click();await waitHistory('completed');
   pass('Whole-hand ban occupies no slot, leaves all banned copies in the deck, and real effect draws can draw them later');
   await require('./expansion-settings-smoke.cjs')({page,nativeWait,nativeState,hostWait,waitHistory,pass,evidence});
+  await require('./condition-cards-smoke.cjs')({page,nativeWait,hostWait,waitHistory,pass,evidence});
   await require('./timeline-effects-smoke.cjs')({page,nativeWait,nativeState,hostWait,waitHistory,pass,evidence});
   await require('./review-materials-smoke.cjs')({page,nativeWait,nativeState,hostWait,waitHistory,pass,evidence});
   compromiseSaved=await require('./compromise-smoke.cjs')({application,page,nativeWait,nativeState,hostWait,pass,evidence});

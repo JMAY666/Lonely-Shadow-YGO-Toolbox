@@ -174,13 +174,14 @@
       <fieldset id="design-conditions" disabled>
         <legend>起手条件</legend><p>指定卡牌保证包含对应副本；留空的位置从剩余主卡组中随机补齐。</p>
         <div class="hand-count-row"><label for="hand-count">玩家初始手牌数量（张）</label><div class="number-options"><button data-hand-count="1">1 张</button><button data-hand-count="2">2 张</button><button data-hand-count="3">3 张</button><input id="hand-count" type="number" min="1" max="60" step="1" value="5"></div><small id="hand-count-hint"></small></div>
-        <div id="opening-slots" class="opening-slots"></div>
+        <div id="opening-slots" class="opening-slots"></div><div id="opening-rule-status" role="status"></div>
         <h2>起手禁用卡牌</h2><p>对整副初始手牌生效，不占槽位；仍留在牌组中供后续抽取、检索和使用。</p><button id="add-opening-ban">添加禁止卡牌</button><div id="banned-cards" class="banned-cards"></div>
         <label class="ai-option"><input id="opponent-ai" type="checkbox"> 启用对手 AI</label><p id="opponent-description"></p>
         <fieldset id="opponent-settings" hidden>
           <legend>对手卡组与起手</legend><div class="config-row"><label for="opponent-deck">选择对手卡组</label><select id="opponent-deck"></select><button id="edit-opponent-deck">编辑对手卡组</button></div><p id="opponent-deck-info"></p>
           <label for="opponent-hand-count">对手初始手牌数量（张）</label><input id="opponent-hand-count" type="number" min="1" max="60" step="1" value="5">
-          <div id="opponent-slots" class="opening-slots"></div>
+          <div id="opponent-slots" class="opening-slots"></div><div id="opponent-rule-status" role="status"></div>
+          <button id="add-opponent-ban">添加对手禁止卡牌／条件</button><div id="opponent-banned-cards" class="banned-cards"></div>
           <label class="ai-option"><input id="opponent-responses" type="checkbox" checked> 允许对手 AI 响应玩家操作</label><p>关闭时放弃对玩家操作的可选响应；强制效果、规则结算与 AI 自身回合行动照常执行。</p>
         </fieldset>
         <div class="config-grid">
@@ -197,8 +198,14 @@
   </section>
   <dialog id="opening-dialog" class="opening-dialog" aria-labelledby="opening-title">
     <header><div><h2 id="opening-title">编辑起手槽位</h2><p>只展示本次选定主卡组的卡牌。</p></div><button id="opening-close" aria-label="关闭卡牌选择">关闭</button></header>
-    <div class="opening-actions"><button id="choose-required">添加卡牌</button><button id="choose-banned">禁止卡牌</button><button id="clear-slot">移除本槽位指定</button></div>
+    <div class="opening-actions"><button id="choose-required">添加卡牌</button><button id="choose-banned">禁止卡牌</button><button id="choose-condition">条件牌 · 创建／编辑</button><button id="clear-slot">移除本槽位指定</button></div>
     <p id="opening-error" class="form-error" role="alert"></p><section id="opening-shortcut-section" hidden><h3>已选快捷候选</h3><div id="opening-shortcut-choices" class="opening-shortcuts"></div></section><div id="opening-choices"></div>
+    <section id="condition-card-editor" hidden aria-label="条件牌编辑器">
+      <div class="condition-editor-head"><div><h3>条件牌</h3><p id="condition-purpose"></p><small>多选选项可使用 Ctrl／Shift；多选包含表示满足其中任意一项。</small></div><div id="condition-face-preview"></div></div>
+      <div id="condition-templates" class="condition-templates" aria-label="预设与已有条件"></div>
+      <div class="condition-editor-grid"><div><div id="condition-rule-tree"></div><p class="condition-preview-help">等级、阶级、连接值分别判断；没有对应属性的卡牌不会命中。系列仅支持卡库中的数值编号，不将名称、用户 TAG 或自由文本备注当作自动规则。效果、费用和素材资格需在执行路线时验证。</p></div><aside class="condition-preview-panel"><h3>当前主卡组匹配预览</h3><div id="condition-preview-result" role="status"></div></aside></div>
+      <footer class="condition-editor-footer"><button id="condition-cancel">返回具体卡牌</button><button id="condition-apply" class="primary" disabled>使用此条件牌</button></footer>
+    </section>
   </dialog>
   <dialog id="flow-dialog" class="delete-dialog" aria-labelledby="flow-message"><form method="dialog"><h2 id="flow-message"></h2><p id="flow-warning"></p><div class="delete-actions"><button id="flow-cancel" value="cancel" autofocus>取消</button><button id="flow-confirm" value="confirm">确认</button></div></form></dialog>
   <section id="training" hidden aria-label="展开场地">
@@ -302,7 +309,8 @@
   <div id="plan-tutorial-scroll"><div id="plan-tutorial-canvas"></div></div>
   <p id="plan-tutorial-status" role="status"></p>
 </dialog>
-<script src="/deck-tag-view.js"></script><script src="/activation.js"></script><script src="/report-view.js"></script><script src="/deck-manager.js"></script><script src="/app.js"></script><script src="/expansion.js"></script><script src="/timeline.js"></script><script src="/review.js"></script><script src="/plan-tutorial.js"></script><script src="/plan-library.js"></script><script src="/tag-manager.js"></script><script src="/compromise.js"></script><script src="/compromise-tutorial.js"></script>
+<link rel="stylesheet" href="/condition-cards.css">
+<script src="/deck-tag-view.js"></script><script src="/activation.js"></script><script src="/report-view.js"></script><script src="/deck-manager.js"></script><script src="/app.js"></script><script src="/opening-rules.js"></script><script src="/expansion.js"></script><script src="/condition-editor.js"></script><script src="/timeline.js"></script><script src="/review.js"></script><script src="/plan-tutorial.js"></script><script src="/plan-library.js"></script><script src="/tag-manager.js"></script><script src="/compromise.js"></script><script src="/compromise-tutorial.js"></script>
 <link rel="stylesheet" href="/modular.css">
 <script src="/modular.js"></script><script src="/deck-selection.js"></script><script src="/modules.js"></script>
 <script src="/deck-tags.js"></script>

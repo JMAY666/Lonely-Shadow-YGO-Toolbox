@@ -41,7 +41,7 @@ async function refreshModularLibrary(){
       try{
         const source=await api('/api/modular/source/'+encodeURIComponent(library.sources[index].id));
         if(!details.isConnected)return;details.dataset.loaded='true';
-        details.querySelector('div').innerHTML=`<p>来源版本 ${source.version.slice(0,12)} · 快照为记录时状态；能否在当前对局连接需再次经过引擎校验。</p>`+source.routes.map(route=>`<h4>${modularEscape(route.name)}</h4><ol>${route.snapshots.filter(n=>n.player===0).map(n=>{
+        details.querySelector('div').innerHTML=`<p>来源版本 ${source.version.slice(0,12)} · 快照为记录时状态；能否在当前对局连接需再次经过引擎校验。</p>${typeof OpeningRules!=='undefined'?OpeningRules.summary({expansion:{conditions:source.opening_conditions,actual_opening:source.actual_opening}}):''}`+source.routes.map(route=>`<h4>${modularEscape(route.name)}</h4><ol>${route.snapshots.filter(n=>n.player===0).map(n=>{
           const edge=route.edges.find(e=>e.from===n.id),selected=edge?.decision.selection?.[0],c=selected?.card,effect=selected?.effect;
           return `<li><details><summary>快照 ${modularEscape(n.id)} · ${edge?modularEscape(selected?.kind||'选择'):'记录终点／待补充'}${c?' · 卡号 '+c.code:''}${effect?' · 效果说明 '+effect.description:''}</summary><p>回合 ${n.state.turn} · 阶段 ${n.state.phase} · 连锁 ${n.state.chain_depth} · LP ${n.state.lp?.join(' / ')}${edge?' · 后继快照 '+edge.to:''}</p><p>${n.state.cards.filter(c=>c.controller===0&&[2,4,8,16,32,128].includes(c.location)).map(c=>modularEscape(c.name||c.code)+' #'+c.instance_id+'（区域 '+c.location+' / 位置 '+c.sequence+'）').join('、')}</p><p>效果次数、代价、素材与持续限制由本局重放引擎校验；缺失信息不视为满足。</p></details></li>`;
         }).join('')}</ol>`).join('');

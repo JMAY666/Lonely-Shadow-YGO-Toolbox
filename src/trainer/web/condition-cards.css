@@ -1,0 +1,21 @@
+.condition-face{position:relative;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;width:126px;min-height:184px;aspect-ratio:146/214;padding:32px 12px 16px;box-sizing:border-box;isolation:isolate;color:#e5f4ee;text-align:center;gap:8px;overflow:hidden;border-radius:10px;flex-shrink:0}
+.condition-face>img{position:absolute;inset:0;width:100%!important;height:100%!important;object-fit:fill!important;z-index:-1}
+.condition-face>.condition-kind{position:absolute;top:13px;font-size:11px;letter-spacing:2px;color:#a3d5cd}
+.condition-face>strong{font-size:13px!important;line-height:1.45;overflow-wrap:anywhere;max-height:94px;overflow:auto;color:#eefaf4}
+.condition-face>small{font-size:10px!important;color:#acd5cf!important;line-height:1.5}
+.condition-face.condition-ban{filter:hue-rotate(135deg)}
+.opening-slot .condition-face{margin:auto;width:116px;min-height:170px}
+.condition-summary-cards{display:flex;gap:12px;flex-wrap:wrap;align-items:stretch}.condition-exact{width:126px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px;font-size:13px}.condition-exact img{width:88px;height:128px;object-fit:contain}
+.opening-rule-summary{padding:16px;border:1px solid var(--border-subtle,#3b505a);border-radius:12px;margin-block:12px}.condition-boundary{font-size:13px;color:var(--text-muted,#a0b3bd)}
+#condition-card-editor{margin-top:14px}.condition-editor-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.condition-editor-head p{margin:4px 0}
+.condition-templates{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.condition-templates button{font-size:12px}
+.condition-group{border:1px solid var(--border-subtle,#3b505a);border-left:3px solid #618e86;border-radius:8px;padding:10px;margin:8px 0;background:var(--surface-panel,#182832)}
+.condition-group .condition-group{margin-left:14px}.condition-node-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.condition-node-toolbar select{width:auto;max-width:100%}
+.condition-leaf{display:grid;grid-template-columns:minmax(100px,150px) minmax(90px,130px) minmax(130px,1fr) auto;gap:8px;align-items:center;margin:10px 0}.condition-leaf select,.condition-leaf input{max-width:100%;min-width:0;width:100%}.condition-leaf select[multiple]{height:100px}.condition-values{display:flex;align-items:center;gap:6px}
+.condition-editor-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(260px,1fr);gap:16px;align-items:start}.condition-preview-panel{position:sticky;top:0;padding:12px;background:var(--surface-panel,#182832);border-radius:10px;border:1px solid var(--border-subtle,#3b505a)}
+.condition-preview-cards{max-height:360px;overflow:auto}.condition-preview-card{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-subtle,#3b505a)}.condition-preview-card img{width:42px;height:61px;object-fit:contain}.condition-preview-card div{display:flex;flex-direction:column;gap:3px}.condition-preview-card small{font-size:12px}.condition-unavailable{opacity:.7}.condition-preview-help{font-size:12px;line-height:1.5}.condition-editor-footer{display:flex;gap:10px;align-items:center;justify-content:flex-end;position:sticky;bottom:0;background:var(--surface-panel,#182832);padding:12px 0}
+.condition-ban-entry{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--border-subtle,#3b505a);padding:4px;border-radius:7px}.condition-ban-entry .condition-face{width:78px;min-height:115px;padding:23px 8px 9px}.condition-ban-entry .condition-face>strong{font-size:10px!important;max-height:54px}.condition-ban-entry .condition-face>small{display:none}.condition-ban-entry .condition-kind{font-size:9px;top:7px;letter-spacing:0}
+@media(max-width:850px){.condition-editor-grid{grid-template-columns:1fr}.condition-preview-panel{position:static}.condition-leaf{grid-template-columns:1fr 1fr}.condition-leaf .condition-values{grid-column:1/-1}}
+
+.banned-cards .condition-face,.banned-cards .condition-face span,.banned-cards .condition-ban-entry{margin-left:0}
+.opening-dialog:has(#condition-card-editor:not([hidden])){width:min(1100px,94vw)}

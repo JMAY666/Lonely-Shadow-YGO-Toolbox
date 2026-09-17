@@ -20,7 +20,7 @@ from planning_cache import PlanningCache
 
 PREFERENCES = ('shortest', 'largest', 'balanced', 'safest')
 LIMITS = {'seconds': 32, 'nodes': 320, 'depth': 48, 'candidates': 24}
-EXTRACTOR_VERSION = 11
+EXTRACTOR_VERSION = 12
 
 
 class RouteFrontier:
@@ -378,6 +378,9 @@ class ModularLibrary:
                             routes.append({'id': route_id, 'name': name, **evidence})
                         entry = {'id': path.stem, 'name': plan['name'], 'version': version,
                                  'revision': plan.get('edit_revision', 0), 'routes': routes,
+                                 'opening_conditions': deepcopy(plan.get('expansion', {}).get('conditions')),
+                                 'actual_opening': deepcopy(plan.get('expansion', {}).get('actual_opening')),
+                                 'opening_note': '来源起手条件仅描述初始手牌；连接动作仍按具体卡牌和规则引擎验证，属性相同不代表路线可替换',
                                  'status': 'ready' if any(r['edges'] for r in routes) else 'incomplete'}
                         self.write(obj, entry)
                     fresh[path.stem] = entry

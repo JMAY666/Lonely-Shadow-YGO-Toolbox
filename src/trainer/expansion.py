@@ -1,6 +1,6 @@
 """Opening constraints and a versioned, local opponent configuration."""
-from collections import Counter
 import secrets
+from opening_conditions import prepare, assignment
 
 
 OPPONENT = {
@@ -45,40 +45,18 @@ def plan_text(body):
     return name.strip(), notes
 
 
-def validate_conditions(main, conditions):
-    if not isinstance(conditions, dict): raise ValueError('起手条件无效')
-    slots, banned = conditions.get('slots'), conditions.get('banned')
-    count = integer(conditions.get('hand_count', 5), '起手数量', 1, MAX_HAND)
-    if count > len(main): raise ValueError(f'主卡组只有 {len(main)} 张，无法提供 {count} 张起手；额外和副卡组不参与抽取')
-    if not isinstance(slots, list) or len(slots) > MAX_HAND: raise ValueError('起手槽位无效')
-    if any(c is not None for c in slots[count:]):
-        raise ValueError(f'起手数量已设为 {count} 张，但超出数量的槽位仍有指定卡牌，请移除或增加起手数量')
-    slots = slots[:count] + [None] * max(0, count - len(slots))
-    if not isinstance(banned, list) or len(banned) > 60: raise ValueError('起手禁用列表无效')
-    counts = Counter(main)
-    for code in [c for c in slots if c is not None] + banned:
-        if type(code) is not int or code not in counts: raise ValueError('只能选择当前主卡组内的卡牌')
-    if any(type(code) is not int for code in banned): raise ValueError('起手禁用列表无效')
-    required = Counter(c for c in slots if c is not None)
-    for code, copies in required.items():
-        if copies > counts[code]: raise ValueError(f'卡牌 {code} 只含 {counts[code]} 张，不能指定 {copies} 张')
-        if code in banned: raise ValueError(f'卡牌 {code} 同时被指定和禁用，请先取消其中一个条件')
-    eligible = sum(count - required[code] for code, count in counts.items() if code not in banned)
-    missing = count - sum(required.values())
-    if eligible < missing:
-        raise ValueError(f'扣除指定副本并排除禁用卡后，只剩 {eligible} 张可抽取，还需要 {missing} 张，无法组成 {count} 张起手')
-    return {'hand_count': count, 'slots': slots[:], 'banned': list(dict.fromkeys(banned))}
+def validate_conditions(main, conditions, catalog=None):
+    result = prepare(main, conditions, catalog)
+    if not result['valid']: raise ValueError('；'.join(result['errors']))
+    return result['conditions']
 
 
-def draw_opening(main, conditions, rng=None):
-    conditions = validate_conditions(main, conditions)
+def draw_opening(main, conditions, rng=None, catalog=None):
+    result = prepare(main, conditions, catalog)
+    if not result['valid']: raise ValueError('；'.join(result['errors']))
     rng = rng or secrets.SystemRandom()
-    remaining = main[:]
-    for code in conditions['slots']:
-        if code is not None: remaining.remove(code)
-    eligible = [c for c in remaining if c not in conditions['banned']]
-    extra = iter(rng.sample(eligible, conditions['slots'].count(None)))
-    hand = [code if code is not None else next(extra) for code in conditions['slots']]
+    indices = assignment(result['candidates'], rng=rng)
+    hand = [main[i] for i in indices]
     remaining = main[:]
     for code in hand: remaining.remove(code)
     rng.shuffle(remaining)  # Banned cards remain here and work normally after the opening.

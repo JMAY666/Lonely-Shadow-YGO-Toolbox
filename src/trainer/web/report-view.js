@@ -56,7 +56,7 @@ function renderTrainingReport(r, options) {
     ${r.warnings.length ? `<ul class="warnings">${[...new Set(r.warnings)].map(w => `<li>${escape(w)}</li>`).join('')}</ul>` : ''}
     <div class="stats">${Object.entries(r.statistics).map(([key, value]) => `<div class="stat"><strong>${escape(value)}</strong><span>${escape(key)}</span></div>`).join('')}</div>
     <small>${escape(r.statistics_note)}</small>
-    <h3>初始手牌</h3>${r.initial_hand ? cardsHtml(r.initial_hand) : '<p>尚未采集到初始手牌。</p>'}
+    <h3>初始手牌${typeof OpeningRules!=='undefined'&&OpeningRules.has(r.expansion?.conditions)?'（本次实际实例）':''}</h3>${r.initial_hand ? cardsHtml(r.initial_hand) : '<p>尚未采集到初始手牌。</p>'}
     <h3>展开步骤 <small>${r.actions.length} 步</small></h3>
     <p class="summary-hint">上方保留卡片完整效果文本，下方展示本次实际结果。</p>
     <div class="report-toolbar"><label><input type="checkbox" id="all-events" ${options.raw ? 'checked' : ''}>查看原始事件</label>

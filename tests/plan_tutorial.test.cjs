@@ -7,7 +7,7 @@ function setup(extra={}) {
   const el={addEventListener(){}};
   const context=vm.createContext({Map,structuredClone,flow:{draft:null},app:{},$:()=>el,
     document:{addEventListener(){},querySelectorAll:()=>[]},escape:String,eventSummary:e=>e.result||e.type||'',zoneNames:{},...extra});
-  for(const file of ['activation.js','review.js','plan-tutorial.js'])vm.runInContext(readFileSync(path.join(__dirname,'../src/trainer/web',file),'utf8'),context);
+  for(const file of ['opening-rules.js','activation.js','review.js','plan-tutorial.js'])vm.runInContext(readFileSync(path.join(__dirname,'../src/trainer/web',file),'utf8'),context);
   return vm.runInContext('({buildPlanTutorial,layoutPlanTutorial,renderPlanTutorialSvg,tutorialWrap,tutorialAssets,reviewUI})',context);
 }
 function fixture() {
@@ -23,6 +23,15 @@ function fixture() {
     annotations:{cards:{},nodes:{'step:2:0':{name:'检索准备',notes:'用户备注 & <保留>'}},final_marks:{1:{marked:true,effects:{0:{note:'无效一次'}}},3:{marked:true,effects:{}}}},
     review:{complete:true,nodes:[{id:'initial',kind:'initial',number:1,action_ids:[]},{id:'step:2:0',kind:'step',number:2,state_ref:5,action_ids:['2:0']},{id:'final',kind:'final',number:3,action_ids:[],state:{cards:[a,grave,b]}}]}};
 }
+
+test('conditional tutorial shows sets, bans and the frozen instance without implying route interchangeability',()=>{
+  const r=setup(),plan=fixture(),condition={kind:'condition',version:1,rule:{op:'all',items:[{field:'level',op:'eq',value:3},{field:'monster_kind',op:'in',values:['tuner']}]}};
+  plan.expansion={conditions:{hand_count:2,slots:[10,condition],banned:[condition]},actual_opening:[10,11]};
+  const before=JSON.stringify(plan),model=r.buildPlanTutorial(plan),svg=r.renderPlanTutorialSvg(model);
+  assert.equal(model.opening[1].src,'/condition-card.svg');assert.equal(model.opening[1].name,'任意等级 3 调整');
+  assert(model.opening[2].name.startsWith('禁止：'));assert.match(svg,/条件集合/);assert.match(svg,/实例/);
+  assert.match(model.warnings.join(' '),/尚未证明可替换/);assert.equal(JSON.stringify(plan),before);
+});
 test('tutorial reads the frozen plan only and preserves costs, targets, notes and final marks without full effect text or resources',()=>{
   const r=setup(),plan=fixture(),before=JSON.stringify(plan);
   r.reviewUI.report={annotations:{nodes:{'step:2:0':{name:'无关草稿'}}}};

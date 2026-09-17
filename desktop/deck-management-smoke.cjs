@@ -213,9 +213,15 @@ module.exports = async ({page,application,evidence,label,pass}) => {
   assert.equal(fs.readFileSync(exportFile,'utf8'),exported.text);
   const reparsed=await page.evaluate(text=>previewYdk(text),exported.text);
   assert.equal(reparsed.can_import,true);assert.deepEqual(reparsed.deck,deck);
+  // Move off any interactive preview left under the pointer by exporting or
+  // scrolling a larger saved library. Do not bypass real click hit-testing.
+  await page.locator('#deck-manager h1').hover();
+  await page.locator('#deck-preview').waitFor({state:'hidden'});
   await tile(blankName+' 改名').click({button:'right'});
   await page.locator('[data-deck-command="delete"]').click();await page.locator('#delete-cancel').click();await settled();
   assert.equal(await tile(blankName+' 改名').count(),1);
+  await page.locator('#deck-manager h1').hover();
+  await page.locator('#deck-preview').waitFor({state:'hidden'});
   await tile(blankName+' 改名').click({button:'right'});
   await page.locator('[data-deck-command="delete"]').click();await page.locator('#delete-confirm').click();await settled();
   assert.equal(await tile(blankName+' 改名').count(),0);

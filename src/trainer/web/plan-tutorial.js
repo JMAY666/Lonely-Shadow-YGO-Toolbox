@@ -109,7 +109,7 @@ function buildPlanTutorial(plan,includeBranches=false) {
     steps.push({id:n.id,number:n.number,module_id:n.module_id,module_ids:n.module_ids,module_status:n.module_status,title:tutorialNote(edit.name||''),actions:groupedLogActions(active,plan).map(a=>tutorialAction(a,n,plan)),notes});
   }
   let opening=plan.requirements?.opening;
-  const openingKnown=Array.isArray(opening);
+  let openingKnown=Array.isArray(opening);
   if(!openingKnown) {
     const groups=new Map();
     for(const c of plan.initial_hand||[]) {
@@ -119,6 +119,13 @@ function buildPlanTutorial(plan,includeBranches=false) {
     }
     opening=[...groups.values()];
   } else opening=opening.map(c=>({name:c.name||c.constraint||'待核对卡牌',count:c.count,src:c.code?`/pics/${Number(c.code)}.jpg`:'/review-back.svg',constraint:c.constraint&&c.constraint!==c.name?c.constraint:'',manual:c.status==='用户补充'}));
+  const conditional=typeof OpeningRules!=='undefined'&&OpeningRules.has(plan.expansion?.conditions);
+  if(conditional){
+    const rules=plan.expansion.conditions,catalog=plan.catalog||{};
+    openingKnown=true;
+    opening=[...(rules.slots||[]).map(c=>({name:OpeningRules.describe(c,catalog),count:1,src:OpeningRules.is(c)?'/condition-card.svg':c?`/pics/${Number(c)}.jpg`:'/review-back.svg',constraint:OpeningRules.is(c)?'条件集合 · 由 1 张真实卡牌填充':'',manual:false})),
+      ...(rules.banned||[]).map(c=>({name:'禁止：'+OpeningRules.describe(c,catalog),count:'全部副本',src:OpeningRules.is(c)?'/condition-card.svg':`/pics/${Number(c)}.jpg`,constraint:'整副初始手牌生效，不占槽位',manual:false}))];
+  }
   const finalNode=nodes.find(n=>n.kind==='final')||{id:'final',kind:'final',state:plan.final_state};
   const finalState=finalNode.state||plan.final_state;
   const marked=(finalState?.cards||[]).filter(c=>edits.final_marks?.[String(c.instance_id)]?.marked).sort((a,b)=>a.controller-b.controller||a.location-b.location||a.sequence-b.sequence);
@@ -132,6 +139,7 @@ function buildPlanTutorial(plan,includeBranches=false) {
     return {...tutorialCard(c,finalNode,plan),location:![4,8].includes(c.location)?reviewPlace(c):c.controller===1?'对方':'',notes};
   });
   const warnings=[];
+  if(conditional)warnings.push('本图步骤来自实际起手实例；其他满足集合的卡牌尚未证明可替换，效果、费用、素材与后续步骤须规则引擎验证。');
   if(!openingKnown)warnings.push('旧方案未保存条件摘要，起手仅展示已记录手牌。');
   if(plan.requirements?.random?.length)warnings.push('随机依赖：'+plan.requirements.random.map(c=>`${c.name||c.constraint} ×${c.count}`).join('、'));
   if(plan.review?.complete===false)warnings.push('部分步骤快照缺失；流程按已记录动作展示。');
@@ -139,7 +147,7 @@ function buildPlanTutorial(plan,includeBranches=false) {
   return {name:plan.name||plan.expansion?.name||'展开',opening,openingKnown,finalCards,steps,warnings,
     stepLinks:reviewStepLinks(plan,['initial',...steps.map(n=>n.id),'final']),
     finalNote:tutorialNote(plan.requirements?.final?.notes||edits.nodes?.final?.notes),
-    conditionsNote:tutorialNote(plan.requirements?.note||edits.conditions_note),note:tutorialNote(plan.expansion?.notes)};
+    conditionsNote:tutorialNote([conditional?'本次实际起手（实例）：'+(plan.expansion.actual_opening||[]).map(c=>OpeningRules.describe(c,plan.catalog)).join(' · '):'',plan.requirements?.note||edits.conditions_note].filter(Boolean).join('\n')),note:tutorialNote(plan.expansion?.notes)};
 }
 
 function layoutTutorialStage(stage,maxWidth) {

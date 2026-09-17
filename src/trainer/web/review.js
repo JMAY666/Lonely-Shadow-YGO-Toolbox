@@ -480,7 +480,8 @@ function requirementRows(items=[], nodes=reviewUI.nodes) {
 function summaryHtml(summary, savedPlan=null) {
   const edits=savedPlan?.annotations||reviewEdits();
   const nodes=savedPlan?reviewNodes(savedPlan):reviewUI.nodes;
-  return `<section class="confirmation-section"><h2>起手条件</h2>${requirementRows(summary.opening,nodes)}<p>任意牌的必要数量必须满足；身份不限不代表可以省略。</p></section>
+  const plan=savedPlan||reviewUI.report,conditional=typeof OpeningRules!=='undefined'&&OpeningRules.has(plan?.expansion?.conditions);
+  return `${conditional?OpeningRules.summary(plan):''}<section class="confirmation-section"><h2>${conditional?'本次路线实际使用的起手资源':'起手条件'}</h2>${requirementRows(summary.opening,nodes)}<p>任意牌的必要数量必须满足；身份不限不代表可以省略。自由文本补充需人工核对，不作为自动执行的条件牌。</p></section>
     <section class="confirmation-section implicit-conditions"><h2>隐性条件</h2>${requirementRows(summary.implicit?.conditions,nodes)}<p>${escape(summary.implicit?.basis||'旧方案缺少识别依据，条件待核对。')}</p>${(summary.implicit?.warnings||[]).map(w=>`<p class="review-warning">${escape(w)}</p>`).join('')}</section>
     <section class="confirmation-section"><h2>展开使用资源</h2><h3>主卡组</h3>${requirementRows(summary.main,nodes)}<h3>EX 额外卡组</h3>${requirementRows(summary.extra,nodes)}</section>
     <section class="confirmation-section"><h2>随机依赖</h2>${summary.random?.length?`${requirementRows(summary.random,nodes)}<p class="review-warning">本路线依赖途中抽到指定卡牌，不属于已验证的稳定展开。</p>`:'<p>未识别到已使用的指定随机命中。</p>'}</section>

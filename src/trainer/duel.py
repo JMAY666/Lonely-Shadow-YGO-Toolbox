@@ -2,6 +2,7 @@
 from collections import Counter
 from copy import deepcopy
 from implicit_conditions import check as check_implicit
+from opening_conditions import has_conditions, match_hand
 
 
 class Incomplete(ValueError):
@@ -61,18 +62,26 @@ def resource_error(route, deck):
     return ''
 
 
-def project(plan, deck, hand):
+def project(plan, deck, hand, catalog=None):
     """Each branch report already includes its inherited prefix. Siblings are
     alternatives, so do not sum their inventories or include the side deck."""
     if plan.get('expansion', {}).get('turn_order', 'first') == 'second':
         return None, 'turn_order', '此方案记录为后手展开，本期仅支持先攻展开'
-    banned = plan.get('expansion', {}).get('conditions', {}).get('banned', [])
-    if set(banned).intersection(hand):
+    conditions = plan.get('expansion', {}).get('conditions', {})
+    conditional = has_conditions(conditions)
+    if conditional or 'slots' in conditions:
+        try: matched, reason = match_hand(hand, conditions, catalog or plan.get('catalog', {}))
+        except ValueError as exc: matched, reason = False, str(exc)
+        if not matched: return None, 'opening', '起手条件不满足：' + reason
+    banned = conditions.get('banned', [])
+    if any(type(code) is int and code in hand for code in banned):
         return None, 'opening', '起手包含手动设置的禁止上手卡牌'
     try:
         main_resource_error = resource_error(plan, deck)
         error = shortage(plan.get('requirements'), 'opening', hand)
-        if error: return None, 'opening', '起手条件不满足：' + error
+        if error:
+            if conditional: return None, 'incomplete', '起手集合条件已满足，但本路线记录所需的具体卡牌不足；替换尚未验证：' + error
+            return None, 'opening', '起手条件不满足：' + error
     except Incomplete as exc:
         return None, 'incomplete', '条件待补全：' + str(exc)
     nodes = plan.get('review', {}).get('nodes', [])
@@ -82,6 +91,9 @@ def project(plan, deck, hand):
     if main_resource_error: condition = {**condition, 'status': 'unmet', 'reason': main_resource_error}
     main_condition = condition
     result = deepcopy(plan)
+    if conditional:
+        result['opening_match'] = {'status': 'satisfied', 'actual_hand': list(hand),
+            'note': '仅确认集合条件与已记录路线资源；其他候选不能据此视为效果、费用或素材等价，执行仍须规则引擎校验'}
     result['requirements']['implicit'] = condition['implicit']
     result['duel_validation'] = condition['reason']
     result['branches'] = []
@@ -151,7 +163,7 @@ def match(store, body):
                 classification = store.library.selection(plan, vocabulary)
                 if not selected.intersection(classification['tag_ids']): continue
                 result['counts']['tags'] += 1
-                projected, stage, reason = project(plan, saved['deck'], body['hand'])
+                projected, stage, reason = project(plan, saved['deck'], body['hand'], store.catalog.cards)
                 if projected is None:
                     result['counts'][stage] += 1
                     result['excluded'].append({'id': plan.get('id'), 'name': plan.get('name'), 'stage': stage, 'reason': reason})

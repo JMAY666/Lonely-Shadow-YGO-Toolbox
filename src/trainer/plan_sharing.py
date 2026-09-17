@@ -19,7 +19,7 @@ def portable(plan):
     result['expansion'] = {key: value for key, value in result.get('expansion', {}).items() if key in EXPANSION_FIELDS}
     opponent = result['expansion'].get('opponent_config')
     if opponent:
-        result['expansion']['opponent_config'] = {key: value for key, value in opponent.items() if key in ('name', 'description', 'deck', 'conditions', 'opening')}
+        result['expansion']['opponent_config'] = {key: value for key, value in opponent.items() if key in ('name', 'description', 'deck', 'conditions', 'opening', 'actual_opening')}
     result['catalog'] = {key: {k: v for k, v in value.items() if k in CARD_FIELDS} for key, value in result.get('catalog', {}).items()}
     # A packed setcode can exceed JavaScript's exact integer range. Portable
     # files use decimal strings so browser preview/import never rounds it.
@@ -124,7 +124,38 @@ def validate(document):
     from review import annotations_for
     plan_text({'name': plan['name'], 'notes': plan['expansion'].get('notes', '')})
     training_settings(plan['expansion'])
-    if 'conditions' in plan['expansion']: validate_conditions(plan['deck']['main'], plan['expansion']['conditions'])
+    if 'conditions' in plan['expansion']:
+        validate_conditions(plan['deck']['main'], plan['expansion']['conditions'], plan['catalog'])
+        from opening_conditions import has_conditions, match_hand, normalize_card
+        if has_conditions(plan['expansion']['conditions']):
+            actual = plan['expansion'].get('actual_opening')
+            from collections import Counter
+            need(isinstance(actual, list) and all(type(c) is int for c in actual), '条件方案缺少真实起手实例')
+            need(len(actual) == plan['expansion']['conditions'].get('hand_count', 5) and not (Counter(actual) - Counter(plan['deck']['main'])), '真实起手实例数量无效')
+            matched, reason = match_hand(actual, plan['expansion']['conditions'], plan['catalog'])
+            need(matched, '真实起手实例不符合保存的条件：' + reason)
+            if plan.get('initial_hand') is not None:
+                need([c.get('code') for c in plan['initial_hand']] == actual, '真实起手实例与冻结发牌记录不一致')
+        opponent = plan['expansion'].get('opponent_config')
+        if opponent and 'conditions' in opponent:
+            config = opponent['conditions']
+            need(isinstance(config, dict), '对手起手条件无效')
+            # Disabled AI can deliberately retain an incomplete design. Validate
+            # executable predicates without demanding a drawable disabled hand.
+            for key in ('slots', 'banned'):
+                need(isinstance(config.get(key), list) and len(config[key]) <= 60, '对手起手条件列表无效')
+                for value in config[key]:
+                    if isinstance(value, dict): normalize_card(value)
+            if plan['expansion'].get('opponent_ai'):
+                need(isinstance(opponent.get('deck'), dict) and isinstance(opponent['deck'].get('main'), list), '对手构筑无效')
+                validate_conditions(opponent['deck']['main'], config, plan['catalog'])
+                if has_conditions(config):
+                    actual = opponent.get('actual_opening')
+                    from collections import Counter
+                    need(isinstance(actual, list) and all(type(c) is int for c in actual), '对手条件缺少真实起手实例')
+                    need(len(actual) == config.get('hand_count', 5) and not (Counter(actual) - Counter(opponent['deck']['main'])), '对手真实起手数量无效')
+                    matched, reason = match_hand(actual, config, plan['catalog'])
+                    need(matched, '对手真实起手不符合条件：' + reason)
     if 'annotations' in plan:
         need(isinstance(plan['annotations'], dict), '方案说明无效')
         annotations_for(plan, plan['annotations'])

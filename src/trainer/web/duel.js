@@ -150,15 +150,17 @@ function duelSummaryCards(plan,kind,limit=Infinity) {
   const final=reviewNodes(plan).find(n=>n.kind==='final')||{id:'final',state:plan.final_state};
   const marks=plan.annotations?.final_marks||{};
   const marked=DuelModel.markedFinalCards(plan);
-  const cards=kind==='opening'?plan.requirements?.opening||[]:marked;
+  const conditional=kind==='opening'&&typeof OpeningRules!=='undefined'&&OpeningRules.has(plan.expansion?.conditions);
+  const cards=conditional?plan.expansion.conditions.slots.map(c=>({code:typeof c==='number'?c:null,name:OpeningRules.describe(c,plan.catalog),condition:OpeningRules.is(c),count:1})):kind==='opening'?plan.requirements?.opening||[]:marked;
   return cards.slice(0,limit).map(c=>{
     const node=kind==='opening'?'initial':final.id,random=kind==='final'&&reviewRandomDraw(c,final,plan),known=c.code&&!random;
     const label=random?'随机抽牌':c.name||c.constraint||plan.catalog?.[c.code]?.name||'任意手牌';
-    return `<figure><img src="${known?`/pics/${Number(c.code)}.jpg`:'/review-back.svg'}" alt="${escape(label)}" loading="lazy"><figcaption>${escape(label)}</figcaption>${kind==='opening'?`<small>×${c.count||1}</small>`:`<small class="duel-region">${escape(duelRegion(c))}</small>`}</figure>`;
+    return `<figure><img src="${c.condition?'/condition-card.svg':known?`/pics/${Number(c.code)}.jpg`:'/review-back.svg'}" alt="${escape(label)}" loading="lazy"><figcaption>${escape(label)}</figcaption>${kind==='opening'?`<small>${c.condition?'条件集合 · ':''}×${c.count||1}</small>`:`<small class="duel-region">${escape(duelRegion(c))}</small>`}</figure>`;
   }).join('');
 }
 function duelPlanSummary(plan,detailed=false) {
-  return `<h3>${escape(plan.name)}</h3>${duelPlanCounts(plan)}${plan.expansion?.notes?`<p class="preserve-lines">${escape(plan.expansion.notes)}</p>`:''}<section><h4>起手</h4><div class="duel-summary-cards">${duelSummaryCards(plan,'opening')||'<span>无指定起手</span>'}</div></section><section><h4>终场</h4><div class="duel-summary-cards">${duelSummaryCards(plan,'final')||'<span>未记录终场卡牌</span>'}</div>${duelFinalNotes(plan,detailed)}</section>${detailed?duelBranchDetails(plan)+renderPlanTutorialSvg(buildPlanTutorial(plan,true)):''}`;
+  const conditions=typeof OpeningRules!=='undefined'?OpeningRules.summary(plan):'';
+  return `<h3>${escape(plan.name)}</h3>${duelPlanCounts(plan)}${plan.expansion?.notes?`<p class="preserve-lines">${escape(plan.expansion.notes)}</p>`:''}${conditions||`<section><h4>起手</h4><div class="duel-summary-cards">${duelSummaryCards(plan,'opening')||'<span>无指定起手</span>'}</div></section>`}<section><h4>终场</h4><div class="duel-summary-cards">${duelSummaryCards(plan,'final')||'<span>未记录终场卡牌</span>'}</div>${duelFinalNotes(plan,detailed)}</section>${detailed?duelBranchDetails(plan)+renderPlanTutorialSvg(buildPlanTutorial(plan,true)):''}`;
 }
 function duelFinalNotes(plan,detailed=false) {
   const final=reviewNodes(plan).find(node=>node.kind==='final'),edits=plan.annotations||{};

@@ -179,6 +179,7 @@ function openingShortcutError(code, slot) {
   if (!mainQuickCodes().includes(code)) return '卡牌不在本次主卡组快捷候选中';
   if (slot < 0 || slot >= handCount(d)) return '起手槽位已满，可拖到指定槽位替换';
   if (d.conditions.banned.includes(code)) return '这张卡已被禁止出现在起手中';
+  if(typeof OpeningRules!=='undefined'&&OpeningRules.banned(d,code))return '这张卡命中禁止上手条件';
   const used = d.conditions.slots.filter((c, index) => c === code && index !== slot).length;
   if (used >= d.deck.main.filter(c => c === code).length) return '已达到主卡组中这张卡的实际份数';
   return '';

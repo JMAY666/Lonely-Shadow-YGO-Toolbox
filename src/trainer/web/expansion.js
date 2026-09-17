@@ -80,6 +80,10 @@ async function mountDesign(design) {
 }
 
 function handError(design) {
+  if(typeof OpeningRules!=='undefined'&&OpeningRules.has(design.conditions)) {
+    const error=OpeningRules.error(design);if(error)return error;
+    return design.deck.main.length<40||design.deck.main.length>60?'开始展开需要 40–60 张主卡组。':'';
+  }
   const count = handCount(design);
   if (!inRange(count,1,60)) return '起手数量请输入 1–60 的整数。';
   if (count > design.deck.main.length) return `主卡组只有 ${design.deck.main.length} 张，无法提供 ${count} 张起手；额外和副卡组不参与抽取。`;
@@ -117,7 +121,10 @@ function resizeSlots(d, count) {
   while (d.conditions.slots.length < count) d.conditions.slots.push(null);
 }
 function slotsHtml(d, opponent=false) {
-  return d.conditions.slots.map((code,i) => `<button data-${opponent?'opponent-slot':'slot'}="${i}" class="opening-slot ${i>=handCount(d)?'overflow-slot':''}"><span>${i>=handCount(d)?'超出数量 · 请调整':'起手'} ${i+1}</span>${code ? `<img src="/pics/${code}.jpg" alt=""><strong>${escape(cardName(d,code))}</strong><small>指定 1 张 · 点击替换或移除</small>` : '<span class="slot-plus">＋</span><strong>随机补齐</strong><small>点击指定卡牌</small>'}</button>`).join('');
+  return d.conditions.slots.map((code,i) => `<button data-${opponent?'opponent-slot':'slot'}="${i}" class="opening-slot ${i>=handCount(d)?'overflow-slot':''}"><span>${i>=handCount(d)?'超出数量 · 请调整':'起手'} ${i+1}</span>${typeof OpeningRules!=='undefined'&&OpeningRules.is(code)?`${OpeningRules.face(code,flow.design.catalog)}<small>点击查看、编辑或替换</small>`:code ? `<img src="/pics/${code}.jpg" alt=""><strong>${escape(cardName(d,code))}</strong><small>指定 1 张 · 点击替换或移除</small>` : '<span class="slot-plus">＋</span><strong>随机补齐</strong><small>点击指定卡牌或条件牌</small>'}</button>`).join('');
+}
+function bannedHtml(d,target='player'){
+  return d.conditions.banned.map((code,i)=>typeof OpeningRules!=='undefined'&&OpeningRules.is(code)?`<span class="condition-ban-entry"><button data-edit-condition-ban="${i}" data-ban-target="${target}" title="查看或编辑禁止条件">${OpeningRules.face(code,flow.design.catalog,true)}</button><button data-remove-condition-ban="${i}" data-ban-target="${target}">移除</button></span>`:`<button ${target==='player'?`data-unban="${code}"`:`data-opponent-unban="${code}"`} title="取消禁用">${escape(cardName(d,code))} <span>× 取消禁用</span></button>`).join('')||'<small>未设置禁用卡，所有剩余副本均可抽取。</small>';
 }
 function renderDesign() {
   const d = flow.design; if (!d) return;
@@ -129,7 +136,8 @@ function renderDesign() {
   $('#hand-count').max = Math.min(60,d.deck.main.length);
   for(const count of [1,2,3]) $(`[data-hand-count="${count}"]`).classList.toggle('primary',handCount(d)===count);
   $('#hand-count-hint').textContent = `实际初始手牌总数；当前最多 ${Math.min(60,d.deck.main.length)} 张。超出数量的已有指定不会自动移除。`;
-  $('#banned-cards').innerHTML = d.conditions.banned.map(code => `<button data-unban="${code}" title="取消禁用">${escape(cardName(d,code))} <span>× 取消禁用</span></button>`).join('') || '<small>未设置禁用卡，所有剩余副本均可抽取。</small>';
+  $('#banned-cards').innerHTML = bannedHtml(d);
+  if(typeof OpeningRules!=='undefined')$('#opening-rule-status').innerHTML=OpeningRules.status(d);
   $('#opponent-ai').checked = !!d.opponent_ai;
   $('#opponent-settings').hidden = !d.opponent_ai;
   if (d.opponent_config) {
@@ -137,6 +145,8 @@ function renderDesign() {
     $('#opponent-description').textContent = '基础 AI 沿用内核策略，自身回合优先通常召唤后结束。';
     $('#opponent-deck-info').textContent = `${o.name} · 主卡组 ${o.deck.main.length} 张 · 额外 ${o.deck.extra.length} 张`;
     $('#opponent-slots').innerHTML=slotsHtml(o,true);$('#opponent-hand-count').value=handCount(o) ?? '';
+    $('#opponent-banned-cards').innerHTML=bannedHtml(o,'opponent');
+    if(typeof OpeningRules!=='undefined')$('#opponent-rule-status').innerHTML=OpeningRules.status(o);
     $('#opponent-responses').checked = d.opponent_responses !== false;
   }
   $('#turn-order').value = d.turn_order || 'first';
@@ -153,9 +163,10 @@ function renderDesign() {
 function renderChoices() {
   const d = choiceDesign();
   $('#opening-title').textContent = `${flow.target==='opponent'?'对手':'玩家'}起手槽位 ${flow.slot+1} · ${flow.mode === 'required' ? '添加卡牌' : '禁止卡牌（整副起手生效）'}`;
-  $('#choose-banned').hidden=flow.target==='opponent';
+  $('#choose-banned').hidden=false;
   $('#choose-required').classList.toggle('primary', flow.mode === 'required');
   $('#choose-banned').classList.toggle('primary', flow.mode === 'banned');
+  $('#clear-slot').hidden=flow.mode==='banned';
   $('#clear-slot').disabled = d.conditions.slots[flow.slot] === null;
   $('#opening-choices').innerHTML = [...new Set(d.deck.main)].map(code => {
     const total = d.deck.main.filter(x => x===code).length;
@@ -166,13 +177,16 @@ function renderChoices() {
 }
 function choiceDesign() { return flow.target==='opponent' ? flow.design.opponent_config : flow.design; }
 function openChoices(target, slot=0, mode='required') {
-  flow.target=target;flow.slot=slot;flow.mode=mode;$('#opening-error').textContent='';renderChoices();$('#opening-dialog').showModal();
+  if(typeof closeConditionEditor==='function')closeConditionEditor();
+  flow.target=target;flow.slot=slot;flow.mode=mode;flow.banIndex=null;$('#opening-error').textContent='';renderChoices();$('#opening-dialog').showModal();
+  if(typeof OpeningRules!=='undefined'&&mode==='required'&&OpeningRules.is(choiceDesign().conditions.slots[slot]))void openConditionEditor();
 }
 function chooseOpening(code) {
   const d = choiceDesign(), {slots,banned} = d.conditions;
   if (flow.mode === 'banned') {
     if (slots.includes(code)) { $('#opening-error').textContent = '这张卡已被指定，请先移除对应槽位，再加入起手禁用列表。'; return; }
-    if (!banned.includes(code)) banned.push(code);
+    if(Number.isInteger(flow.banIndex))banned[flow.banIndex]=code;
+    else if (!banned.includes(code)) banned.push(code);
   } else {
     if (banned.includes(code)) { $('#opening-error').textContent = '这张卡已被禁用，请先在独立禁用列表取消，才能指定。'; return; }
     const count = slots.filter((x,i) => x===code && i!==flow.slot).length + 1;
@@ -330,7 +344,7 @@ async function finishExpansion() {
 
 function expansionSummary(r) {
   if (!r.expansion) return '<p>原训练历史 · 原始记录和冻结牌组保持可访问。</p>';
-  const e = r.expansion, name = c => escape(r.catalog[c]?.name || c);
+  const e = r.expansion, name = c => escape(typeof OpeningRules!=='undefined'?OpeningRules.describe(c,r.catalog):r.catalog[c]?.name || c);
   const timer=e.timer || {mode:'off',seconds:0}, opponent=e.opponent_config;
   return `<div class="expansion-summary"><span class="badge">${stageNames[r.plan_stage] || '展开记录'}</span><h3>关联牌组：${escape(r.deck_name)}</h3><p>玩家初始手牌 ${e.conditions.hand_count || 5} 张 · ${e.turn_order==='second'?'后手':'先手'} · 初始 LP：玩家 ${e.player_lp || 8000} / 对手 ${e.opponent_lp || 8000}</p><p>指定起手：${e.conditions.slots.map(c=>c===null?'随机补齐':name(c)).join(' · ')}</p><p>整副起手禁用：${e.conditions.banned.map(name).join('、') || '无'}</p><p>对手 AI：${e.opponent_ai ? `开启 · ${escape(opponent.name)} · 可选响应${e.opponent_responses===false?'关闭':'开启'}` : '关闭 · 无对手干扰'}</p>${e.opponent_ai ? `<p>对手指定起手：${(opponent.conditions?.slots || opponent.opening || []).map(c=>c===null?'随机补齐':name(c)).join(' · ')}</p>`:''}<p>计时：${{off:'关闭',up:'正计时',down:'倒计时'}[timer.mode]}${timer.mode==='off'?'':` · ${timer.seconds} 秒`}</p><p class="plan-notes-text">备注：${escape(e.notes || '无')}</p></div>`;
 }
@@ -446,13 +460,14 @@ $('#opponent-hand-count').oninput=e=>{resizeSlots(flow.design.opponent_config,in
 $('#timer-mode').onchange=e=>{flow.design.timer.mode=e.target.value;if(e.target.value==='off'&&!inRange(flow.design.timer.seconds,0,maxValue))flow.design.timer.seconds=0;flow.design.startError='';renderDesign();};
 $('#timer-seconds').oninput=e=>{flow.design.timer.seconds=inputInteger(e);flow.design.startError='';renderDesign();};
 $('#add-opening-ban').onclick=()=>openChoices('player',0,'banned');
+$('#add-opponent-ban').onclick=()=>openChoices('opponent',0,'banned');
 $('#begin-expansion').onclick = run(beginExpansion);
 $('#restart-expansion').onclick = run(restartExpansion);
 $('#return-conditions').onclick=run(returnConditions);
 $('#finish-training').onclick = $('#end-training').onclick = run(finishExpansion);
 $('#opening-close').onclick = () => $('#opening-dialog').close();
-$('#choose-required').onclick = () => {flow.mode='required';$('#opening-error').textContent='';renderChoices();};
-$('#choose-banned').onclick = () => {flow.mode='banned';$('#opening-error').textContent='';renderChoices();};
+$('#choose-required').onclick = () => {if(typeof closeConditionEditor==='function')closeConditionEditor();flow.mode='required';flow.banIndex=null;$('#opening-error').textContent='';renderChoices();};
+$('#choose-banned').onclick = () => {if(typeof closeConditionEditor==='function')closeConditionEditor();flow.mode='banned';flow.banIndex=null;$('#opening-error').textContent='';renderChoices();};
 $('#clear-slot').onclick = () => {const d=choiceDesign();d.conditions.slots[flow.slot]=null;resizeSlots(d,handCount(d));$('#opening-dialog').close();renderDesign();};
 document.addEventListener('click',run(async e=>{
   const b=e.target.closest('button');if(!b||b.disabled)return;
@@ -461,5 +476,8 @@ document.addEventListener('click',run(async e=>{
   if (b.dataset.opponentSlot!==undefined) openChoices('opponent',Number(b.dataset.opponentSlot));
   if (b.dataset.choice) chooseOpening(Number(b.dataset.choice));
   if (b.dataset.unban) {flow.design.conditions.banned=flow.design.conditions.banned.filter(c=>c!==Number(b.dataset.unban));renderDesign();}
+  if (b.dataset.opponentUnban) {flow.design.opponent_config.conditions.banned=flow.design.opponent_config.conditions.banned.filter(c=>c!==Number(b.dataset.opponentUnban));renderDesign();}
+  if (b.dataset.removeConditionBan!==undefined) {const d=b.dataset.banTarget==='opponent'?flow.design.opponent_config:flow.design;d.conditions.banned.splice(Number(b.dataset.removeConditionBan),1);renderDesign();}
+  if (b.dataset.editConditionBan!==undefined) {openChoices(b.dataset.banTarget,0,'banned');flow.banIndex=Number(b.dataset.editConditionBan);await openConditionEditor();}
   if (b.dataset.plan) await showPlan(b.dataset.plan);
 }));

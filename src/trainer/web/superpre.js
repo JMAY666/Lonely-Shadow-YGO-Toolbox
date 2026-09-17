@@ -36,6 +36,8 @@ async function refreshSuperpreCatalog(state) {
     }
   }
   superpreUI.applied=identity;
+  if(typeof flow!=='undefined'&&flow.design)renderDesign();
+  if(typeof conditionEditor!=='undefined'&&conditionEditor.value)scheduleConditionPreview();
   notice('补丁资源已刷新。已有卡组和方案保留，后续展开会使用当前卡库重新校验。');
 }
 async function loadSuperpreSettings(checkFresh=false) {
