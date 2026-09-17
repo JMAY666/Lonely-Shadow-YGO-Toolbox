@@ -26,7 +26,8 @@ const orderLabel=value=>value==='first'?'先攻':value==='second'?'后攻':'等�
 let duelOrderTimer=null,duelOrderEpoch=0,duelOrderWatching=null;
 function stopDuelOrderWatch() {clearTimeout(duelOrderTimer);duelOrderTimer=null;duelOrderWatching=null;++duelOrderEpoch;}
 function syncDuelOrderWatch() {
-  const s=duelState(),watch=!duelUI.busy&&s.operationMode==='automatic'&&[duelStages.order,duelStages.hand].includes(s.stage)&&moduleUI.current==='duel'?s.automatic.order:null;
+  const s=duelState(),reviewingFrozen=!!s.automatic.workspace&&s.stage===duelStages.hand;
+  const watch=!duelUI.busy&&!reviewingFrozen&&s.operationMode==='automatic'&&[duelStages.order,duelStages.hand].includes(s.stage)&&moduleUI.current==='duel'?s.automatic.order:null;
   if(watch===duelOrderWatching)return;
   stopDuelOrderWatch();if(!watch?.frame?.monitor_id)return;
   duelOrderWatching=watch;const epoch=duelOrderEpoch;
@@ -67,6 +68,7 @@ async function beginDuelOrder() {
   const draft=duelState().automatic;
   if(!draft.connection||!draft.deck||!draft.fresh)return duelTell('请先完成进程连接与卡组获取。');
   await duelWork(async()=>{
+    await disposeAutoDuel();duelState().reached=duelStages.order;
     const frame=await api('/api/ygopro/order/start',{capture_id:draft.connection.capture_id});
     draft.order=DuelOrder.create(frame);duelReach(duelStages.order);duelTell('');
   });
@@ -76,7 +78,7 @@ async function duelOrderAction(action) {
   if(s.operationMode!=='automatic')return false;
   if(typeof duelOpeningAction==='function'&&await duelOpeningAction(action))return true;
   if(action==='start-duel'){await beginDuelOrder();return true;}
-  if(action==='order-return'){duelReach(duelStages.order);renderDuel();return true;}
+  if(action==='order-return'){if(typeof disposeAutoDuel==='function')await disposeAutoDuel();s.reached=duelStages.hand;duelReach(duelStages.order);renderDuel();return true;}
   if(action.startsWith('order-manual-')){
     if(DuelOrder.ready(state))state.manual=action.endsWith('first')?'first':'second';renderDuel();return true;
   }

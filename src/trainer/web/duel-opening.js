@@ -26,21 +26,19 @@ function duelAutomaticOpeningPage() {
     <p class="duel-order-error" role="alert">${escape(duelState().automatic.order?.error||opening?.error||'')}</p>
     ${duelButton('order-return','返回先后攻监测')}</section>`;
 }
-function duelAutomaticOpeningNextPage() {
-  const frame=duelState().automatic.order?.frame;
-  return `<section class="duel-opening-panel"><div class="duel-section-heading"><h2>方案选择</h2><span>起手已确认</span></div>
-    <p>已确认本局 ${frame.opening.cards.length} 张起手，后续方案选择将使用这份快照。</p>${duelOpeningCards(frame)}
-    <p class="duel-opening-help">自动流程的方案匹配将在后续接入。当前起手与确认记录已保存。</p>${duelButton('opening-return','返回起手预览')}</section>`;
-}
 async function duelOpeningAction(action) {
   const s=duelState(),state=s.automatic.order;
   if(s.operationMode!=='automatic')return false;
   if(action==='opening-return'){duelReach(duelStages.hand);renderDuel();return true;}
   if(action==='confirm-opening'){
     if(!DuelOpening.ready(state?.frame)||!DuelOpening.first(state.frame))return true;
-    const body=DuelOpening.confirmation(state.frame);stopDuelOrderWatch();
+    const body={...DuelOpening.confirmation(state.frame),deck_context:automaticDeckContext()};stopDuelOrderWatch();
     await duelWork(async()=>{
-      try {const frame=await api('/api/ygopro/opening/confirm',body);DuelOrder.accept(state,frame);duelReach(duelStages.plans);duelTell('');}
+      try {
+        if(!autoDuelState()){const frame=await api('/api/ygopro/opening/confirm',body);DuelOrder.accept(state,frame);}
+        const workspace=await prepareAutoDuelWorkspace();if(!workspace)return;
+        workspace.stage=duelStages.plans;duelReach(duelStages.plans);duelTell('');
+      }
       catch(error){state.error=error.message;}
     });return true;
   }

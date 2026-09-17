@@ -35,6 +35,7 @@ from compromise import Compromise, resource_scope
 import superpre
 import ygopro_capture
 from ygopro_order import OrderMonitor
+from automatic_duel import AutomaticDuels
 
 WORKSPACE = Path(__file__).resolve().parents[2]
 RUNTIME = WORKSPACE / '.local/YGOPro-Lite'
@@ -170,6 +171,7 @@ class Store:
         self.host = host
         self.ygopro_capture = ygopro_capture.Capture()
         self.ygopro_order = OrderMonitor(self, atomic_json, now)
+        self.automatic_duel = AutomaticDuels(self, read_json, atomic_json, now)
         if desktop:
             from desktop_runtime import OwnedJob
             self.job = OwnedJob()
@@ -326,6 +328,7 @@ class Store:
 
     def get_deck(self, identifier):
         source, sep, relative = identifier.partition('/')
+        if source == 'automatic' and sep:return self.automatic_duel.deck(relative)
         if not sep or source not in ('library', 'existing'): raise ValueError('构筑标识无效')
         p = safe_child(self.decks if source == 'library' else self.runtime / 'deck', relative)
         if p.suffix != '.ydk': raise ValueError('需要 YDK 文件')
@@ -359,6 +362,7 @@ class Store:
             raise ValueError('同名构筑已存在，请使用其他名称；已有卡组不会被覆盖')
 
     def rename_deck(self, body):
+        if str(body.get('id','')).startswith('automatic/'):raise ValueError('自动对局卡组快照只读')
         with self.lock:
             selected = self.get_deck(body.get('id', ''))
             name = self.checked_deck_name(body.get('name', ''))
@@ -387,6 +391,7 @@ class Store:
             return self.get_deck(selected['id'])
 
     def save_deck(self, body):
+        if str(body.get('id','')).startswith('automatic/'):raise ValueError('自动对局卡组快照只读')
         with self.lock:
             name = self.checked_deck_name(body.get('name', ''))
             deck = body.get('deck'); self.validate(deck)
@@ -449,6 +454,7 @@ class Store:
         return self.sessions / identifier
 
     def delete_deck(self, body):
+        if str(body.get('id','')).startswith('automatic/'):raise ValueError('自动对局卡组快照只读')
         with self.lock:
             selected = self.get_deck(body.get('id', ''))
             if body.get('revision') != selected['revision']:
@@ -986,6 +992,11 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/ygopro/order/poll': return self.send(store.ygopro_order.poll(body.get('monitor_id')))
                 if path == '/api/ygopro/order/confirm': return self.send(store.ygopro_order.confirm(body))
                 if path == '/api/ygopro/opening/confirm': return self.send(store.ygopro_order.confirm_opening(body))
+                if path == '/api/automatic-duel/context': return self.send(store.automatic_duel.prepare(body))
+                if path == '/api/automatic-duel/match': return self.send(store.automatic_duel.match(body))
+                if path == '/api/automatic-duel/select': return self.send(store.automatic_duel.select(body))
+                if path == '/api/automatic-duel/dispatch': return self.send(store.automatic_duel.dispatch(body))
+                if path == '/api/automatic-duel/close': return self.send(store.automatic_duel.close(body))
                 if path == '/api/decks/tag-options': return self.send(store.deck_tag_options(body))
                 if path == '/api/card-favorites': return self.send(store.set_favorite(body))
                 if path == '/api/plan-favorites': return self.send(store.plan_favorites(body))
@@ -1093,6 +1104,8 @@ class Handler(BaseHTTPRequestHandler):
                     files['/' + name] = name
                 if path in files:
                     p = WEB / files[path]; return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0] + '; charset=utf-8')
+                if path in ('/duel-auto-workspace.js','/duel-auto-views.js','/duel-auto-forecast.js','/duel-auto-workspace.css'):
+                    p=WEB/path[1:];return self.send(p.read_bytes(),mimetypes.guess_type(p.name)[0]+'; charset=utf-8')
                 if path in ('/modular.js', '/modular.css', '/activation.js', '/plan-library.js', '/plan-library.css', '/tag-manager.js', '/tag-manager.css', '/compromise.js', '/compromise.css', '/compromise-tutorial.js', '/opponent.html', '/opponent.js'):
                     p = WEB / path[1:]; return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0] + '; charset=utf-8')
             self.send({'error': '内容不存在'}, status=404)

@@ -14,6 +14,10 @@ module.exports=async({page,application,evidence,pass})=>{
     const body=route.request().postDataJSON();writes.push(body);assert.equal(body.snapshot_id,frame.opening.snapshot_id);
     frame.opening.confirmed={snapshot_id:body.snapshot_id,cards:[...cards],confirmed_ms:1};await route.fulfill({json:frame});
   });
+  await page.route('**/api/automatic-duel/context',async route=>route.fulfill({json:{context_id:'opening-ui-fixture',round_id:frame.round_id,snapshot_id:frame.opening.snapshot_id,
+    deck:await page.evaluate(()=>({id:'automatic/opening-ui-fixture',name:duelState().automatic.name,deck:duelState().automatic.deck.deck,revision:'fixture'})),hand:[...cards]}}));
+  await page.route('**/api/automatic-duel/match',route=>route.fulfill({json:{matches:[],reason:'当前测试起手没有匹配方案'}}));
+  await page.route('**/api/automatic-duel/close',route=>route.fulfill({json:{closed:true}}));
   const click=async action=>{await page.locator(`[data-duel-action="${action}"]`).click();await page.waitForFunction(()=>!duelUI.busy);};
   const update=async change=>{frame={...frame,...change,revision:frame.revision+1};await page.waitForFunction(r=>duelState().automatic.order.frame.revision===r,frame.revision);};
   try {
@@ -36,7 +40,7 @@ module.exports=async({page,application,evidence,pass})=>{
     await click('confirm-opening');assert.equal(await page.evaluate(()=>duelState().stage),5);assert.equal(writes.length,1);
     assert.match(await page.locator('#duel-body').textContent(),/方案选择/);
     const stopped=polls;await page.waitForTimeout(500);assert.equal(polls,stopped,'Polling stops after opening confirmation');
-    await click('opening-return');await click('order-return');
+    await page.locator('#duel-substeps [data-duel-stage="4"]').click();await click('order-return');
     await update({phase:'waiting_start',detected_order:null,confirmed:null,opening:null});
     assert(await page.locator('#duel-steps [data-duel-stage="4"]').isDisabled());
     await update({round_id:'second-hand',phase:'detected',detected_order:'second',confirmed:{order:'second',source:'automatic'},
@@ -53,5 +57,5 @@ module.exports=async({page,application,evidence,pass})=>{
     await application.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().find(w=>!w.getParentWindow()).setContentSize(1280,900));
     await page.waitForFunction(()=>innerWidth===1280);
     pass('Opening UI: partial-deal gating, full five-card preview and details, duplicate copies, immutable later-turn display, explicit confirmation, next stage, new-round reset and second-player retention');
-  }finally{await page.unroute('**/api/ygopro/order/*');await page.unroute('**/api/ygopro/opening/confirm');}
+  }finally{await page.unroute('**/api/ygopro/order/*');await page.unroute('**/api/ygopro/opening/confirm');await page.unroute('**/api/automatic-duel/*');}
 };

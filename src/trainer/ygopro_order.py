@@ -130,10 +130,18 @@ class OrderMonitor:
             opening = self.round['opening']
             if opening['status'] != 'ready' or opening['snapshot_id'] != body.get('snapshot_id'):
                 raise CaptureError('起手快照已失效或尚未获取完整，请重新核对。')
+            plan_input = None
+            if body.get('deck_context') is not None:
+                submitted = self.store.ygopro_capture.submitted_deck(self.capture_id)
+                plan_input = self.store.automatic_duel.checked_input(body['deck_context'],submitted,opening['cards'])
             previous = opening['confirmed']
+            previous_input = self.round.get('plan_input')
             opening['confirmed'] = {'snapshot_id':opening['snapshot_id'], 'cards':list(opening['cards']), 'confirmed_ms':self.now()}
+            if plan_input is not None:self.round['plan_input'] = plan_input
             try:self.persist()
             except OSError:
                 opening['confirmed'] = previous
+                if previous_input is None:self.round.pop('plan_input',None)
+                else:self.round['plan_input'] = previous_input
                 raise
             return self.public()

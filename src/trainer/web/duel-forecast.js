@@ -167,7 +167,7 @@ async function launchModularFromDuel() {
     anchor={plan:s.plan.id,revision:s.plan.edit_revision||0,route:active.route,node:node.id,number:node.number};
     if(s.forecast&&JSON.stringify(s.forecast.anchor)!==JSON.stringify(anchor))dropDuelForecast(s);
   }
-  if(!s.forecast){const stage=s.stage,plan=s.plan,library=await api('/api/modular/library');if(s!==duelState()||s.forecast||s.stage!==stage||s.plan!==plan)return;
+  if(!s.forecast){const stage=s.stage,plan=s.plan,library=await api('/api/modular/library');if(s!==duelState()||s.operationMode==='automatic'||s.forecast||s.stage!==stage||s.plan!==plan)return;
     const sources=library.sources.filter(source=>source.status==='ready');
     s.forecast={sources,selected:previous?previous.selected.filter(id=>sources.some(source=>source.id===id)):sources.map(source=>source.id),
       preference:previous?.preference||s.planSort||'shortest',precise:previous?.precise||false,goal:[...(previous?.goal||[])],generation:0,showResults:true,anchor};
@@ -198,7 +198,9 @@ async function adoptDuelForecast(candidateId) {
     f.data=data;f.showResults=false;s.plan=temporaryDuelPlan(data,data.result.candidates[0]);
     s.routes=duelPlanRoutes(s.plan);s.graph=DuelModel.graph(s.routes);
     const first=reviewNodes(s.plan).find(n=>n.kind==='step'&&n.forecast_index===0);
-    s.position={key:'main/'+(first?.id||'final'),choice:0};s.enabled=true;s.ended=false;duelReach(duelStages.tutorial);duelTell('');
+    s.position={key:'main/'+(first?.id||'final'),choice:0};s.enabled=true;s.ended=false;
+    if(s.operationMode==='automatic')s.manualReached=Math.max(s.manualReached||0,duelStages.tutorial);
+    else {duelReach(duelStages.tutorial);duelTell('');}
   }finally{f.busy=false;renderDuel();void syncDuelShortcuts();}
 }
 async function advanceDuelForecast() {

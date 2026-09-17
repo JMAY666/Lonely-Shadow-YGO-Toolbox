@@ -423,7 +423,7 @@ class Modular:
         self.planning_lock = threading.Lock()
         self.planning_cache = PlanningCache()
         self.providers = {}
-        self.consumers = {'duel', 'expansion', 'modular'}
+        self.consumers = {'duel', 'automatic-duel', 'expansion', 'modular'}
         self.register_provider('decks', '卡组编辑', self.deck_input_version)
         self.register_provider('expansions', '展开与分支记录', lambda: {
             'version': self.library.version, 'records': len(self.library.entries)})
@@ -458,7 +458,7 @@ class Modular:
         handlers={'configure':self.configure,'search':lambda body:self.public_result(self.search(body['id'])),
                   'execute':self.execute,'auto':self.automatic,'status':lambda body:self.status(body['id'])}
         if intent=='data':result=self.data();versions=None
-        elif intent in ('plan','plan-adopt','plan-confirm','plan-observe','plan-close') and consumer=='duel':
+        elif intent in ('plan','plan-adopt','plan-confirm','plan-observe','plan-close') and consumer in ('duel','automatic-duel'):
             from duel_planner import dispatch
             with self.planning_lock: result=dispatch(self,intent,request)
             versions=result['inputs']

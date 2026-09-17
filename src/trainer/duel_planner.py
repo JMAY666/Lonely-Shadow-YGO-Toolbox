@@ -14,6 +14,9 @@ def context(modular, body):
     sid = body.get('id'); ctx = modular.sessions.get(sid, {})
     if not ctx.get('forecast_meta') or sid not in modular.store.planning:
         raise ValueError('本局临时方案已结束，请重新生成')
+    meta=ctx['forecast_meta']
+    if meta.get('consumer','duel')!=body.get('consumer','duel') or meta.get('automatic_context')!=body.get('automatic_context'):
+        raise ValueError('临时方案属于其他流程，不能跨工作区操作')
     ctx['forecast_touched'] = time.monotonic()
     return sid, ctx
 
@@ -78,6 +81,7 @@ def generate(modular, body):
             else: raise ValueError('后台规则引擎尚未就绪，请重试')
             meta = modular.read(store.session_path(sid) / 'session.json')
             ctx['forecast_meta'] = {'catalog': deepcopy(meta['catalog']), 'initial': public_state(state['state']),
+                'consumer':body.get('consumer','duel'),'automatic_context':body.get('automatic_context'),
                 'inputs': {'deck': saved['revision'], 'engine': meta['engine_sha256'], 'scripts': meta['scripts_sha256']}}
             ctx['forecast_steps'] = []
         modular.configure({'id': sid, 'sources': body.get('sources', ctx['selected']),

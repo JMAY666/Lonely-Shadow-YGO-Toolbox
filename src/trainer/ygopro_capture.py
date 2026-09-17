@@ -43,6 +43,13 @@ def read_deck(memory, base, profile):
         return game
 
     game = editor()
+    result = read_deck_vectors(memory, base, profile)
+    if editor() != game:raise CaptureError('读取期间编辑状态发生变化，请重新获取。')
+    return result
+
+
+def read_deck_vectors(memory, base, profile):
+    """Shared binary layout; callers separately prove editor or live-duel state."""
     address = base + profile['deck']
     header = memory.read(address, 72)
     values = struct.unpack('<9Q', header)
@@ -73,7 +80,7 @@ def read_deck(memory, base, profile):
         result[zone] = codes
     if not any(result.values()):
         raise CaptureError('当前编辑器卡组为空，请放入卡牌后重新获取。')
-    if editor() != game or memory.read(address, 72) != header or any(memory.read(a, len(b)) != b for a, b in buffers):
+    if memory.read(address, 72) != header or any(memory.read(a, len(b)) != b for a, b in buffers):
         raise CaptureError('读取期间卡组发生变化，请停止操作后重新获取。')
     return result
 
@@ -264,6 +271,22 @@ class Capture:
                     try:result['opening_sample'] = read_opening_sample(memory, base, profile, result)
                     except CaptureError as error:result['opening_sample'] = {'error':str(error)}
                 return result
+
+    def submitted_deck(self, capture_id):
+        with self.lock:
+            attached = self.attached
+            if not attached or capture_id != attached['capture_id']:
+                raise CaptureError('进程捕捉已失效，请重新捕捉。')
+            with WindowsProcess(attached['pid']) as memory:
+                if memory.identity() != (attached['path'], attached['created']):
+                    raise CaptureError('游戏进程已变化，请重新捕捉。')
+                base = memory.image_base(attached['pid']); profile = PROFILES[attached['image_hash']]
+                before = read_order(memory, base, profile)
+                if before['phase'] != 'detected':raise CaptureError('当前尚未进入有效对局，无法核对本局卡组。')
+                deck = read_deck_vectors(memory, base, profile)
+                if read_order(memory, base, profile) != before:
+                    raise CaptureError('对局状态正在变化，请重新确认起手。')
+                return deck
 
 
 def read_opening_sample(memory, base, profile, order):

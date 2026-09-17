@@ -90,5 +90,19 @@ class CaptureTests(unittest.TestCase):
             factory.return_value.__enter__.return_value.identity.return_value=('test',1)
             with self.assertRaisesRegex(CaptureError,'持续变化'):capture.deck('test')
 
+    def test_submitted_deck_requires_same_process_and_stable_started_duel(self):
+        capture=Capture();capture.attached={'pid':123,'path':'test','created':1,'image_hash':next(iter(PROFILES)),'capture_id':'test'}
+        memory=Memory();state={'phase':'detected','detected_order':'first','evidence':{'turn':1}}
+        with patch('ygopro_capture.WindowsProcess') as factory,patch('ygopro_capture.read_order',return_value=state) as order:
+            process=factory.return_value.__enter__.return_value;process.identity.return_value=('test',1)
+            process.image_base.return_value=memory.base;process.read.side_effect=memory.read
+            self.assertEqual(capture.submitted_deck('test'),{'main':[123,123,456],'extra':[789],'side':[456]})
+            order.return_value={'phase':'waiting_start'}
+            with self.assertRaisesRegex(CaptureError,'尚未进入'):capture.submitted_deck('test')
+            order.side_effect=[state,{**state,'evidence':{'turn':2}}]
+            with self.assertRaisesRegex(CaptureError,'状态正在变化'):capture.submitted_deck('test')
+            process.identity.return_value=('test',2)
+            with self.assertRaisesRegex(CaptureError,'进程已变化'):capture.submitted_deck('test')
+
 
 if __name__ == '__main__':unittest.main()

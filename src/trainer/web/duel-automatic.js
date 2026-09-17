@@ -3,7 +3,7 @@
 const DuelAutomatic = (() => {
   const create = () => ({platform:null,page:'recognition',deck:null,name:'',marks:new Set(),
     tagIds:[],primaryIds:[],tags:[],suggestions:null,query:'',pending:null,notice:'',
-    connection:null,fresh:false,captureError:'',order:null});
+    connection:null,fresh:false,captureError:'',order:null,workspace:null,navigation:null});
   function setRole(draft,id,role) {
     if(!draft.tags.some(tag=>tag.id===id))return;
     if(role&&!draft.tagIds.includes(id)&&draft.tagIds.length>=30){draft.notice='最多选择 30 个 TAG。';return;}
@@ -38,6 +38,7 @@ function duelProcessText(process) {
   return process?`${process.name} · PID ${process.pid} · ${process.title||process.version||''}`:'尚未捕捉进程';
 }
 async function captureDuelProcess(pid) {
+  if(typeof disposeAutoDuel==='function')await disposeAutoDuel();
   const dialog=$('#duel-capture-dialog'),draft=duelState().automatic;
   draft.fresh=false;draft.connection=null;draft.pending=null;
   draft.order=null;if(typeof stopDuelOrderWatch==='function')stopDuelOrderWatch();
@@ -128,13 +129,14 @@ async function duelAutomaticAction(action) {
   if(action==='automatic') {
     await duelWork(async()=>{
       s.decks=await api('/api/decks');
-      if(s.operationMode!=='automatic')invalidateDuel(duelStages.function);
+      if(s.operationMode!=='automatic'){s.manualReached=s.reached;s.reached=Math.max(s.automatic.navigation?.reached||duelStages.function,s.automatic.workspace?.reached||0);}
       s.operationMode='automatic';s.functionPage='platform';duelReach(duelStages.function);duelTell('');
     });return true;
   }
   if(s.operationMode!=='automatic')return false;
   if(action==='platform-ygopro'||action==='recapture-process') {draft.platform='ygopro';await captureDuelProcess();return true;}
   if(action==='get-deck') {
+    if(typeof disposeAutoDuel==='function')await disposeAutoDuel();
     draft.fresh=false;draft.pending=null;
     await duelWork(async()=>{
       try {

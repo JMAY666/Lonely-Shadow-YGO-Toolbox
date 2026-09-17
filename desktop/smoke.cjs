@@ -13,10 +13,11 @@ const onlyCompromise=process.argv.includes('--compromise-only');
 const onlySelection=process.argv.includes('--selection-only');
 const onlyDuel=process.argv.includes('--duel-only');
 const onlyAutomatic=process.argv.includes('--automatic-only');
+const onlyAutomaticWorkspace=process.argv.includes('--automatic-workspace-only');
 const onlyNative=process.argv.includes('--native-only');
 const onlyModular=process.argv.includes('--modular-only');
 const modularSuite=Object.entries({if:'YGO_MODULAR_IF_ONLY',mechanics:'YGO_MODULAR_MECHANICS_ONLY',precision:'YGO_MODULAR_PRECISION_ONLY',preferences:'YGO_MODULAR_PREFERENCES_ONLY',routes:'YGO_MODULAR_ADDITIONAL_ONLY',cross:'YGO_MODULAR_CROSS_ONLY',planning:'YGO_MODULAR_PLANNING_ONLY',pipeline:'YGO_MODULAR_PIPELINE_ONLY',forecast:'YGO_MODULAR_FORECAST_ONLY'}).find(([,key])=>process.env[key]==='1')?.[0]||'core';
-const profileSuffix=onlyModular?'-modular-'+modularSuite:onlyCompromise?'-compromise':onlySelection?'-selection':onlyDuel?'-duel':onlyAutomatic?'-automatic':onlyNative?'-native':'';
+const profileSuffix=onlyModular?'-modular-'+modularSuite:onlyCompromise?'-compromise':onlySelection?'-selection':onlyDuel?'-duel':onlyAutomatic?'-automatic':onlyAutomaticWorkspace?'-automatic-workspace':onlyNative?'-native':'';
 const runLabel=process.env.YGO_TEST_RUN||'';
 assert(/^[a-z0-9-]*$/.test(runLabel),'Isolated test run label must contain only letters, digits and hyphens');
 const runSuffix=profileSuffix+(runLabel?'-'+runLabel:'');
@@ -71,7 +72,7 @@ async function launch(first = false, testControl = true) {
   assert.equal(identity.name,brand.name); assert.equal(identity.title,brand.name);
   assert.equal(identity.data,path.join(root,'electron'));
   if(testControl)assert.deepEqual(await application.evaluate(()=>globalThis.brandingAcceptance),{windowIconExists:true,loadingImage:true,loadingTitlebar:process.platform==='win32'});
-  if(first&&!onlyDuel&&!onlyAutomatic)await require('./titlebar-smoke.cjs')({application,page,pass,evidence});
+  if(first&&!onlyDuel&&!onlyAutomatic&&!onlyAutomaticWorkspace)await require('./titlebar-smoke.cjs')({application,page,pass,evidence});
   assert.deepEqual(await page.locator('.primary-rail nav button>span').allTextContents(),['首页','卡组编辑','展开','决斗','模块化','全局设置','TAG 管理']);
   assert.equal(await page.locator('.app-bar #app-settings').count(),0);
   const settingsPosition=await page.locator('#app-settings').boundingBox();
@@ -198,6 +199,10 @@ async function activatePot(sid) {
 
 (async () => {
   await launch(true);
+  if(onlyAutomaticWorkspace){
+    await require('./automatic-workspace-smoke.cjs')({page,application,root,evidence,pass});
+    await close();assert.deepEqual(errors,[]);fs.writeFileSync(path.join(evidence,'automatic-workspace-result.json'),JSON.stringify({checks,errors},null,2));return;
+  }
   if(onlyAutomatic) {
     await page.locator('#module-duel').click();await page.waitForFunction(()=>moduleUI.current==='duel'&&!moduleUI.switching);
     await page.locator('[data-duel-action="bo1"]').click();
