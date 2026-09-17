@@ -54,7 +54,7 @@ class OrderTests(unittest.TestCase):
 
     def monitor(self):
         source=SimpleNamespace(attached={'pid':123},raw=frame('waiting_start'))
-        source.order=lambda _:copy.deepcopy(source.raw)
+        source.order=lambda *args, **kwargs:copy.deepcopy(source.raw)
         written={}
         store=SimpleNamespace(root=Path('isolated-test'),ygopro_capture=source)
         return OrderMonitor(store,lambda p,data:written.update({p.name:copy.deepcopy(data)}),lambda:12345),source,written

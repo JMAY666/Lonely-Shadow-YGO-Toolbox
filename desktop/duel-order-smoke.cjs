@@ -29,8 +29,8 @@ module.exports=async({page,application,evidence,pass})=>{
     await click('order-manual-second');assert.equal(await page.locator('#duel-order-result').textContent(),'后攻');
     await click('confirm-order');assert.equal(await page.evaluate(()=>duelState().stage),4);
     assert.equal(confirmations[0].manual,true);assert.equal(confirmations[0].order,'second');
-    assert.match(await page.locator('#duel-body').textContent(),/后攻展开功能尚未开发/);
-    const before=polls;await page.waitForTimeout(800);assert.equal(polls,before,'Polling stops after confirmation');
+    assert.match(await page.locator('#duel-body').textContent(),/后攻不会进入先攻/);
+    const before=polls;await page.waitForTimeout(800);assert(polls>before,'Opening capture continues after order confirmation');
     await click('order-return');await state('waiting_start');assert(await page.locator('[data-duel-action="confirm-order"]').isDisabled());
     assert(await page.locator('#duel-steps [data-duel-stage="4"]').isDisabled());
     assert.equal(await page.locator('#duel-order-result').textContent(),'等待确定');

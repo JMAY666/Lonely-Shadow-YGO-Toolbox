@@ -20,6 +20,8 @@ PROFILES = {
         'game': 0x693e20, 'building': 0x114b, 'dragging': 0x1894, 'card_type': 0x28,
         'duel_info': 0xe08, 'player_type': 0xf30, 'lobby_window': 0x3158,
         'rps_window': 0x32d8, 'order_window': 0x32f8, 'gui_visible': 0xa8,
+        'hand_vector': 0x13d8, 'client_code': 0x88, 'client_controller': 0xd1,
+        'message': 0x7d9970, 'message_size': 0x7d9960,
     },
 }
 ZONES = ('main', 'extra', 'side')
@@ -246,7 +248,7 @@ class Capture:
                     previous = current
                 raise CaptureError('卡组持续变化，请停止操作后重新获取。')
 
-    def order(self, capture_id):
+    def order(self, capture_id, with_opening=False):
         with self.lock:
             attached = self.attached
             if not attached or capture_id != attached['capture_id']:
@@ -256,7 +258,54 @@ class Capture:
                     self.attached = None
                     raise CaptureError('YGOPro 进程已重新启动，请重新捕捉。')
                 base = memory.image_base(attached['pid'])
-                return read_order(memory, base, PROFILES[attached['image_hash']])
+                profile = PROFILES[attached['image_hash']]
+                result = read_order(memory, base, profile)
+                if with_opening and result['phase'] in ('waiting_choice', 'detected') and result['evidence']['in_duel']:
+                    try:result['opening_sample'] = read_opening_sample(memory, base, profile, result)
+                    except CaptureError as error:result['opening_sample'] = {'error':str(error)}
+                return result
+
+
+def read_opening_sample(memory, base, profile, order):
+    """Read only our hand and our initial draw message; never opposing card ids."""
+    game = struct.unpack('<Q', memory.read(base + profile['game'], 8))[0]
+    address = game + profile['hand_vector']
+    header = memory.read(address, 24)
+    start, end, capacity = struct.unpack('<3Q', header)
+    if start == end == capacity == 0:
+        pointers = b''
+    elif (0x10000 <= start <= end <= capacity < 0x7fffffffffff and
+          start % 8 == end % 8 == capacity % 8 == 0 and end - start <= 60 * 8 and capacity - start <= 8192):
+        pointers = memory.read(start, end - start)
+    else:raise CaptureError('手牌区正在变化，请等待发牌完成。')
+    hand = []
+    for (pointer,) in struct.iter_unpack('<Q', pointers):
+        code = struct.unpack('<I', memory.read(pointer + profile['client_code'], 4))[0]
+        controller, location = memory.read(pointer + profile['client_controller'], 2)
+        if controller != 0 or location != 2 or not 0 <= code <= 0x0fffffff:
+            raise CaptureError('手牌身份或区域尚未稳定。')
+        hand.append(code)
+    draw = None
+    length_data = memory.read(base + profile['message_size'], 8)
+    length = struct.unpack('<Q', length_data)[0]
+    if 3 <= length <= 0x20000 and order['evidence']['turn'] == 0:
+        head = memory.read(base + profile['message'], 3)
+        kind, player, count = head
+        own_player = 0 if order['evidence']['is_first'] else 1
+        if kind == 90 and player == own_player and 1 <= count <= 60 and length == 3 + count * 4:
+            data = memory.read(base + profile['message'], length)
+            codes = list(struct.unpack_from('<' + 'I' * count, data, 3))
+            codes = [code & 0x7fffffff for code in codes]
+            if not all(0 < code <= 0x0fffffff for code in codes):
+                raise CaptureError('起手发牌消息尚未包含完整卡号。')
+            if memory.read(base + profile['message'], length) != data or memory.read(base + profile['message_size'], 8) != length_data:
+                raise CaptureError('发牌消息正在更新。')
+            draw = codes
+    if memory.read(address, 24) != header or (pointers and memory.read(start, len(pointers)) != pointers):
+        raise CaptureError('手牌区正在变化，请等待发牌完成。')
+    if read_order(memory, base, profile) != order:
+        raise CaptureError('对局阶段正在切换，等待下一次读取。')
+    return {'hand':hand, 'draw':draw, 'turn':order['evidence']['turn']}
 
 
 def read_order(memory, base, profile):

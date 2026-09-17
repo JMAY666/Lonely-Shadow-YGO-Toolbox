@@ -3,7 +3,8 @@
 const {_electron:electron}=require('playwright'),fs=require('node:fs'),path=require('node:path');
 const assert=require('node:assert/strict'),workspace=path.resolve(__dirname,'..');
 const label=process.env.YGO_TEST_RUN||String(Date.now());assert(/^[a-z0-9-]+$/.test(label));
-const root=path.join(workspace,'.local','ygopro-order-live-'+label),evidence=path.join(root,'evidence');
+const openingMode=process.argv.includes('--opening');
+const root=path.join(workspace,'.local',(openingMode?'ygopro-opening-live-':'ygopro-order-live-')+label),evidence=path.join(root,'evidence');
 fs.mkdirSync(evidence,{recursive:true});
 const deck=JSON.parse(fs.readFileSync(process.env.YGO_ORDER_LIVE_DECK,'utf8'));
 const errors=[];let application,page,observer;
@@ -40,6 +41,7 @@ async function capture(name) {
       if(frame&&key!==previous){previous=key;const value={time:new Date().toISOString(),...frame};fs.appendFileSync(path.join(evidence,'observations.jsonl'),JSON.stringify(value)+'\n');
         fs.writeFileSync(path.join(evidence,'latest.json'),JSON.stringify(value,null,2));console.log(JSON.stringify(value));
         if(frame.phase==='choose_order'||frame.phase==='detected')await capture(frame.round_id+'-'+frame.phase);
+        if(openingMode&&frame.opening?.status==='ready')await capture(frame.round_id+'-opening');
       }
       const control=path.join(root,'control.json');
       if(fs.existsSync(control)){
@@ -51,7 +53,14 @@ async function capture(name) {
           assert.equal(await page.evaluate(()=>duelState().stage),duelStageHand);
           await capture('confirmed-'+Date.now());
         }
-        if(command.action==='return')await page.locator('[data-duel-action="order-return"]').click();
+        if(command.action==='confirm-opening'){
+          await page.locator('[data-duel-action="confirm-opening"]').click();await page.waitForFunction(()=>!duelUI.busy&&duelState().stage===5);
+          await capture('opening-confirmed-'+Date.now());
+        }
+        if(command.action==='return'){
+          if(await page.evaluate(()=>duelState().stage===5))await page.locator('[data-duel-action="opening-return"]').click();
+          await page.locator('[data-duel-action="order-return"]').click();
+        }
         if(command.action==='close'){clearInterval(observer);await application.close();}
       }
     }catch(error){console.error(error.stack);fs.writeFileSync(path.join(evidence,'observer-error.json'),JSON.stringify({error:error.message,errors}));}

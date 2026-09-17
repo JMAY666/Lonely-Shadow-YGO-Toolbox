@@ -94,6 +94,7 @@ module.exports=async function({page,application,evidence,pass,existing,live=fals
     await application.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().find(w=>!w.getParentWindow()).setContentSize(1280,900));
     await page.waitForFunction(()=>innerWidth===1280);
     await require('./duel-order-smoke.cjs')({page,application,evidence,pass});
+    await require('./duel-opening-smoke.cjs')({page,application,evidence,pass});
     const after=await page.evaluate(async id=>({saved:id?await api('/api/deck?id='+encodeURIComponent(id)):null,editor:JSON.stringify(app.deck),active:app.active?.id||null}),existing?.id);
     assert.deepEqual(after,before);
     await page.locator('#duel-steps [data-duel-stage="1"]').click();

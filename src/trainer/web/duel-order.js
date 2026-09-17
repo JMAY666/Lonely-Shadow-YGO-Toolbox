@@ -26,7 +26,7 @@ const orderLabel=value=>value==='first'?'先攻':value==='second'?'后攻':'等�
 let duelOrderTimer=null,duelOrderEpoch=0,duelOrderWatching=null;
 function stopDuelOrderWatch() {clearTimeout(duelOrderTimer);duelOrderTimer=null;duelOrderWatching=null;++duelOrderEpoch;}
 function syncDuelOrderWatch() {
-  const s=duelState(),watch=!duelUI.busy&&s.operationMode==='automatic'&&s.stage===duelStages.order&&moduleUI.current==='duel'?s.automatic.order:null;
+  const s=duelState(),watch=!duelUI.busy&&s.operationMode==='automatic'&&[duelStages.order,duelStages.hand].includes(s.stage)&&moduleUI.current==='duel'?s.automatic.order:null;
   if(watch===duelOrderWatching)return;
   stopDuelOrderWatch();if(!watch?.frame?.monitor_id)return;
   duelOrderWatching=watch;const epoch=duelOrderEpoch;
@@ -37,6 +37,8 @@ function syncDuelOrderWatch() {
       if(epoch!==duelOrderEpoch)return;
       const changed=JSON.stringify(watch.frame)!==JSON.stringify(frame);
       DuelOrder.accept(watch,frame);
+      if(frame.opening?.status==='ready')await Promise.all([...new Set(frame.opening.cards)].filter(code=>!app.cache.has(code)).map(code=>card(code).catch(()=>{})));
+      if(epoch!==duelOrderEpoch)return;
       if(changed)renderDuel();
       const stamp=$('#duel-order-last-check');if(stamp)stamp.textContent=`持续监测中 · ${new Date().toLocaleTimeString()}`;
     } catch(error) {
@@ -44,9 +46,9 @@ function syncDuelOrderWatch() {
       const changed=watch.error!==error.message;
       watch.error=error.message;watch.frame={...watch.frame,phase:'disconnected',detected_order:null};watch.manual=null;
       if(changed)renderDuel();
-    } finally {if(epoch===duelOrderEpoch)duelOrderTimer=setTimeout(tick,350);}
+    } finally {if(epoch===duelOrderEpoch)duelOrderTimer=setTimeout(tick,!watch.frame.opening||['waiting','dealing'].includes(watch.frame.opening.status)?80:350);}
   };
-  duelOrderTimer=setTimeout(tick,350);
+  duelOrderTimer=setTimeout(tick,80);
 }
 function duelAutomaticOrderPage() {
   const state=duelState().automatic.order,frame=state?.frame||{},ready=DuelOrder.ready(state),selected=DuelOrder.selected(state);
@@ -58,14 +60,8 @@ function duelAutomaticOrderPage() {
     <div class="duel-order-adjust" role="group" aria-label="手动更正先后攻"><span>更改结果</span>${duelButton('order-manual-first','先攻',!ready)}${duelButton('order-manual-second','后攻',!ready)}${duelButton('order-use-detected','使用自动结果',!ready||!state.manual)}</div>
     <p class="duel-order-error" role="alert">${escape(state?.error||frame.error||'')}</p><small id="duel-order-last-check">持续监测中</small>
     ${selected==='second'?'<p class="duel-order-note">后攻顺序会正常记录；后攻展开功能尚未开发。</p>':''}
+    ${frame.opening?.status==='ready'?`<p class="duel-opening-order-note">已自动留存 ${frame.opening.cards.length} 张起手，确认先后攻后可查看预览。</p>`:''}
     <div class="duel-order-links">${duelButton('recapture-process','重新连接进程')}</div></section>`;
-}
-function duelAutomaticConfirmedPage() {
-  const confirmed=duelState().automatic.order?.frame?.confirmed;
-  return `<section class="duel-order-panel"><span class="duel-eyebrow">先后攻已确认</span><h2>${orderLabel(confirmed?.order)} · 卡组展开</h2>
-    <p>本局${orderLabel(confirmed?.order)}结果已记录${confirmed?.source==='manual'?'（手动更正）':''}。</p>
-    <p>${confirmed?.order==='second'?'后攻展开功能尚未开发，当前保留本局判断与确认记录。':'已进入下一步；自动起手读取与展开流程将在后续接入。'}</p>
-    ${duelButton('order-return','返回先后攻监测',false,true)}</section>`;
 }
 async function beginDuelOrder() {
   const draft=duelState().automatic;
@@ -78,6 +74,7 @@ async function beginDuelOrder() {
 async function duelOrderAction(action) {
   const s=duelState(),state=s.automatic.order;
   if(s.operationMode!=='automatic')return false;
+  if(typeof duelOpeningAction==='function'&&await duelOpeningAction(action))return true;
   if(action==='start-duel'){await beginDuelOrder();return true;}
   if(action==='order-return'){duelReach(duelStages.order);renderDuel();return true;}
   if(action.startsWith('order-manual-')){
