@@ -73,4 +73,64 @@ test('a single partial candidate is clearly distinguished from one fully searche
   const complete=c.forecastSearchNotice({limited:false,complete:true,candidates:[{}]});
   assert.match(complete,/只找到一条/);assert.match(complete,/各偏好可能推荐同一条/);
   assert.doesNotMatch(complete,/搜索尚未完成/);
+  const empty=c.forecastSearchNotice({limited:false,complete:true,candidates:[]});
+  assert.match(empty,/未找到可用路线/);assert.doesNotMatch(empty,/同时占优/);
+});
+
+function navigationFixture({temporary=true,anchor=null,confirmed=2,stage='plans'}={}) {
+  const requests=[],stages={plans:6,tutorial:7};
+  const state={deck:{id:'deck',revision:'v1'},hand:[1,2,3],count:3,stage:stages[stage],reached:7,
+    plan:{id:'source',temporary,confirmed},forecast:{id:'old-session',generation:0,anchor,selected:['source'],
+      sources:[{id:'source'}],preference:'largest',precise:true,goal:[99],data:{confirmed}},
+    graph:{nodes:[{key:'main/step',route:'main'}]},position:{key:'main/step'}};
+  const c=vm.createContext({structuredClone,duelState:()=>state,duelStages:stages,renderDuel(){},syncDuelShortcuts:async()=>{},
+    duelNodeSource:()=>({node:{id:'step',kind:'step',number:9}}),
+    api:async()=>({sources:[{id:'source',status:'ready'}]}),
+    modularDispatch:async(consumer,intent,body)=>{requests.push({consumer,intent,...body});return {id:body.id||'new-session',confirmed:0,result:{candidates:[]}};}});
+  const source=fs.readFileSync(path.join(__dirname,'../src/trainer/web/duel-forecast.js'),'utf8');
+  vm.runInContext(source.slice(0,source.indexOf('const observationDialog=')),c);
+  vm.runInContext('paintForecastResults=()=>{};',c);
+  return {c,state,requests,stages};
+}
+
+test('opening generation replaces both confirmed and saved-Step forecasts without inheriting their progress',async()=>{
+  for(const anchor of [null,{plan:'source',node:'step',number:9}]){
+    const {c,state,requests,stages}=navigationFixture({anchor});
+    await c.launchModularFromDuel();
+    assert.equal(requests[0].intent,'plan-close');assert.equal(requests[0].id,'old-session');
+    const request=requests.find(r=>r.intent==='plan');assert.equal(request.id,undefined);assert.equal(request.anchor,null);
+    assert.equal(request.preference,'largest');assert.equal(request.precise,true);assert.deepEqual([...request.goal],[99]);
+    assert.equal(state.forecast.id,'new-session');assert.equal(state.plan,null);assert.equal(state.reached,stages.plans);
+    assert.match(c.forecastStartText(state),/起手/);
+  }
+});
+
+test('tutorial continuation keeps its session and confirmed prefix',async()=>{
+  const {c,state,requests}=navigationFixture({stage:'tutorial'});
+  await c.launchModularFromDuel();
+  assert.equal(requests.length,1);assert.equal(requests[0].id,'old-session');assert.equal(state.plan.confirmed,2);
+  assert.match(c.forecastStartText(state),/已确认操作/);
+});
+
+test('browsing the plan list hides continuation controls without discarding the tutorial',()=>{
+  const {c,state}=navigationFixture();const forecast=state.forecast,plan=state.plan;
+  c.renderDuelForecast(); // No DOM is needed: the continuation panel is not mounted.
+  assert.equal(state.forecast,forecast);assert.equal(state.plan,plan);
+});
+
+test('a new ordinary tutorial Step replaces the previous anchor',async()=>{
+  const {c,state,requests}=navigationFixture({stage:'tutorial',temporary:false,anchor:{plan:'source',node:'old-step',number:8}});
+  await c.launchModularFromDuel();
+  const request=requests.find(r=>r.intent==='plan');assert.equal(request.id,undefined);assert.equal(request.anchor.node,'step');
+  assert.match(c.forecastStartText(state),/Step 9/);
+});
+
+test('a late confirmation cannot navigate or mutate a replacement opening forecast',async()=>{
+  const {c,state}=navigationFixture({stage:'tutorial',confirmed:0});let resolve;
+  c.modularDispatch=()=>new Promise(done=>{resolve=done;});
+  c.duelNodeSource=()=>({node:{kind:'step',number:2,forecast_index:0,forecast_end:0}});
+  const previousPlan=state.plan,waiting=c.advanceDuelForecast();
+  state.forecast={id:'replacement'};state.plan=null;state.graph=null;state.position=null;
+  resolve({confirmed:1});await waiting;
+  assert.equal(previousPlan.confirmed,0);assert.equal(state.plan,null);assert.equal(state.position,null);
 });

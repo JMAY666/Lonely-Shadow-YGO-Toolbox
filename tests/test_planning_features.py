@@ -11,7 +11,7 @@ from plan_endboard import attach_terminal_marks, marked_terminal, marked_evaluat
 from planning_cache import PlanningCache
 from modular import Modular, RouteFrontier, empty_response_edge, route_signature, guide_block_reason
 from modular_decisions import resource_rank, model
-from duel_continuation import anchor_source
+from duel_continuation import anchor_source, replay_anchor
 
 
 def card(instance, code=10, zone=4, sequence=0):
@@ -145,6 +145,17 @@ class PlanningCacheTests(unittest.TestCase):
 
 
 class ContinuationAnchorTests(unittest.TestCase):
+    def test_missing_resource_explains_the_prefix_failure_without_changing_progress(self):
+        raw = (bytes([15,0,0,1,1,1]) + (20).to_bytes(4,'little') + bytes([0,1,0,0])).hex()
+        state = {'raw':raw,'state':{'cards':[card(1,10,2),card(2,20,1)]}}
+        fake = SimpleNamespace(state=lambda sid:state,store=SimpleNamespace(catalog=SimpleNamespace(cards={10:{'name':'测试补点'}})))
+        source = {'edges':[{'decision':{'message':15,'player':0,'context':None,
+            'selection':[{'kind':'card','card':{'code':10,'controller':0,'location':1}}]}}]}
+        ctx = {'precise':False,'forecast_steps':[{'existing':True}]}; before = deepcopy(ctx)
+        with self.assertRaisesRegex(ValueError,'测试补点.*卡组.*当前可用 0.*手卡.*原教程保留'):
+            replay_anchor(fake,'test',ctx,source)
+        self.assertEqual(ctx,before)
+
     def test_selected_step_uses_its_following_decision_boundary_and_fails_closed_for_old_records(self):
         report={'id':'plan','name':'source','edit_revision':3,'review':{'nodes':[
             {'id':'s8','number':8,'kind':'step','state_ref':18},{'id':'s9','number':9,'kind':'step','state_ref':29}]}}

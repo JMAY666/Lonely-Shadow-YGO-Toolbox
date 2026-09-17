@@ -236,6 +236,47 @@ def semantic_equal(first, second, precise=True):
     return matching_key(first,precise)==matching_key(second,precise)
 
 
+def context_equal(recorded, current):
+    """Recognize the standard Link procedure across relocated Lua callbacks.
+
+    This only adapts the already selected summon procedure, never an activatable
+    card effect. Its carrier, summon type and all other effect fields must match;
+    all three callbacks must move together. Materials still bind to the current
+    legal prompt and every answer is checked by the disposable core.
+    """
+    if recorded == current: return True
+    if not recorded or not current: return False
+    standard = {'description': 1166, 'effect_type': 2, 'event_code': 34,
+                'range': 64, 'effect_value': 0x4c000000, 'count_code': 0,
+                'cost_line': 0, 'value_line': 0, 'labels': [], 'category': 0}
+    if any(recorded.get(k) != v or current.get(k) != v for k, v in standard.items()): return False
+    lines = ('condition_line', 'target_line', 'operation_line')
+    if any(type(e.get(k)) is not int or e[k] <= 0 for e in (recorded, current) for k in lines): return False
+    if any(recorded.get(k) is None or current.get(k) is None for k in EFFECT_KEYS): return False
+    if {k:v for k,v in recorded.items() if k not in lines} != {k:v for k,v in current.items() if k not in lines}: return False
+    return len({current[k] - recorded[k] for k in lines}) == 1
+
+
+def script_binding_conflict(semantic, prompt):
+    """Explain an unadaptable script signature without relaxing effect identity."""
+    if any(semantic.get(k) != prompt.get(k) for k in ('message', 'player')): return False
+    lines = ('condition_line', 'cost_line', 'target_line', 'operation_line', 'value_line')
+    def relocated(a, b):
+        return bool(a and b and a != b and
+                    {k:v for k,v in a.items() if k not in lines} == {k:v for k,v in b.items() if k not in lines})
+    a, b = semantic.get('context'), prompt.get('context')
+    if relocated(a, b) and not context_equal(a, b): return True
+    for selected in semantic.get('selection', []):
+        if not selected.get('effect'): continue
+        for choice in prompt.get('choices', []):
+            actual = choice['semantic']
+            if (relocated(actual.get('effect'), selected['effect'])
+                    and semantic_equal({k:v for k,v in selected.items() if k != 'effect'},
+                                       {k:v for k,v in actual.items() if k != 'effect'}, False)):
+                return True
+    return False
+
+
 def snapshot_matches(first, second):
     def snapshot(state):
         shown=public_state(state)
@@ -251,7 +292,7 @@ def snapshot_matches(first, second):
 
 
 def bind(semantic, prompt, excluded_instances=(), precise=True):
-    if any(semantic.get(k) != prompt.get(k) for k in ('message', 'player', 'context')): return None
+    if any(semantic.get(k) != prompt.get(k) for k in ('message', 'player')) or not context_equal(semantic.get('context'), prompt.get('context')): return None
     if semantic.get('cancel'):
         return 'ff' if prompt['mode'] == 'sort' else integer(-1) if prompt.get('cancel') else None
     if prompt['mode'] == 'declaration':
@@ -300,7 +341,7 @@ def bind_variants(semantic,prompt,excluded_instances=(),precise=True,limit=3):
     first=bind(semantic,prompt,excluded_instances,precise)
     if precise or prompt['mode'] not in ('single','places','cards','sum') or semantic.get('cancel'):
         return [first] if first is not None else []
-    if any(semantic.get(k)!=prompt.get(k) for k in ('message','player','context')):return []
+    if any(semantic.get(k)!=prompt.get(k) for k in ('message','player')) or not context_equal(semantic.get('context'),prompt.get('context')):return []
     options=[]
     for selected in semantic.get('selection',[]):
         choices=[i for i,c in enumerate(prompt['choices']) if semantic_equal(c['semantic'],selected,False)

@@ -51,7 +51,7 @@ def anchor_source(modular, anchor):
 
 def replay_anchor(modular, sid, ctx, source):
     from duel_planner import projected, commit_projection
-    from modular import terminal_key, board_pattern, observed_delta, satisfies_delta, hand_count
+    from modular import terminal_key, board_pattern, observed_delta, satisfies_delta, hand_count, guide_block_reason
     base = modular.state(sid); current = base; path, steps = [], []
     memory = {'chains': {}, 'facts': []}
     for edge in source['edges']:
@@ -59,7 +59,9 @@ def replay_anchor(modular, sid, ctx, source):
         responses = bind_variants(edge['decision'], prompt, precise=True, limit=1)
         if not responses and not ctx['precise']:
             responses = bind_variants(edge['decision'], prompt, precise=False, limit=1)
-        if not responses: raise ValueError('当前起手无法按普通方案重放到所选步骤，原教程保留；请核对前面的实际操作')
+        if not responses:
+            raise ValueError('当前起手无法按普通方案重放到所选步骤：' +
+                             guide_block_reason(edge, current, modular.store.catalog.cards) + '；原教程保留')
         response = responses[0]; before = current; bindings = response_bindings(prompt, response)
         path.append(current['raw'] + ':' + response)
         following = modular.bridge(sid, base, path)

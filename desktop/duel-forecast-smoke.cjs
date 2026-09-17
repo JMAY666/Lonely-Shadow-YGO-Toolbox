@@ -97,6 +97,24 @@ module.exports=async({page,root,evidence,pass})=>{
   await page.waitForFunction(()=>duelState().plan?.temporary);
   assert.equal(await page.evaluate(()=>duelState().plan.confirmed),1);
   await page.screenshot({path:path.join(evidence,'duel-saved-step-continuation.png')});
+  await page.evaluate(()=>duelGo(duelStages.plans));
+  assert.equal(await page.locator('#duel-modular-status').count(),0,'The plan list cannot show an old continuation as an opening generator');
+  await page.evaluate(()=>duelGo(duelStages.tutorial));
+  assert.equal(await page.evaluate(()=>duelState().plan.confirmed),1,'Browsing back preserves confirmed progress');
+  await page.locator('[data-duel-action="modular"]').click();
+  await page.waitForFunction(()=>duelState().forecast&&!duelState().forecast.busy&&!!duelState().forecast.data,null,{timeout:90000});
+  assert.equal(await page.evaluate(()=>duelState().forecast.id),continuation.id,'Tutorial replan keeps the confirmed session');
+  await page.evaluate(()=>duelGo(duelStages.plans));
+  await page.locator('[data-duel-action="modular"]').click();
+  await page.waitForFunction(()=>duelState().forecast&&!duelState().forecast.busy&&!!duelState().forecast.data,null,{timeout:90000});
+  const restarted=await page.evaluate(()=>duelState().forecast.data);
+  assert.notEqual(restarted.id,continuation.id);assert.equal(restarted.confirmed,0);assert.equal(restarted.anchor,null);
+  assert.equal(restarted.prefix.length,0);
+  assert(restarted.result.candidates.some(c=>c.steps.some(s=>(s.bound_decision||s.decision).selection.some(choice=>choice.kind==='summon'))),
+    'Opening generation restores the normal summon consumed by the old prefix');
+  await page.waitForFunction(id=>api('/api/native/status?id='+id).then(s=>!s.ready),continuation.id,{timeout:20000});
+  await page.screenshot({path:path.join(evidence,'duel-opening-after-continuation.png')});
+  pass('Returning from saved-Step continuation generates from the opening; tutorial replan retains the confirmed prefix');
   await page.evaluate(()=>endDuel());
   pass('Expansion favorites persist into Duel; saved-Step continuation retains its prefix and shows only explicitly marked terminal cards');
   page.off('request',observe);

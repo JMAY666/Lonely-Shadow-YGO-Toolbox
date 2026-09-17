@@ -8,7 +8,7 @@ import uuid
 
 from modular_decisions import (bind, digest, evaluation, integer, model, next_prompt,
                                public_state, forecast_state, resource_rank, semantic_response, terminal_key, response_bindings,
-                               bind_variants, semantic_equal, snapshot_matches, canonical_state)
+                               bind_variants, semantic_equal, snapshot_matches, canonical_state, script_binding_conflict)
 from report import read_journal
 from timeline import route_rows
 from card_semantics import effect_clause, zone_name
@@ -20,7 +20,7 @@ from planning_cache import PlanningCache
 
 PREFERENCES = ('shortest', 'largest', 'balanced', 'safest')
 LIMITS = {'seconds': 32, 'nodes': 320, 'depth': 48, 'candidates': 24}
-EXTRACTOR_VERSION = 10
+EXTRACTOR_VERSION = 11
 
 
 class RouteFrontier:
@@ -83,6 +83,9 @@ def guide_block_reason(edge, current, catalog):
             name = catalog.get(code, {}).get('name', str(code))
             elsewhere = '、'.join(dict.fromkeys(zone_name(c.get('location', 0)) for c in own if c.get('location') != location))
             return f'下一步需要「{name}」在{zone_name(location)} ×{count}，当前可用 {available}' + (f'；可见副本在{elsewhere}' if elsewhere else '')
+    prompt = model(current['raw'], current['state'], current.get('effects')) if current.get('raw') else None
+    if prompt and script_binding_conflict(edge['decision'], prompt):
+        return '来源与当前规则脚本的效果标识不兼容，尚不能确认同一效果；请在当前版本重新记录此来源'
     return '当前窗口、效果次数或选择条件与来源不同，无法直接续接'
 
 
@@ -736,6 +739,7 @@ class Modular:
                     applicable[prompt['choices'][0]['response']] = [acknowledgement]
             if not applicable:
                 if check: check.update(status='blocked', reason=guide_block_reason(guide[0], current, self.store.catalog.cards))
+                if guide and script_binding_conflict(guide[0]['decision'], prompt): unknown = True
                 if guide: queue.append((current, path, steps, seen, uncertain, None))
                 rejected['当前合法窗口没有来源动作；资源、区域、效果次数或时机不匹配'] += 1
                 if not path:

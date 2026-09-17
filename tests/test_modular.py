@@ -4,7 +4,7 @@ import sys
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'src/trainer'))
-from modular_decisions import bind, digest, effect_key, integer, model, public_state, semantic_response, validate_source, bind_variants, snapshot_matches
+from modular_decisions import bind, digest, effect_key, integer, model, public_state, semantic_response, validate_source, bind_variants, snapshot_matches, script_binding_conflict
 from modular import Modular
 
 
@@ -17,6 +17,45 @@ def idle(cards, effects):
 
 
 class DecisionTests(unittest.TestCase):
+    def link_material_fixture(self):
+        context = effect_key(dict(description=1166, effect_type=2, event_code=34, range=64,
+            owner_code=999, handler_code=999, count_code=0, condition_line=2205, cost_line=0,
+            target_line=2233, operation_line=2264, value_line=0, labels=[], category=0,
+            property_flags=['263169', '0'], self_range=0, opponent_range=0, effect_value=0x4c000000))
+        material = dict(kind='select', card=dict(code=123, controller=0, location=4, sequence=0, position=1))
+        decision = dict(message=26, player=0, context=context, selection=[material])
+        current = deepcopy(context)
+        for key in ('condition_line', 'target_line', 'operation_line'): current[key] -= 86
+        prompt = dict(message=26, player=0, context=current, mode='single', choices=[
+            dict(semantic=deepcopy(material), response='0100', card={'instance_id':1})])
+        return decision, prompt
+
+    def test_standard_link_material_context_survives_uniform_script_relocation(self):
+        decision, prompt = self.link_material_fixture(); before = deepcopy(decision)
+        for precise in (True, False):
+            self.assertEqual(bind_variants(decision, prompt, precise=precise), ['0100'])
+        self.assertFalse(script_binding_conflict(decision, prompt))
+        self.assertEqual(decision, before, 'Frozen source evidence stays unchanged')
+        prompt['choices'][0]['semantic']['card']['code'] = 456
+        self.assertEqual(bind_variants(decision, prompt, precise=False), [])
+
+    def test_link_relocation_keeps_carrier_type_labels_flags_and_callback_structure(self):
+        for key, value in [('handler_code',998), ('owner_code',998), ('event_code',35),
+                           ('effect_value',0x46000000), ('labels',[1]), ('property_flags',['1','0']),
+                           ('operation_line',1000), ('cost_line',7), ('condition_line',None)]:
+            with self.subTest(key=key):
+                decision, prompt = self.link_material_fixture(); prompt['context'][key] = value
+                self.assertEqual(bind_variants(decision, prompt, precise=False), [])
+                self.assertEqual(script_binding_conflict(decision, prompt), key in ('operation_line','cost_line','condition_line'))
+
+    def test_link_context_adaptation_never_relaxes_an_activated_effect(self):
+        decision, prompt = self.link_material_fixture()
+        decision['selection'][0]['effect'] = deepcopy(decision['context'])
+        prompt['choices'][0]['semantic']['effect'] = deepcopy(prompt['context'])
+        decision['context'] = prompt['context'] = None
+        self.assertEqual(bind_variants(decision, prompt, precise=False), [])
+        self.assertTrue(script_binding_conflict(decision, prompt))
+
     def test_different_values_of_one_shared_function_are_not_the_same_effect(self):
         card=dict(code=123,controller=0,location=4,sequence=0,position=1,instance_id=8)
         a=dict(handler_code=123,description=0,operation_line=20,labels=[],effect_value=1)
