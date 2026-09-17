@@ -289,8 +289,9 @@ def requirements(report, annotations=None):
                 if card.get('instance_id') is not None: drawn.setdefault(str(card['instance_id']), event['id'])
     from implicit_conditions import extract
     evidence = extract({**report, 'review': review})
-    for instance in evidence['random_instances']: drawn.setdefault(instance, 'uncertain-deck-result')
-    buckets = {'main': {}, 'extra': {}, 'opening': {}, 'random': {}}
+    for instance in evidence['random_instances']: drawn.setdefault(instance, 'recorded-random-result')
+    uncertain = set(evidence['uncertain_instances'])
+    buckets = {'main': {}, 'extra': {}, 'opening': {}, 'random': {}, 'uncertain': {}}
     unknown = []
     for key, entries in uses.items():
         card = entries[0]['card']
@@ -317,12 +318,13 @@ def requirements(report, annotations=None):
         def add(bucket):
             ident = (effective_code, constraint)
             row = buckets[bucket].setdefault(ident, {'code': effective_code, 'name': label, 'count': 0, 'instances': [],
-                    'nodes': [], 'uses': [], 'status': '用户核对' if override and any_card else '已记录使用', 'constraint': constraint})
+                    'nodes': [], 'uses': [], 'status': '来源待核对' if bucket == 'uncertain' else '用户核对' if override and any_card else '已记录使用', 'constraint': constraint})
             row['count'] += 1; row['instances'].append(key)
             row['nodes'] = list(dict.fromkeys(row['nodes'] + step_ids))
             row['uses'] = list(dict.fromkeys(row['uses'] + [actions[a].get('observed_summary') or actions[a]['summary'] for a in aid]))
         # A random hit is a dependency, not a deterministic deck requirement.
         if random and not any_card: add('random')
+        elif key not in initial and key in uncertain and not any_card: add('uncertain')
         else: add(group)
         if key in initial: add('opening')
     for item in edits['extra_conditions']:

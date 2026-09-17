@@ -137,9 +137,9 @@ module.exports=async function({page,nativeState,nativeWait,hostWait,waitHistory,
   assert.match(await page.locator('#review-log').innerText(),/费用 Cost/);
   assert.match(await page.locator('#review-log').innerText(),/连接召唤/);
   assert.match(await page.locator('#review-log').innerText(),/素材去向/);
-  const effectHint=page.locator('#review-log .effect-hint > button').first();
-  await effectHint.hover();assert(await page.locator('#review-log [role="tooltip"]').first().isVisible());
-  await effectHint.focus();assert(await page.locator('#review-log [role="tooltip"]').first().isVisible());
+  const effectDescription=page.locator('#review-log .log-effect-description p').first();
+  await effectDescription.scrollIntoViewIfNeeded();assert(await effectDescription.isVisible());
+  assert((await effectDescription.innerText()).trim().length>0,'Effect text is readable without hover or keyboard focus');
   await page.screenshot({path:path.join(evidence,'review-xyz-materials.png')});
   await page.locator('#review-log-close').click();
   await page.evaluate(()=>selectReviewNode('final'));

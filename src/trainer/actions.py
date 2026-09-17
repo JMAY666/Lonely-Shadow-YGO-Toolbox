@@ -41,8 +41,9 @@ def semantic_result(e):
         dest, reason = e.get('destination', {}), e.get('reason') or 0
         deck_op = e.get('deck_operation')
         if deck_op:
-            return {'position_refresh':'刷新卡组内部位置', 'move_to_bottom':f'将{card_names(cards)}放回我方卡组底部',
-                    'move_to_top':f'将{card_names(cards)}放回我方卡组顶部', 'reorder':f'调整{card_names(cards)}在卡组中的顺序'}.get(deck_op, '调整卡组内卡牌状态')
+            side = '我方' if dest.get('controller') == 0 else '对方' if dest.get('controller') == 1 else '未知方'
+            return {'position_refresh':'刷新卡组内部位置', 'move_to_bottom':f'将{card_names(cards)}放回{side}卡组底部',
+                    'move_to_top':f'将{card_names(cards)}放回{side}卡组顶部', 'reorder':f'调整{card_names(cards)}在{side}卡组中的顺序'}.get(deck_op, '调整卡组内卡牌状态')
         if reason & REASON_COST and reason & 0x4000 and e.get('origin', {}).get('location') == 2:
             return '支付费用：从我方手卡丢弃' + card_names(cards)
         if dest.get('location') == 32:
@@ -375,10 +376,11 @@ def project_actions(report):
                             if event_by_id[r['event_ref']].get('destination', {}).get('location') == 2} - {None}
                 returned = {c.get('instance_id') for c in step['cards']} - {None}
                 remaining = bool(revealed and selected and returned == revealed - selected and len(returned) == count)
+                side = '我方' if source['destination'].get('controller') == 0 else '对方' if source['destination'].get('controller') == 1 else '未知方'
                 if key[1] == 'move_to_bottom':
-                    step['text'] = f"将{'剩余 ' if remaining else ''}{count} 张卡按所选顺序放回我方卡组底部：{names}"
-                elif key[1] == 'move_to_top': step['text'] = f"将 {count} 张卡按所选顺序放回我方卡组顶部：{names}"
-                else: step['text'] = f"调整我方卡组中 {count} 张卡的顺序：{names}"
+                    step['text'] = f"将{'剩余 ' if remaining else ''}{count} 张卡按所选顺序放回{side}卡组底部：{names}"
+                elif key[1] == 'move_to_top': step['text'] = f"将 {count} 张卡按所选顺序放回{side}卡组顶部：{names}"
+                else: step['text'] = f"调整{side}卡组中 {count} 张卡的顺序：{names}"
         return steps
 
     result = [a for a in actions if a['id'] not in suppressed]

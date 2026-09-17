@@ -21,6 +21,29 @@ MATERIAL_REASONS = {0x40000: '融合召唤', 0x80000: '同调召唤', 0x100000: 
 # Audited against the working-copy scripts. Frozen-text digests fail closed on
 # changed wording; predicates identify an activation, never invent its outcome.
 AUDITED_EFFECTS = {
+    16387555: ('41eaaec6be4e0a69836b97b1f50e13b3555325c13ad7da26e712cbe50f80238c', [
+        {'number': 1, 'description': 16387555 * 16, 'location': 4, 'script': 'c16387555.spop'},
+        {'number': 2, 'description': 16387555 * 16 + 1, 'location': 16, 'script': 'c16387555.rmop'},
+    ]),
+    16509007: ('55cb7815cef74f0344f48b4d584240909aa2690deef3e38b4903cba0f2147544', [
+        {'number': 1, 'description': 16509007 * 16, 'location': 4, 'script': 'c16509007.thop'},
+        {'number': 2, 'description': 16509007 * 16 + 1, 'location': 16, 'script': 'c16509007.desop'},
+    ]),
+    42781164: ('3d65f3edd0339188217396b809bf17027f3a684c6846691efe67e9d1a5630b5e', [
+        {'number': 1, 'description': 42781164 * 16, 'location': 4, 'script': 'c42781164.thop'},
+        {'number': 2, 'description': 42781164 * 16 + 1, 'location': 16, 'script': 'c42781164.rthop'},
+    ]),
+    17209452: ('a9960e40b0b0ec57a08ac98915ff4876e0ef0a4e4fe4056389fa81c64faea16d', [
+        {'number': 1, 'description': 17209452 * 16, 'location': 2, 'script': 'c17209452.sumop'},
+        {'number': 2, 'description': 17209452 * 16 + 1, 'location': 16, 'script': 'c17209452.efop'},
+    ]),
+    14442329: ('55abc8981ce5f4ca0d0cfab7b91874c4f11056daa4c6c78f642400723f6faf16', [
+        {'number': 3, 'description': 14442329 * 16 + 1, 'location': 8, 'script': 'c14442329.spop'},
+    ]),
+    89392810: ('2763ce892fcba9ed45d41e2d943c9f2eb0de9e976411352678c894781bcd2e2f', [
+        {'number': 1, 'description': 89392810 * 16, 'location': 4, 'script': 'c89392810.thop'},
+        {'number': 2, 'description': 89392810 * 16 + 1, 'location': 16, 'script': 'c89392810.desop'},
+    ]),
     6128460: ('d2ae487bcad5f0f78e4bfadb15457af3a1717db638a6e32722d3a34a55813f25', [
         {'number':3,'description':0,'location':16,'script':'c6128460.thop'},
     ]),
@@ -204,15 +227,29 @@ def display_effects(report):
     """Refresh labels on a view copy; frozen plans, IDs and annotations stay put."""
     result=deepcopy(report)
     from review import legacy_review
+    from actions import semantic_result
     result['review'] = legacy_review(result)
     events={event.get('id'):event for event in result.get('events',[])}
     for action in result.get('actions',[]):
+        # Older frozen descriptions hard-coded our deck for both players.
+        for field in ('results', 'costs', 'execution'):
+            for item in action.get(field, []):
+                source = events.get(item.get('event_ref'), {})
+                if source.get('deck_operation'):
+                    if len(item.get('event_refs', [])) <= 1: item['text'] = semantic_result(source)
+                    elif source.get('destination', {}).get('controller') == 1:
+                        item['text'] = item.get('text', '').replace('我方卡组', '对方卡组')
+        if action.get('execution'):
+            action['observed_summary'] = ' → '.join(item['text'] for item in action['execution'])
+        if events.get(action.get('id'), {}).get('deck_operation'):
+            action['summary'] = semantic_result(events[action['id']])
         if action.get('kind')!='effect':continue
         event=events.get(action.get('activation_ref') or action.get('id'))
         if not event:continue
         clause=effect_clause(event,result.get('catalog',{}))
         action.update(effect_text=clause['full_text'],effect_number=clause['number'],effect_count=clause['count'],
-                      selected_effect_text=clause['text'],effect_text_source=clause['source'])
+                      selected_effect_text=clause['text'],effect_text_source=clause['source'],
+                      effect_script_reference=clause.get('script_reference'))
     for branch in result.get('branches',[]):
         if branch.get('report'):branch['report']=display_effects(branch['report'])
     from implicit_conditions import attach

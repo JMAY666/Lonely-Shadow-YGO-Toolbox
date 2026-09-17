@@ -154,7 +154,7 @@ function duelSummaryCards(plan,kind,limit=Infinity) {
   const cards=conditional?plan.expansion.conditions.slots.map(c=>({code:typeof c==='number'?c:null,name:OpeningRules.describe(c,plan.catalog),condition:OpeningRules.is(c),count:1})):kind==='opening'?plan.requirements?.opening||[]:marked;
   return cards.slice(0,limit).map(c=>{
     const node=kind==='opening'?'initial':final.id,random=kind==='final'&&reviewRandomDraw(c,final,plan),known=c.code&&!random;
-    const label=random?'随机抽牌':c.name||c.constraint||plan.catalog?.[c.code]?.name||'任意手牌';
+    const label=random?(random.label||'随机抽牌'):c.name||c.constraint||plan.catalog?.[c.code]?.name||'任意手牌';
     return `<figure><img src="${c.condition?'/condition-card.svg':known?`/pics/${Number(c.code)}.jpg`:'/review-back.svg'}" alt="${escape(label)}" loading="lazy"><figcaption>${escape(label)}</figcaption>${kind==='opening'?`<small>${c.condition?'条件集合 · ':''}×${c.count||1}</small>`:`<small class="duel-region">${escape(duelRegion(c))}</small>`}</figure>`;
   }).join('');
 }
@@ -175,7 +175,7 @@ function duelFinalNotes(plan,detailed=false) {
       return `<div class="duel-final-effect"><strong>${escape(label)}</strong>${detailed&&part&&!random?`<p class="preserve-lines">${escape(part.text)}</p>`:''}${value.note?.trim()?`<p class="duel-saved-note preserve-lines">${escape(value.note)}</p>`:''}</div>`;
     }).join('');
     if(!note&&!effects)return '';
-    const name=random?'随机抽牌':card.name||plan.catalog?.[card.code]?.name||`卡号 ${card.code}`;
+    const name=random?(random.label||'随机抽牌'):card.name||plan.catalog?.[card.code]?.name||`卡号 ${card.code}`;
     return `<article><strong>${escape(name)} · ${escape(duelRegion(card))}</strong>${note?`<p class="duel-saved-note preserve-lines">${escape(note)}</p>`:''}${effects}</article>`;
   }).join('');
   if(!general.length&&!notes)return '';

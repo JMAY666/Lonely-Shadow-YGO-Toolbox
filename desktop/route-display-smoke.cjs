@@ -50,4 +50,5 @@ module.exports=async function({page,plan,pass,evidence}) {
   } finally {await page.evaluate(id=>showPlan(id),plan.id);}
   assert.equal(JSON.stringify(await page.evaluate(id=>api('/api/plan/'+id),plan.id)),original);
   pass('Read-only legacy display: Balelynx effect two, connected opponent Impermanence/target/delayed negation, top drawer and colored confirmation; frozen source unchanged');
+  await require('./random-effects-smoke.cjs')({page,plan,pass,evidence});
 };

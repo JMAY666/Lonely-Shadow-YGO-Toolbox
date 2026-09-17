@@ -46,13 +46,14 @@ function tutorialOperationStages(item,node,plan,role='') {
   const dest=event.destination,origin=event.origin;
   const stage=(label,cs=cards,hint='',locations=true)=>({label:role?`${role} · ${label}`:label,role,cards:tutorialFlowCards(cs,node,plan,locations),hint});
   if(event.message===90)return [stage(`抽 ${cards.length} 张卡（随机）`,cards,'',false)];
+  if(event.message===30)return [stage(reviewDeckOperation(event,cards),cards,'',false)];
   const method=cards.find(c=>c.summon_method)?.summon_method||({61:'通常召唤',63:'特殊召唤',65:'反转召唤',54:'盖放'}[event.message]);
   if(method) {
     const materials=cards.flatMap(c=>c.materials||[]);
     return [...(materials.length?[stage('素材',materials)]:[]),stage(method)];
   }
   if(event.message===50&&dest) {
-    const deckOp={move_to_bottom:'放回卡组底部',move_to_top:'放回卡组顶部',reorder:'调整卡组顺序',position_refresh:'更新卡组位置'}[event.deck_operation];
+    const deckOp=reviewDeckOperation(event,cards);
     const operation=deckOp||(dest.location===16?(origin?.location===2&&(event.reason&0x4000)?'丢弃':'送墓'):dest.location===32?((dest.position&10)?'里侧除外':'除外'):dest.location&128?'成为素材':dest.location===2?(origin?.location===1?'检索':'回到手牌'):dest.location===1?'回到卡组':`移至${reviewPlace(dest)}`);
     const changedSide=origin?.controller!=null&&dest.controller!=null&&origin.controller!==dest.controller;
     const places=[origin&&![4,8].includes(origin.location)?reviewPlace(origin):'',
@@ -75,6 +76,10 @@ function tutorialAction(action,node,plan) {
     return {id:action.id,stages,notes};
   }
   if(action.kind==='effect') {
+    if(action.selected_effect_text&&action.effect_text_source!=='unknown'&&!cardActivation(action,plan)) {
+      const description=reviewEffectDescription(action,plan);
+      add(tutorialNote(`${description.label}：${description.text}`),'muted');
+    }
     const num=Number(action.effect_number),label=num>0?('①②③④⑤⑥⑦⑧⑨⑩'[num-1]||String(num)):'效果';
     stages.push({label:(actionSide(action)==='对方'?'对方 ':'')+(cardActivation(action,plan)||`发动${label}`),cards:tutorialFlowCards(action.cards,node,plan),text:action.cards?.length?'':'卡牌未记录'});
     for(const cost of action.costs||[])stages.push(...tutorialOperationStages(cost,node,plan,'Cost'));
@@ -142,6 +147,7 @@ function buildPlanTutorial(plan,includeBranches=false) {
   if(conditional)warnings.push('本图步骤来自实际起手实例；其他满足集合的卡牌尚未证明可替换，效果、费用、素材与后续步骤须规则引擎验证。');
   if(!openingKnown)warnings.push('旧方案未保存条件摘要，起手仅展示已记录手牌。');
   if(plan.requirements?.random?.length)warnings.push('随机依赖：'+plan.requirements.random.map(c=>`${c.name||c.constraint} ×${c.count}`).join('、'));
+  if(plan.requirements?.uncertain?.length)warnings.push('来源待核对：'+plan.requirements.uncertain.map(c=>`${c.name||c.constraint} ×${c.count}`).join('、'));
   if(plan.review?.complete===false)warnings.push('部分步骤快照缺失；流程按已记录动作展示。');
   warnings.push(...(plan.requirements?.warnings||[]));
   return {name:plan.name||plan.expansion?.name||'展开',opening,openingKnown,finalCards,steps,warnings,

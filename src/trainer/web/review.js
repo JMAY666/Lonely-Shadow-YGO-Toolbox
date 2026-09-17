@@ -11,7 +11,7 @@ const reviewNode = () => reviewUI.nodes.find(n=>n.id===reviewUI.node);
 const reviewMaterials = (n,c) => c.instance_id==null?[]:(n?.state?.cards||[]).filter(x=>x.overlay_target!=null&&x.overlay_target===c.instance_id);
 const reviewDefinition = c => reviewUI.report?.catalog?.[c?.code] || {};
 const reviewKnown = c => !!c?.code && c.identity_known!==false;
-// Derive a display-only identity from draw evidence, never from card names.
+// Derive a display-only identity from draws / deck-top reveals, never card names.
 // Frozen reports (including older saved plans) and their annotations stay intact.
 const reviewDrawCache = new WeakMap();
 function reviewRandomDraw(c,node=reviewNode(),report=reviewUI.report) {
@@ -20,10 +20,10 @@ function reviewRandomDraw(c,node=reviewNode(),report=reviewUI.report) {
     const draws=new Map(), initial=Number(String(report.initial_hand_ref||'0:0').split(':')[0]);
     for(const e of report.events||[]) {
       const seq=e.native_seq??Number(String(e.id).split(':')[0]);
-      if(e.message!==90||e.id===report.initial_hand_ref||seq<=initial)continue;
-      for(const card of e.cards||[])if(card.instance_id!=null&&card.controller===0) {
+      if(![30,90].includes(e.message)||e.id===report.initial_hand_ref||seq<=initial)continue;
+      for(const card of e.cards||[])if(card.instance_id!=null&&(e.message===30&&card.location===1||e.message===90&&card.controller===0)) {
         const key=String(card.instance_id);if(!draws.has(key))draws.set(key,[]);
-        draws.get(key).push({seq,event:e.id});
+        draws.get(key).push({seq,event:e.id,kind:e.message===30?'reveal':'draw',label:e.message===30?'随机牌':'随机抽牌',controller:card.controller});
       }
     }
     reviewDrawCache.set(report,draws);
@@ -34,10 +34,10 @@ function reviewRandomDraw(c,node=reviewNode(),report=reviewUI.report) {
   return reviewDrawCache.get(report).get(String(c.instance_id))?.find(d=>d.seq<=end)||null;
 }
 function reviewCardLabel(c,node,report=reviewUI.report) {
-  return reviewRandomDraw(c,node,report)?'随机抽牌':reviewKnown(c)?c.name||report?.catalog?.[c.code]?.name||String(c.code):'未知卡牌';
+  return reviewRandomDraw(c,node,report)?.label||(reviewKnown(c)?c.name||report?.catalog?.[c.code]?.name||String(c.code):'未知卡牌');
 }
 function reviewDisplayText(text,cards,node,report=reviewUI.report) {
-  for(const c of cards||[])if(c.name&&reviewRandomDraw(c,node,report))text=String(text||'').replaceAll(c.name,'随机抽牌');
+  for(const c of cards||[])if(c.name&&reviewRandomDraw(c,node,report))text=String(text||'').replaceAll(c.name,reviewCardLabel(c,node,report));
   return text||'';
 }
 const reviewPlace = l => {
@@ -245,7 +245,8 @@ function provenance(card,n,r=reviewUI.report) {
 }
 function renderReviewDetail() {
   const n=reviewUI.detailNode||reviewNode(), r=reviewUI.detailReport||reviewUI.report, c=reviewUI.selected;if(!c)return;
-  const random=!!reviewRandomDraw(c,n,r), known=reviewKnown(c)&&!random, d=known?r.catalog?.[c.code]||{}:{}, materials=reviewMaterials(n,c), sources=provenance(c,n,r);
+  const random=reviewRandomDraw(c,n,r), known=reviewKnown(c)&&!random, d=known?r.catalog?.[c.code]||{}:{}, materials=reviewMaterials(n,c), sources=provenance(c,n,r);
+  const randomDescription=random?.kind==='reveal'?`这张牌来自${random.controller===1?'对方':'我方'}卡组顶部翻开的牌，具体身份随本局卡组顺序变化，路线中用随机牌卡背表示。翻开后仍按效果选择要处理的牌，不表示随机选择除外。`:'本次由抽卡获得，路线中以随机卡背表示，不作为指定检索结果。实际使用的指定随机命中仍会列入随机依赖。';
   const editable=app.view==='history'&&flow.draft?.id===r.id;
   const edits=flow.draft?.id===r.id&&['history','confirmation'].includes(app.view)?reviewEdits():r.annotations||emptyEdits();
   const annotation=n.kind==='final'&&c.instance_id!=null?edits.cards[String(c.instance_id)]||'':null;
@@ -264,9 +265,9 @@ function renderReviewDetail() {
   if($('#copy-preview-card-name'))$('#copy-preview-card-name').hidden=!known || $('#deck-selection')?.hidden!==false;
   if(typeof updatePreviewMarkButton==='function')updatePreviewMarkButton();
   if(typeof updateDuelMarkButton==='function')updateDuelMarkButton();
-  $('#review-card-detail').innerHTML=`<img class="detail-card-art" src="${known?`/pics/${Number(c.code)}.jpg`:'/review-back.svg'}" alt="${escape(reviewCardLabel(c,n,r))}"><div class="detail-card-copy"><div class="detail-name"><h3>${escape(reviewCardLabel(c,n,r))}</h3><small>${known?`卡号 ${c.code}`:random?'随机抽到的 1 张牌':'身份未记录'}</small></div><p>${escape(stats.join(' · '))}</p>
+  $('#review-card-detail').innerHTML=`<img class="detail-card-art" src="${known?`/pics/${Number(c.code)}.jpg`:'/review-back.svg'}" alt="${escape(reviewCardLabel(c,n,r))}"><div class="detail-card-copy"><div class="detail-name"><h3>${escape(reviewCardLabel(c,n,r))}</h3><small>${known?`卡号 ${c.code}`:random?(random.kind==='reveal'?'卡组顶部翻开的 1 张牌':'随机抽到的 1 张牌'):'身份未记录'}</small></div><p>${escape(stats.join(' · '))}</p>
     ${materials.length||d.type&0x800000?`<div class="detail-tabs"><button id="review-body-tab" aria-pressed="${!reviewUI.materialTab}">本体</button><button id="review-material-tab" aria-pressed="${reviewUI.materialTab}">素材 ×${materials.length}</button></div>`:''}
-    ${reviewUI.materialTab?`<div class="material-list">${materials.map(m=>reviewCard(m,n.id,{name:true,face:reviewKnown(m),report:r})).join('')||'<p>当前没有素材。</p>'}</div>`:`<p class="detail-effect">${escape(known?d.desc||'本次记录未保存完整效果文本。':random?'本次由抽卡获得，路线中以随机卡背表示，不作为指定检索结果。实际使用的指定随机命中仍会列入随机依赖。':'当前节点未记录可公开的卡牌身份。')}</p><div class="card-provenance"><strong>截至本步的来源与移动</strong>${sources.length?sources.map(s=>`<p>${app.view==='history'&&r===reviewUI.report?`<button data-review-node="${escape(s.node.id)}">Step ${s.node.number}</button>`:`Step ${s.node.number}`} ${escape(s.text)}</p>`).join(''):'<p>来源未记录</p>'}</div>`}
+    ${reviewUI.materialTab?`<div class="material-list">${materials.map(m=>reviewCard(m,n.id,{name:true,face:reviewKnown(m),report:r})).join('')||'<p>当前没有素材。</p>'}</div>`:`<p class="detail-effect">${escape(known?d.desc||'本次记录未保存完整效果文本。':random?randomDescription:'当前节点未记录可公开的卡牌身份。')}</p><div class="card-provenance"><strong>截至本步的来源与移动</strong>${sources.length?sources.map(s=>`<p>${app.view==='history'&&r===reviewUI.report?`<button data-review-node="${escape(s.node.id)}">Step ${s.node.number}</button>`:`Step ${s.node.number}`} ${escape(s.text)}</p>`).join(''):'<p>来源未记录</p>'}</div>`}
     ${annotation!==null?reviewMarkEditor(c,d,edits,editable):''}${annotation!==null?`<label for="review-card-note">终场此卡说明 <small>关联本次卡牌实例</small></label><textarea id="review-card-note" rows="2" maxlength="4000" ${editable?'':'disabled'}>${escape(annotation)}</textarea>`:''}</div>`;
   if($('#review-body-tab'))$('#review-body-tab').onclick=()=>{reviewUI.materialTab=false;renderReviewDetail();};
   if($('#review-material-tab'))$('#review-material-tab').onclick=()=>{reviewUI.materialTab=true;renderReviewDetail();};
@@ -362,11 +363,29 @@ function renderRecordedStep(report,n,mode='compact') {
   const actions=(n.action_ids||[]).map(id=>(report.actions||[]).find(a=>a.id===id)).filter(Boolean);
   return (mode==='compact'?groupedLogActions(actions,report):actions).map(a=>reviewLogAction(a,n,context)).join('');
 }
+function reviewDeckOperation(event,cards=event.cards||[]) {
+  if(event.message===30)return `翻开${cards[0]?.controller===1?'对方':'我方'}卡组顶部 ${cards.length} 张随机牌`;
+  if(event.deck_operation) {
+    const side=event.destination?.controller===1?'对方':event.destination?.controller===0?'我方':'未知方';
+    return ({move_to_bottom:`放回${side}卡组最下面`,move_to_top:`放回${side}卡组最上面`,reorder:`调整${side}卡组顺序`,position_refresh:'更新卡组位置'})[event.deck_operation];
+  }
+  return '';
+}
+function reviewEffectDescription(action,report) {
+  const activation=cardActivation(action,report),specific=!activation&&action.selected_effect_text&&action.effect_text_source!=='unknown';
+  const number=Number(action.effect_number),symbol='①②③④⑤⑥⑦⑧⑨⑩'[number-1]||String(number);
+  return {label:specific?(number?`${symbol}效果`:'效果说明'):activation?'卡片效果原文':'效果原文（发动项待核对）',
+    text:specific?action.selected_effect_text:action.effect_text||report.catalog?.[action.cards?.[0]?.code]?.desc||'本次记录未保存完整效果文本。'};
+}
+function reviewEffectDescriptionHtml(action,report) {
+  const description=reviewEffectDescription(action,report);
+  return `<div class="log-effect-description"><small>${escape(description.label)}</small><p>${escape(description.text)}</p></div>`;
+}
 function reviewOperation(item,node,role='处理结果',context=reviewLogContext()) {
   const e=(context.report.events||[]).find(e=>e.id===(item.event_ref||item.id))||item;
   const cards=item.cards||e.cards||[], dest=e.destination, origin=e.origin;
   const names={50:dest?.location===16?'送墓':dest?.location===32?'除外':dest?.location&128?'成为素材':dest?.location===2&&origin?.location===1?'检索':dest?.location===2?'回收':'移动',53:'改变表示',54:'盖放',61:'通常召唤',63:'特殊召唤',65:'反转召唤',90:'抽卡',100:'支付 LP'};
-  const method=cards.find(c=>c.summon_method)?.summon_method||({75:'发动被无效',76:'效果被无效'}[e.message])||names[e.message]||'操作';
+  const method=reviewDeckOperation(e,cards)||cards.find(c=>c.summon_method)?.summon_method||({75:'发动被无效',76:'效果被无效'}[e.message])||names[e.message]||'操作';
   const materials=cards.flatMap(c=>c.materials||[]);
   return `<div class="log-operation"><small class="log-role">${escape(role)}</small><div class="log-flow">${materials.length?materials.map(c=>reviewLogCard(c,node,{report:context.report,name:true})).join('<b>＋</b>'):cards.map(c=>reviewLogCard(c,node,{report:context.report,name:true,location:origin||c.summon_origin||c})).join('')}<span class="log-arrow">→<em>${escape(method)}</em>→</span>${materials.length?cards.map(c=>reviewLogCard(c,node,{report:context.report,name:true,materials:reviewMaterials(context.nodes.find(n=>n.id===node),c).length})).join(''):`<span class="log-destination">${escape(dest?reviewPlace(dest):[61,63,65].includes(e.message)&&cards[0]?reviewPlace(cards[0]):e.message===90?'手牌':reviewDisplayText(item.text||e.result,cards,node,context.report)||'见实际记录')}</span>`}</div>
     <p class="log-summary">${escape(reviewDisplayText(item.text||eventSummary({...e,cards}),[...cards,...materials],node,context.report))}</p>${materials.length?`<p class="log-summary">${method==='超量召唤'?'参与卡牌成为结果怪兽的素材；当前数量以本步场面为准。':'参与卡牌的去向依下方记录，不能视作叠放素材。'}</p>`:''}</div>`;
@@ -378,7 +397,7 @@ function compactLocation(l) {
 function compactOperation(item,node,role='',context=reviewLogContext()) {
   const e=(context.report.events||[]).find(e=>e.id===(item.event_ref||item.id))||item;
   const cards=item.cards||e.cards||[], dest=e.destination, origin=e.origin;
-  const method=cards.find(c=>c.summon_method)?.summon_method||({50:dest?.location===16?'送墓':dest?.location===32?'除外':dest?.location&128?'成为素材':dest?.location===2&&origin?.location===1?'检索':dest?.location===2?'回收':'移动',53:'改变表示',54:'盖放',61:'通常召唤',63:'特殊召唤',65:'反转召唤',75:'发动被无效',76:'效果被无效',90:'抽卡',100:'支付 LP'}[e.message])||'处理结果';
+  const method=reviewDeckOperation(e,cards)||cards.find(c=>c.summon_method)?.summon_method||({50:dest?.location===16?'送墓':dest?.location===32?'除外':dest?.location&128?'成为素材':dest?.location===2&&origin?.location===1?'检索':dest?.location===2?'回收':'移动',53:'改变表示',54:'盖放',61:'通常召唤',63:'特殊召唤',65:'反转召唤',75:'发动被无效',76:'效果被无效',90:'抽卡',100:'支付 LP'}[e.message])||'处理结果';
   const materials=cards.flatMap(c=>c.materials||[]), opts={report:context.report,name:true,zone:false,position:false,miniLocation:true};
   const pictures=cs=>cs.map(c=>reviewLogCard(c,node,opts)).join('<b>＋</b>');
   const destination=dest?reviewPlace(dest):[61,63,65,54].includes(e.message)&&cards[0]?reviewPlace(cards[0]):e.message===90?'我方手牌':'';
@@ -405,7 +424,7 @@ function compactLogAction(a,n,context=reviewLogContext()) {
       if(context.edits.effects[source.id])stages.push(`<p class="preserve-lines">对方操作说明：${escape(context.edits.effects[source.id])}</p>`);
     }
     stages.push(...(a.results||[]).map(s=>compactOperation(s,n.id,undefined,context)));
-    return `<div class="compact-chain">${stages.join('<span class="chain-arrow">→</span>')}</div>${a.status!=='resolved'&&!a._interaction?`<p class="effect-status status-${escape(a.status)}">${escape(({pending:'已发动 · 尚未确认结算',negated:'发动被无效',disabled:'效果被无效'}[a.status])||a.status_label||'状态未记录')}</p>`:''}${activationResultMissing(a,context.report)?'<p>处理结果未记录；不能由发动推断成功生效。</p>':''}${context.edits.effects[a.id]?`<p class="preserve-lines">用户说明：${escape(context.edits.effects[a.id])}</p>`:''}`;
+    return `${reviewEffectDescriptionHtml(a,context.report)}<div class="compact-chain">${stages.join('<span class="chain-arrow">→</span>')}</div>${a._interaction?reviewEffectDescriptionHtml(a._interaction.source,context.report):''}${a.status!=='resolved'&&!a._interaction?`<p class="effect-status status-${escape(a.status)}">${escape(({pending:'已发动 · 尚未确认结算',negated:'发动被无效',disabled:'效果被无效'}[a.status])||a.status_label||'状态未记录')}</p>`:''}${activationResultMissing(a,context.report)?'<p>处理结果未记录；不能由发动推断成功生效。</p>':''}${context.edits.effects[a.id]?`<p class="preserve-lines">用户说明：${escape(context.edits.effects[a.id])}</p>`:''}`;
   }
   const e=(context.report.events||[]).find(e=>e.id===a.id)||{};
   return `<div class="compact-chain">${compactOperation({...e,cards:a.cards,text:a.summary},n.id,a.kind==='cost'?'Cost':'',context)}</div>`;
@@ -420,9 +439,7 @@ function reviewLogAction(a,n,context=reviewLogContext()) {
   if(context.mode==='compact'||replacement)body=compactLogAction(a,n,context);
   else if(a.kind==='effect') {
     const specific=!activation&&a.selected_effect_text&&a.effect_text_source!=='unknown';
-    const effectLabel=activation|| (specific?`${a.effect_number?`效果 ${a.effect_number} · `:''}${a.selected_effect_text.slice(0,48)}`:'具体效果待补充');
-    const tip=`effect-tip-${n.number}-${String(a.id).replaceAll(':','-')}`;
-    body=`<div class="log-flow">${(a.cards||[]).map(c=>reviewLogCard(c,n.id,{report:context.report,name:true})).join('')}<span class="effect-hint"><button type="button" aria-describedby="${tip}">${escape(effectLabel)}</button><span id="${tip}" role="tooltip">${escape(specific?a.selected_effect_text:(activation?'卡片本身的发动。完整卡片文本：\n':'具体发动效果尚未核实。完整卡片文本：\n')+(a.effect_text||'未记录'))}</span></span></div>
+    body=`${reviewEffectDescriptionHtml(a,context.report)}<div class="log-flow">${(a.cards||[]).map(c=>reviewLogCard(c,n.id,{report:context.report,name:true})).join('')}</div>
       <p class="effect-status status-${escape(a.status)}">${escape(({pending:'已发动 · 尚未确认结算',negated:'发动被无效',disabled:'效果被无效',resolved:'结算已完成 · 实际结果见下方'}[a.status])||a.status_label||'状态未记录')}</p>
       ${(a.costs||[]).map(s=>reviewOperation(s,n.id,'费用 Cost',context)).join('')}
       ${a.targets?.length?`<div class="log-operation"><small class="log-role">对象</small><div class="log-flow">${a.targets.map(c=>reviewLogCard(c,n.id,{report:context.report,name:true})).join('')}</div></div>`:''}
@@ -485,6 +502,7 @@ function summaryHtml(summary, savedPlan=null) {
     <section class="confirmation-section implicit-conditions"><h2>隐性条件</h2>${requirementRows(summary.implicit?.conditions,nodes)}<p>${escape(summary.implicit?.basis||'旧方案缺少识别依据，条件待核对。')}</p>${(summary.implicit?.warnings||[]).map(w=>`<p class="review-warning">${escape(w)}</p>`).join('')}</section>
     <section class="confirmation-section"><h2>展开使用资源</h2><h3>主卡组</h3>${requirementRows(summary.main,nodes)}<h3>EX 额外卡组</h3>${requirementRows(summary.extra,nodes)}</section>
     <section class="confirmation-section"><h2>随机依赖</h2>${summary.random?.length?`${requirementRows(summary.random,nodes)}<p class="review-warning">本路线依赖途中抽到指定卡牌，不属于已验证的稳定展开。</p>`:'<p>未识别到已使用的指定随机命中。</p>'}</section>
+    ${summary.uncertain?.length?`<section class="confirmation-section"><h2>来源待核对</h2>${requirementRows(summary.uncertain,nodes)}<p class="review-warning">这些卡牌的取得方式缺少充分记录，暂不能确认是定向选择还是随机结果。</p></section>`:''}
     <section class="confirmation-section"><h2>终场摘要</h2>${reviewFinalCards({id:'final',state:reviewNodes(savedPlan||reviewUI.report).find(n=>n.kind==='final')?.state||(savedPlan||reviewUI.report).final_state},savedPlan||reviewUI.report,edits,{compact:!savedPlan})}${summary.final?.notes?`<p class="preserve-lines">${escape(summary.final.notes)}</p>`:''}</section>
     <p class="review-warning">${escape(summary.basis||'按本次实际记录统计')}${(summary.warnings||[]).map(w=>'<br>'+escape(w)).join('')}</p>${summary.note?`<p class="preserve-lines">用户核对说明：${escape(summary.note)}</p>`:''}`;
 }

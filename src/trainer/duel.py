@@ -1,7 +1,7 @@
 """Read-only BO1 matching against the saved library. No engine or plan writes."""
 from collections import Counter
 from copy import deepcopy
-from implicit_conditions import check as check_implicit
+from implicit_conditions import check as check_implicit, attach as refresh_requirements
 from opening_conditions import has_conditions, match_hand
 
 
@@ -65,6 +65,10 @@ def resource_error(route, deck):
 def project(plan, deck, hand, catalog=None):
     """Each branch report already includes its inherited prefix. Siblings are
     alternatives, so do not sum their inventories or include the side deck."""
+    if isinstance(plan.get('requirements'), dict) and 'cost_candidates' in plan['requirements']:
+        try: plan = refresh_requirements(plan)
+        except (ValueError, KeyError, TypeError):
+            return None, 'incomplete', '条件待补全：冻结记录或人工核对内容无法重新对应'
     if plan.get('expansion', {}).get('turn_order', 'first') == 'second':
         return None, 'turn_order', '此方案记录为后手展开，本期仅支持先攻展开'
     conditions = plan.get('expansion', {}).get('conditions', {})

@@ -93,7 +93,8 @@ class ReviewProjectionTests(unittest.TestCase):
         report['events']=[moved];report['actions']=[action(moved)]
         report['review']=make_review(report,rows)
         summary=requirements(report)
-        self.assertEqual([(x['code'],x['count']) for x in summary['random']],[(102,1)])
+        self.assertEqual(summary['random'],[])
+        self.assertEqual([(x['code'],x['count']) for x in summary['uncertain']],[(102,1)])
         self.assertEqual(summary['implicit']['status'],'pending')
         self.assertEqual(summary['opening'],[])
 

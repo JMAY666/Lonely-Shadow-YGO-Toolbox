@@ -251,3 +251,6 @@ textarea:focus-visible { outline: 2px solid #619fc2; outline-offset: 2px; }
 .log-connected .compact-chain { align-items:flex-start; }
 .log-connected .chain-stage { min-width:72px; max-width:118px; }
 .log-connected .log-role { min-height:32px; white-space:normal; overflow-wrap:anywhere; }
+.log-effect-description { margin:8px 0 12px; padding:9px 11px; border-left:2px solid var(--border-selected); background:var(--surface-raised); }
+.log-effect-description small { color:var(--text-accent); font-weight:600; }
+.log-effect-description p { margin:4px 0 0; white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.7; font-size:12px; }

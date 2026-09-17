@@ -44,6 +44,14 @@ test('tutorial reads the frozen plan only and preserves costs, targets, notes an
   assert.match(svg,/路线 &lt;测试&gt;/);assert.match(svg,/用户备注 &amp; &lt;保留&gt;/);
   assert.match(svg,/fill="#b33737"/);assert.equal(JSON.stringify(plan),before);
 });
+test('tutorial shows the identified effect and random deck-top outcomes without fixing the opponent identities',()=>{
+  const r=setup(),plan=require('./fixtures/random-reveal.cjs')(),before=JSON.stringify(plan);
+  const model=r.buildPlanTutorial(plan),svg=r.renderPlanTutorialSvg(model);
+  assert.match(svg,/作为同调素材送去墓地/);assert.match(svg,/翻开对方卡组顶部/);assert.match(svg,/随机牌/);
+  assert.match(svg,/放回对方卡组最下面/);assert(!svg.includes('示例翻牌'));assert(!svg.includes('/pics/52155219'));
+  assert.equal(JSON.stringify(plan),before);
+});
+
 test('field card activation without extra actions stays a simple card stage in old frozen plans',()=>{
   const r=setup(),plan=fixture(),a=plan.actions[0];
   plan.catalog[10].type=0x80002;a.cards[0].name='转生炎兽的圣域';a.engine_effect={effect_type:0x1a};a.results=[];a.costs=[];a.targets=[];
@@ -59,6 +67,9 @@ test('negated and unrecorded outcomes and random dependencies remain explicit',(
   const svg=r.renderPlanTutorialSvg(r.buildPlanTutorial(plan));
   assert.match(svg,/发动被无效/);assert(!svg.includes('处理结果未记录'));assert.match(svg,/Cost/);assert.match(svg,/随机依赖：需要随机命中 ×1/);
   assert(!svg.includes('data-tutorial-role="检索"'));
+  plan.requirements.random=[];plan.requirements.uncertain=[{name:'取得方式缺少记录',count:1}];
+  const uncertain=r.renderPlanTutorialSvg(r.buildPlanTutorial(plan));
+  assert.match(uncertain,/来源待核对：取得方式缺少记录 ×1/);assert(!uncertain.includes('随机依赖：'));
 });
 test('position mini maps accompany action and final cards using recorded zones, without mutating the plan',()=>{
   const r=setup(),plan=fixture(),actor=plan.actions[0].cards[0];

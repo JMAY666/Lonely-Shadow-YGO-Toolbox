@@ -528,7 +528,8 @@ async function activatePot(sid) {
   assert.equal(await page.locator('#review-log .log-action h4').filter({hasText: /攻击宣言|伤害步骤|战斗结果|受到.*伤害/}).count(), 0);
   await page.screenshot({ path: path.join(evidence, 'report.png') });
   if (report.actions.some(a => a.kind === 'effect')) {
-    assert(await page.locator('#review-log .effect-hint').count() > 0);
+    const effectDescription=page.locator('#review-log .log-effect-description p').first();
+    assert(await effectDescription.isVisible());assert((await effectDescription.innerText()).trim().length>0);
     assert((await page.locator('#review-log .log-role').first().innerText()).includes('处理结果'));
   }
   await page.locator('.review-evidence > summary').click();

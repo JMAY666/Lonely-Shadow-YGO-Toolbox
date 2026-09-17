@@ -60,7 +60,7 @@ test('costs, targets, failed effects and horizontal materials have distinct imag
     evidence_refs:['2:0'],costs:[{event_ref:'2:0',cards:[c]}],targets:[c],results:[]};
   const html=r.reviewLogAction(a,{id:'node',number:2});
   assert.match(html,/费用 Cost/);assert.match(html,/>对象</);assert.match(html,/发动被无效/);
-  assert.match(html,/具体效果待补充/);assert.match(html,/aria-describedby=/);assert.match(html,/role="tooltip"/);
+  assert.match(html,/效果原文（发动项待核对）/);assert.match(html,/log-effect-description/);assert.match(html,/①：费用；处理。②：其他效果。/);
   assert(!html.includes('<注入>'));assert((html.match(/data-review-card=/g)||[]).length>=3);
   const summon={id:'4:0',kind:'summon',cards:[{...c,materials:[{...c,instance_id:2},{...c,instance_id:3}],summon_method:'连接召唤'}],summary:'连接召唤',evidence_refs:[]};
   const log=r.reviewLogAction(summon,{id:'node',number:2});
@@ -144,6 +144,24 @@ test('provenance stops at selected boundary and never merges an identical-name c
   r.reviewUI.nodes=[];r.reviewUI.report=null;
   assert.equal(r.provenance(c,saved.review.nodes[1],saved)[0].node.id,'initial');
 });
+test('deck-top reveals and their later outcomes use random backs, selected effects and real return side',()=>{
+  const r=setup(),plan=require('./fixtures/random-reveal.cjs')(),before=JSON.stringify(plan),node=plan.review.nodes[1];
+  r.reviewUI.report=plan;r.reviewUI.nodes=plan.review.nodes;r.reviewUI.node=node.id;
+  for(const mode of ['compact','detailed']) {
+    r.reviewUI.logMode=mode;
+    const html=r.reviewLogAction(plan.actions[0],node);
+    assert.match(html,/②效果/);assert.match(html,/这张卡作为同调素材送去墓地的场合才能发动/);
+    assert.match(html,/翻开对方卡组顶部 2 张随机牌/);assert.match(html,/放回对方卡组最下面/);
+    assert(!html.includes('示例翻牌'));assert(!html.includes('/pics/52155219'));assert(!html.includes('/pics/56003780'));
+    assert.equal((html.match(/class="review-card[^\"]*random-card/g)||[]).length,4);
+  }
+  const revealed=plan.events[1].cards[0];
+  assert.match(r.reviewCard(revealed,'initial',{face:true}),/pics\/52155219/);
+  assert.match(r.reviewCard({...revealed,location:32,position:5},'final',{face:true,name:true}),/随机牌/);
+  assert.match(r.reviewCard({...revealed,instance_id:99},'final',{face:true,name:true}),/pics\/52155219/);
+  assert.equal(JSON.stringify(plan),before);
+});
+
 test('illegal Link defense is flagged instead of drawn as legal defense',()=>{
   const r=setup();r.reviewUI.report={catalog:{10:{type:0x4000001}}};
   const html=r.reviewCard({code:10,controller:0,location:4,position:4});

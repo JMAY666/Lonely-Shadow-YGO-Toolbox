@@ -22,6 +22,25 @@ STONE_TEXT = ('这个卡名的②的效果1回合只能使用1次。\n'
 
 
 class TextTests(unittest.TestCase):
+    def test_killer_tune_effects_use_audited_text_and_script_descriptions(self):
+        catalog=json.loads((Path(__file__).parent/'fixtures/killer_tune_catalog.json').read_text(encoding='utf-8'))
+        cases=[(16387555,4,0,1),(16387555,16,1,2),(16509007,4,0,1),(16509007,16,1,2),
+               (42781164,4,0,1),(42781164,16,1,2),(17209452,2,0,1),(17209452,16,1,2),
+               (14442329,8,1,3),(89392810,4,0,1),(89392810,16,1,2)]
+        for code,zone,index,number in cases:
+            with self.subTest(code=code,number=number):
+                e=event(1,70,cards=[card(code,1,zone)],effect={'description_id':code*16+index})
+                answer=effect_clause(e,catalog)
+                self.assertEqual(answer['number'],number)
+                self.assertEqual(answer['source'],'audited_text_and_activation')
+        # Spell activation itself does not activate the field spell's third effect.
+        activation=event(1,70,cards=[card(14442329,1,8)],effect={'description_id':0},engine_effect={'effect_type':0x10})
+        self.assertIsNone(effect_clause(activation,catalog)['number'])
+        cue=event(1,70,cards=[card(16387555,1,16)],effect={'description_id':16387555*16+1})
+        self.assertIn('从对方卡组上面把2张卡翻开',effect_clause(cue,catalog)['text'])
+        catalog['16387555']['desc']+='变化'
+        self.assertIsNone(effect_clause(cue,catalog)['number'])
+
     def test_mikailis_search_description_maps_to_effect_three_not_two(self):
         code = 42741437
         text = ('4星怪兽×2\n这个卡名的①③的效果1回合各能使用1次。\n'
@@ -120,6 +139,19 @@ class ProcedureTests(unittest.TestCase):
 
 
 class OutcomeTests(unittest.TestCase):
+    def test_opponent_deck_bottom_is_not_relabelled_as_our_deck_in_legacy_views(self):
+        from card_semantics import display_effects
+        from actions import semantic_result
+        c={**card(MONSTER,2,1),'controller':1}
+        e=move(3,c,1,1,0);e['origin']['controller']=e['destination']['controller']=1
+        e['deck_operation']='move_to_bottom'
+        self.assertIn('对方卡组底部',semantic_result(e))
+        r=report([e]);r['actions']=[{'id':'2:0','kind':'effect','evidence_refs':['3:0'],
+            'results':[{'event_ref':'3:0','text':'错误的我方卡组底部'}]}]
+        before=deepcopy(r);v=display_effects(r)
+        self.assertIn('对方卡组底部',v['actions'][0]['results'][0]['text'])
+        self.assertEqual(r,before)
+
     def test_cost_after_chaining_comes_before_draw_in_execution(self):
         source={'effect_id':10,'effect_handle':9,'handler_instance':1}
         cost=move(2,card(MONSTER,2,2),2,16,0x4080);cost['cause']=source

@@ -10,12 +10,43 @@ from copy import deepcopy
 from modular_decisions import digest
 from card_semantics import zone_name
 
-VERSION = 1
+VERSION = 2
 RESOURCE_ZONES = (1, 16, 32, 64, 128)
 
 
 def location(value):
     return 128 if isinstance(value, int) and value & 128 else value
+
+
+def same_effect(source, other):
+    """Only a recorded native identity can extend a selection's time window."""
+    if not source or not other: return False
+    key = 'effect_handle' if source.get('effect_handle') and other.get('effect_handle') else 'effect_id'
+    return bool(source.get(key) and source[key] == other.get(key) and
+                source.get('handler_instance') is not None and
+                source['handler_instance'] == other.get('handler_instance') and
+                source.get('description') == other.get('description'))
+
+
+def selection_end(edge, modules, connections, seq):
+    """A summon may ask for option, zone and position before moving the card.
+
+    Follow only the same resolving effect's non-card prompts. A new card
+    selection, missing response, effect change or cycle stops the association.
+    """
+    source = (modules.get(edge.get('from'), {}).get('effects') or {}).get('context')
+    following = modules.get(edge.get('to'), {})
+    end = following.get('seq', seq)
+    seen = {edge.get('from')}
+    while following.get('id') not in seen and following.get('prompt') in (13, 14, 18, 19):
+        if not same_effect(source, (following.get('effects') or {}).get('context')): break
+        seen.add(following['id'])
+        next_edges = [e for e in connections if e.get('from') == following['id']]
+        if len(next_edges) != 1 or not next_edges[0].get('decision') or not next_edges[0].get('response_refs'): break
+        next_module = modules.get(next_edges[0].get('to'), {})
+        if next_module.get('seq', 0) <= end: break
+        following, end = next_module, next_module['seq']
+    return end, source
 
 
 def extract(report, generic_instances=()):
@@ -70,12 +101,16 @@ def extract(report, generic_instances=()):
             # order. Bind a selected identity to its observed outgoing movement
             # within this decision's resolution, never to a guessed deck index.
             if card['location'] == 1 and (len(actual) != 1 or actual[0].get('instance_id') is None):
-                end = modules.get(edge.get('to'), {}).get('seq', seq)
+                immediate = modules.get(edge.get('to'), {}).get('seq', seq)
+                end, source = selection_end(edge, modules, graph.get('connections', []), seq)
                 moved = [c for e in events if seq < e.get('native_seq', 0) <= end and e.get('message') == 50
                          and (e.get('origin') or {}).get('controller') == 0 and (e.get('origin') or {}).get('location') == 1
                          and (e.get('destination') or {}).get('location') != 1
+                         and (e.get('native_seq', 0) <= immediate or same_effect(source, e.get('cause')))
                          for c in e.get('cards', []) if c.get('code') == card['code'] and c.get('instance_id') not in used]
-                actual = moved[:1]
+                remaining = sum(s.get('card') == card for s in edge['decision']['selection']) - sum(
+                    s['seq'] == seq and s['code'] == card['code'] and s['location'] == 1 for s in selections)
+                actual = moved[:1] if len(moved) == remaining else []
             if len(actual) != 1 or actual[0].get('instance_id') is None:
                 pending.append('选择的卡牌实例无法唯一对应，份数待核对'); continue
             used.add(actual[0]['instance_id'])
@@ -108,10 +143,12 @@ def extract(report, generic_instances=()):
             timeline.append(item)
     timeline.sort(key=lambda item: (item['seq'], item['order']))
     produced, selected_at, seen_conditions, tainted = {}, {}, set(), set()
+    random_instances, uncertain_instances = set(), set()
     for item in timeline:
         key = item.get('instance')
         if item['kind'] == 'random':
             tainted.update(item['random_instances'])
+            random_instances.update(item['random_instances'])
         elif item['kind'] == 'need':
             selected_at[key] = item['location']
             if item['location'] not in RESOURCE_ZONES or key in tainted: continue
@@ -140,6 +177,7 @@ def extract(report, generic_instances=()):
             if item['location'] == 1 and selected_at.get(key) != 1 and item['controller'] == 0:
                 item.update(kind='unknown_result', reason='随机或未记录定向选择的卡组处理，需确认实际结果')
                 tainted.add(key)
+                uncertain_instances.add(key)
                 pending.append(f"第{item.get('step') or '?'}步卡组处理缺少确定的选择依据，不能提取为指定卡牌条件")
             produced[key] = {'node': item['node'], 'step': item['step'], 'evidence': item['evidence']}
             selected_at.pop(key, None)
@@ -155,7 +193,7 @@ def extract(report, generic_instances=()):
         target['id'] = digest([target['id'], row['id']])
     return {'schema': VERSION, 'revision': digest([review.get('revision'), graph, events, sorted(generic_instances), VERSION]),
             'status': 'pending' if pending else 'recorded', 'conditions': list(grouped.values()), 'timeline': timeline,
-            'random_instances': sorted(tainted),
+            'random_instances': sorted(random_instances), 'uncertain_instances': sorted(uncertain_instances - random_instances),
             'warnings': list(dict.fromkeys(pending)), 'basis': '由冻结的操作选择、实例与区域变化补算；按步骤检查，规则合法性仍由当前引擎判断。'}
 
 
@@ -163,6 +201,12 @@ def attach(report, branches=True):
     """Read-only upgrade, including each alternative branch independently."""
     value = deepcopy(report)
     summary = value.setdefault('requirements', {})
+    if 'cost_candidates' in summary and value.get('review') and value.get('events'):
+        # Recompute generated summaries from frozen evidence, retaining manual
+        # annotations. Old random misclassifications must not survive forever.
+        from review import requirements
+        value['requirements'] = requirements(value)
+        summary = value['requirements']
     generic = {str(i) for r in summary.get('opening', []) if r.get('code') is None and r.get('constraint') == '任意手牌' for i in r.get('instances', [])}
     summary['implicit'] = extract(value, generic)
     for branch in value.get('branches', []) if branches else []:
