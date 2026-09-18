@@ -37,3 +37,7 @@
 .second-hints fieldset{flex:1 1 100%;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px;border:1px solid var(--border-subtle);min-width:0}
 .second-hints fieldset label{min-width:0;overflow-wrap:anywhere}
 .second-hint-history{border-top:1px solid var(--border-subtle);padding-top:10px}
+.second-routes fieldset{display:flex;flex-wrap:wrap;gap:12px;border:1px solid var(--border-subtle);width:100%;min-width:0}
+.second-routes details{margin-top:12px}
+.second-routes li{overflow-wrap:anywhere}
+.second-routes li small{display:block}

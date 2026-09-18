@@ -1,0 +1,31 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+module.exports=async({page,application,evidence,pass})=>{
+  const fixture=JSON.parse(fs.readFileSync(path.join(evidence,'second-routes-ui.json'),'utf8'));
+  await page.evaluate(async fixture=>{
+    await switchModule('duel');duelUI.state=newDuel();const s=duelState();s.mode='BO1';s.operationMode='manual';
+    const doc=await api('/api/second-duel/state',{id:fixture.doc_id});
+    setSecondWorkspace({doc,generation:0});s.stage=duelStages.plans;s.reached=duelStages.plans;renderDuel();
+  },fixture);
+  assert(await page.locator('#second-routes').isVisible());
+  assert(await page.locator('[data-second-route-choice]').count()>0);
+  const before=await page.evaluate(()=>structuredClone(secondWorkspace().doc.current));
+  const choices=await page.evaluate(()=>secondWorkspace().doc.route_panel.history.at(-1).choices.length);
+  await page.locator('[data-second-route-choice]').first().click();
+  await page.waitForFunction(n=>secondWorkspace().doc.route_panel.history.at(-1).choices.length===n+1&&!secondUI.busy,choices);
+  assert.deepEqual(await page.evaluate(()=>secondWorkspace().doc.current),before);
+  await page.locator('#second-route-results details summary').first().click();
+  await page.locator('#second-route-results').scrollIntoViewIfNeeded();
+  await page.screenshot({path:path.join(evidence,'second-routes.png'),preserveScroll:true});
+  await application.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().find(w=>!w.getParentWindow()).setContentSize(900,650));
+  await page.waitForFunction(()=>innerWidth===900);
+  assert(await page.locator('#second-workspace').evaluate(el=>el.scrollWidth<=el.clientWidth+1));
+  await page.locator('#second-route-results').scrollIntoViewIfNeeded();
+  await page.screenshot({path:path.join(evidence,'second-routes-narrow.png'),preserveScroll:true});
+  await application.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().find(w=>!w.getParentWindow()).setContentSize(1280,900));
+  await page.evaluate(async()=>{await secondSubmit('choice',{note:'TEST ONLY observation changed'});});
+  assert(await page.locator('[data-second-route-choice]').count()===0);
+  assert.equal(await page.evaluate(()=>secondWorkspace().doc.capabilities.engine_reconstruction),false);
+  await page.evaluate(async()=>{await secondSubmit('close',{});});
+  pass('Second-player routes show conditional clearing, source steps and history; planning spends no resources, changed observations disable adoption and narrow layout fits');
+};

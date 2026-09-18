@@ -56,6 +56,7 @@ module.exports=async({page,application,root,evidence,pass})=>{
   if(process.env.YGO_MODULAR_IMPLICIT_ONLY==='1')await require('./implicit-conditions-smoke.cjs')({page,root,evidence,pass});
   if(process.env.YGO_MODULAR_PLANNING_ONLY==='1')await require(process.env.YGO_PRECOMPUTE_RACES_ONLY==='1'?'./precompute-races-smoke.cjs':'./planning-preferences-smoke.cjs')({page,application,root,evidence,pass});
   if(process.env.YGO_MODULAR_FORECAST_ONLY==='1')await require('./duel-forecast-outcome-smoke.cjs')({page,evidence,pass});
+  if(process.env.YGO_MODULAR_SECOND_ROUTES_ONLY==='1')await require('./second-routes-smoke.cjs')({page,application,evidence,pass});
   await page.evaluate(async()=>{await refreshHistory();flow.restarting=false;await switchModule('modular');});
   assert(await page.locator('#modular').isVisible());
   await page.screenshot({path:path.join(evidence,'modular.png')});

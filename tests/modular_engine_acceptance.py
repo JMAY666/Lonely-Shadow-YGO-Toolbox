@@ -116,6 +116,10 @@ def main(runtime, url, evidence):
                 answer(choice['response'],s)
             else:raise AssertionError(json.dumps(p))
         raise AssertionError('Unsettled core')
+    if os.environ.get('YGO_MODULAR_SECOND_ROUTES_ONLY')=='1':
+        from modular_second_routes import run
+        run(runtime,evidence,api,current,answer,choose,save,finish,use_session,wait,lambda:sid,fixture_selection)
+        return
     if os.environ.get('YGO_MODULAR_SECOND_HINTS_ONLY')=='1':
         from modular_second_hints import run
         run(runtime,evidence,api,start,current,answer,choose,finish,use_session,wait,lambda:sid)

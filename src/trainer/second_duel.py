@@ -53,6 +53,8 @@ class SecondDuels:
         self.cache = {}
         from second_hints import SecondHints
         self.hints = SecondHints(self)
+        from second_routes import SecondRoutes
+        self.routes = SecondRoutes(self)
 
     def load(self, key):
         key = identifier(key)
@@ -119,6 +121,9 @@ class SecondDuels:
         value['catalog'] = deepcopy(doc.get('catalog', {}))
         value['hint_options'] = self.hints.options()
         value['advice'] = self.hints.public(doc)
+        value['route_panel'] = self.routes.public(doc)
+        value['capabilities']['engine_reconstruction'] = value['route_panel']['current']
+        value['capabilities']['routes'] = value['route_panel']['current']
         for hint in value.get('advice_history', []):
             hint.pop('known_state', None)
         return value
@@ -253,6 +258,7 @@ class SecondDuels:
                                       'source': 'user_confirmed', 'time_ms': self.now(), 'revision': updated['revision'],
                                       'summary': summary, 'before': before, 'after': deepcopy(updated['current'])})
             self.save(updated)
+            self.routes.invalidate(doc['id'])
             return self.public(updated)
 
     def card(self, value):
@@ -423,6 +429,8 @@ class SecondDuels:
         raise ValueError('尚未支持此类后攻填报，原状态保留')
 
     def dispatch(self, action, body):
+        if action in ('route-sources', 'route-sync', 'route-generate', 'route-choose'):
+            return self.routes.dispatch(action, body)
         if action == 'advice':
             return self.hints.generate(body)
         if action == 'advice-choice':

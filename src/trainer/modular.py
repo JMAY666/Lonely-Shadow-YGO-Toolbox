@@ -705,7 +705,7 @@ class Modular:
             if not state['running'] or state['answered'] or state['player'] != 0:
                 raise ValueError('引擎尚未开放我方决策')
             key = digest([state, expected[2], ctx['precise'], ctx['goal'], ctx.get('original_goal'), ctx['preference'],
-                          ctx.get('forecast_steps'), options, EXTRACTOR_VERSION])
+                          ctx.get('forecast_steps'), ctx.get('forecast_meta', {}).get('second_constraints'), options, EXTRACTOR_VERSION])
             started = time.monotonic(); before = self.planning_cache.stats.copy()
             if refresh: self.planning_cache.discard(sid, 'search')
             result = None if refresh else self.planning_cache.get('search', sid, key)
@@ -741,6 +741,7 @@ class Modular:
         actual_history=self.decision_history(sid) + ctx.get('forecast_steps', [])
         edges = self.library.edges(ctx['selected']); bounds = {**LIMITS, **(limits or {})}
         forecast = 'forecast_meta' in ctx
+        second = ctx.get('forecast_meta', {}).get('second_constraints')
         marked_goals = [e for e in edges if e.get('terminal') and e.get('terminal_marks')] if forecast else []
         actual_facts=facts_from_report(self.store._report(sid)) if any(edge.get('if_condition') for edge in edges) else []
         state.setdefault('_if_memory', {'chains':{},'facts':actual_facts})
@@ -846,6 +847,9 @@ class Modular:
                 nodes += 1; extended = path+[current['raw']+':'+response]
                 try:
                     following = self.bridge(sid, state, extended, scenario)
+                    if second and (following['state'].get('turn'), following['state'].get('phase')) != (2, 4):
+                        rejected['后攻本期仅验证我方首回合主要阶段 1，战斗和跨回合尚未覆盖'] += 1
+                        continue
                     reveals = forecast_reveals(following['batches'], current['state'], current.get('_unknown_draws', []))
                     selected=next((b.get('effect') for b in response_bindings(prompt,response) if b.get('effect')),None)
                     if_memory=advance_facts(current.get('_if_memory'),current['state'],following['state'],following['batches'],selected)
@@ -937,6 +941,10 @@ class Modular:
                                 terminals.append((edge, marked_terminal(edge, visible_terminal, ctx['precise'])))
                         reached_goals = set()
                         for goal_edge, marked in terminals:
+                            if second and any(c.get('instance_id') in second.get('clear_instances', []) and
+                                              c.get('controller') == 1 and c.get('location') == 4 for c in following['state']['cards']):
+                                rejected['来源终场已满足，但本次选定的对手公开怪兽仍未处理'] += 1
+                                continue
                             if any(c.get('instance_id') in uncertain_cards and c.get('location') in (4,8) for c in following['state']['cards']):
                                 unknown=True;continue
                             terminal = visible_terminal
@@ -976,7 +984,7 @@ class Modular:
                     else: rejected[str(error)] += 1
         candidates = list(candidates.values()) if forecast else list({c['id']: c for c in candidates}.values())
         verified_nodes = budget_used()
-        if scenario == 0 and candidates and state['state'].get('turn_player') == 0:
+        if scenario == 0 and candidates and state['state'].get('turn_player') == 0 and not second:
             # One named, repeatable interference model; no claims beyond its scope.
             if forecast: ctx['forecast_progress'] = {'nodes': nodes, 'candidates': len(candidates), 'phase': '四种偏好评价与限定干扰校验'}
             stress = self.search(sid, scenario=1, all_preferences=all_preferences, limits={**bounds, 'seconds': min(4, bounds['seconds']), 'nodes': min(80, bounds['nodes'])})
