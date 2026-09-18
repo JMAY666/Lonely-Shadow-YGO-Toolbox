@@ -211,6 +211,31 @@ function duelNodeDetail(node,mode='detailed') {
   const source=duelNodeSource(node),edit=source.report.annotations?.nodes?.[source.node.id];
   return `<h3>${escape(node.label)} · ${escape(edit?.name||node.title||(node.id==='initial'?'起手':node.id==='final'?'终场':`Step ${node.number}`))}</h3>${edit?.notes?`<p class="preserve-lines">${escape(edit.notes)}</p>`:''}${renderRecordedStep(source.report,source.node,mode)}`;
 }
+function duelStepPreview(node,source) {
+  const {report,node:recorded}=source,edit=report.annotations?.nodes?.[recorded.id];
+  const template=document.createElement('template');
+  template.innerHTML=renderRecordedStep(report,recorded,'compact');
+  const actions=[...template.content.querySelectorAll('.log-action')];
+  const entries=actions.length?actions:[template.content];
+  const excerpt=(text,length=88)=>{const chars=Array.from(String(text||'').replace(/\s+/g,' ').trim());return chars.length>length?chars.slice(0,length-1).join('')+'…':chars.join('');};
+  const rows=entries.slice(0,2).map(entry=>{
+    const card=entry.querySelector('[data-review-card]');
+    const name=card?.querySelector('img')?.alt||'';
+    const roles=[...entry.querySelectorAll('.log-role')].map(el=>el.textContent.trim()).filter(Boolean);
+    const text=roles.join(' → ')||entry.querySelector('h4')?.textContent||(recorded.kind==='initial'?`起手 ${report.initial_hand?.length||entry.querySelectorAll('[data-review-card]').length} 张` :recorded.kind==='final'?'查看终场卡牌与有效效果':'查看本步操作');
+    const status=entry.querySelector('.effect-status')?.textContent;
+    return `<div class="duel-step-peek-row">${card?.outerHTML||''}<div><strong>${escape(excerpt(name,40))}</strong><p>${escape(excerpt(status?`${status} · ${text}`:text))}</p></div></div>`;
+  }).join('');
+  return `<h3>${escape(node.label)} · ${escape(excerpt(edit?.name||node.title||(node.id==='initial'?'起手':node.id==='final'?'终场':`Step ${node.number}`),50))}</h3>${rows}<small class="duel-step-peek-hint">${actions.length?`共 ${actions.length} 项操作 · `:''}点击步骤查看完整内容</small>`;
+}
+function fitDuelStepPreview(panel,placement) {
+  panel.classList.toggle('brief-step-preview',placement.height<210);
+  panel.classList.toggle('text-step-preview',placement.height<135);
+  if(panel.offsetHeight>placement.height)panel.classList.add('brief-step-preview','text-step-preview');
+  // A preview that cannot fit even its summary should stay closed, never show
+  // just the heading or intercept the step and navigation beneath it.
+  return panel.offsetHeight<=placement.height+1;
+}
 function duelGraphHtml() {
   return duelStepViewHtml(duelState(),'duel');
 }
@@ -486,12 +511,12 @@ function duelPreviewPlacement({anchor,graph,width,height,viewport,footer,beside=
 function paintDuelPreview() {
   const s=duelState(),plan=duelUI.previewKind==='plan'?s.result?.matches.find(p=>p.id===duelUI.previewId):null,node=duelUI.previewKind==='node'?s.graph?.nodes.find(n=>n.key===duelUI.previewId):null;
   if(!plan&&!node)return;
-  $('#duel-preview-content').innerHTML=plan?`<div class="duel-preview-modes" role="group" aria-label="预览方式"><button data-duel-preview-mode="compact" aria-pressed="${!duelUI.detailPreview}">简略</button><button data-duel-preview-mode="detailed" aria-pressed="${duelUI.detailPreview}">详细</button></div>${duelPlanSummary(plan,duelUI.detailPreview)}`:duelNodeDetail(node);
-  const p=$('#duel-preview');p.style.maxHeight='';p.hidden=false;
+  $('#duel-preview-content').innerHTML=plan?`<div class="duel-preview-modes" role="group" aria-label="预览方式"><button data-duel-preview-mode="compact" aria-pressed="${!duelUI.detailPreview}">简略</button><button data-duel-preview-mode="detailed" aria-pressed="${duelUI.detailPreview}">详细</button></div>${duelPlanSummary(plan,duelUI.detailPreview)}`:duelStepPreview(node,duelNodeSource(node));
+  const p=$('#duel-preview');p.classList.toggle('duel-step-preview',!!node);p.classList.remove('brief-step-preview','text-step-preview');p.style.maxHeight='';p.hidden=false;
   const box=duelUI.previewAnchor.getBoundingClientRect();
   const placement=duelPreviewPlacement({anchor:box,graph:node?duelStepViewBounds('duel'):box,width:p.offsetWidth,height:p.offsetHeight,
     viewport:{width:innerWidth,height:innerHeight},footer:$('#duel-footer').hidden?null:$('#duel-footer').getBoundingClientRect(),beside:!!plan});
-  if(!placement){p.hidden=true;return;}
+  if(!placement||node&&!fitDuelStepPreview(p,placement)){p.hidden=true;return;}
   p.style.left=placement.left+'px';p.style.top=placement.top+'px';p.style.maxHeight=placement.height+'px';
   pruneReviewCards();
 }

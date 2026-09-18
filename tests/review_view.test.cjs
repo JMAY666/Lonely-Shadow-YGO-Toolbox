@@ -30,13 +30,13 @@ test('frozen effect logs recover explicit reveal identity in compact and detaile
   assert.equal(r.context.recordedActionResults(action,report).length,0,'Conflicting engine evidence is not guessed');
 });
 
-test('opponent hand reveals use one random back per card without masking later explicit activations or own reveals',()=>{
+test('opponent hand reveals use one counted back without masking later explicit activations or own reveals',()=>{
   const r=setup(),plan=require('./fixtures/opponent-hand-reveal.cjs')(),frozen=JSON.stringify(plan),node=plan.review.nodes[1];
   const event=plan.events.find(e=>e.id==='22:0');
   const projected=r.context.reviewOperationCards(event,event.cards);
   for(const mode of ['compact','detailed']){
     const html=(mode==='compact'?r.context.compactOperation:r.context.reviewOperation)(event,node.id,'',{report:plan,nodes:plan.review.nodes,edits:plan.annotations});
-    assert.equal((html.match(/src="\/review-back.svg"/g)||[]).length,5);
+    assert.equal((html.match(/src="\/review-back.svg"/g)||[]).length,1);assert.match(html,/随机手牌 ×5/);
     assert.match(html,/5 张随机牌/);assert(!/魔物狩人|灰流丽|pics\/(1184620|14558127)/.test(html));
   }
   const html=r.reviewCard(projected[4],node.id,{report:plan,name:true,face:true});
@@ -46,6 +46,26 @@ test('opponent hand reveals use one random back per card without masking later e
   const own=plan.events.find(e=>e.id==='24:0');
   assert.match(r.context.compactOperation(own,node.id,'',{report:plan,nodes:plan.review.nodes,edits:plan.annotations}),/pics\/14442329/);
   assert.equal(JSON.stringify(plan),frozen);
+});
+
+test('quantity-only groups preserve single cards, sides, notes, effects and separate movement results',()=>{
+  const r=setup(),plan=require('./fixtures/opponent-hand-reveal.cjs')(),event=plan.events.find(e=>e.id==='22:0'),node=plan.review.nodes[1];
+  const cards=r.context.reviewOperationCards(event,event.cards),before=JSON.stringify(plan);
+  const project=(e=event,cs=cards,edits=plan.annotations)=>r.context.reviewQuantityCards(e,cs,node,plan,edits);
+  const group=project()[0];assert.equal(group._display_members.length,5);assert.equal(group._display_members[4].instance_id,cards[4].instance_id);
+  assert.equal(project(event,cards.slice(0,1))[0],cards[0]);
+  for(const message of [50,61,63,70])assert.equal(project({...event,message}).length,5);
+  assert.equal(project(event,cards,{cards:{20:'本张有独立说明'}}).length,2);
+  assert.equal(project(event,cards,{final_marks:{20:{marked:true}}}).length,2);
+  const own=cards.map(c=>({...c,controller:0,_display_random:undefined,identity_known:true}));
+  assert.equal(project(event,own).length,5,'Known identities stay separate');
+  assert.equal(project(event,[...cards.slice(0,2),...own,...cards.slice(2)]).length,7,'Unrelated cards do not get reordered');
+  const drawn=cards.map(c=>({...c,controller:0,identity_known:true,_display_random:undefined}));
+  const draw={id:'27:0',native_seq:27,message:90,cards:drawn};
+  const drawPlan={...plan,events:[...plan.events,draw]};
+  const counted=r.context.reviewQuantityCards(draw,drawn,{kind:'final'},drawPlan);
+  assert.equal(counted.length,1);assert.match(r.context.reviewCardLabel(counted[0],{kind:'final'},drawPlan),/随机抽牌 ×5/);
+  assert.equal(JSON.stringify(plan),before);
 });
 
 test('Step boards and tutorial node order use canonical modules while frozen annotations stay unchanged',()=>{
@@ -189,7 +209,7 @@ test('deck-top reveals and their later outcomes use random backs, selected effec
     assert.match(html,/②效果/);assert.match(html,/这张卡作为同调素材送去墓地的场合才能发动/);
     assert.match(html,/翻开对方卡组顶部 2 张随机牌/);assert.match(html,/选择放回对方卡组最上面或最下面/);
     assert(!html.includes('示例翻牌'));assert(!html.includes('/pics/52155219'));assert(!html.includes('/pics/56003780'));
-    assert.equal((html.match(/class="review-card[^\"]*random-card/g)||[]).length,4);
+    assert.equal((html.match(/class="review-card[^\"]*random-card/g)||[]).length,3);assert.match(html,/随机牌 ×2/);
   }
   const revealed=plan.events[1].cards[0];
   assert.match(r.reviewCard(revealed,'initial',{face:true}),/pics\/52155219/);

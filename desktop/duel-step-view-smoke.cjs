@@ -71,7 +71,8 @@ module.exports=async function({page,application,evidence,pass,automatic=false}) 
       await application.evaluate(({BrowserWindow},{width,height})=>BrowserWindow.getAllWindows().find(w=>!w.getParentWindow()).setContentSize(width,height),{width,height});
       await page.waitForFunction(({width,height})=>innerWidth===width&&innerHeight===height,{width,height});await ready();
       bounds=await measure();assertFits(bounds);assert(bounds.bottom<bounds.footer,'Automatic height leaves the footer clear');
-      assert.equal(await page.locator('#'+prefix+'-graph-scroll .random-card').count(),5);
+      assert.equal(await page.locator('#'+prefix+'-graph-scroll .random-card').count(),1);
+      assert.match(await page.locator('#'+prefix+'-graph-scroll .random-card').textContent(),/随机手牌 ×5/);
       await page.screenshot({path:path.join(evidence,`${prefix}-fit-${width}x${height}.png`)});
     }
     // Expanding record details and toggling the side rail both change layout
@@ -83,7 +84,7 @@ module.exports=async function({page,application,evidence,pass,automatic=false}) 
     await page.evaluate(prefix=>{const resize=prefix==='duel'?resizeDuelGraph:resizeAutoDuelGraph;resize(240);},prefix);
     assertFits(await measure());assert.equal((await measure()).viewportHeight,238);
     await page.locator('#'+prefix+'-graph-resize').dblclick();assertFits(await measure());
-    pass(prefix+' complete Step fits at 1440/960/900px widths and 970/900/650px heights; all navigation, five revealed cards, expanded records, side rail and manual splitter verified');
+    pass(prefix+' complete Step fits at 1440/960/900px widths and 970/900/650px heights; all navigation, counted random cards, expanded records, side rail and manual splitter verified');
   } finally {
     await page.evaluate(({automatic,saved,original})=>{
       const state=automatic?autoDuelState():duelState(),view=automatic?autoDuelView:duelUI;

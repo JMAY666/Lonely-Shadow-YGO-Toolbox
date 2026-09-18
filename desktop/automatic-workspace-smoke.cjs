@@ -70,6 +70,10 @@ module.exports=async({page,application,root,evidence,pass})=>{
     await application.evaluate(()=>globalThis.tutorialAcceptance.invoke('forward'));
     await page.waitForFunction(()=>autoDuelState().position.key==='main/s2',null,{timeout:5000});
     await page.locator('#duel-substeps').hover();await page.locator('[data-auto-duel-node="main/s1"]').hover();await page.waitForFunction(()=>!document.querySelector('#auto-duel-preview').hidden);
+    assert(await page.locator('#auto-duel-preview .duel-step-peek-row').count()>0);
+    assert.equal(await page.locator('#auto-duel-preview .log-action').count(),0);
+    assert(await page.locator('#auto-duel-preview').evaluate(el=>el.scrollHeight<=el.clientHeight+1));
+    await page.screenshot({path:path.join(evidence,'automatic-step-preview.png'),preserveScroll:true});
     await page.locator('#auto-duel-preview-close').click();
     const separator=page.locator('#auto-duel-graph-resize');await separator.focus();await page.keyboard.press('ArrowDown');
     assert((await page.locator('#auto-duel-graph-scroll').boundingBox()).height>=300);

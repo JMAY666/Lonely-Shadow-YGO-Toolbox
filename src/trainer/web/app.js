@@ -626,7 +626,9 @@ async function refreshHistoryOnce(){
   app.history=history;
   app.active=app.history.find(h=>['running','starting','stopping'].includes(h.status))||null;
   if(typeof resetTimelineSession==='function')resetTimelineSession(app.active?.id || null);
-  $('#history-count').textContent=app.history.filter(h=>h.plan_stage==='draft').length||'';
+  const draftCount=app.history.filter(h=>h.plan_stage==='draft').length;
+  $('#history-count').textContent=draftCount?`未保存草稿 ${draftCount}`:'';
+  $('#history-count').hidden=!draftCount;
   $('#active-training').hidden=!app.active || (typeof moduleUI !== 'undefined' && moduleUI.current !== 'expansion');
   if(app.active){$('#active-title').textContent=`${app.active.name} · ${statusNames[app.active.status]}`;$('#active-info').textContent=`${dt(app.active.started_ms)} 开始 · 过程正在记录，尚未保存为方案。`;}
   updateStart();

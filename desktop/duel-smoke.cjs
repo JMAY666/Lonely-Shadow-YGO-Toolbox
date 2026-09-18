@@ -253,7 +253,8 @@ module.exports=async function({page,application,root,evidence,pass}) {
   assert(await page.locator('#duel-graph-scroll').evaluate(el=>[...el.querySelectorAll('.duel-node')].every(node=>node.getBoundingClientRect().height<=el.clientHeight-10)));
 
   await page.locator('[data-duel-node="main/s1"]').hover();await page.waitForFunction(()=>!document.querySelector('#duel-preview').hidden);
-  assert(await page.locator('#duel-preview .log-operation').count()>0);assert.equal(await page.locator('#duel-preview .log-compact').count(),0);
+  assert(await page.locator('#duel-preview .duel-step-peek-row').count()>0);assert.equal(await page.locator('#duel-preview .log-action').count(),0);
+  assert.match(await page.locator('#duel-preview').textContent(),/点击步骤查看完整内容/);
   const cardInPreview=page.locator('#duel-preview [data-review-card]').first();
   await cardInPreview.hover();await page.waitForFunction(()=>!document.querySelector('#review-card-popover').hidden);
   await page.locator('#review-card-popover').hover();await page.waitForTimeout(500);
@@ -284,7 +285,8 @@ module.exports=async function({page,application,root,evidence,pass}) {
   await page.mouse.move(point.x,point.y);await page.waitForFunction(()=>duelUI.previewId==='main/s2'&&!document.querySelector('#duel-preview').hidden);
   const previewBounds=await page.locator('#duel-preview').boundingBox(),graphBounds=await page.locator('#duel-graph-scroll').boundingBox();
   assert(previewBounds.y>=graphBounds.y+graphBounds.height||previewBounds.y+previewBounds.height<=graphBounds.y);
-  assert(await page.locator('#duel-preview').evaluate(el=>el.scrollHeight>el.clientHeight));
+  assert(await page.locator('#duel-preview').evaluate(el=>el.scrollHeight<=el.clientHeight+1));
+  assert.doesNotMatch(await page.locator('#duel-preview').textContent(),/长步骤详情，点击下一步/);
   await page.screenshot({path:path.join(evidence,'duel-hover-click-safe.png'),preserveScroll:true});
   await page.mouse.click(point.x,point.y);assert.equal(await page.evaluate(()=>duelState().position.key),'main/s2');
   await page.waitForTimeout(450);assert(await page.locator('#duel-preview').isHidden());
@@ -362,5 +364,5 @@ module.exports=async function({page,application,root,evidence,pass}) {
   const after=await page.evaluate(id=>api('/api/deck?id='+encodeURIComponent(id)),data.deck.id);assert.deepEqual(after.deck,data.deck.deck);assert.deepEqual(after.representatives,data.deck.representatives);
   await enter('home');
   pass('Compact deck cases: three representatives saved/reopened/shared; tags only in hover; BO1 compact navigation, floating actions, direct order selection, marked card popover, right-click removal and remaining badges');
-  pass('Visual duel tutorial: compact recorded actions, detailed hover, immutable per-node board and zones, image plan previews with in-popover modes, mouse/keyboard highlight and key repeat, one shortcut binding in foreground/background and lifecycle release');
+  pass('Visual duel tutorial: compact recorded actions, bounded step summaries with card details, immutable per-node board and zones, image plan previews with in-popover modes, mouse/keyboard highlight and key repeat, one shortcut binding in foreground/background and lifecycle release');
 };

@@ -2,6 +2,23 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 
 module.exports=async({page,application,evidence,pass})=>{
+  let history=[];
+  await page.route('**/api/history',route=>route.fulfill({json:history}));
+  try {
+    await page.evaluate(async()=>{await switchModule('expansion');switchView('history');await refreshHistory();});
+    assert.equal(await page.locator('#history-count').textContent(),'');
+    history=Array.from({length:8},(_,i)=>({id:`synthetic-draft-${i}`,name:`合成草稿 ${i+1}`,plan_stage:'draft',status:'completed',started_ms:0}));
+    history.push({id:'synthetic-saved',name:'合成正式方案',plan_stage:'saved',status:'completed',started_ms:0});
+    await page.evaluate(()=>refreshHistory());
+    assert.equal(await page.locator('#nav-history').textContent(),'展开方案调整与保存');
+    assert.equal(await page.locator('#history-count').textContent(),'未保存草稿 8');
+    assert.equal(await page.locator('#history-archive > summary #history-count').count(),1);
+    await page.screenshot({path:path.join(evidence,'empty-review-navigation.png')});
+    await page.locator('#nav-plans').click();
+    await page.screenshot({path:path.join(evidence,'history-draft-count.png')});
+    history=[];await page.evaluate(()=>refreshHistory());assert(await page.locator('#history-count').isHidden());
+  } finally {await page.unroute('**/api/history');await page.evaluate(()=>refreshHistory());}
+  pass('Empty review navigation has no history count; the archive labels eight drafts and hides zero');
   const report=require('../tests/fixtures/opponent-hand-reveal.cjs')(),before=JSON.stringify(report);
   await page.evaluate(async report=>{
     await switchModule('expansion');reviewUI.report=null;mountReview(report);switchView('history');
@@ -10,18 +27,24 @@ module.exports=async({page,application,evidence,pass})=>{
   for(const mode of ['compact','detailed']){
     await page.evaluate(mode=>setReviewLogMode(mode),mode);
     const action=page.locator('#review-log [data-review-action="20:0"]');
-    assert.equal(await action.locator('.random-card').count(),5);
+    assert.equal(await action.locator('.random-card').count(),1);assert.match(await action.textContent(),/随机手牌 ×5/);
     assert.equal(await action.locator('img[src="/pics/1184620.jpg"],img[src="/pics/14558127.jpg"]').count(),0);
     assert.equal(await action.locator('img[src="/pics/14442329.jpg"]').count(),2,'The own searched/revealed card stays specified');
     await action.locator('.random-card').first().click();
     assert.match(await page.locator('#review-card-detail').innerText(),/随机手牌/);
+    assert.match(await page.locator('#review-card-detail').innerText(),/5 张随机手牌/);
+    assert.equal(await page.locator('#review-card-detail .material-list .random-card').count(),5);
     assert.doesNotMatch(await page.locator('#review-card-detail').innerText(),/魔物狩人|灰流丽|1184620|14558127/);
+    await page.locator('#review-card-detail .material-list .random-card').last().click();
+    assert.match(await page.locator('#review-card-detail').innerText(),/1 张随机手牌/);
+    await page.locator('#review-detail-back').click();assert.match(await page.locator('#review-card-detail').innerText(),/5 张随机手牌/);
     await page.evaluate(()=>closeReviewDetail());
   }
   await page.evaluate(report=>openPlanTutorial(report),report);
   const canvas=page.locator('#plan-tutorial-canvas');
-  assert.equal(await canvas.locator('[data-tutorial-role*="展示对方手牌"] .tutorial-flow-card').count(),5);
-  assert.equal(await canvas.locator('[data-tutorial-role*="展示对方手牌"] image[href="/review-back.svg"]').count(),5);
+  assert.equal(await canvas.locator('[data-tutorial-role*="展示对方手牌"] .tutorial-flow-card').count(),1);
+  assert.equal(await canvas.locator('[data-tutorial-role*="展示对方手牌"] image[href="/review-back.svg"]').count(),1);
+  assert.match(await canvas.textContent(),/随机手牌 ×5/);
   assert.doesNotMatch(await canvas.textContent(),/魔物狩人|灰流丽/);
   const geometry=await page.evaluate(()=>{
     const boxes=planTutorialUI.layout.boxes;
@@ -57,5 +80,5 @@ module.exports=async({page,application,evidence,pass})=>{
   await page.locator('#plan-tutorial-close').click();
   assert.equal(await page.evaluate(()=>JSON.stringify(reviewUI.report)),before);
   await page.evaluate(()=>{flow.draft=null;reviewUI.report=null;switchView('plans');});
-  pass('Opponent reveal: five generic backs and safe popovers; own reveal preserved; compact long/short Steps, bounded content, SVG/PNG export and frozen report unchanged');
+  pass('Opponent reveal: one counted back and nested per-card details; own reveal preserved; compact long/short Steps, bounded content, SVG/PNG export and frozen report unchanged');
 };

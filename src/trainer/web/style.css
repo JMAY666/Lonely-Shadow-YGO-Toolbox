@@ -31,7 +31,7 @@ a { color: var(--green); }
 .nav { border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: none; padding: 0 5px; color: #99aab4; white-space: nowrap; font-size: 13px; }
 .nav:hover { background: #1c2c36; border-color: #4e656e; }
 .nav.active { color: #caed99; border-bottom-color: #bce873; }
-#history-count { font-size: 10px; margin-left: 5px; color: #8fa1ac; }
+#history-count { font-size: 12px; margin-left: 8px; color: var(--text-muted); }
 .local { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 11px; color: #93a6b1; white-space: nowrap; }
 .local small { color: #718995; border-left: 1px solid #33434d; padding-left: 12px; margin-left: 4px; }
 .status-dot { width: 5px; height: 5px; border-radius: 50%; background: #a6cf6e; }

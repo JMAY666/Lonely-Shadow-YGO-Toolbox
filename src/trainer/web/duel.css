@@ -86,4 +86,17 @@
 
 #editor .editor-tools #deck-representatives-button{grid-column:1/-1;white-space:normal}
 
+:is(.duel-preview,.auto-duel-preview).duel-step-preview{width:min(410px,calc(100vw - 32px));padding:12px;overflow:hidden}
+:is(.duel-preview,.auto-duel-preview).duel-step-preview h3{font-size:14px;margin:0 36px 8px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.duel-step-peek-row{display:flex;align-items:center;gap:10px;min-width:0;margin-top:8px}
+.duel-step-peek-row>div{min-width:0;flex:1}.duel-step-peek-row strong{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.duel-step-preview .duel-step-peek-row p{margin:4px 0 0;font-size:12px;line-height:1.45;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.duel-step-peek-row .review-card{flex:0 0 44px;width:44px;padding:0;border:0;background:none}
+.duel-step-peek-row .review-art{width:44px;height:64px}.duel-step-peek-row .review-art img{width:42px;height:61px}
+.duel-step-peek-row .review-card>small,.duel-step-peek-row :is(.region-badge,.position-badge,.compact-card-location,.material-count){display:none}
+.duel-step-peek-hint{display:block;margin-top:8px;font-size:11px;line-height:1.4;color:var(--text-muted)}
+.brief-step-preview .duel-step-peek-row~.duel-step-peek-row{display:none}
+.text-step-preview .duel-step-peek-row .review-card,.text-step-preview .duel-step-peek-hint{display:none}
+.text-step-preview .duel-step-peek-row p{-webkit-line-clamp:1}
+
 .forecast-unknown-card{width:46px;height:67px;object-fit:contain}

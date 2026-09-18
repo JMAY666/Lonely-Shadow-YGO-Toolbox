@@ -28,7 +28,7 @@ test('a complex Step widens and short neighbours keep content height; opponent h
   const r=setup(),plan=require('./fixtures/opponent-hand-reveal.cjs')(),before=JSON.stringify(plan);
   const model=r.buildPlanTutorial(plan),layout=r.layoutPlanTutorial(model),[long,short]=layout.boxes;
   const shown=model.steps[0].actions[1].stages.find(s=>s.label.includes('展示对方手牌'));
-  assert.equal(shown.cards.length,5);assert(shown.cards.every(c=>c.name==='随机手牌'&&c.src==='/review-back.svg'));
+  assert.equal(shown.cards.length,1);assert(shown.cards.every(c=>c.name==='随机手牌 ×5'&&c.src==='/review-back.svg'));
   assert(long.span>1,'Only the complex step gets extra columns');assert(long.height<560,JSON.stringify({width:long.width,height:long.height}));
   assert(short.height<300,'The short step must not inherit the long step height');
   const svg=r.renderPlanTutorialSvg(model,layout);assert.equal((svg.match(/class="tutorial-connector"/g)||[]).length,1);
@@ -73,6 +73,9 @@ test('tutorial shows the identified effect and random deck-top outcomes without 
   const r=setup(),plan=require('./fixtures/random-reveal.cjs')(),before=JSON.stringify(plan);
   const model=r.buildPlanTutorial(plan),svg=r.renderPlanTutorialSvg(model);
   assert.match(svg,/作为同调素材送去墓地/);assert.match(svg,/翻开对方卡组顶部/);assert.match(svg,/随机牌/);
+  const stages=model.steps[0].actions[0].stages;
+  assert.equal(stages.find(s=>s.label.includes('翻开')).cards.length,1);assert.match(svg,/随机牌 ×2/);
+  assert.equal(stages.find(s=>s.label==='除外').cards.length,1);assert.equal(stages.find(s=>s.label.includes('选择放回')).cards.length,1);
   assert.match(svg,/选择放回对方卡组最上面或最下面/);assert(!svg.includes('示例翻牌'));assert(!svg.includes('/pics/52155219'));
   assert.equal(JSON.stringify(plan),before);
 });

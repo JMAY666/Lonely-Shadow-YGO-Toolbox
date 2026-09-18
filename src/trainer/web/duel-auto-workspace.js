@@ -134,10 +134,10 @@ function paintAutoDuelPreview(){
   const preview=autoDuelView.preview,s=autoDuelState();if(!preview||!s)return;
   const plan=preview.kind==='plan'?s.result?.matches.find(p=>p.id===preview.id):null,node=preview.kind==='node'?s.graph?.nodes.find(n=>n.key===preview.id):null;
   if(!plan&&!node)return closeAutoDuelPreview();
-  const panel=$('#auto-duel-preview');$('#auto-duel-preview-content').innerHTML=plan?`<div class="auto-duel-preview-modes"><button data-auto-preview-mode="compact" aria-pressed="${!autoDuelView.detailPreview}">简略</button><button data-auto-preview-mode="detailed" aria-pressed="${autoDuelView.detailPreview}">详细</button></div>${duelPlanSummary(plan,autoDuelView.detailPreview)}`:autoDuelNodeDetail(node);
-  panel.hidden=false;panel.style.maxHeight='';const box=preview.anchor.getBoundingClientRect();
+  const panel=$('#auto-duel-preview');$('#auto-duel-preview-content').innerHTML=plan?`<div class="auto-duel-preview-modes"><button data-auto-preview-mode="compact" aria-pressed="${!autoDuelView.detailPreview}">简略</button><button data-auto-preview-mode="detailed" aria-pressed="${autoDuelView.detailPreview}">详细</button></div>${duelPlanSummary(plan,autoDuelView.detailPreview)}`:duelStepPreview(node,autoDuelNodeSource(node));
+  panel.classList.toggle('duel-step-preview',!!node);panel.classList.remove('brief-step-preview','text-step-preview');panel.hidden=false;panel.style.maxHeight='';const box=preview.anchor.getBoundingClientRect();
   const placement=duelPreviewPlacement({anchor:box,graph:node?duelStepViewBounds('auto-duel'):box,width:panel.offsetWidth,height:panel.offsetHeight,viewport:{width:innerWidth,height:innerHeight},footer:$('#duel-footer').hidden?null:$('#duel-footer').getBoundingClientRect(),beside:!!plan});
-  if(!placement){panel.hidden=true;return;}panel.style.left=placement.left+'px';panel.style.top=placement.top+'px';panel.style.maxHeight=placement.height+'px';pruneReviewCards();
+  if(!placement||node&&!fitDuelStepPreview(panel,placement)){panel.hidden=true;return;}panel.style.left=placement.left+'px';panel.style.top=placement.top+'px';panel.style.maxHeight=placement.height+'px';pruneReviewCards();
 }
 function showAutoDuelPreview(anchor){
   if(autoDuelView.preview?.anchor===anchor)return;closeAutoDuelPreview();

@@ -44,7 +44,7 @@ function tutorialOperationStages(item,node,plan,role='') {
   const event=(plan.events||[]).find(e=>e.id===(item.event_ref||item.id))||item;
   const cards=reviewOperationCards(event,item.cards||event.cards||[]);
   const dest=event.destination,origin=event.origin;
-  const stage=(label,cs=cards,hint='',locations=true)=>({label:role?`${role} · ${label}`:label,role,cards:tutorialFlowCards(cs,node,plan,locations),hint});
+  const stage=(label,cs=cards,hint='',locations=true)=>({label:role?`${role} · ${label}`:label,role,cards:tutorialFlowCards(reviewQuantityCards(event,cs,node,plan),node,plan,locations),hint});
   if(event.message===90)return [stage(`抽 ${cards.length} 张卡（随机）`,cards,'',false)];
   if(event.message===30||event.message===31)return [stage(reviewDeckOperation(event,cards,plan),cards,'',false)];
   const method=cards.find(c=>c.summon_method)?.summon_method||({61:'通常召唤',63:'特殊召唤',65:'反转召唤',54:'盖放'}[event.message]);

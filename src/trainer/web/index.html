@@ -44,7 +44,7 @@
     <button id="nav-decks" class="nav active" aria-current="page">选择卡组</button>
     <button id="nav-design" class="nav" disabled>展开前置设计</button>
     <button id="nav-training" class="nav" disabled>展开场地</button>
-    <button id="nav-history" class="nav">展开方案调整与保存 <span id="history-count"></span></button>
+    <button id="nav-history" class="nav">展开方案调整与保存</button>
     <span title="请先在展开时间轴中创建或选择妥协分支"><button id="nav-compromise" class="nav" disabled>妥协场构建前置</button></span>
     <button id="nav-plans" class="nav">展开管理</button>
   </nav>
@@ -231,7 +231,7 @@
     <header><div><div class="eyebrow">SAVED PLANS</div><h1>展开管理</h1><p>正式保存的方案，保留展开当时的牌组与记录。</p></div><div class="library-actions"><button id="import-plan">导入方案</button><button id="refresh-plans">刷新方案</button></div></header>
     <div class="plan-browser-toolbar panel"><button id="plan-folder-up" aria-label="返回上级文件夹" title="返回上级文件夹">↑</button><nav id="plan-folder-path" aria-label="当前文件夹"></nav><label class="plan-browser-search"><span class="sr-only">搜索方案或卡片</span><input id="plan-search" type="search" placeholder="搜索方案、标签别名或卡片名称 / 编号"></label><button id="plan-favorites-only" aria-pressed="false">★ 只看收藏</button><span id="plan-count" role="status"></span></div>
     <div class="history-layout"><div id="plan-list" class="panel history-list"></div><article id="plan-report" class="panel report"><div class="empty">选择已保存方案查看。</div></article></div>
-    <details id="history-archive"><summary>历史记录与未保存草稿</summary><div id="history-list" class="panel history-list"></div></details>
+    <details id="history-archive"><summary>历史记录与未保存草稿 <span id="history-count" hidden></span></summary><div id="history-list" class="panel history-list"></div></details>
   </section>
   <section id="tags" class="tag-manager-page" hidden aria-label="TAG 管理">
     <header><div><div class="eyebrow">TAG LIBRARY</div><h1>TAG 管理</h1><p>维护标签名称、别名和包含的卡牌，供卡组与展开方案共用。</p></div><div class="library-actions"><button id="tag-manager-new" class="primary">新增 TAG</button><button id="tag-manager-refresh">刷新标签库</button></div></header>
