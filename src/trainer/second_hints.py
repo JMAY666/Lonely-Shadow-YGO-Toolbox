@@ -120,6 +120,10 @@ class SecondHints:
                 raise ValueError('请填写规则环境、附加影响和比较目标')
         if doc['input']['platform'] != 'manual' and payload['environment'] == 'local':
             raise ValueError('外部平台记录不能标为内置规则实战；请使用外部平台参考范围')
+        native = state.get('native_window')
+        if doc.get('native_link') and (not native or not native.get('recognized') or any(
+                payload.get(key) != native.get(key) for key in ('card_id', 'effect_id', 'link', 'top', 'speed'))):
+            raise ValueError('所选效果或连锁与当前原生响应窗口不符；未覆盖的效果不能套用已有案例')
         state['window'] = {'id': uuid.uuid4().hex, 'label': effect['label'], 'source': 'user_confirmed', 'response_player': 0,
                            'created_ms': self.owner.now(), 'expires_ms': self.owner.now() + WINDOW_MS,
                            'analysis': {'actor': card['id'], 'effect': payload['effect_id'], 'link': link, 'top': top,
@@ -163,9 +167,12 @@ class SecondHints:
             hint = self.evaluate(doc, proof)
             if self.proof.check(force=True)['stamp'] != proof['stamp']:
                 raise ValueError('核对期间规则资料发生变化；提示未保存，请按当前资源重试')
+            native_error = owner.routes.connection_error(doc, force=True)
+            if native_error: raise ValueError(native_error)
             hint.update(id=request, revision=doc['revision'], round_id=doc['input']['round_id'], registry=REVISION,
                         rules_stamp=proof['stamp'], created_ms=owner.now(), known_state=deepcopy(doc['current']),
                         decisions=[])
+            if doc.get('native_link'): hint['native_origin'] = deepcopy(doc['native_link'])
             updated = deepcopy(doc)
             updated.setdefault('advice_history', []).append(hint)
             # Advice is a separate journal: it neither changes resources nor
@@ -259,6 +266,9 @@ class SecondHints:
             card = copies[0]
             rule = EFFECTS[RESPONDERS[code]]
             unknown, blocked = list(common), []
+            native = state.get('native_window') if doc.get('native_link') else None
+            if native and not any(r['card_id'] == card['id'] and r['effect_id'] == RESPONDERS[code] for r in native['responders']):
+                blocked.append('当前原生菜单没有开放此手牌效果；人工条件不能替代引擎权限')
             count = usage_status(state, rule, 0, card['id'])
             if count == 'unknown':
                 unknown.append('尚未核对此卡名本回合的使用次数')
@@ -351,7 +361,8 @@ class SecondHints:
                 'missing': list(dict.fromkeys(common)), 'effect': deepcopy(effect),
                 'opponent_candidates': deepcopy(effect.get('candidates', [])) if effect else [],
                 'candidate_basis': effect.get('candidate_basis', '对手卡组尚未确定') if effect else '对手卡组尚未确定',
-                'scope': '仅比较已列卡片、所选效果和有限本地案例；当前记录局面尚未完整重建为引擎状态',
+                'scope': ('规则状态来自同一内置练习的完整重放；具体对象、处理与策略仍按已列条件和有限案例比较' if doc.get('native_link') else
+                          '仅比较已列卡片、所选效果和有限本地案例；当前记录局面尚未完整重建为引擎状态'),
                 'assumptions': ['案例中双方不追加其他响应，相关效果按记录处理', '对手未公开手牌、盖卡、牌序和后续补点保持未知'],
                 'coverage': '仅覆盖手牌中的灰流丽、无限泡影、幽鬼兔；其他合法响应未穷举',
                 'engine_proof': {'status': proof['status'], 'reason': proof['reason']}}

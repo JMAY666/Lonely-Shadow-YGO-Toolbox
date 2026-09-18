@@ -8,10 +8,16 @@ module.exports=async({page,application,root,evidence,pass})=>{
   const service=require(path.join(root,'runtime','_trainer','service.json'));
   const layoutRequest=path.join(evidence,'modular-layout.request');
   const previewRequest=path.join(evidence,'modular-preview.request');
+  const secondFlowRequest=path.join(evidence,'second-flow.request');
   let layoutBusy=false;
   const layoutTimer=setInterval(async()=>{
-    if(layoutBusy||(!fs.existsSync(layoutRequest)&&!fs.existsSync(previewRequest)))return;layoutBusy=true;
+    if(layoutBusy||(!fs.existsSync(layoutRequest)&&!fs.existsSync(previewRequest)&&!fs.existsSync(secondFlowRequest)))return;layoutBusy=true;
     try{
+      if(fs.existsSync(secondFlowRequest)){
+        const data=JSON.parse(fs.readFileSync(secondFlowRequest,'utf8'));let result={ok:true};
+        try{await require('./second-flow-smoke.cjs').window({page,evidence,pass},data);}catch(error){result={error:error.message};}
+        fs.writeFileSync(path.join(evidence,'second-flow-response.json'),JSON.stringify(result));fs.unlinkSync(secondFlowRequest);
+      }
       if(fs.existsSync(previewRequest)) {
         await page.evaluate(async()=>{await refreshHistory();await switchModule('modular');await refreshModular(true);});
         assert(await page.locator('.modular-route').count()>0);
@@ -57,6 +63,7 @@ module.exports=async({page,application,root,evidence,pass})=>{
   if(process.env.YGO_MODULAR_PLANNING_ONLY==='1')await require(process.env.YGO_PRECOMPUTE_RACES_ONLY==='1'?'./precompute-races-smoke.cjs':'./planning-preferences-smoke.cjs')({page,application,root,evidence,pass});
   if(process.env.YGO_MODULAR_FORECAST_ONLY==='1')await require('./duel-forecast-outcome-smoke.cjs')({page,evidence,pass});
   if(process.env.YGO_MODULAR_SECOND_ROUTES_ONLY==='1')await require('./second-routes-smoke.cjs')({page,application,evidence,pass});
+  if(process.env.YGO_MODULAR_SECOND_FLOW_ONLY==='1')await require('./second-flow-smoke.cjs').review({page,application,evidence,pass});
   await page.evaluate(async()=>{await refreshHistory();flow.restarting=false;await switchModule('modular');});
   assert(await page.locator('#modular').isVisible());
   await page.screenshot({path:path.join(evidence,'modular.png')});

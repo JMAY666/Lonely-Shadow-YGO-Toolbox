@@ -5,6 +5,7 @@ test('second routes require a current linked engine and live observation record'
   const doc={route_panel:{current:true}};
   assert(Model.available(doc));assert(!Model.available({...doc,closed:true}));
   assert(!Model.available({...doc,status_reason:'changed'}));assert(!Model.available({route_panel:{current:false}}));
+  assert(!Model.available({route_panel:{current:true,route_ready:false}}));
 });
 test('route instructions name physical zones and distinguish automatic empty responses',()=>{
   assert.match(Model.step({bound_decision:{selection:[{kind:'place',place:[0,8,0]}]}},{}),/魔陷区第 1 格/);

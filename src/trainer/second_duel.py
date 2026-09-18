@@ -106,7 +106,7 @@ class SecondDuels:
             return '本局记录已结束'
         if doc['epoch'] != self.epoch:
             return '应用已重启，请核对当前局面后恢复记录；旧响应窗口不会恢复'
-        return self.connection_error(doc) or doc['current'].get('stale_reason', '')
+        return self.connection_error(doc) or self.routes.connection_error(doc) or doc['current'].get('stale_reason', '')
 
     def public(self, doc):
         value = deepcopy(doc)
@@ -123,7 +123,7 @@ class SecondDuels:
         value['advice'] = self.hints.public(doc)
         value['route_panel'] = self.routes.public(doc)
         value['capabilities']['engine_reconstruction'] = value['route_panel']['current']
-        value['capabilities']['routes'] = value['route_panel']['current']
+        value['capabilities']['routes'] = value['route_panel']['current'] and value['route_panel']['route_ready']
         for hint in value.get('advice_history', []):
             hint.pop('known_state', None)
         return value
@@ -249,6 +249,7 @@ class SecondDuels:
                 raise ValueError('请先核对当前局面并恢复记录')
             if not isinstance(payload, dict):
                 raise ValueError('实际情况格式无效')
+            self.routes.check_annotation(doc, kind, payload)
             updated = deepcopy(doc)
             before = deepcopy(updated['current'])
             updated['current']['window'] = None
@@ -257,8 +258,10 @@ class SecondDuels:
             updated['events'].append({'id': event_id, 'request_hash': request_hash, 'kind': kind, 'payload': deepcopy(payload),
                                       'source': 'user_confirmed', 'time_ms': self.now(), 'revision': updated['revision'],
                                       'summary': summary, 'before': before, 'after': deepcopy(updated['current'])})
+            if doc.get('native_link'): updated['events'][-1]['native_origin'] = deepcopy(doc['native_link'])
             self.save(updated)
-            self.routes.invalidate(doc['id'])
+            if doc.get('native_link'): self.routes.annotated(updated, kind)
+            else: self.routes.invalidate(doc['id'])
             return self.public(updated)
 
     def card(self, value):
@@ -429,6 +432,13 @@ class SecondDuels:
         raise ValueError('尚未支持此类后攻填报，原状态保留')
 
     def dispatch(self, action, body):
+        if action == 'review-window':
+            from second_native import review
+            with self.lock:
+                doc = self.load(body.get('id'))
+                hint = next((h for h in doc.get('advice_history', []) if h['id'] == body.get('advice_id')), None)
+                if not hint: raise ValueError('该局没有此响应窗口记录')
+                return review(doc, hint)
         if action in ('route-sources', 'route-sync', 'route-generate', 'route-choose'):
             return self.routes.dispatch(action, body)
         if action == 'advice':

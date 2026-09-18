@@ -41,3 +41,4 @@
 .second-routes details{margin-top:12px}
 .second-routes li{overflow-wrap:anywhere}
 .second-routes li small{display:block}
+.second-window-review{border-left:3px solid var(--accent);padding:4px 14px;margin:12px 0;overflow-wrap:anywhere}

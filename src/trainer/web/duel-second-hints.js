@@ -17,7 +17,7 @@ function secondHintItems(doc,hint,interactive){
   const conditions={met:'已满足所列规则条件',blocked:'当前指定响应不满足条件',unknown:'规则条件待核对'};
   return `<div class="second-hint-items">${hint.items.map(row=>`<article class="second-hint-item" data-hint-recommendation="${row.recommendation}">
     <strong>${escape(labels[row.recommendation])} · ${escape(secondName(doc,row.code))}</strong><p>${escape(row.reason)}</p>
-    <small>${escape(conditions[row.conditions])} · ${row.example==='passed'?'有限本地案例已通过':'案例未验证'} · 本局引擎状态未重建</small>
+    <small>${escape(conditions[row.conditions])} · ${row.example==='passed'?'有限本地案例已通过':'案例未验证'} · ${hint.native_origin?'本局规则已重建；对象与处理仍按条件核对':'本局引擎状态未重建'}</small>
     <details><summary>交与不交、费用及依据</summary><p>具体效果：${escape(row.label)}；${row.targeted?'取对象':'不取对象'}。所选动作／来源：${escape(hint.effect?.label||'待核对')}。</p>
       <p>效果属性：${row.attributes.map(a=>escape(doc.hint_options.attributes[a]||a)).join('＋')}。费用／投入：${escape(row.cost)}</p>
       <p>交：${escape(row.if_use)}</p><p>不交：${escape(row.if_hold)}</p>
@@ -40,10 +40,11 @@ function secondHintsPage(doc,readonly=false){
   const chosen=knownCards.find(c=>c.id===secondUI.selectedCard)||knownCards[0];
   const summaries=knownCards.filter((c,i,a)=>a.findIndex(other=>other.code===c.code&&other.controller===c.controller)===i);
   return `<section class="second-panel second-hints" id="second-hints"><div class="second-hint-heading"><h3>条件化交康提示</h3>${readonly?'':secondButton('generate-hint','生成／刷新提示',!doc.current.window?.analysis||!!doc.status_reason||doc.closed)}</div>
-    <p id="second-hint-freshness">${hint?(active?'基于当前人工核对窗口':'提示已过期或属于历史窗口，不能继续采用'):'先核对次数、手牌用途及结构化窗口。只支持对手首回合主要阶段 1 的有限案例。'}</p>
+    <p id="second-hint-freshness">${hint?(active?'基于当前已核对响应窗口':'提示已过期或属于历史窗口，不能继续采用'):'先核对次数、手牌用途及结构化窗口。只支持对手首回合主要阶段 1 的有限案例。'}</p>
+    ${doc.native_link?`<p>${doc.current.native_window?.recognized?'已识别当前原生响应窗口；核对公开条件和保留用途后可生成提示。':'当前具体效果或连锁不在提示范围内；仍可同步实际记录，不表示没有合法响应。'}费用、次数与结果由原生日志同步，避免重复扣牌。</p>`:''}
     ${hint?`<p>${escape(hint.scope)}</p>${hint.missing.length?`<ul>${hint.missing.map(t=>`<li>${escape(t)}</li>`).join('')}</ul>`:''}${secondHintItems(doc,hint,!readonly&&active)}
     <details><summary>候选卡组与假设边界</summary><p>候选：${escape(hint.opponent_candidates.join('／')||'尚未确定')}。${escape(hint.candidate_basis)}。</p><ul>${hint.assumptions.map(t=>`<li>${escape(t)}</li>`).join('')}</ul><p>${escape(hint.coverage)}</p></details>
-    <p>已记录的计划：${hint.decisions.map(d=>d.choice==='use'?'计划使用':'计划保留').join(' → ')||'尚未选择'}。记录计划不会扣牌或操作游戏；实际费用和结果仍需单独填报。</p>`:''}
+    ${doc.native_link?'<p>费用、发动与处理结果由关联练习同步；这里只保存条件核对、用途和计划。</p>':''}<p>已记录的计划：${hint.decisions.map(d=>d.choice==='use'?'计划使用':'计划保留').join(' → ')||'尚未选择'}。记录计划不会扣牌或操作游戏；${doc.native_link?'实际费用和结果请同步原练习':'实际费用和结果仍需单独填报'}。</p>`:''}
     ${readonly?'':`<details class="second-hint-setup"><summary>核对次数和后攻保留用途</summary><ul>${summaries.map(c=>`<li>${c.controller?'对手':'我方'} ${escape(secondName(doc,c.code))}：${SecondHintModel.select(doc,c.id).map(e=>`${e.number}效果 ${escape(SecondHintModel.effectStatus(doc,e,c))}`).join('；')}</li>`).join('')}</ul>
       <form id="second-count-form"><label>已知卡片<select name="card_id">${secondSelectOptions(secondCardOptions(doc,knownCards),chosen?.id)}</select></label><label>具体效果<select name="effect_id">${secondSelectOptions(SecondHintModel.select(doc,chosen?.id).map(e=>[e.id,e.label]),null)}</select></label><label>本回合次数<select name="status">${secondSelectOptions([['unknown','尚未核对'],['unused','已核对尚未使用'],['used','已核对已经使用']],'unknown')}</select></label><label>说明／更正依据<input name="note" maxlength="500"></label><button type="submit">保存次数核对</button></form>
       <form id="second-role-form"><label>当前我方手牌<select name="card_id">${secondSelectOptions(secondCardOptions(doc,own),own[0]?.id)}</select></label><label>后攻保留用途<select name="role">${secondSelectOptions(Object.entries(options.roles),'unknown')}</select></label><label>具体起动、素材或费用用途<input name="note" maxlength="500"></label><button type="submit">保存保留用途</button></form>
@@ -59,14 +60,14 @@ function secondHintsPage(doc,readonly=false){
       <label>本局规则环境<select name="environment">${secondSelectOptions(doc.input.platform==='manual'?[['unknown','尚未核对'],['local','工具箱固定本地练习规则'],['external','外部平台：仅作本地案例参考']]:[['external','外部平台：仅作本地案例参考']],'unknown')}</select></label>
       <label><input type="checkbox" name="confirmed" required> 对手已实际发动所选效果，当前正在等待我方响应</label><button type="submit">确认结构化窗口</button></form>
     </details>`}
-    <details><summary>提示与计划历史 · ${doc.advice_history?.length||0} 条</summary>${(doc.advice_history||[]).map(h=>`<details class="second-hint-history"><summary>${new Date(h.created_ms).toLocaleString()} · ${escape(h.effect?.label||'信息不足')}</summary><p>仅使用当时已知信息的条件比较，不是实际发生结果。</p>${secondHintItems(doc,h,false)}<p>当时计划：${h.decisions.map(d=>d.choice==='use'?'使用':'保留').join(' → ')||'未选择'}</p></details>`).join('')}</details>
+    <details><summary>提示与计划历史 · ${doc.advice_history?.length||0} 条</summary>${(doc.advice_history||[]).map(h=>`<details class="second-hint-history"><summary>${new Date(h.created_ms).toLocaleString()} · ${escape(h.effect?.label||'信息不足')}</summary><p>仅使用当时已知信息的条件比较，不是实际发生结果。</p>${secondHintItems(doc,h,false)}<button type="button" data-second-review="${h.id}">当时信息与实际结果</button><div data-second-review-panel="${h.id}"></div><p>当时计划：${h.decisions.map(d=>d.choice==='use'?'使用':'保留').join(' → ')||'未选择'}</p></details>`).join('')}</details>
   </section>`;
 }
 
 function paintSecondHintFreshness(){
   const doc=secondDoc(),target=$('#second-hint-freshness');if(!doc?.advice||!target)return;
   const active=SecondHintModel.current(doc)&&!secondUI.view&&!secondWorkspace()?.readonly;
-  target.textContent=active?'基于当前人工核对窗口':'提示已过期或属于历史窗口，不能继续采用';
+  target.textContent=active?'基于当前已核对响应窗口':'提示已过期或属于历史窗口，不能继续采用';
   for(const button of document.querySelectorAll('[data-second-hint-choice]')){
     const row=doc.advice.items.find(r=>r.instance_id===button.dataset.card);
     button.disabled=!active||!row||row.recommendation==='information'||button.dataset.secondHintChoice==='use'&&row.conditions!=='met';
@@ -101,5 +102,38 @@ function mountSecondHints(){
   }
   const generate=$('[data-second-action="generate-hint"]');if(generate)generate.onclick=()=>void secondHintRequest('advice');
   for(const button of document.querySelectorAll('[data-second-hint-choice]'))button.onclick=()=>void secondHintRequest('advice-choice',{advice_id:doc.advice.id,card_id:button.dataset.card,choice:button.dataset.secondHintChoice});
+  if(doc.native_link){
+    for(const selector of ['#second-count-form','#second-effect-observed-form','#second-effect-outcome-form']){const node=$(selector);if(node)node.hidden=true;}
+    const native=doc.current.native_window,node=$('#second-hint-window-form');
+    if(native?.recognized&&node){node.elements.card_id.value=native.card_id;node.elements.card_id.onchange();node.elements.effect_id.value=native.effect_id;for(const key of ['link','top','speed'])node.elements[key].value=native[key];node.elements.environment.value='local';}
+  }
+  if(typeof mountSecondReview==='function')mountSecondReview();
   paintSecondHintFreshness();
+}
+
+function secondReviewHtml(doc,data){
+  const known=data.known_state,hand=known.cards.filter(c=>c.controller===0&&c.location===2);
+  const list=codes=>codes.map(code=>escape(secondName(doc,code))).join('、')||'无';
+  const actual=data.actual;
+  const action=a=>a.player?'对手选择已记录，隐藏菜单不展示':a.ambiguous?'我方原始选择含重试／未完整解码':a.selection.map(s=>({activate:'实际发动',yes:'实际选择是',pass:'实际未响应',no:'实际选择否',card:'实际选择',material:'实际选择素材'}[s.kind]||'实际规则选择')+(s.card?.code?' '+secondName(doc,s.card.code):'')).join('、');
+  const outcome=row=>row.kind==='targets'?'实际记录到效果对象：'+row.places.map(p=>`${p.controller?'对手':'我方'}${SecondDuelModel.zones[p.location]||'区域'}第 ${p.sequence+1} 格`).join('、'):
+    row.kind==='activation_negated'?`连锁 ${row.link}：发动被无效`:row.kind==='effect_negated'?`连锁 ${row.link}：效果被无效`:row.notice||'此项待核对';
+  return `<section class="second-window-review"><h4>生成提示时已知的信息</h4><p>${escape(data.notice)}</p>
+    <p>第 ${known.turn} 回合 · ${known.turn_player?'对手':'我方'}回合 · ${escape(SecondDuelModel.phases[known.phase])}。手牌 ${hand.length} 张：${list(hand.map(c=>c.code))}。</p>
+    <p>当时窗口：${escape(known.window?.label||'未确认')}。当时计划：${data.decisions.map(d=>d.choice==='use'?'使用':'保留').join(' → ')||'未选择'}。</p>
+    <p>当时公开场面：${known.cards.filter(c=>c.controller===1&&[4,8].includes(c.location)).map(c=>escape(c.code?secondName(doc,c.code):'未知盖卡')).join('、')||'无已记录卡片'}。</p>
+    <h4>玩家单独记录的选择与备注</h4><p>按实际记录时间列出，尚未自动核实，也不补入生成提示时的已知信息。</p><ul>${data.notes.map(n=>`<li>${new Date(n.time_ms).toLocaleString()} · ${n.kind==='choice'?'玩家选择':'玩家观察'}：${escape(n.note)}</li>`).join('')||'<li>无单独备注</li>'}</ul>
+    <h4>随后实际观察到的结果</h4>${actual?`<p>${escape(actual.notice)}</p><p>我方结算后离开手牌的原实例：${list(actual.own_hand_departures)}。对手结算后离开场面的原实例：${list(actual.opponent_field_departures)}。</p>
+      <ul>${actual.actions.map(a=>`<li>${escape(action(a))}</li>`).join('')}</ul>
+      <ul>${actual.outcomes.map(row=>`<li>${escape(outcome(row))}</li>`).join('')||'<li>此段未记录到已解码的无效／选对象事件；不据此猜测其他处理。</li>'}</ul>`:'<p>尚未同步到该窗口之后的完整结算节点；不将计划或推演当作实际结果。</p>'}</section>`;
+}
+
+function mountSecondReview(){
+  const doc=secondDoc();
+  for(const button of document.querySelectorAll('[data-second-review]'))button.onclick=async()=>{
+    const target=$(`[data-second-review-panel="${button.dataset.secondReview}"]`);button.disabled=true;
+    try{const value=await api('/api/second-duel/review-window',{id:doc.id,advice_id:button.dataset.secondReview});
+      if(secondDoc()?.id===doc.id&&target.isConnected)target.innerHTML=secondReviewHtml(doc,value);
+    }catch(error){if(target.isConnected)target.textContent=error.message;}finally{if(button.isConnected)button.disabled=false;}
+  };
 }

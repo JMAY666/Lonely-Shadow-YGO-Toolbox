@@ -1,7 +1,7 @@
 'use strict';
 
 const SecondRouteModel={
-  available:doc=>!!doc.route_panel?.current&&!doc.status_reason&&!doc.closed,
+  available:doc=>!!doc.route_panel?.current&&doc.route_panel.route_ready!==false&&!doc.status_reason&&!doc.closed,
   step(step,doc){
     const s=step.bound_decision?.selection?.[0]||{},kind=step.automatic?'自动通过空响应':step.operation_label||
       ({summon:'通常召唤',special:'特殊召唤',activate:'发动',yes:'发动／确认',no:'不发动',card:'选择卡牌',material:'选择素材',select:'选择素材',unselect:'取消素材选择',place:'选择区域',option:'选择效果',finish_selection:'完成选择',spell_set:'盖放',pass:'放弃响应'}[s.kind]||'规则选择');
@@ -24,13 +24,13 @@ function secondRouteCards(doc,result,interactive){
 function secondRoutesPage(doc,readonly=false){
   const panel=doc.route_panel;if(!panel)return '';
   const sources=secondUI.nativeSources?.id===doc.id?secondUI.nativeSources:null;
-  return `<section class="second-panel second-routes" id="second-routes"><h3>我方首回合 · 后攻路线续算</h3>
+  return `<section class="second-panel second-routes" id="second-routes"><h3>${doc.current.turn_player?'对手回合 · 原生窗口接入':'我方首回合 · 后攻路线续算'}</h3>
     <p id="second-route-status">${escape(panel.reason)}</p><p>本期接入有完整原生日志的本机内置后攻练习。实际出牌仍在原练习中操作；这里的方案选择只记录计划。外部平台和单独手填场面尚不能重建完整规则。</p>
     ${panel.linked&&panel.source_running===false?'<p>原练习已结束；当前以其最后记录的节点进行复盘规划，候选后续尚未实际发生。</p>':''}
     ${readonly?'':`<details ${panel.linked?'':'open'}><summary>关联或同步同一练习</summary><button type="button" data-second-route-action="sources" ${panel.supported?'':'disabled'}>查找匹配的内置后攻练习</button>
       ${sources?`<p>${escape(sources.notice)}</p><form id="second-route-sync-form"><label>相同构筑与原始起手<select name="source_id">${secondSelectOptions(sources.records.map(r=>[r.id,`${r.name} · 当前手牌 ${r.hand_count} 张 · 节点 ${r.checkpoint}`]),doc.native_link?.source)}</select></label><label><input type="checkbox" name="confirmed" required> 确认这是本局内置练习，导入其已发生的公开记录</label><button type="submit" ${sources.records.length?'':'disabled'}>重建并同步实际局面</button></form>`:''}
       ${panel.linked?'<button type="button" data-second-route-action="sync">同步原练习当前实际局面</button>':''}</details>
-    ${panel.sources?`<form id="second-route-generate-form"><fieldset><legend>已有正式方案与妥协来源</legend>${panel.sources.map(s=>`<label><input type="checkbox" name="sources" value="${s.id}" ${panel.selected.includes(s.id)?'checked':''}>${escape(s.name)}</label>`).join('')||'<p>当前卡组没有 TAG 匹配的可用来源，请在原方案库补充并保存后重新同步。</p>'}</fieldset><label>本次目标<select name="goal">${secondSelectOptions([['clear','处理初始公开怪兽并建立来源终场'],['develop','仅比较来源展开终场']],panel.goal||'clear')}</select></label><label>比较偏好<select name="preference">${secondSelectOptions([['largest','终场最大'],['cheapest','花费最少'],['shortest','步骤最少'],['balanced','平均比较']],panel.preference)}</select></label><button type="submit" ${SecondRouteModel.available(doc)&&panel.status!=='running'?'':'disabled'}>从实际局面计算剩余路线</button></form>`:''}`}
+    ${panel.sources&&panel.route_ready?`<form id="second-route-generate-form"><fieldset><legend>已有正式方案与妥协来源</legend>${panel.sources.map(s=>`<label><input type="checkbox" name="sources" value="${s.id}" ${panel.selected.includes(s.id)?'checked':''}>${escape(s.name)}</label>`).join('')||'<p>当前卡组没有 TAG 匹配的可用来源，请在原方案库补充并保存后重新同步。</p>'}</fieldset><label>本次目标<select name="goal">${secondSelectOptions([['clear','处理初始公开怪兽并建立来源终场'],['develop','仅比较来源展开终场']],panel.goal||'clear')}</select></label><label>比较偏好<select name="preference">${secondSelectOptions([['largest','终场最大'],['cheapest','花费最少'],['shortest','步骤最少'],['balanced','平均比较']],panel.preference)}</select></label><button type="submit" ${SecondRouteModel.available(doc)&&panel.status!=='running'?'':'disabled'}>从实际局面计算剩余路线</button></form>`:''}`}
     <div id="second-route-results">${panel.result?`<p>搜索 ${panel.result.complete?'在所选来源和预算内完成':'未完整完成'} · ${panel.result.seconds} 秒。${escape(panel.result.notice)}</p>${secondRouteCards(doc,panel.result,!readonly)}`:''}</div>
     <details><summary>已执行记录与规则状态</summary><p>已保留 ${doc.native_history?.length||0} 个按当时可知信息记录的原生边界。当前已用通常召唤：${doc.current.native_rules?.normal_summons_used?.[0]??'未重建'}；具体效果次数、费用与持续限制由重放核心检查。</p>
       <ol>${(doc.events||[]).filter(e=>e.kind==='native_sync').map(e=>`<li>${escape(e.summary)} · 节点 ${e.payload.checkpoint} · 观察版本 ${e.revision}</li>`).join('')}</ol></details>
@@ -44,7 +44,7 @@ async function secondRouteRequest(action,extra={}){
   try{
     const value=await api('/api/second-duel/route-'+action,{id:doc.id,round_id:doc.input.round_id,revision:doc.revision,...extra});
     if(workspace!==secondWorkspace()||generation!==workspace.generation||secondUI.view)return;
-    if(action==='sources')secondUI.nativeSources={id:doc.id,...value};else if(SecondDuelModel.accept(workspace.doc,value))workspace.doc=value;
+    if(action==='sources')secondUI.nativeSources={id:doc.id,...value};else if(SecondDuelModel.accept(workspace.doc,value)){workspace.doc=value;if(action==='sync')secondUI.nativeSources=null;}
     renderDuel();
   }catch(error){if(workspace===secondWorkspace()&&$('#second-error'))$('#second-error').textContent=error.message;}
   finally{secondUI.busy=false;}

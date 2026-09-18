@@ -14,6 +14,7 @@ from modular_decisions import canonical_state, digest, public_state
 from planning_preferences import PREFERENCES
 from report import read_journal
 from timeline import route_rows
+from second_native import ANNOTATIONS, own_main, supported_window, native_window, carry_annotations, public_actions, public_outcomes
 
 
 PHASES = {1: 'draw', 2: 'standby', 4: 'main1', 8: 'battle', 16: 'battle', 32: 'battle', 64: 'battle', 256: 'main2', 512: 'end'}
@@ -93,10 +94,8 @@ class SecondRoutes:
         if any(type(node.get(k)) is not int or not 0 <= node[k] <= 2**53 for k in ('node', 'version', 'revision')):
             raise ValueError('原生决策节点标识不完整或无效，拒绝恢复')
         state = node['state']
-        if (node.get('answered') or node.get('player') != 0 or not node.get('raw')
-                or (state.get('turn'), state.get('turn_player'), state.get('phase'), state.get('chain_depth')) != (2, 0, 4, 0)
-                or bytes.fromhex(node['raw'])[0] != 11):
-            raise ValueError('等待我方首个回合主要阶段 1 的已结算决策点；当前连锁／选择需在原练习中完成')
+        if node.get('answered') or not node.get('raw') or not supported_window(node):
+            raise ValueError('等待对手首回合的我方响应窗口，或我方首回合主要阶段 1 的已结算决策点；其他选择需在原练习中完成')
         restore = folder / f"restore-{node['node']}.txt"
         tape = folder / 'core-calls.txt'
         if not restore.exists() or not tape.exists():
@@ -113,10 +112,46 @@ class SecondRoutes:
                 meta, node, stamp = self.sample(row['id'], doc)
                 records.append({'id': row['id'], 'name': meta['name'], 'status': row['status'],
                                 'checkpoint': node['node'], 'stamp': stamp,
+                                'stage': 'own_turn' if own_main(node) else 'opponent_turn',
                                 'hand_count': sum(c['controller'] == 0 and c['location'] == 2 for c in node['state']['cards'])})
             except (OSError, ValueError, KeyError, TypeError):
                 continue
         return {'records': records, 'notice': '仅列出构筑、原始起手匹配且具备完整日志的内置后攻主线；最多检查最近 100 项。无记录不表示规则上无路线。'}
+
+    def connection_error(self, doc, force=False):
+        link = doc.get('native_link')
+        if not link: return ''
+        try:
+            meta, node, stamp = self.sample(link['source'], doc)
+            if stamp != link['stamp']: return '原练习已进入新窗口，请同步实际局面；旧提示和路线已停止采用'
+            if link['rules'] != self.store.modular.precompute.rules(force=force):
+                return '规则资源已变化，请重新同步核对，旧建议不能采用'
+            if not own_main(node) and not self.store.alive(meta): return '原练习已结束，对手响应窗口仅供回看'
+        except (OSError, ValueError, KeyError, TypeError):
+            return '原练习当前窗口无法可靠读取，请完成原练习中的选择后重新同步'
+        return ''
+
+    def check_annotation(self, doc, kind, payload):
+        if not doc.get('native_link') or kind == 'close': return
+        if kind not in ANNOTATIONS:
+            raise ValueError('本局已关联原生练习；卡牌、费用、抽牌、次数和处理结果请在原练习操作后同步，不能重复手填')
+        if kind in ('choice', 'result', 'invalidate', 'resume'): return
+        error = self.connection_error(doc, force=True)
+        if error: raise ValueError(error)
+        if kind == 'verify' and any(payload.get(key) != doc['current'][key] for key in ('turn', 'turn_player', 'phase', 'lp', 'opponent_hand_count')):
+            raise ValueError('核对值与当前原生日志不同；请同步实际局面，不能用人工值覆盖')
+
+    def annotated(self, doc, kind):
+        binding = self.bindings.get(doc['id'])
+        if not binding: return
+        if kind == 'close': self.invalidate(doc['id']); return
+        binding.update(revision=doc['revision'], result=None, status='ready', generation=uuid.uuid4().hex,
+                       reason='人工条件或备注已记录；实际资源继续以原生日志同步')
+        binding.pop('raw_result', None)
+        ctx = self.store.modular.sessions.get(binding['sid'])
+        if ctx:
+            ctx['preference_version'] += 1
+            ctx['result'] = None
 
     def valid(self, doc, binding, *, force=False):
         if not binding or binding.get('cancelled') or binding['revision'] != doc['revision'] or self.owner.status(doc):
@@ -140,6 +175,7 @@ class SecondRoutes:
         binding = self.bindings.get(doc['id'])
         value = {'supported': doc['input']['platform'] == 'manual', 'linked': bool(doc.get('native_link')),
                  'current': self.valid(doc, binding), 'status': (binding or {}).get('status', 'unlinked'),
+                 'route_ready': bool(binding and binding.get('stage', 'own_turn') == 'own_turn'),
                  'reason': (binding or {}).get('reason', '仅有场面记录尚不能重建规则状态，请关联同一内置后攻练习'),
                  'history': deepcopy(doc.get('route_history', []))}
         if value['linked'] and not value['current']:
@@ -188,8 +224,10 @@ class SecondRoutes:
                 raise ValueError('本局已关联其他练习，不能换来源覆盖已执行历史；请另开记录')
             if not doc.get('native_link') and doc['events']:
                 raise ValueError('已有人工观察不能被练习快照覆盖；请用相同起手另开空白后攻记录')
-            if doc.get('native_link') and doc['events'][-1]['kind'] != 'native_sync':
-                raise ValueError('同步后已有独立人工修改，不能静默覆盖；请另开记录核对当前练习')
+            if doc.get('native_link'):
+                latest = max((i for i, event in enumerate(doc['events']) if event['kind'] == 'native_sync'), default=-1)
+                if any(e['kind'] not in ANNOTATIONS for e in doc['events'][latest+1:]):
+                    raise ValueError('同步后已有独立人工资源修改，不能静默覆盖；请另开记录核对当前练习')
             if len(doc['events']) >= MAX_EVENTS:
                 raise ValueError('观察记录容量已满，原历史保留')
             meta, node, stamp = self.sample(source_id, doc)
@@ -249,10 +287,13 @@ class SecondRoutes:
                            'rules_version': rules, 'inputs': {'engine': meta['engine_sha256'], 'scripts': meta['scripts_sha256'], 'checkpoint': stamp}},
                            forecast_steps=[])
                 updated = deepcopy(doc)
-                updated['current'] = observed_state(restored['state'], doc['current'])
+                updated['current'] = carry_annotations(observed_state(restored['state'], doc['current']), doc['current'])
+                updated['current']['native_window'] = native_window(restored, updated['current'])
                 updated['catalog'].update(catalogue)
                 updated.update(native_history=history, revision=doc['revision'] + 1, updated_ms=self.owner.now(),
-                               native_link={'source': source_id, 'checkpoint': node['node'], 'stamp': stamp, 'rules': rules})
+                               native_actions=public_actions(active, folder, target['seq']),
+                               native_outcomes=public_outcomes(active, target['seq']),
+                               native_link={'source': source_id, 'checkpoint': node['node'], 'seq': target['seq'], 'stamp': stamp, 'rules': rules})
                 updated['events'].append({'id': uuid.uuid4().hex, 'request_hash': digest(body), 'kind': 'native_sync',
                     'payload': {'source': source_id, 'checkpoint': node['node']}, 'source': 'native_public_checkpoint',
                     'time_ms': self.owner.now(), 'revision': updated['revision'], 'summary': '只读同步本机后攻练习；完整历史重放通过',
@@ -264,6 +305,7 @@ class SecondRoutes:
                     self.owner.save(updated)
                     self.invalidate(doc['id'])
                     self.bindings[doc['id']] = {'sid': sid, 'source': source_id, 'stamp': stamp, 'rules': rules,
+                        'stage': 'own_turn' if own_main(node) else 'opponent_turn',
                         'revision': updated['revision'], 'status': 'ready', 'reason': '完整历史重放通过；可以选择来源比较后续',
                         'sources': sources,
                         'selected': [], 'preference': 'largest'}
@@ -278,6 +320,9 @@ class SecondRoutes:
             doc = self.request(body)
             binding = self.bindings.get(doc['id'])
             if not self.valid(doc, binding, force=True): raise ValueError('请先同步本局真实规则状态；仅凭手牌或场面不能续算')
+            if binding.get('stage', 'own_turn') != 'own_turn': raise ValueError('当前是对手回合，先核对干扰窗口；进入我方主要阶段后同步并续算')
+            if any(r['status'] != 'expired' for r in doc['current']['usage'] + doc['current']['restrictions']):
+                raise ValueError('还有未结构化的人工次数或限制备注，请先核对；不能静默合并到原生规则权限')
             if binding['status'] == 'running': return self.owner.public(doc)
             selected, preference = body.get('sources'), body.get('preference', 'largest')
             goal = body.get('goal', 'clear')
@@ -319,7 +364,8 @@ class SecondRoutes:
                         binding.update(raw_result=result, result=view, status='ready',
                                        reason='候选仅覆盖所选来源与对手不追加响应分支；实际变化后重新同步')
             except Exception as error:
-                binding.update(status='error', reason=str(error), result=None)
+                if binding.get('generation') == generation and not binding.get('cancelled'):
+                    binding.update(status='error', reason=str(error), result=None)
         threading.Thread(target=work, daemon=True).start()
         with self.owner.lock: return self.owner.public(self.owner.load(doc['id']))
 
