@@ -224,8 +224,7 @@ function paintDuelStepView(s,prefix,detail) {
     const active=button.getAttribute('data-'+prefix+'-node')===s.position.key;
     button.classList.toggle('current',active);button.setAttribute('aria-current',active?'step':'false');
   });
-  // Only the current step participates in layout. A later long step cannot
-  // shrink this step, and branch selection alone preserves its reading scroll.
+  // Only the current step participates in layout; later steps cannot shrink it.
   if(canvas.dataset.node===s.position.key)return;
   const current=s.graph.nodes.find(n=>n.key===s.position.key);if(!current)return;
   canvas.dataset.node=s.position.key;
@@ -241,29 +240,62 @@ function paintDuelStepView(s,prefix,detail) {
   }
 }
 function layoutDuelStepView(prefix,settings) {
-  const viewport=$('#'+prefix+'-graph-scroll'),canvas=viewport?.querySelector('.'+prefix+'-graph');if(!canvas)return;
+  const viewport=$('#'+prefix+'-graph-scroll'),canvas=viewport?.querySelector('.'+prefix+'-graph');
+  if(!canvas?.firstElementChild||!viewport.clientWidth)return;
+  const surface=canvas.parentElement,footer=$('#duel-footer');
+  // Use the document position so scrolling down to the board cannot inflate
+  // the tutorial and move the board away. Manual splitter heights stay intact.
+  const top=viewport.getBoundingClientRect().top+window.scrollY;
+  const bottom=footer&&!footer.hidden?footer.getBoundingClientRect().top:innerHeight-22;
+  const height=settings.graphHeight||Math.max(200,Math.floor(bottom-top-16));
+  viewport.style.height=height+'px';
+  const width=viewport.clientWidth-2,availableHeight=viewport.clientHeight-2;
   const actions=canvas.querySelectorAll('.log-action').length;
-  canvas.style.setProperty('--node-action-columns',viewport.clientWidth>=900&&actions>1?'2':'1');
-  settings.graphScale=1;
-  viewport.style.height=settings.graphHeight?settings.graphHeight+'px':'auto';
-  if(!settings.graphHeight)viewport.style.height=Math.max(200,Math.min(canvas.scrollHeight+2,Math.max(300,Math.round(innerHeight*.6))))+'px';
+  // Wider layouts can keep a chain or revealed hand on fewer rows. Compare
+  // complete layouts and keep the one that gives the largest fitted artwork.
+  const widths=[...new Set([width,...[900,1200,1600,2000,2400].filter(value=>value>width)])];
+  let best;
+  for(const candidate of widths){
+    canvas.style.width=candidate+'px';
+    for(let columns=1;columns<=Math.min(3,Math.max(1,actions));columns++){
+      canvas.style.setProperty('--node-action-columns',String(columns));
+      const naturalWidth=Math.max(canvas.offsetWidth,canvas.scrollWidth),naturalHeight=canvas.scrollHeight;
+      const scale=Math.min(1,width/naturalWidth,availableHeight/Math.max(1,naturalHeight));
+      if(!best||scale>best.scale+.0001)best={width:candidate,naturalWidth,height:naturalHeight,columns,scale};
+    }
+  }
+  canvas.style.width=best.width+'px';
+  canvas.style.setProperty('--node-action-columns',String(best.columns));
+  canvas.style.transform=`scale(${best.scale})`;
+  surface.style.width=Math.ceil(best.naturalWidth*best.scale)+'px';
+  surface.style.height=Math.ceil(best.height*best.scale)+'px';
+  settings.graphScale=best.scale;
+  if(!settings.graphHeight)viewport.style.height=Math.max(200,Math.ceil(best.height*best.scale)+4)+'px';
+  viewport.scrollLeft=0;viewport.scrollTop=0;
   $('#'+prefix+'-graph-resize')?.setAttribute('aria-valuenow',String(Math.round(viewport.offsetHeight)));
+  viewport.dataset.fitSize=duelStepSize(viewport,canvas);
+}
+function duelStepSize(viewport,canvas) {
+  return [viewport.clientWidth,$('#'+viewport.id.replace('graph-scroll','step-nav'))?.offsetHeight,canvas.offsetWidth,canvas.scrollHeight].join(':');
 }
 let duelStepResizeObserver;
 function observeDuelStepView(prefix,settings) {
   duelStepResizeObserver?.disconnect();
-  const viewport=$('#'+prefix+'-graph-scroll');let width=viewport.clientWidth;
+  const viewport=$('#'+prefix+'-graph-scroll'),canvas=viewport.querySelector('.'+prefix+'-graph');
   duelStepResizeObserver=new ResizeObserver(()=>{
-    if(!viewport.isConnected||viewport.clientWidth===width)return;
-    width=viewport.clientWidth;layoutDuelStepView(prefix,settings);
+    if(!viewport.isConnected||viewport.dataset.fitSize===duelStepSize(viewport,canvas))return;
+    layoutDuelStepView(prefix,settings);
   });
   duelStepResizeObserver.observe(viewport);
+  duelStepResizeObserver.observe(canvas);
+  duelStepResizeObserver.observe($('#'+prefix+'-step-nav'));
+  canvas.addEventListener('load',()=>{if(viewport.isConnected)layoutDuelStepView(prefix,settings);},true);
 }
 function focusDuelStepView(prefix) {
   const viewport=$('#'+prefix+'-graph-scroll'),nav=$('#'+prefix+'-step-nav'),current=nav?.querySelector('[aria-current="step"]');
   if(!viewport||!current)return;
   viewport.scrollLeft=0;viewport.scrollTop=0;
-  nav.scrollLeft=Math.max(0,current.offsetLeft-(nav.clientWidth-current.offsetWidth)/2);
+  nav.scrollLeft=0;
 }
 function duelStepViewBounds(prefix) {
   const bounds=$('#'+prefix+'-graph-scroll').getBoundingClientRect(),nav=$('#'+prefix+'-step-nav').getBoundingClientRect();
