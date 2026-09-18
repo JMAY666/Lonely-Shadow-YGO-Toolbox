@@ -12,6 +12,24 @@ function setup(extra={}){
   return {...context.r,context};
 }
 
+test('frozen effect logs recover explicit reveal identity in compact and detailed views without rewriting results',()=>{
+  const r=setup(),shown={code:20,name:'被展示的同调怪兽',instance_id:5,controller:0,location:64,sequence:0};
+  const actor={code:10,name:'测试魔法',instance_id:1,controller:0,location:8,sequence:0};
+  const action={id:'a',activation_ref:'a',kind:'effect',cards:[actor],status:'resolved',results:[],costs:[],targets:[],effect_text:'展示怪兽',effect_text_source:'single_numbered_clause',selected_effect_text:'展示怪兽',effect_number:1,evidence_refs:['a']};
+  const report={actions:[action],events:[{id:'a',message:70,chain:1},{id:'start',message:72,chain:1},{id:'reveal',message:31,cards:[shown]},{id:'end',message:73,chain:1},{id:'other',message:31,cards:[{...shown,name:'不能归入本效果'}]}],catalog:{10:{type:2},20:{type:0x2001}},annotations:{nodes:{},cards:{},effects:{},final_marks:{}}};
+  const frozen=JSON.stringify(report),node={id:'step',kind:'step',action_ids:['a'],state:{cards:[actor,shown]}};
+  for(const mode of ['compact','detailed']){
+    const html=r.reviewLogAction(action,node,{report,mode,editable:false,nodes:[node],edits:report.annotations});
+    assert.match(html,/展示我方(?:EX )?额外卡组卡牌/);assert.match(html,/被展示的同调怪兽/);assert.match(html,/pics\/20\.jpg/);
+    assert(!html.includes('不能归入本效果'));
+  }
+  assert.equal(JSON.stringify(report),frozen);
+  action.results=[{event_ref:'reveal',message:31,cards:[shown]}];
+  assert.equal(r.context.recordedActionResults(action,report).length,1,'New projections do not duplicate the same reveal');
+  report.events[2].cause={handler_instance:999};action.results=[];
+  assert.equal(r.context.recordedActionResults(action,report).length,0,'Conflicting engine evidence is not guessed');
+});
+
 test('Step boards and tutorial node order use canonical modules while frozen annotations stay unchanged',()=>{
   const r=setup();
   const plan={id:'modular',actions:[],catalog:{},review:{nodes:[

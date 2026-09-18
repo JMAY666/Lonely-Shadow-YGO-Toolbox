@@ -381,6 +381,7 @@ function reviewOpeningCards(report,node) {
 }
 function reviewDeckOperation(event,cards=event.cards||[],report) {
   if(event.message===30)return `翻开${cards[0]?.controller===1?'对方':'我方'}卡组顶部 ${cards.length} 张随机牌`;
+  if(event.message===31)return `展示${cards.length&&cards.every(c=>c.location===cards[0].location&&c.controller===cards[0].controller)?reviewPlace({controller:cards[0].controller,location:cards[0].location}):''}卡牌`;
   if(event.deck_operation) {
     const side=event.destination?.controller===1?'对方':event.destination?.controller===0?'我方':'未知方';
     const action=report?.actions?.find(a=>a.results?.some(result=>result.event_ref===event.id));
@@ -390,6 +391,27 @@ function reviewDeckOperation(event,cards=event.cards||[],report) {
     return ({move_to_bottom:`放回${side}卡组最下面`,move_to_top:`放回${side}卡组最上面`,reorder:`调整${side}卡组顺序`,position_refresh:'更新卡组位置'})[event.deck_operation];
   }
   return '';
+}
+function recordedActionResults(action,report) {
+  const results=[...(action.results||[])];if(action.kind!=='effect')return results;
+  // Older frozen plans retain MSG_CONFIRM_CARDS in their event evidence but
+  // omit it from results. Recover only an explicitly resolving matching link.
+  const links=new Map(),events=report.events||[],existing=new Set(results.map(r=>r.event_ref));let resolving;
+  for(const event of events) {
+    if(event.message===70)links.set(event.chain,event.id);
+    else if(event.message===72)resolving=links.get(event.chain);
+    else if(event.message===73&&links.get(event.chain)===resolving)resolving=null;
+    else if(event.message===74){links.clear();resolving=null;}
+    if(event.message!==31||resolving!==(action.activation_ref||action.id)||!event.cards?.length||existing.has(event.id))continue;
+    const cause=event.cause,effect=action.engine_effect;
+    if(cause&&effect) {
+      const key=cause.effect_handle&&effect.effect_handle?'effect_handle':'effect_id';
+      if(cause[key]!==effect[key]||cause.handler_instance!==effect.handler_instance)continue;
+    }else if(cause&&cause.handler_instance!==action.cards?.[0]?.instance_id)continue;
+    results.push({event_ref:event.id,message:31,cards:event.cards,text:'展示卡牌'});existing.add(event.id);
+  }
+  const order=new Map(events.map((event,index)=>[event.id,index]));
+  return results.sort((a,b)=>(order.get(a.event_ref)??Infinity)-(order.get(b.event_ref)??Infinity));
 }
 function reviewEffectDescription(action,report) {
   const activation=cardActivation(action,report),specific=!activation&&action.selected_effect_text&&action.effect_text_source!=='unknown';
@@ -439,17 +461,21 @@ function compactLogAction(a,n,context=reviewLogContext()) {
       stages.push(...(source.costs||[]).map(s=>compactOperation(s,n.id,'对方 Cost',context)));
       const otherTargets=(source.targets||[]).filter(c=>c.instance_id==null||!a.cards.some(t=>t.instance_id===c.instance_id));
       if(otherTargets.length)stages.push(`<div class="chain-stage"><small class="log-role">对方选择对象</small><div class="compact-cards">${otherTargets.map(c=>reviewLogCard(c,n.id,opts)).join('')}</div></div>`);
-      stages.push(...(source.results||[]).filter(s=>s.event_ref!==event.id).map(s=>compactOperation(s,n.id,undefined,context)));
+      stages.push(...recordedActionResults(source,context.report).filter(s=>s.event_ref!==event.id).map(s=>compactOperation(s,n.id,undefined,context)));
       stages.push(`<div class="chain-stage"><small class="log-role">${!a._interaction.direct?'随后 ':''}${a.cards.some(c=>(context.report.catalog?.[c.code]?.type||0)&1)?'我方怪兽':'我方卡片'}${escape(label)}</small><div class="compact-cards">${a.cards.map(c=>reviewLogCard(c,n.id,opts)).join('')}</div></div>`);
       if(context.edits.effects[source.id])stages.push(`<p class="preserve-lines">对方操作说明：${escape(context.edits.effects[source.id])}</p>`);
     }
-    stages.push(...(a.results||[]).map(s=>compactOperation(s,n.id,undefined,context)));
+    stages.push(...recordedActionResults(a,context.report).map(s=>compactOperation(s,n.id,undefined,context)));
     return `${reviewEffectDescriptionHtml(a,context.report)}<div class="compact-chain">${stages.join('<span class="chain-arrow">→</span>')}</div>${a._interaction?reviewEffectDescriptionHtml(a._interaction.source,context.report):''}${a.status!=='resolved'&&!a._interaction?`<p class="effect-status status-${escape(a.status)}">${escape(({pending:'已发动 · 尚未确认结算',negated:'发动被无效',disabled:'效果被无效'}[a.status])||a.status_label||'状态未记录')}</p>`:''}${activationResultMissing(a,context.report)?'<p>处理结果未记录；不能由发动推断成功生效。</p>':''}${context.edits.effects[a.id]?`<p class="preserve-lines">用户说明：${escape(context.edits.effects[a.id])}</p>`:''}`;
   }
   const e=(context.report.events||[]).find(e=>e.id===a.id)||{};
   return `<div class="compact-chain">${compactOperation({...e,cards:a.cards,text:a.summary},n.id,a.kind==='cost'?'Cost':'',context)}</div>`;
 }
 function reviewLogAction(a,n,context=reviewLogContext()) {
+  if(a.kind==='effect'){
+    const results=recordedActionResults(a,context.report);
+    a={...a,results,evidence_refs:[...new Set([...(a.evidence_refs||[]),...results.filter(r=>r.message===31).map(r=>r.event_ref)])]};
+  }
   const events=[...new Set([...(a.evidence_refs||[]),...(a._interaction?.source.evidence_refs||[])])].map(id=>(context.report.events||[]).find(e=>e.id===id)).filter(Boolean);
   const activation=cardActivation(a,context.report);
   const replacement=appliedReplacement(a,context.report);
@@ -463,7 +489,7 @@ function reviewLogAction(a,n,context=reviewLogContext()) {
       <p class="effect-status status-${escape(a.status)}">${escape(({pending:'已发动 · 尚未确认结算',negated:'发动被无效',disabled:'效果被无效',resolved:'结算已完成 · 实际结果见下方'}[a.status])||a.status_label||'状态未记录')}</p>
       ${(a.costs||[]).map(s=>reviewOperation(s,n.id,'费用 Cost',context)).join('')}
       ${a.targets?.length?`<div class="log-operation"><small class="log-role">对象</small><div class="log-flow">${a.targets.map(c=>reviewLogCard(c,n.id,{report:context.report,name:true})).join('')}</div></div>`:''}
-      ${(a.results||[]).map(s=>reviewOperation(s,n.id,undefined,context)).join('')||(activationResultMissing(a,context.report)?'<p>处理结果未记录；不能由发动推断成功生效。</p>':['negated','disabled'].includes(a.status)?'<p>已记录无效结果，未继续处理原效果。</p>':'<p>卡片发动已结算，未记录额外动作。</p>')}
+      ${recordedActionResults(a,context.report).map(s=>reviewOperation(s,n.id,undefined,context)).join('')||(activationResultMissing(a,context.report)?'<p>处理结果未记录；不能由发动推断成功生效。</p>':['negated','disabled'].includes(a.status)?'<p>已记录无效结果，未继续处理原效果。</p>':'<p>卡片发动已结算，未记录额外动作。</p>')}
       ${!specific?`<label class="log-user-note">用户补充说明<textarea data-effect-note="${escape(a.id)}" maxlength="4000" rows="2" ${context.editable?'':'disabled'}>${escape(context.edits.effects[a.id]||'')}</textarea></label>`:context.edits.effects[a.id]?`<p>用户说明：${escape(context.edits.effects[a.id])}</p>`:''}`;
   } else {
     const e=events.find(e=>e.id===a.id)||events.at(-1)||{};

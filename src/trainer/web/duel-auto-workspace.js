@@ -136,7 +136,7 @@ function paintAutoDuelPreview(){
   if(!plan&&!node)return closeAutoDuelPreview();
   const panel=$('#auto-duel-preview');$('#auto-duel-preview-content').innerHTML=plan?`<div class="auto-duel-preview-modes"><button data-auto-preview-mode="compact" aria-pressed="${!autoDuelView.detailPreview}">简略</button><button data-auto-preview-mode="detailed" aria-pressed="${autoDuelView.detailPreview}">详细</button></div>${duelPlanSummary(plan,autoDuelView.detailPreview)}`:autoDuelNodeDetail(node);
   panel.hidden=false;panel.style.maxHeight='';const box=preview.anchor.getBoundingClientRect();
-  const placement=duelPreviewPlacement({anchor:box,graph:node?$('#auto-duel-graph-scroll').getBoundingClientRect():box,width:panel.offsetWidth,height:panel.offsetHeight,viewport:{width:innerWidth,height:innerHeight},footer:$('#duel-footer').hidden?null:$('#duel-footer').getBoundingClientRect(),beside:!!plan});
+  const placement=duelPreviewPlacement({anchor:box,graph:node?duelStepViewBounds('auto-duel'):box,width:panel.offsetWidth,height:panel.offsetHeight,viewport:{width:innerWidth,height:innerHeight},footer:$('#duel-footer').hidden?null:$('#duel-footer').getBoundingClientRect(),beside:!!plan});
   if(!placement){panel.hidden=true;return;}panel.style.left=placement.left+'px';panel.style.top=placement.top+'px';panel.style.maxHeight=placement.height+'px';pruneReviewCards();
 }
 function showAutoDuelPreview(anchor){

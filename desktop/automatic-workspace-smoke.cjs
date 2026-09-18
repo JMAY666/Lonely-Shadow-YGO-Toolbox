@@ -60,7 +60,8 @@ module.exports=async({page,application,root,evidence,pass})=>{
     await page.locator('[data-auto-duel-plan]').press('Enter');await page.waitForFunction(()=>duelState().stage===6&&!autoDuelState().busy);
     assert.equal(await page.locator('#auto-duel-tutorial').count(),1);assert.equal(await page.locator('#duel-graph-scroll').count(),0);
     assert.equal(await page.evaluate(()=>autoDuelState().position.key),'main/s1');
-    assert.equal(await page.locator('.auto-duel-node.current').getAttribute('data-auto-duel-node'),'main/s1');
+    assert.equal(await page.locator('.auto-duel-node.current').getAttribute('data-current-node'),'main/s1');
+    await require('./duel-step-view-smoke.cjs')({page,application,evidence,pass,automatic:true});
     await click('forward-step');assert.equal(await page.evaluate(()=>autoDuelState().position.key),'main/s2');await click('back-step');
     await page.locator('[data-auto-duel-choice="1"]').click();await click('forward-step');assert.equal(await page.evaluate(()=>autoDuelState().position.key),'branch/b1');
     await page.locator('[data-auto-duel-node="main/s1"]').click();

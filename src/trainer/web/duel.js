@@ -212,36 +212,65 @@ function duelNodeDetail(node,mode='detailed') {
   return `<h3>${escape(node.label)} · ${escape(edit?.name||node.title||(node.id==='initial'?'起手':node.id==='final'?'终场':`Step ${node.number}`))}</h3>${edit?.notes?`<p class="preserve-lines">${escape(edit.notes)}</p>`:''}${renderRecordedStep(source.report,source.node,mode)}`;
 }
 function duelGraphHtml() {
-  const s=duelState();
-  return `<div id="duel-graph-scroll" class="duel-graph-scroll"><div class="duel-graph-surface"><div class="duel-graph"><svg aria-hidden="true"></svg>${s.graph.nodes.map(n=>`<article role="button" tabindex="0" data-duel-node="${escape(n.key)}" class="duel-node" aria-label="${escape(n.label)} ${n.id==='initial'?'起手':n.id==='final'?'终场':`Step ${n.number}`}"><small>${escape(n.label)} · ${n.id==='initial'?'起手':n.id==='final'?'终场':`Step ${n.number}`}</small><div class="duel-node-log">${duelNodeDetail(n,'compact')}</div><span class="duel-current-dot" aria-hidden="true"></span></article>`).join('')}</div></div></div>`;
+  return duelStepViewHtml(duelState(),'duel');
+}
+function duelStepViewHtml(s,prefix) {
+  return `<nav id="${prefix}-step-nav" class="duel-step-nav" aria-label="展开步骤">${s.graph.nodes.map(n=>`<button type="button" data-${prefix}-node="${escape(n.key)}" class="duel-step-link" aria-label="${escape(n.label)} ${n.id==='initial'?'起手':n.id==='final'?'终场':`Step ${n.number}`}"><small>${escape(n.label)}</small><span>${n.id==='initial'?'起手':n.id==='final'?'终场':`Step ${n.number}`}</span></button>`).join('')}</nav><div id="${prefix}-graph-scroll" class="${prefix}-graph-scroll duel-step-viewport"><div class="${prefix}-graph-surface"><div class="${prefix}-graph"></div></div></div>`;
+}
+function paintDuelStepView(s,prefix,detail) {
+  const nav=$('#'+prefix+'-step-nav'),canvas=$('#'+prefix+'-graph-scroll')?.querySelector('.'+prefix+'-graph');
+  if(!nav||!canvas)return;
+  nav.querySelectorAll('button').forEach(button=>{
+    const active=button.getAttribute('data-'+prefix+'-node')===s.position.key;
+    button.classList.toggle('current',active);button.setAttribute('aria-current',active?'step':'false');
+  });
+  // Only the current step participates in layout. A later long step cannot
+  // shrink this step, and branch selection alone preserves its reading scroll.
+  if(canvas.dataset.node===s.position.key)return;
+  const current=s.graph.nodes.find(n=>n.key===s.position.key);if(!current)return;
+  canvas.dataset.node=s.position.key;
+  canvas.innerHTML=`<article class="${prefix}-node current" data-current-node="${escape(current.key)}" aria-current="step"><div class="${prefix}-node-log">${detail(current,'compact')}</div></article>`;
+  for(const artwork of canvas.querySelectorAll('.review-art img')){
+    // This is the visible Step, so defer no artwork to scroll/viewport heuristics.
+    artwork.loading='eager';artwork.decoding='sync';
+    if(artwork.complete&&artwork.naturalWidth)continue;
+    const status=document.createElement('span');status.className='duel-card-image-state';status.textContent='正在加载卡图…';artwork.after(status);
+    artwork.addEventListener('load',()=>status.remove(),{once:true});
+    artwork.addEventListener('error',()=>{status.textContent='卡图暂不可用';},{once:true});
+    if(artwork.complete&&!artwork.naturalWidth)status.textContent='卡图暂不可用';
+  }
+}
+function layoutDuelStepView(prefix,settings) {
+  const viewport=$('#'+prefix+'-graph-scroll'),canvas=viewport?.querySelector('.'+prefix+'-graph');if(!canvas)return;
+  const actions=canvas.querySelectorAll('.log-action').length;
+  canvas.style.setProperty('--node-action-columns',viewport.clientWidth>=900&&actions>1?'2':'1');
+  settings.graphScale=1;
+  viewport.style.height=settings.graphHeight?settings.graphHeight+'px':'auto';
+  if(!settings.graphHeight)viewport.style.height=Math.max(200,Math.min(canvas.scrollHeight+2,Math.max(300,Math.round(innerHeight*.6))))+'px';
+  $('#'+prefix+'-graph-resize')?.setAttribute('aria-valuenow',String(Math.round(viewport.offsetHeight)));
+}
+let duelStepResizeObserver;
+function observeDuelStepView(prefix,settings) {
+  duelStepResizeObserver?.disconnect();
+  const viewport=$('#'+prefix+'-graph-scroll');let width=viewport.clientWidth;
+  duelStepResizeObserver=new ResizeObserver(()=>{
+    if(!viewport.isConnected||viewport.clientWidth===width)return;
+    width=viewport.clientWidth;layoutDuelStepView(prefix,settings);
+  });
+  duelStepResizeObserver.observe(viewport);
+}
+function focusDuelStepView(prefix) {
+  const viewport=$('#'+prefix+'-graph-scroll'),nav=$('#'+prefix+'-step-nav'),current=nav?.querySelector('[aria-current="step"]');
+  if(!viewport||!current)return;
+  viewport.scrollLeft=0;viewport.scrollTop=0;
+  nav.scrollLeft=Math.max(0,current.offsetLeft-(nav.clientWidth-current.offsetWidth)/2);
+}
+function duelStepViewBounds(prefix) {
+  const bounds=$('#'+prefix+'-graph-scroll').getBoundingClientRect(),nav=$('#'+prefix+'-step-nav').getBoundingClientRect();
+  return {left:bounds.left,right:bounds.right,top:nav.top,bottom:bounds.bottom,width:bounds.width,height:bounds.bottom-nav.top};
 }
 function layoutDuelGraph() {
-  const s=duelState(),viewport=$('#duel-graph-scroll'),canvas=viewport?.querySelector('.duel-graph');if(!canvas)return;
-  const available=Math.max(160,viewport.clientHeight-28),columns=[];
-  const maximumWidth=Math.max(480,Math.min(900,viewport.clientWidth-32));
-  for(const n of s.graph.nodes) {
-    const el=canvas.querySelector(`[data-duel-node="${CSS.escape(n.key)}"]`),actions=el.querySelectorAll('.duel-node-log > .log-action').length;
-    el.style.width='316px';el.style.setProperty('--node-action-columns','1');
-    // Give a tall step more horizontal space before scaling the whole diagram.
-    for(let width=416;el.offsetHeight>available&&width<=maximumWidth;width+=100) {
-      el.style.width=width+'px';
-      if(actions>1&&width>=516)el.style.setProperty('--node-action-columns',String(Math.min(actions,2)));
-    }
-    columns[n.column]=Math.max(columns[n.column]||0,el.offsetWidth+36);
-  }
-  const rows=s.routes.map((_,row)=>Math.max(120,...s.graph.nodes.filter(n=>n.row===row).map(n=>canvas.querySelector(`[data-duel-node="${CSS.escape(n.key)}"]`).offsetHeight))+28);
-  const scale=Math.min(1,(viewport.clientHeight-8)/Math.max(...rows));duelUI.graphScale=scale;
-  const points=new Map();
-  s.graph.nodes.forEach(n=>{
-    const b=canvas.querySelector(`[data-duel-node="${CSS.escape(n.key)}"]`),x=columns.slice(0,n.column).reduce((a,b)=>a+b,14),y=rows.slice(0,n.row).reduce((a,b)=>a+b,12);
-    b.style.left=x+'px';b.style.top=y+'px';points.set(n.key,{x,y:y+36,width:b.offsetWidth});
-  });
-  const width=columns.reduce((a,b)=>a+b,14),height=rows.reduce((a,b)=>a+b,12),svg=canvas.querySelector('svg');
-  canvas.style.width=width+'px';canvas.style.height=height+'px';svg.setAttribute('width',width);svg.setAttribute('height',height);
-  canvas.style.transform=`scale(${scale})`;
-  canvas.parentElement.style.width=width*scale+'px';canvas.parentElement.style.height=height*scale+'px';
-  svg.innerHTML=`<defs><marker id="duel-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10" fill="var(--accent)"/></marker></defs>`+s.graph.edges.map(e=>{const a=points.get(e.from),b=points.get(e.to);return `<path d="M${a.x+a.width} ${a.y}H${a.x+a.width+18}V${b.y}H${b.x-4}" fill="none" stroke="var(--accent)" stroke-width="1.5" ${e.branch?'stroke-dasharray="5 4"':''} marker-end="url(#duel-arrow)"/>`;}).join('');
-  const separator=$('#duel-graph-resize');separator?.setAttribute('aria-valuenow',String(Math.round(viewport.offsetHeight)));
+  layoutDuelStepView('duel',duelUI);
 }
 function resizeDuelGraph(height) {
   const viewport=$('#duel-graph-scroll');if(!viewport)return;
@@ -251,6 +280,7 @@ function resizeDuelGraph(height) {
 }
 function mountDuelGraphResize() {
   const viewport=$('#duel-graph-scroll'),separator=$('#duel-graph-resize');
+  observeDuelStepView('duel',duelUI);
   viewport.style.height=(duelUI.graphHeight||Math.max(300,Math.round(innerHeight*.45)))+'px';
   separator.setAttribute('aria-valuemax',String(Math.max(1200,innerHeight*2)));
   let drag;
@@ -263,7 +293,7 @@ function mountDuelGraphResize() {
   const finish=()=>{drag=null;document.body.classList.remove('duel-resizing');};
   separator.onpointerup=event=>{if(drag)resizeDuelGraph(drag.height+event.clientY-drag.y);finish();};
   separator.onpointercancel=finish;separator.onlostpointercapture=finish;
-  separator.ondblclick=()=>{duelUI.graphHeight=null;resizeDuelGraph(Math.max(300,Math.round(innerHeight*.45)));};
+  separator.ondblclick=()=>{duelUI.graphHeight=null;layoutDuelGraph();focusDuelPosition();};
   separator.onkeydown=event=>{
     if(!['ArrowUp','ArrowDown','Home','End'].includes(event.key))return;
     event.preventDefault();event.stopPropagation();
@@ -275,6 +305,7 @@ function duelTutorialPage() {
   return `<div class="duel-section-heading"><h2>${escape(s.plan.name)}</h2><div class="duel-actions">${duelButton('toggle-shortcuts',s.enabled?'暂停快捷键':'启用快捷键')}${duelButton('shortcuts','快捷键设置')}${duelButton('modular',s.plan?.temporary?'重新生成后续':'生成展开后续')}</div></div><p id="duel-shortcut-status" role="status"></p>${duelGraphHtml()}<div id="duel-graph-resize" class="duel-graph-resize" role="separator" tabindex="0" aria-label="调整教程图高度" aria-orientation="horizontal" aria-valuemin="200" aria-valuemax="1800" title="拖动调整教程图高度；双击恢复默认"><span></span></div><div id="duel-route-choice" class="duel-route-choice"></div><article id="duel-current-detail" class="duel-current-detail"></article><div id="duel-zone-content" class="review-zone-popover" role="dialog" aria-label="区域卡牌" hidden></div>`;
 }
 function renderDuel() {
+  duelStepResizeObserver?.disconnect();
   if($('#duel-brain-field')?.contains($('#native-stage')))restoreModularField();
   closeDuelPreview();
   const s=duelState(),mainStage=Math.min(s.stage,duelStages.hand),stages=['模式选择','功能选择','卡组选择','决定先/后攻','卡组展开'];
@@ -329,17 +360,11 @@ function renderDuel() {
   if(automatic&&s.stage>=duelStages.plans)mountAutoDuelWorkspace();
 }
 function focusDuelPosition() {
-  const viewport=$('#duel-graph-scroll'),current=viewport?.querySelector('.duel-node.current');if(!current)return;
-  const scale=duelUI.graphScale||1;
-  viewport.scrollLeft=Math.max(0,current.offsetLeft*scale-(viewport.clientWidth-current.offsetWidth*scale)/2);
-  viewport.scrollTop=Math.max(0,current.offsetTop*scale-8);
+  focusDuelStepView('duel');
 }
 function paintDuelPosition(scroll=true) {
   const s=duelState();if(s.stage!==duelStages.tutorial||!s.position)return;
-  const graph=$('#duel-graph-scroll');
-  graph.querySelectorAll('[data-duel-node]').forEach(button=>{
-    const active=button.dataset.duelNode===s.position.key;button.classList.toggle('current',active);button.setAttribute('aria-current',active?'step':'false');
-  });
+  paintDuelStepView(s,'duel',duelNodeDetail);layoutDuelGraph();
   if(scroll)focusDuelPosition();
   const outgoing=s.graph.edges.filter(e=>e.from===s.position.key);
   $('#duel-route-choice').hidden=outgoing.length<2;
@@ -432,7 +457,7 @@ function paintDuelPreview() {
   $('#duel-preview-content').innerHTML=plan?`<div class="duel-preview-modes" role="group" aria-label="预览方式"><button data-duel-preview-mode="compact" aria-pressed="${!duelUI.detailPreview}">简略</button><button data-duel-preview-mode="detailed" aria-pressed="${duelUI.detailPreview}">详细</button></div>${duelPlanSummary(plan,duelUI.detailPreview)}`:duelNodeDetail(node);
   const p=$('#duel-preview');p.style.maxHeight='';p.hidden=false;
   const box=duelUI.previewAnchor.getBoundingClientRect();
-  const placement=duelPreviewPlacement({anchor:box,graph:node?$('#duel-graph-scroll').getBoundingClientRect():box,width:p.offsetWidth,height:p.offsetHeight,
+  const placement=duelPreviewPlacement({anchor:box,graph:node?duelStepViewBounds('duel'):box,width:p.offsetWidth,height:p.offsetHeight,
     viewport:{width:innerWidth,height:innerHeight},footer:$('#duel-footer').hidden?null:$('#duel-footer').getBoundingClientRect(),beside:!!plan});
   if(!placement){p.hidden=true;return;}
   p.style.left=placement.left+'px';p.style.top=placement.top+'px';p.style.maxHeight=placement.height+'px';

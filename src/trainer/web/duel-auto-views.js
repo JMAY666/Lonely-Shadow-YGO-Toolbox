@@ -22,37 +22,11 @@ function autoDuelNodeDetail(node,mode='detailed') {
 }
 
 function autoDuelGraphHtml() {
-  const s=autoDuelState();
-  return `<div id="auto-duel-graph-scroll" class="auto-duel-graph-scroll"><div class="auto-duel-graph-surface"><div class="auto-duel-graph"><svg aria-hidden="true"></svg>${s.graph.nodes.map(n=>`<article role="button" tabindex="0" data-auto-duel-node="${escape(n.key)}" class="auto-duel-node" aria-label="${escape(n.label)} ${n.id==='initial'?'起手':n.id==='final'?'终场':`Step ${n.number}`}"><small>${escape(n.label)} · ${n.id==='initial'?'起手':n.id==='final'?'终场':`Step ${n.number}`}</small><div class="auto-duel-node-log">${autoDuelNodeDetail(n,'compact')}</div><span class="auto-duel-current-dot" aria-hidden="true"></span></article>`).join('')}</div></div></div>`;
+  return duelStepViewHtml(autoDuelState(),'auto-duel');
 }
 
 function layoutAutoDuelGraph() {
-  const s=autoDuelState(),viewport=$('#auto-duel-graph-scroll'),canvas=viewport?.querySelector('.auto-duel-graph');if(!canvas)return;
-  const available=Math.max(160,viewport.clientHeight-28),columns=[];
-  const maximumWidth=Math.max(480,Math.min(900,viewport.clientWidth-32));
-  for(const n of s.graph.nodes) {
-    const el=canvas.querySelector(`[data-auto-duel-node="${CSS.escape(n.key)}"]`),actions=el.querySelectorAll('.auto-duel-node-log > .log-action').length;
-    el.style.width='316px';el.style.setProperty('--node-action-columns','1');
-    // Give a tall step more horizontal space before scaling the whole diagram.
-    for(let width=416;el.offsetHeight>available&&width<=maximumWidth;width+=100) {
-      el.style.width=width+'px';
-      if(actions>1&&width>=516)el.style.setProperty('--node-action-columns',String(Math.min(actions,2)));
-    }
-    columns[n.column]=Math.max(columns[n.column]||0,el.offsetWidth+36);
-  }
-  const rows=s.routes.map((_,row)=>Math.max(120,...s.graph.nodes.filter(n=>n.row===row).map(n=>canvas.querySelector(`[data-auto-duel-node="${CSS.escape(n.key)}"]`).offsetHeight))+28);
-  const scale=Math.min(1,(viewport.clientHeight-8)/Math.max(...rows));autoDuelView.graphScale=scale;
-  const points=new Map();
-  s.graph.nodes.forEach(n=>{
-    const b=canvas.querySelector(`[data-auto-duel-node="${CSS.escape(n.key)}"]`),x=columns.slice(0,n.column).reduce((a,b)=>a+b,14),y=rows.slice(0,n.row).reduce((a,b)=>a+b,12);
-    b.style.left=x+'px';b.style.top=y+'px';points.set(n.key,{x,y:y+36,width:b.offsetWidth});
-  });
-  const width=columns.reduce((a,b)=>a+b,14),height=rows.reduce((a,b)=>a+b,12),svg=canvas.querySelector('svg');
-  canvas.style.width=width+'px';canvas.style.height=height+'px';svg.setAttribute('width',width);svg.setAttribute('height',height);
-  canvas.style.transform=`scale(${scale})`;
-  canvas.parentElement.style.width=width*scale+'px';canvas.parentElement.style.height=height*scale+'px';
-  svg.innerHTML=`<defs><marker id="auto-duel-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10" fill="var(--accent)"/></marker></defs>`+s.graph.edges.map(e=>{const a=points.get(e.from),b=points.get(e.to);return `<path d="M${a.x+a.width} ${a.y}H${a.x+a.width+18}V${b.y}H${b.x-4}" fill="none" stroke="var(--accent)" stroke-width="1.5" ${e.branch?'stroke-dasharray="5 4"':''} marker-end="url(#auto-duel-arrow)"/>`;}).join('');
-  const separator=$('#auto-duel-graph-resize');separator?.setAttribute('aria-valuenow',String(Math.round(viewport.offsetHeight)));
+  layoutDuelStepView('auto-duel',autoDuelView);
 }
 
 function resizeAutoDuelGraph(height) {
@@ -64,6 +38,7 @@ function resizeAutoDuelGraph(height) {
 
 function mountAutoDuelGraphResize() {
   const viewport=$('#auto-duel-graph-scroll'),separator=$('#auto-duel-graph-resize');
+  observeDuelStepView('auto-duel',autoDuelView);
   viewport.style.height=(autoDuelView.graphHeight||Math.max(300,Math.round(innerHeight*.45)))+'px';
   separator.setAttribute('aria-valuemax',String(Math.max(1200,innerHeight*2)));
   let drag;
@@ -76,7 +51,7 @@ function mountAutoDuelGraphResize() {
   const finish=()=>{drag=null;document.body.classList.remove('auto-duel-resizing');};
   separator.onpointerup=event=>{if(drag)resizeAutoDuelGraph(drag.height+event.clientY-drag.y);finish();};
   separator.onpointercancel=finish;separator.onlostpointercapture=finish;
-  separator.ondblclick=()=>{autoDuelView.graphHeight=null;resizeAutoDuelGraph(Math.max(300,Math.round(innerHeight*.45)));};
+  separator.ondblclick=()=>{autoDuelView.graphHeight=null;layoutAutoDuelGraph();focusAutoDuelPosition();};
   separator.onkeydown=event=>{
     if(!['ArrowUp','ArrowDown','Home','End'].includes(event.key))return;
     event.preventDefault();event.stopPropagation();
@@ -90,18 +65,12 @@ function autoDuelTutorialPage() {
 }
 
 function focusAutoDuelPosition() {
-  const viewport=$('#auto-duel-graph-scroll'),current=viewport?.querySelector('.auto-duel-node.current');if(!current)return;
-  const scale=autoDuelView.graphScale||1;
-  viewport.scrollLeft=Math.max(0,current.offsetLeft*scale-(viewport.clientWidth-current.offsetWidth*scale)/2);
-  viewport.scrollTop=Math.max(0,current.offsetTop*scale-8);
+  focusDuelStepView('auto-duel');
 }
 
 function paintAutoDuelPosition(scroll=true) {
   const s=autoDuelState();if(s.stage!==duelStages.tutorial||!s.position)return;
-  const graph=$('#auto-duel-graph-scroll');
-  graph.querySelectorAll('[data-auto-duel-node]').forEach(button=>{
-    const active=button.dataset.autoDuelNode===s.position.key;button.classList.toggle('current',active);button.setAttribute('aria-current',active?'step':'false');
-  });
+  paintDuelStepView(s,'auto-duel',autoDuelNodeDetail);layoutAutoDuelGraph();
   if(scroll)focusAutoDuelPosition();
   const outgoing=s.graph.edges.filter(e=>e.from===s.position.key);
   $('#auto-duel-route-choice').hidden=outgoing.length<2;

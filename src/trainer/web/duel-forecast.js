@@ -190,6 +190,7 @@ function forecastOperations(steps) {
   const history=steps.flatMap(s=>s.before?.cards||[]),materialIds=new Set();
   const setCards=new Set(steps.filter(s=>(s.bound_decision||s.decision).selection?.some(c=>['spell_set','monster_set'].includes(c.kind))).flatMap(s=>(s.bindings||[]).map(b=>b.card?.instance_id)).filter(id=>id!=null));
   for(const step of steps) {
+    if(step.revealed_cards?.length)operations.push({message:31,cards:step.revealed_cards.map(c=>({...c,identity_known:true})),role:''});
     const before=step.before?.cards||[],after=step.state?.cards||[],byId=new Map(before.filter(c=>c.instance_id!=null).map(c=>[c.instance_id,c]));
     for(const card of after) {
       if(card.instance_id==null||card.unknown||!card.code)continue;
@@ -210,7 +211,7 @@ function forecastOperations(steps) {
       operations.push({message:summoned?(shown.summon_method==='通常召唤'?61:63):setCards.has(card.instance_id)&&[4,8].includes(card.location)?54:origin.location===card.location?53:50,cards:[shown],origin,destination:card,role:card.reason&0x80?'Cost':''});
     }
   }
-  return operations.filter(op=>!op.cards.every(c=>materialIds.has(c.instance_id)));
+  return operations.filter(op=>op.message===31||!op.cards.every(c=>materialIds.has(c.instance_id)));
 }
 function renderForecastStep(node,report,split=true) {
   const steps=node.forecast_steps||[node.forecast_step],first=steps.find(forecastStartsOperation)||steps[0],selection=(first.bound_decision||first.decision).selection||[];

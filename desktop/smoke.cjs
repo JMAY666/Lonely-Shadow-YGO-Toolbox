@@ -63,7 +63,7 @@ async function launch(first = false, testControl = true) {
     page.waitForFunction(() => document.querySelector('#resource-count')?.textContent.includes('张卡牌'), null, { timeout: 300000 }),
     page.waitForEvent('pageerror', {timeout:300000}).then(error => { throw error; }),
   ]);
-  await application.evaluate(({BrowserWindow})=>{const main=BrowserWindow.getAllWindows().find(w=>!w.getParentWindow());main.webContents.setZoomFactor(1);main.setContentSize(1280,900);});
+  await application.evaluate(({BrowserWindow})=>{const main=BrowserWindow.getAllWindows().find(w=>!w.getParentWindow());main.webContents.setBackgroundThrottling(false);main.webContents.setZoomFactor(1);main.setContentSize(1280,900);});
   await page.waitForFunction(()=>innerWidth===1280&&innerHeight===900);
   service = JSON.parse(fs.readFileSync(path.join(root, 'runtime', '_trainer', 'service.json'), 'utf8'));
   assert.equal(await page.evaluate(() => typeof require), 'undefined');

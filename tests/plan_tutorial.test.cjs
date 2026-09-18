@@ -24,6 +24,16 @@ function fixture() {
     review:{complete:true,nodes:[{id:'initial',kind:'initial',number:1,action_ids:[]},{id:'step:2:0',kind:'step',number:2,state_ref:5,action_ids:['2:0']},{id:'final',kind:'final',number:3,action_ids:[],state:{cards:[a,grave,b]}}]}};
 }
 
+test('one-image tutorial includes the explicitly revealed card from an older frozen plan',()=>{
+  const r=setup(),plan=fixture(),action=plan.actions[0],shown={code:30,name:'需要展示的额外怪兽',instance_id:30,controller:0,location:64};
+  plan.events.unshift({id:action.id,message:70,chain:1},{id:'resolve',message:72,chain:1},{id:'reveal',message:31,cards:[shown]});
+  plan.events.push({id:'done',message:73,chain:1});
+  const frozen=JSON.stringify(plan),model=r.buildPlanTutorial(plan),svg=r.renderPlanTutorialSvg(model);
+  const reveal=model.steps[0].actions[0].stages.find(stage=>stage.label.includes('展示'));
+  assert.equal(reveal.cards[0].name,shown.name);assert.match(svg,/需要展示的额外怪兽/);
+  assert.equal(JSON.stringify(plan),frozen);
+});
+
 test('conditional tutorial shows sets, bans and the frozen instance without implying route interchangeability',()=>{
   const r=setup(),plan=fixture(),condition={kind:'condition',version:1,rule:{op:'all',items:[{field:'level',op:'eq',value:3},{field:'monster_kind',op:'in',values:['tuner']}]}};
   plan.expansion={conditions:{hand_count:2,slots:[10,condition],banned:[condition]},actual_opening:[10,11]};

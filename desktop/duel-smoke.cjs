@@ -244,6 +244,7 @@ module.exports=async function({page,application,root,evidence,pass}) {
   assert.equal(await page.evaluate(()=>duelState().position.key),'main/s1');
   assert(await page.locator('.duel-node .compact-chain img').count()>0);
   assert(await page.locator('#duel-current-detail .board-slot').count()>10);
+  await require('./duel-step-view-smoke.cjs')({page,application,evidence,pass});
   const resize=page.locator('#duel-graph-resize'),heightBefore=await page.locator('#duel-graph-scroll').evaluate(el=>el.clientHeight),positionBefore=await page.evaluate(()=>duelState().position.key);
   const handle=await resize.boundingBox();await page.mouse.move(handle.x+handle.width/2,handle.y+handle.height/2);await page.mouse.down();await page.mouse.move(handle.x+handle.width/2,handle.y+handle.height/2+90,{steps:6});await page.mouse.up();
   assert((await page.locator('#duel-graph-scroll').evaluate(el=>el.clientHeight))>heightBefore+80);
@@ -257,8 +258,9 @@ module.exports=async function({page,application,root,evidence,pass}) {
   await cardInPreview.hover();await page.waitForFunction(()=>!document.querySelector('#review-card-popover').hidden);
   await page.locator('#review-card-popover').hover();await page.waitForTimeout(500);
   assert(await page.locator('#duel-preview').isVisible());assert(await page.locator('#review-card-popover').isVisible());
-  await page.evaluate(()=>closeReviewDetail());
-  await page.locator('#duel-preview-close').click();
+  // Both hover panels may naturally dismiss when leaving the nested card;
+  // close the verified preview before testing the next hover interaction.
+  await page.evaluate(()=>{closeReviewDetail();closeDuelPreview(true);});
   // Repeated child movement must not restart the step's opening delay or leave
   // an old close timer that dismisses a newer step preview.
   for(const key of ['main/s2','main/s1','main/s2','main/s1']) {

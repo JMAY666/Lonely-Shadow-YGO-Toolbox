@@ -8,7 +8,7 @@ import uuid
 
 from modular_decisions import (bind, digest, evaluation, integer, model, next_prompt,
                                public_state, forecast_state, resource_rank, semantic_response, terminal_key, response_bindings,
-                               bind_variants, semantic_equal, snapshot_matches, canonical_state, script_binding_conflict)
+                               bind_variants, semantic_equal, snapshot_matches, canonical_state, script_binding_conflict, forecast_reveals)
 from report import read_journal
 from timeline import route_rows
 from card_semantics import effect_clause, zone_name
@@ -56,6 +56,30 @@ def empty_response_edge(prompt, guide, raw):
             'source': {**guide[0]['source'], 'automatic_window': True}}
 
 
+def opening_response_edge(prompt, guide, current):
+    """Reach a recorded Main Phase opening through legal, sourced passes."""
+    if not guide: return None
+    state, target = current['state'], guide[0]['before']
+    if (prompt.get('message') != 16 or prompt.get('player') != 0 or
+            state.get('turn_player') != 0 or state.get('chain_depth') or
+            state.get('turn') != target.get('turn') or state.get('phase') not in (1, 2) or
+            target.get('phase') != 4 or target.get('chain_depth') or
+            guide[0]['decision'].get('message') != 11):
+        return None
+    # Do not invent an effect/choice. This branch uses the recorded decision
+    # to decline a response; any optional effect remains available to search.
+    if not any(e['decision'].get('message') == 16 and
+               any(s.get('kind') == 'pass' for s in e['decision'].get('selection', [])) for e in guide):
+        return None
+    decline = next((c for c in prompt.get('choices', []) if c['semantic'].get('kind') == 'pass'), None)
+    if not decline: return None
+    automatic = len(prompt['choices']) == 1
+    return {**guide[0], 'id': digest(['opening_response', guide[0]['id'], current['raw']]),
+            'decision': semantic_response(prompt, decline['response']), 'delta': [],
+            'automatic': automatic, 'terminal': False, 'if_condition': None, '_keep_guide': True,
+            'source': {**guide[0]['source'], 'phase_alignment': True, 'automatic_window': automatic}}
+
+
 def route_signature(candidate, precise):
     def normalized(value):
         if isinstance(value, dict):
@@ -84,6 +108,11 @@ def guide_block_reason(edge, current, catalog):
             elsewhere = '、'.join(dict.fromkeys(zone_name(c.get('location', 0)) for c in own if c.get('location') != location))
             return f'下一步需要「{name}」在{zone_name(location)} ×{count}，当前可用 {available}' + (f'；可见副本在{elsewhere}' if elsewhere else '')
     prompt = model(current['raw'], current['state'], current.get('effects')) if current.get('raw') else None
+    if prompt and prompt['message'] != edge['decision']['message']:
+        from protocol import NAMES
+        expected=NAMES.get(edge['decision']['message'],str(edge['decision']['message']))
+        actual=NAMES.get(prompt['message'],str(prompt['message']))
+        return f'来源下一步为「{expected}」，当前引擎窗口为「{actual}」，尚不能直接续接'
     if prompt and script_binding_conflict(edge['decision'], prompt):
         return '来源与当前规则脚本的效果标识不兼容，尚不能确认同一效果；请在当前版本重新记录此来源'
     return '当前窗口、效果次数或选择条件与来源不同，无法直接续接'
@@ -723,7 +752,8 @@ class Modular:
         for edge in edges: by_route.setdefault((edge['source']['plan'], edge['source']['route']), []).append(edge)
         for route_key, route in by_route.items():
             eligible = [i for i,e in enumerate(route) if (not ctx['precise'] or snapshot_matches(e['before'],state['state'])) and bind_variants(e['decision'], root_prompt,precise=ctx['precise'],limit=1)]
-            first = min(eligible, key=lambda i: (boundary_distance(route[i]['before'], state['state']), i)) if eligible else None
+            opening = forecast and not ctx['precise'] and opening_response_edge(root_prompt, route, state)
+            first = 0 if opening else min(eligible, key=lambda i: (boundary_distance(route[i]['before'], state['state']), i)) if eligible else None
             source_checks[route_key] = {'source': deepcopy(route[0]['source']), 'status': 'queued' if first is not None else 'no_start',
                                         'checked': 0, 'total': len(route[first:]) if first is not None else 0}
             if first is not None: queue.append((seed or state, [], [], frozenset(), False, route[first:]))
@@ -786,8 +816,11 @@ class Modular:
                     applicable.setdefault(response, []).append(edge)
             if not applicable and guide and 'forecast_meta' in ctx:
                 acknowledgement = empty_response_edge(prompt, guide, current['raw'])
+                if not ctx['precise']:
+                    acknowledgement = opening_response_edge(prompt, guide, current) or acknowledgement
                 if acknowledgement:
-                    applicable[prompt['choices'][0]['response']] = [acknowledgement]
+                    response = bind(acknowledgement['decision'], prompt, precise=ctx['precise'])
+                    if response is not None: applicable[response] = [acknowledgement]
             if not applicable:
                 if check: check.update(status='blocked', reason=guide_block_reason(guide[0], current, self.store.catalog.cards))
                 if guide and script_binding_conflict(guide[0]['decision'], prompt): unknown = True
@@ -813,6 +846,7 @@ class Modular:
                 nodes += 1; extended = path+[current['raw']+':'+response]
                 try:
                     following = self.bridge(sid, state, extended, scenario)
+                    reveals = forecast_reveals(following['batches'], current['state'], current.get('_unknown_draws', []))
                     selected=next((b.get('effect') for b in response_bindings(prompt,response) if b.get('effect')),None)
                     if_memory=advance_facts(current.get('_if_memory'),current['state'],following['state'],following['batches'],selected)
                     random_result = following['uncertain']; private_cards=set(following.get('private_cards',[]))
@@ -830,6 +864,7 @@ class Modular:
                         else: extended.append(following['raw']+':ai')
                         previous_state=following['state']
                         following = self.bridge(sid, state, extended, scenario); opponent_steps += 1
+                        reveals.extend(forecast_reveals(following['batches'], current['state'], current.get('_unknown_draws', [])))
                         if_memory=advance_facts(if_memory,previous_state,following['state'],following['batches'])
                         random_result |= following['uncertain']
                         private_cards.update(following.get('private_cards',[]))
@@ -859,6 +894,7 @@ class Modular:
                                 'sources': [origin['source'] for origin in origins],
                                 'if_condition':edge.get('if_condition'),
                                 'bindings': response_bindings(prompt, response), 'source_bindings': edge.get('bindings', []),
+                                'revealed_cards': reveals,
                                 'response': response, 'state': forecast_state(following['state'],uncertain_cards), 'delta': edge['delta'],
                                 'next_raw': following['raw'],
                                 'path_end': len(extended), 'next_effects': following.get('effects', {}),

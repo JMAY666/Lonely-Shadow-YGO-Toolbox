@@ -45,6 +45,26 @@ def pot_sequence(instance=1, start=10, draw_count=2):
 
 
 class ActionTests(unittest.TestCase):
+    def test_confirm_cards_is_a_recorded_reveal_inside_the_resolving_effect(self):
+        shown=card(MONSTER, 20, 64)
+        events=[event(1,70,cards=[card()],chain=1),event(2,72,chain=1),
+                event(3,31,cards=[shown],player=1),event(4,73,chain=1),event(5,74)]
+        frozen=json.dumps(events)
+        action=project_actions(report(events))[0]
+        self.assertEqual(action['results'][0]['message'],31)
+        self.assertEqual(action['revealed_cards'],[shown])
+        self.assertIn('展示卡牌',action['execution'][0]['text'])
+        self.assertIn('3:0',action['evidence_refs'])
+        self.assertEqual(json.dumps(events),frozen)
+
+    def test_reveal_with_a_different_cause_is_not_attributed_to_the_resolving_effect(self):
+        events=[event(1,70,cards=[card()],chain=1),event(2,72,chain=1),
+                event(3,31,cards=[card(MONSTER,20,64)],cause={'handler_instance':999}),
+                event(4,73,chain=1),event(5,74)]
+        actions=project_actions(report(events))
+        self.assertEqual(actions[0]['results'],[])
+        self.assertEqual(actions[1]['kind'],'reveal')
+
     def test_pot_is_one_action_with_real_count_and_evidence(self):
         initial = event(1, 90, actor='self', cards=[card()]*5, draw_kind='rule')
         events = [initial, event(2, 40), event(3, 41), *pot_sequence()]

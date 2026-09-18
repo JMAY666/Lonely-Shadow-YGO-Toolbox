@@ -1,5 +1,11 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const DuelModel=require('../src/trainer/web/duel-model.js');
+test('forecast pictures explicitly revealed cards even when they do not move',()=>{
+  const c=setup(),shown={instance_id:7,code:123,name:'已展示的额外怪兽',controller:0,location:64,sequence:0};
+  const step={decision:{selection:[]},revealed_cards:[shown],before:{cards:[shown]},state:{cards:[shown]}};
+  const operations=c.forecastOperations([step]);
+  assert.equal(operations.length,1);assert.equal(operations[0].message,31);assert.equal(operations[0].cards[0].name,shown.name);
+});
 function setup() {
   const el={addEventListener(){}};
   const c=vm.createContext({structuredClone,Map,Set,flow:{draft:null},app:{},$:()=>el,document:{addEventListener(){},querySelectorAll:()=>[]},

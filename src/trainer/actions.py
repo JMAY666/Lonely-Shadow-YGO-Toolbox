@@ -68,6 +68,7 @@ def semantic_result(e):
         who = '我方' if e.get('player') == 0 else '占位方'
         return f"{who}{'受到' if msg == 91 else '回复'} {e.get('amount', '未知')} {'伤害' if msg == 91 else 'LP'}"
     if msg in (30, 42): return f"翻开{'我方' if e.get('player') == 0 else '占位方'}{'额外卡组' if msg == 42 else '卡组'}顶的 {len(cards)} 张卡"
+    if msg == 31: return '展示卡牌：' + card_names(cards)
     if msg in (61, 63, 65):
         verb = {61:'通常召唤',63:'特殊召唤',65:'反转召唤'}[msg]
         descriptions = []
@@ -277,6 +278,13 @@ def project_actions(report):
         if msg in (30, 42) and resolving and resolving['status'] == 'pending':
             resolving['revealed_cards'].extend(deepcopy(e.get('cards', [])))
             attach(resolving, e, 'results'); continue
+        if msg == 31 and e.get('cards'):
+            if resolving and resolving['status'] == 'pending' and cause_matches(resolving, e):
+                resolving['revealed_cards'].extend(deepcopy(e['cards']))
+                attach(resolving, e, 'results')
+            else:
+                make(e, 'reveal')
+            continue
         if msg in NOISE:
             suppressed[e['id']] = 'protocol'
             continue

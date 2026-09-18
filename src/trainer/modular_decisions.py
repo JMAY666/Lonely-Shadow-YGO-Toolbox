@@ -291,7 +291,26 @@ def snapshot_matches(first, second):
     return snapshot(first)==snapshot(second)
 
 
+def activation_window_binding(semantic, prompt, excluded_instances=(), precise=True):
+    if precise or {semantic.get('message'),prompt.get('message')} != {12,16}: return None
+    if semantic.get('player') != prompt.get('player') or prompt.get('mode') != 'single': return None
+    if not context_equal(semantic.get('context'),prompt.get('context')): return None
+    selection=semantic.get('selection',[])
+    if len(selection)!=1 or selection[0].get('kind') != ('yes' if semantic['message']==12 else 'activate'): return None
+    selected=selection[0];effect=selected.get('effect') or {}
+    # A card name/description alone cannot prove that two windows offer the
+    # same effect. Require the complete recorded native effect signature.
+    if any(effect.get(key) is None for key in EFFECT_KEYS) or not selected.get('card'): return None
+    def normalized(value): return {k:v for k,v in value.items() if k not in ('kind','description')}
+    matches=[c for c in prompt['choices'] if c['semantic'].get('kind') == ('yes' if prompt['message']==12 else 'activate')
+             and (c.get('card') or {}).get('instance_id') not in excluded_instances
+             and semantic_equal(normalized(selected),normalized(c['semantic']),False)]
+    return matches[0]['response'] if len(matches)==1 else None
+
+
 def bind(semantic, prompt, excluded_instances=(), precise=True):
+    if semantic.get('message') != prompt.get('message'):
+        return activation_window_binding(semantic,prompt,excluded_instances,precise)
     if any(semantic.get(k) != prompt.get(k) for k in ('message', 'player')) or not context_equal(semantic.get('context'), prompt.get('context')): return None
     if semantic.get('cancel'):
         return 'ff' if prompt['mode'] == 'sort' else integer(-1) if prompt.get('cancel') else None
@@ -339,6 +358,7 @@ def encode_binding(semantic,prompt,indexes):
 
 def bind_variants(semantic,prompt,excluded_instances=(),precise=True,limit=3):
     first=bind(semantic,prompt,excluded_instances,precise)
+    if semantic.get('message') != prompt.get('message'): return [first] if first is not None else []
     if precise or prompt['mode'] not in ('single','places','cards','sum') or semantic.get('cancel'):
         return [first] if first is not None else []
     if any(semantic.get(k)!=prompt.get(k) for k in ('message','player')) or not context_equal(semantic.get('context'),prompt.get('context')):return []
@@ -363,6 +383,24 @@ def bind_variants(semantic,prompt,excluded_instances=(),precise=True,limit=3):
             if index not in indexes:visit([*indexes,index])
             if len(result)>=limit:break
     visit([])
+    return result
+
+
+def forecast_reveals(batches, state, excluded_instances=()):
+    """Expose only a confirmed reveal of an already-known own card."""
+    result=[]
+    for batch in batches:
+        for _,msg,body in packets(bytes.fromhex(batch)):
+            if msg != 31: continue
+            for index in range(body[2]):
+                offset=3+index*7
+                code=int.from_bytes(body[offset:offset+4],'little')
+                controller,location,sequence=body[offset+4:offset+7]
+                if controller != 0 or location == 1: continue
+                card=next((c for c in state.get('cards',[]) if c.get('controller')==controller and
+                           c.get('location')==location and c.get('sequence')==sequence and c.get('code')==code and
+                           not c.get('unknown') and c.get('instance_id') not in excluded_instances),None)
+                if card: result.append(deepcopy(card))
     return result
 
 

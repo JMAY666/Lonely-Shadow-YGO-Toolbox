@@ -9,7 +9,7 @@ import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src/trainer'))
 from plan_endboard import attach_terminal_marks, marked_terminal, marked_evaluation, satisfied_marked_terminal
 from planning_cache import PlanningCache
-from modular import Modular, RouteFrontier, empty_response_edge, route_signature, guide_block_reason
+from modular import Modular, RouteFrontier, empty_response_edge, opening_response_edge, route_signature, guide_block_reason
 from modular_decisions import resource_rank, model
 from duel_continuation import anchor_source, replay_anchor
 
@@ -123,6 +123,23 @@ class PlanningCacheTests(unittest.TestCase):
         self.assertEqual(queue.popleft()[0],'long-next')
         self.assertEqual(queue.popleft()[0],'short-descendants')
         self.assertEqual(queue.popleft()[0],'mixed');self.assertFalse(queue)
+
+    def test_opening_pass_keeps_the_main_phase_start_and_does_not_hide_optional_choices(self):
+        guide=[{'id':'start','before':{'turn':1,'phase':4,'chain_depth':0},'source':{'plan':'source'},
+                'decision':{'message':11,'player':0,'selection':[{'kind':'activate'}]}},
+               {'decision':{'message':16,'selection':[{'kind':'pass'}]}}]
+        prompt={'message':16,'player':0,'context':None,'mode':'single','choices':[{'semantic':{'kind':'activate'},'response':'00000000'},
+                                                {'semantic':{'kind':'pass'},'response':'ffffffff'}]}
+        current={'raw':'10','state':{'turn':1,'turn_player':0,'phase':1,'chain_depth':0}}
+        edge=opening_response_edge(prompt,guide,current)
+        self.assertEqual(edge['decision']['selection'],[{'kind':'pass'}])
+        self.assertTrue(edge['_keep_guide']);self.assertFalse(edge['automatic'])
+        self.assertIsNone(opening_response_edge(prompt,guide[:1],current),'No decline is invented without source evidence')
+        for key,value in [('phase',4),('phase',8),('chain_depth',1),('turn_player',1),('turn',2)]:
+            altered=deepcopy(current);altered['state'][key]=value
+            self.assertIsNone(opening_response_edge(prompt,guide,altered))
+        prompt['choices']=prompt['choices'][:1]
+        self.assertIsNone(opening_response_edge(prompt,guide,current),'A forced response cannot be skipped')
 
     def test_only_an_empty_response_window_can_be_inserted_without_a_source_choice(self):
         raw='100000000000000000000000';prompt=model(raw,{'cards':[]})

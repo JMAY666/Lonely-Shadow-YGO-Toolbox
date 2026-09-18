@@ -4,7 +4,7 @@ import sys
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'src/trainer'))
-from modular_decisions import bind, digest, effect_key, integer, model, public_state, semantic_response, validate_source, bind_variants, snapshot_matches, script_binding_conflict
+from modular_decisions import bind, digest, effect_key, integer, model, public_state, semantic_response, validate_source, bind_variants, snapshot_matches, script_binding_conflict, forecast_reveals
 from modular import Modular
 
 
@@ -17,6 +17,40 @@ def idle(cards, effects):
 
 
 class DecisionTests(unittest.TestCase):
+    def test_same_effect_can_switch_between_chain_selection_and_effect_confirmation(self):
+        effect=self.link_material_fixture()[0]['context']
+        effect.update(description=1600,effect_type=137,event_code=1102,owner_code=100,handler_code=100)
+        card=dict(code=100,controller=0,location=4,sequence=0,position=1)
+        selected=dict(kind='activate',card=card,effect=effect)
+        source=dict(message=16,player=0,context=None,selection=[selected])
+        yes={**deepcopy(selected),'kind':'yes','description':221}
+        prompt=dict(message=12,player=0,context=None,mode='single',choices=[
+            dict(semantic=yes,response=integer(1),card={'instance_id':7}),
+            dict(semantic={**yes,'kind':'no'},response=integer(0),card={'instance_id':7})])
+        frozen=deepcopy(source)
+        self.assertEqual(bind_variants(source,prompt,precise=False),[integer(1)])
+        self.assertEqual(bind_variants(source,prompt,precise=True),[])
+        self.assertEqual(bind_variants(source,prompt,[7],precise=False),[])
+        reverse={**source,'message':12,'selection':[yes]}
+        self.assertEqual(bind(reverse,{**prompt,'message':16,'choices':[dict(semantic=selected,response=integer(0))]},precise=False),integer(0))
+        for key,value in [('handler_code',101),('operation_line',999),('description',1601)]:
+            altered=deepcopy(prompt);altered['choices'][0]['semantic']['effect'][key]=value
+            self.assertEqual(bind_variants(source,altered,precise=False),[])
+        ambiguous=deepcopy(prompt);ambiguous['choices'].append(deepcopy(ambiguous['choices'][0]))
+        self.assertEqual(bind_variants(source,ambiguous,precise=False),[])
+        incomplete=deepcopy(source);incomplete['selection'][0]['effect'].pop('operation_line')
+        self.assertEqual(bind_variants(incomplete,prompt,precise=False),[])
+        self.assertEqual(source,frozen)
+
+    def test_forecast_reveal_uses_confirmed_event_and_never_exposes_private_or_random_identity(self):
+        own={'code':123,'controller':0,'location':64,'sequence':2,'instance_id':7}
+        other={**own,'controller':1,'instance_id':8}
+        raw=bytes([31,1,0,2])+b''.join(c['code'].to_bytes(4,'little')+bytes([c['controller'],c['location'],c['sequence']]) for c in [own,other])
+        state={'cards':[own,other]}
+        self.assertEqual(forecast_reveals([raw.hex()],state),[own])
+        self.assertEqual(forecast_reveals([raw.hex()],state,[7]),[])
+        self.assertEqual(forecast_reveals([raw.hex()],{'cards':[{**own,'unknown':True}]}),[])
+
     def link_material_fixture(self):
         context = effect_key(dict(description=1166, effect_type=2, event_code=34, range=64,
             owner_code=999, handler_code=999, count_code=0, condition_line=2205, cost_line=0,

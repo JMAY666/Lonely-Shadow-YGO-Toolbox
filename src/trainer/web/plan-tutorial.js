@@ -46,7 +46,7 @@ function tutorialOperationStages(item,node,plan,role='') {
   const dest=event.destination,origin=event.origin;
   const stage=(label,cs=cards,hint='',locations=true)=>({label:role?`${role} · ${label}`:label,role,cards:tutorialFlowCards(cs,node,plan,locations),hint});
   if(event.message===90)return [stage(`抽 ${cards.length} 张卡（随机）`,cards,'',false)];
-  if(event.message===30)return [stage(reviewDeckOperation(event,cards,plan),cards,'',false)];
+  if(event.message===30||event.message===31)return [stage(reviewDeckOperation(event,cards,plan),cards,'',false)];
   const method=cards.find(c=>c.summon_method)?.summon_method||({61:'通常召唤',63:'特殊召唤',65:'反转召唤',54:'盖放'}[event.message]);
   if(method) {
     const materials=cards.flatMap(c=>c.materials||[]);
@@ -67,6 +67,7 @@ function tutorialOperationStages(item,node,plan,role='') {
   return [{...stage(({53:'改变表示',100:'支付 LP'}[event.message])||'处理结果'),text}];
 }
 function tutorialAction(action,node,plan) {
+  if(action.kind==='effect')action={...action,results:recordedActionResults(action,plan)};
   const stages=[],notes=[],add=(text,color='ink')=>{if(text)notes.push({text,color});};
   const replacement=appliedReplacement(action,plan);
   if(replacement) {
@@ -90,7 +91,7 @@ function tutorialAction(action,node,plan) {
       stages.push(...response.stages,{label:(action.cards.some(c=>(plan.catalog?.[c.code]?.type||0)&1)?'我方怪兽':'我方卡片')+result,cards:tutorialFlowCards(action.cards,node,plan)});
       notes.push(...response.notes.filter(n=>n.text!=='处理结果未记录'));
     }
-    for(const result of action.results||[])stages.push(...tutorialOperationStages(result,node,plan));
+    for(const result of recordedActionResults(action,plan))stages.push(...tutorialOperationStages(result,node,plan));
     if(action.status!=='resolved')add(({negated:'发动被无效',disabled:'效果被无效',pending:'已发动，尚未确认结算'}[action.status])||action.status_label||'结算状态未记录','warning');
     if(activationResultMissing(action,plan))add('处理结果未记录','warning');
     add(tutorialNote(plan.annotations?.effects?.[action.id]),'note');
