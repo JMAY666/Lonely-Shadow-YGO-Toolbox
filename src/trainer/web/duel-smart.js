@@ -34,6 +34,8 @@ function resetCaptureDialog(){
   $('#duel-capture-retry').hidden=false;$('#duel-smart-retry').hidden=true;$('#duel-smart-restart').hidden=true;
 }
 function releaseSmartWorkspace(){
+  const second=duelState().automatic.second;
+  if(second&&typeof retireSecondDuel==='function')void retireSecondDuel(second);
   const workspace=autoDuelState();if(!workspace)return;
   workspace.ended=true;++workspace.generation;workspace.enabled=false;dropDuelForecast(workspace);
   closeAutoDuelPreview();closeReviewDetail();
@@ -76,7 +78,7 @@ async function acceptSmartRecognition(run,value){
     releaseSmartWorkspace();
     const draft=duelState().automatic;
     draft.workspace=null;draft.order=null;draft.deck=null;draft.fresh=false;draft.tagIds=[];draft.primaryIds=[];
-    run.entered=false;run.retrying=false;duelState().stage=duelStages.function;duelState().reached=duelStages.function;
+    run.entered=false;run.retrying=false;run.secondRequest=null;duelState().stage=duelStages.function;duelState().reached=duelStages.function;
     renderDuel();if(!$('#duel-capture-dialog').open)$('#duel-capture-dialog').showModal();
   }
   run.cycle=cycle;
@@ -92,6 +94,13 @@ async function acceptSmartRecognition(run,value){
     paintSmartRecognition(run);return;
   }
   if(!run.entered)paintSmartRecognition(run);
+  if(value.stage==='second'&&value.frame?.opening?.status==='ready'&&!run.entered){
+    run.entered=true;
+    const draft=duelState().automatic;draft.order=DuelOrder.create(value.frame);
+    try{await startSecondDuel(true,run);if(smartAlive(run))$('#duel-capture-dialog').close();}
+    catch(error){if(smartAlive(run)){run.entered=false;run.value.error=error.message;paintSmartRecognition(run);}}
+    return;
+  }
   if(DuelSmart.ready(value)&&!run.entered){
     run.entered=true;
     const draft=duelState().automatic,context=value.context;

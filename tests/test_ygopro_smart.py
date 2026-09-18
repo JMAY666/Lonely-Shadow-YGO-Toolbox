@@ -128,7 +128,7 @@ class SmartTests(unittest.TestCase):
     def test_second_player_retains_opening_without_workspace_or_planner(self):
         self.start(); self.deal('second'); value = self.wait(lambda v: v['stage'] == 'second')
         self.assertEqual(value['frame']['opening']['cards'], self.hand)
-        self.assertEqual(value['message'], '已识别为后攻，后攻展开暂未支持')
+        self.assertEqual(value['message'], '已识别为后攻，可记录当前局面；后攻路线仍待接入')
         self.assertIsNone(value['context']); self.assertEqual(self.store.automatic_duel.contexts, {})
 
     def test_hand_copy_mismatch_fails_software_audit(self):

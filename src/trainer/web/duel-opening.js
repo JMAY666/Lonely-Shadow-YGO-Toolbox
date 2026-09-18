@@ -22,7 +22,7 @@ function duelAutomaticOpeningPage() {
     <p id="duel-opening-status" role="status" aria-live="polite">${status}</p>
     ${ready?duelOpeningCards(frame):'<div class="duel-opening-wait">正在观察本局发牌，请保持游戏运行。</div>'}
     <p class="duel-opening-help">${ready?'这是本局最初发出的起手快照；后续抽牌、使用卡牌或调整手牌顺序不会替换它。':'请在游戏选择先后攻之前开启监测，工具箱会自动捕捉发牌。'}</p>
-    ${second?'<p class="duel-order-note">后攻起手独立留存供后续开发；后攻不会进入先攻的准备起手与方案流程。</p>':''}
+    ${second?`<p class="duel-order-note">后攻起手独立留存。可进入局面记录，手动核对后续资源；后攻路线仍在分期实施。</p>${duelButton(duelState().automatic.second?'second-return':'second-auto-start',duelState().automatic.second?'返回后攻记录':'进入后攻局面记录',!ready)}`:''}
     <p class="duel-order-error" role="alert">${escape(duelState().automatic.order?.error||opening?.error||'')}</p>
     ${duelButton('order-return','返回先后攻监测')}</section>`;
 }

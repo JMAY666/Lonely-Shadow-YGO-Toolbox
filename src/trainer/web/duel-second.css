@@ -1,0 +1,30 @@
+.second-workspace{max-width:1200px;margin-inline:auto;min-width:0}
+.second-workspace p{overflow-wrap:anywhere;line-height:1.6}
+.second-actions,.second-overview{display:flex;align-items:center;flex-wrap:wrap;gap:12px}
+.second-status{padding:10px 14px;border-left:3px solid var(--accent);background:var(--surface-raised)}
+.second-scope{color:var(--text-muted);font-size:13px}
+#second-error{color:var(--danger,#ef7777)}
+.second-panel{border:1px solid var(--border-subtle);border-radius:10px;margin:14px 0;padding:14px;background:var(--surface-panel);min-width:0}
+.second-panel summary{cursor:pointer;line-height:1.5;font-weight:600}
+.second-panel h3,.second-panel h4{margin:0 0 12px}
+.second-cards,.second-opening{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.second-card,.second-opening figure{width:84px;margin:0;display:flex;flex-direction:column;gap:5px;padding:5px;align-items:center;border:2px solid transparent}
+.second-card img,.second-opening img{width:70px;aspect-ratio:59/86;object-fit:contain}
+.second-card span,.second-opening figcaption{font-size:11px;line-height:1.4;overflow-wrap:anywhere}
+.second-card.selected{border-color:var(--accent)}
+.second-public>section{margin-top:14px}
+.second-editors{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr));gap:12px}
+.second-panel form{display:flex;align-items:end;flex-wrap:wrap;gap:12px;margin-top:14px}
+.second-panel form+form{padding-top:16px;border-top:1px solid var(--border-subtle)}
+.second-panel label{display:flex;flex-direction:column;gap:6px;flex:1 1 180px;min-width:0;font-size:13px}
+.second-panel label:has(input[type=checkbox]){flex-direction:row;align-items:center;flex-basis:100%}
+.second-panel label input[type=checkbox]{width:auto;flex:none}
+.second-panel select,.second-panel input:not([type=checkbox]),.second-panel textarea{width:100%;min-width:0;max-width:100%}
+.second-panel textarea{min-height:76px;resize:vertical}
+.second-panel .second-verify label{flex-basis:140px}
+.second-panel .second-wide{flex-basis:100%}
+.second-search-results{display:flex;flex-wrap:wrap;gap:6px;width:100%}
+.second-journal{padding-left:22px}.second-journal li{margin:10px 0}.second-journal summary{font-weight:400}
+.second-rule-correction{width:100%;margin-bottom:12px}
+#second-history-list button{display:block;max-width:100%;margin:8px 0;text-align:left;overflow-wrap:anywhere}
+@media(max-width:650px){.second-workspace .duel-section-heading{flex-direction:column;align-items:start}.second-editors{display:block}}

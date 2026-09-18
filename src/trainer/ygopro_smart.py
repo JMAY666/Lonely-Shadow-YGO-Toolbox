@@ -15,7 +15,7 @@ from ygopro_order import OrderMonitor, ACTIVE
 TERMINAL = {'cancelled', 'invalidated', 'closed'}
 STAGES = {'waiting': '等待对局开始', 'deck': '获取本局卡组', 'tags': '识别 TAG',
           'opening': '等待先后攻及起手就绪', 'audit': '自动校验', 'ready': '自动校验通过',
-          'second': '已识别为后攻，后攻展开暂未支持', 'failed': '自动识别未完成',
+          'second': '已识别为后攻，可记录当前局面；后攻路线仍待接入', 'failed': '自动识别未完成',
           'cancelled': '已取消监测', 'invalidated': '监测连接已失效',
           'closed': '游戏客户端已关闭或连接已切换，智能识别已停止'}
 

@@ -38,6 +38,7 @@ import ygopro_capture
 from ygopro_order import OrderMonitor
 from automatic_duel import AutomaticDuels
 from ygopro_smart import SmartRecognition
+from second_duel import SecondDuels
 
 WORKSPACE = Path(__file__).resolve().parents[2]
 RUNTIME = WORKSPACE / '.local/YGOPro-Lite'
@@ -186,6 +187,7 @@ class Store:
         self.ygopro_order = OrderMonitor(self, atomic_json, now)
         self.automatic_duel = AutomaticDuels(self, read_json, atomic_json, now)
         self.ygopro_smart = SmartRecognition(self, atomic_json, now)
+        self.second_duel = SecondDuels(self, read_json, atomic_json, now)
         if desktop:
             from desktop_runtime import OwnedJob
             self.job = OwnedJob()
@@ -1022,6 +1024,7 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/automatic-duel/select': return self.send(store.automatic_duel.select(body))
                 if path == '/api/automatic-duel/dispatch': return self.send(store.automatic_duel.dispatch(body))
                 if path == '/api/automatic-duel/close': return self.send(store.automatic_duel.close(body))
+                if path.startswith('/api/second-duel/'): return self.send(store.second_duel.dispatch(path.rsplit('/', 1)[1], body))
                 if path == '/api/decks/tag-options': return self.send(store.deck_tag_options(body))
                 if path == '/api/card-favorites': return self.send(store.set_favorite(body))
                 if path == '/api/plan-favorites': return self.send(store.plan_favorites(body))
@@ -1137,7 +1140,7 @@ class Handler(BaseHTTPRequestHandler):
                 files['/scrollbars.css'] = 'scrollbars.css'
                 for art in ('first', 'second', 'bo1', 'bo3', 'manual', 'automatic', 'ygopro', 'ygopro2', 'mdpro3', 'masterduel'):
                     files[f'/brand/duel-{art}.svg'] = f'brand/duel-{art}.svg'
-                for name in ('duel.js', 'duel-smart.js', 'duel-automatic.js', 'duel-order.js', 'duel-opening.js', 'duel-automatic.css', 'duel-forecast.js', 'duel-model.js', 'tutorial-bindings.js', 'duel.css', 'deck-tag-view.js', 'deck-appearance.js', 'superpre.js', 'superpre.css'):
+                for name in ('duel.js', 'duel-smart.js', 'duel-second.js', 'duel-second.css', 'duel-automatic.js', 'duel-order.js', 'duel-opening.js', 'duel-automatic.css', 'duel-forecast.js', 'duel-model.js', 'tutorial-bindings.js', 'duel.css', 'deck-tag-view.js', 'deck-appearance.js', 'superpre.js', 'superpre.css'):
                     files['/' + name] = name
                 if path in files:
                     p = WEB / files[path]; return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0] + '; charset=utf-8')
