@@ -101,7 +101,8 @@ function secondWorkspacePage(){
     <div class="duel-section-heading"><h2>${secondUI.view?'后攻记录回看':'BO1 后攻局面记录'}</h2><div class="second-actions">${secondUI.view&&!secondWorkspace()?.readonly?secondButton('back-live','返回当前记录'):''}${readonly&&!doc.closed&&!doc.input.connection?secondButton('resume','核对后继续记录此局'):''}${secondButton('history','历史记录')}${!readonly?secondButton('refresh','刷新记录')+secondButton('close','结束本局'):''}${duelButton('new','开始新一局')}</div></div>
     <p class="second-status" id="second-status" role="status"></p><p id="second-error" role="alert"></p>
     <div class="second-overview"><strong>${state.turn_player?'对手':'我方'}回合 · 第 ${state.turn} 回合 · ${escape(SecondDuelModel.phases[state.phase])}</strong><span>我方手牌 <b id="second-hand-count">${own.length}</b> 张</span><span>LP ${state.lp[0]} / ${state.lp[1]}</span></div>
-    <p class="second-scope">开局来源：${doc.input.opening.source==='readonly_opening'?'只读捕获':'人工确认'}。当前资源由玩家填报；完整连锁、规则重建及后攻路线尚未接入，当前不提供确定交康或斩杀建议。</p>
+    <p class="second-scope">开局来源：${doc.input.opening.source==='readonly_opening'?'只读捕获':'人工确认'}。当前资源由玩家填报；条件提示只覆盖已列本地案例，外部平台规则仍待核实。完整引擎状态重建、后攻路线和斩杀判断尚未接入。</p>
+    ${typeof secondHintsPage==='function'?secondHintsPage(doc,readonly):''}
     <details class="second-panel"><summary>原始起手 · ${doc.input.opening.cards.length} 张（保持不变）</summary><div class="second-opening">${doc.input.opening.cards.map(code=>`<figure><img src="/pics/${code}.jpg" alt=""><figcaption>${escape(secondName(doc,code))}</figcaption></figure>`).join('')}</div></details>
     <section class="second-panel"><h3>当前我方手牌</h3><div class="second-cards" id="second-hand">${own.map(c=>secondCardView(doc,c)).join('')||'<p>当前手牌为空</p>'}</div></section>
     <details class="second-panel" open><summary>已记录场面、墓地、除外与素材</summary><div class="second-public">${[0,1].map(player=>[4,8,16,32,128].map(zone=>{const rows=visible.filter(c=>c.controller===player&&c.location===zone);return rows.length?`<section><h4>${player?'对手':'我方'}${SecondDuelModel.zones[zone]}</h4><div class="second-cards">${rows.map(c=>secondCardView(doc,c)).join('')}</div></section>`:'';}).join('')).join('')||'<p>尚未录入这些区域；空白不代表已经核对为空。</p>'}</div></details>
@@ -122,6 +123,7 @@ function paintSecondStatus(){
   target.textContent=secondUI.view?'历史记录，仅供回看':doc.status_reason||
     (SecondDuelModel.validWindow(doc)?`当前人工确认窗口：${doc.current.window.label}`:doc.current.window?'响应窗口已过期，请重新核对':'当前局面已人工核对；响应窗口尚未确认');
   target.dataset.valid=String(!doc.status_reason&&!secondUI.view);
+  if(typeof paintSecondHintFreshness==='function')paintSecondHintFreshness();
 }
 async function secondSubmit(kind,payload){
   const workspace=secondWorkspace();if(!workspace||secondUI.busy||secondUI.view)return;
@@ -158,6 +160,7 @@ function mountSecondDuel(){
     button.after(panel);button.disabled=true;panel.onsubmit=event=>{event.preventDefault();void secondSubmit('rule_status',{category:button.dataset.category,rule_id:button.dataset.secondExpire,status:'expired',note:new FormData(panel).get('note')});};
   };
   for(const button of document.querySelectorAll('[data-second-action]'))button.onclick=run(()=>secondAction(button.dataset.secondAction));
+  if(typeof mountSecondHints==='function')mountSecondHints();
   const query=$('#second-card-query');let searchVersion=0,timer;
   if(query)query.oninput=()=>{clearTimeout(timer);const version=++searchVersion,q=query.value.trim();timer=setTimeout(async()=>{
     if(!q)return;

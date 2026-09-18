@@ -51,6 +51,8 @@ class SecondDuels:
         self.lock = threading.RLock()
         self.epoch = uuid.uuid4().hex
         self.cache = {}
+        from second_hints import SecondHints
+        self.hints = SecondHints(self)
 
     def load(self, key):
         key = identifier(key)
@@ -113,8 +115,12 @@ class SecondDuels:
         window = value['current'].get('window')
         value['window_valid'] = bool(window and not value['status_reason'] and window['expires_ms'] > self.now())
         value['capabilities'] = {'observations': True, 'automatic_live_state': False, 'engine_reconstruction': False,
-                                 'advice': False, 'routes': False}
+                                 'advice': True, 'routes': False}
         value['catalog'] = deepcopy(doc.get('catalog', {}))
+        value['hint_options'] = self.hints.options()
+        value['advice'] = self.hints.public(doc)
+        for hint in value.get('advice_history', []):
+            hint.pop('known_state', None)
         return value
 
     def start(self, body):
@@ -285,6 +291,8 @@ class SecondDuels:
     def apply(self, doc, kind, payload):
         state = doc['current']
         note = words(payload.get('note', ''))
+        if kind in ('hint_window', 'resource_role', 'effect_count', 'effect_observed', 'effect_outcome'):
+            return self.hints.apply(doc, kind, payload)
         if kind == 'resume':
             if doc['input'].get('connection'):
                 raise ValueError('自动对局历史不能恢复为当前连接；请重新识别本局')
@@ -415,6 +423,10 @@ class SecondDuels:
         raise ValueError('尚未支持此类后攻填报，原状态保留')
 
     def dispatch(self, action, body):
+        if action == 'advice':
+            return self.hints.generate(body)
+        if action == 'advice-choice':
+            return self.hints.choose(body)
         if action == 'start':
             return self.start(body)
         if action == 'state':

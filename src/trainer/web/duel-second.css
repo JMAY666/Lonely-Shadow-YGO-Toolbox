@@ -28,3 +28,12 @@
 .second-rule-correction{width:100%;margin-bottom:12px}
 #second-history-list button{display:block;max-width:100%;margin:8px 0;text-align:left;overflow-wrap:anywhere}
 @media(max-width:650px){.second-workspace .duel-section-heading{flex-direction:column;align-items:start}.second-editors{display:block}}
+.second-hint-heading,.second-hint-actions{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px}
+.second-hint-items{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:12px;margin:12px 0}
+.second-hint-item{border:1px solid var(--border-subtle);border-radius:8px;padding:12px;min-width:0;background:var(--surface-raised)}
+.second-hint-item[data-hint-recommendation=use]{border-color:var(--accent)}
+.second-hint-item small{display:block;color:var(--text-muted);line-height:1.6}
+.second-hint-item details,.second-hint-actions,.second-hint-setup,.second-hint-history{margin-top:12px}
+.second-hints fieldset{flex:1 1 100%;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px;border:1px solid var(--border-subtle);min-width:0}
+.second-hints fieldset label{min-width:0;overflow-wrap:anywhere}
+.second-hint-history{border-top:1px solid var(--border-subtle);padding-top:10px}
