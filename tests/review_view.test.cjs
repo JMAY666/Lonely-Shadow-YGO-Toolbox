@@ -30,6 +30,24 @@ test('frozen effect logs recover explicit reveal identity in compact and detaile
   assert.equal(r.context.recordedActionResults(action,report).length,0,'Conflicting engine evidence is not guessed');
 });
 
+test('opponent hand reveals use one random back per card without masking later explicit activations or own reveals',()=>{
+  const r=setup(),plan=require('./fixtures/opponent-hand-reveal.cjs')(),frozen=JSON.stringify(plan),node=plan.review.nodes[1];
+  const event=plan.events.find(e=>e.id==='22:0');
+  const projected=r.context.reviewOperationCards(event,event.cards);
+  for(const mode of ['compact','detailed']){
+    const html=(mode==='compact'?r.context.compactOperation:r.context.reviewOperation)(event,node.id,'',{report:plan,nodes:plan.review.nodes,edits:plan.annotations});
+    assert.equal((html.match(/src="\/review-back.svg"/g)||[]).length,5);
+    assert.match(html,/5 张随机牌/);assert(!/魔物狩人|灰流丽|pics\/(1184620|14558127)/.test(html));
+  }
+  const html=r.reviewCard(projected[4],node.id,{report:plan,name:true,face:true});
+  assert.match(html,/随机手牌/);assert(!html.includes('14558127'));
+  const original=r.reviewCard(event.cards[4],node.id,{report:plan,name:true,face:true});
+  assert.match(original,/灰流丽/);assert.match(original,/pics\/14558127/);
+  const own=plan.events.find(e=>e.id==='24:0');
+  assert.match(r.context.compactOperation(own,node.id,'',{report:plan,nodes:plan.review.nodes,edits:plan.annotations}),/pics\/14442329/);
+  assert.equal(JSON.stringify(plan),frozen);
+});
+
 test('Step boards and tutorial node order use canonical modules while frozen annotations stay unchanged',()=>{
   const r=setup();
   const plan={id:'modular',actions:[],catalog:{},review:{nodes:[

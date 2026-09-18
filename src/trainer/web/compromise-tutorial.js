@@ -44,9 +44,10 @@ function layoutBranchedTutorial(model) {
   routes.slice(1).forEach((route,i)=>{
     const box=main.inner.boxes.find(b=>b.id===route.source.node_id),action=box?.actions.find(a=>a.id===route.source.action_id);
     if(!route.valid||(!box&&route.source.node_id!=='initial'))return;
+    const rowBottom=box?Math.max(...main.inner.boxes.filter(b=>b.row===box.row).map(b=>b.y+b.height)):0;
     const x=main.x+(box?box.x+box.width:main.inner.pad+main.inner.openingWidth),sy=main.y+main.head+(box?box.y+(action?.y||24)+22:main.inner.overviewY+45);
     connections.push({route:route.id,checkpoint:route.source.checkpoint,node:route.source.node_id,action:route.source.action_id,x,y:sy,
-      gapY:main.y+main.head+(box?box.y+box.height+16:main.inner.overviewY+main.inner.overviewHeight+16),
+      gapY:main.y+main.head+(box?rowBottom+16:main.inner.overviewY+main.inner.overviewHeight+16),
       gutter:main.x+main.width+34+i*28,endX:route.x+route.width-12,endY:route.y+28});
   });
   return {width:1550+28*(routes.length-1),height:y,routes,connections};

@@ -2,7 +2,7 @@
 // Every suite gets a hidden Electron host and the isolated -modular profile.
 const {spawn}=require('node:child_process');
 const path=require('node:path');
-const flags={core:null,implicit:'YGO_MODULAR_IMPLICIT_ONLY',preferences:'YGO_MODULAR_PREFERENCES_ONLY',routes:'YGO_MODULAR_ADDITIONAL_ONLY',cross:'YGO_MODULAR_CROSS_ONLY',mechanics:'YGO_MODULAR_MECHANICS_ONLY',if:'YGO_MODULAR_IF_ONLY',precision:'YGO_MODULAR_PRECISION_ONLY',planning:'YGO_MODULAR_PLANNING_ONLY',pipeline:'YGO_MODULAR_PIPELINE_ONLY',forecast:'YGO_MODULAR_FORECAST_ONLY'};
+const flags={core:null,implicit:'YGO_MODULAR_IMPLICIT_ONLY',preferences:'YGO_MODULAR_PREFERENCES_ONLY',routes:'YGO_MODULAR_ADDITIONAL_ONLY',cross:'YGO_MODULAR_CROSS_ONLY',mechanics:'YGO_MODULAR_MECHANICS_ONLY',rules:'YGO_MODULAR_RULES_ONLY',if:'YGO_MODULAR_IF_ONLY',precision:'YGO_MODULAR_PRECISION_ONLY',planning:'YGO_MODULAR_PLANNING_ONLY',pipeline:'YGO_MODULAR_PIPELINE_ONLY',forecast:'YGO_MODULAR_FORECAST_ONLY'};
 const requested=process.argv.find(a=>a.startsWith('--suite='))?.slice(8);
 if(requested&&!Object.hasOwn(flags,requested))throw new Error('Unknown modular suite');
 (async()=>{

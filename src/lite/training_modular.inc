@@ -36,7 +36,9 @@ static std::string modularState(intptr_t engine) {
     const auto f = reinterpret_cast<duel*>(engine)->game_field;
     std::ostringstream out;
     out << result << ",\"normal_summons_used\":[" << f->core.summon_count[0] << ',' << f->core.summon_count[1]
-        << "],\"effect_usage\":[";
+        << "],\"normal_summon_limit\":[" << f->get_summon_count_limit(0) << ',' << f->get_summon_count_limit(1)
+        << "],\"extra_normal_summon_used\":[" << (f->core.extra_summon[0] ? "true" : "false") << ','
+        << (f->core.extra_summon[1] ? "true" : "false") << "],\"effect_usage\":[";
     bool first = true;
     for(int p = 0; p < 3; ++p) {
         std::map<uint32_t, int32_t> ordered(f->core.effect_count_code[p].begin(), f->core.effect_count_code[p].end());

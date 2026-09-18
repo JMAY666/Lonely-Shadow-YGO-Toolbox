@@ -61,11 +61,14 @@ class ForecastStateTests(unittest.TestCase):
 
     def test_projection_carries_replay_history_and_engine_restrictions(self):
         base = {'revision':3,'_prefix':['earlier'],'_observations':[{'index':0,'kind':0,'codes':[1]}]}
-        following = {'state':{'cards':[],'normal_summons_used':[1,0],'effect_usage':[{'used':1}]},
+        following = {'state':{'cards':[],'normal_summons_used':[1,0],'normal_summon_limit':[1,1],
+                             'extra_normal_summon_used':[True,False],'effect_usage':[{'used':1}]},
                      'raw':'0b00','player':0,'effects':{}}
         result = projected(base,following,['next'])
         self.assertEqual(result['_prefix'], ['earlier','next'])
         self.assertEqual(result['state']['normal_summons_used'], [1,0])
+        self.assertEqual(result['state']['extra_normal_summon_used'], [True,False])
+        self.assertEqual(result['state']['normal_summon_limit'], [1,1])
         self.assertEqual(result['_observations'], base['_observations'])
         self.assertEqual(base['revision'], 3)
 

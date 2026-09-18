@@ -24,6 +24,21 @@ function fixture() {
     review:{complete:true,nodes:[{id:'initial',kind:'initial',number:1,action_ids:[]},{id:'step:2:0',kind:'step',number:2,state_ref:5,action_ids:['2:0']},{id:'final',kind:'final',number:3,action_ids:[],state:{cards:[a,grave,b]}}]}};
 }
 
+test('a complex Step widens and short neighbours keep content height; opponent hands stay generic in SVG and assets',async()=>{
+  const r=setup(),plan=require('./fixtures/opponent-hand-reveal.cjs')(),before=JSON.stringify(plan);
+  const model=r.buildPlanTutorial(plan),layout=r.layoutPlanTutorial(model),[long,short]=layout.boxes;
+  const shown=model.steps[0].actions[1].stages.find(s=>s.label.includes('展示对方手牌'));
+  assert.equal(shown.cards.length,5);assert(shown.cards.every(c=>c.name==='随机手牌'&&c.src==='/review-back.svg'));
+  assert(long.span>1,'Only the complex step gets extra columns');assert(long.height<560,JSON.stringify({width:long.width,height:long.height}));
+  assert(short.height<300,'The short step must not inherit the long step height');
+  const svg=r.renderPlanTutorialSvg(model,layout);assert.equal((svg.match(/class="tutorial-connector"/g)||[]).length,1);
+  assert(!/魔物狩人|灰流丽|pics\/(1184620|14558127)/.test(svg));assert.match(svg,/pics\/14442329/);
+  const requests=[];await setup({fetch:async src=>{requests.push(src);return {ok:true,blob:async()=>({type:'image/svg+xml',arrayBuffer:async()=>new ArrayBuffer(0)})};},btoa:()=>''}).tutorialAssets(model);
+  assert(requests.includes('/review-back.svg'));assert(!requests.some(src=>/1184620|14558127/.test(src)));
+  assert.equal(JSON.stringify(plan),before);
+  for(const box of layout.boxes){assert(box.x>=layout.pad);assert(box.x+box.width<=layout.width-layout.pad+1);}
+});
+
 test('one-image tutorial includes the explicitly revealed card from an older frozen plan',()=>{
   const r=setup(),plan=fixture(),action=plan.actions[0],shown={code:30,name:'需要展示的额外怪兽',instance_id:30,controller:0,location:64};
   plan.events.unshift({id:action.id,message:70,chain:1},{id:'resolve',message:72,chain:1},{id:'reveal',message:31,cards:[shown]});

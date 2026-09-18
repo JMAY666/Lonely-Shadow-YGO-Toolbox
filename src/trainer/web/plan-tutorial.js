@@ -42,7 +42,7 @@ function tutorialFlowCards(cards,node,plan,locations=true) {
 }
 function tutorialOperationStages(item,node,plan,role='') {
   const event=(plan.events||[]).find(e=>e.id===(item.event_ref||item.id))||item;
-  const cards=item.cards||event.cards||[];
+  const cards=reviewOperationCards(event,item.cards||event.cards||[]);
   const dest=event.destination,origin=event.origin;
   const stage=(label,cs=cards,hint='',locations=true)=>({label:role?`${role} · ${label}`:label,role,cards:tutorialFlowCards(cs,node,plan,locations),hint});
   if(event.message===90)return [stage(`抽 ${cards.length} 张卡（随机）`,cards,'',false)];
@@ -194,19 +194,37 @@ function layoutTutorialAction(action,width) {
   const notesY=y+(notes.length?8:0);
   return {...action,stages,notes,notesY,height:notesY+notes.length*20};
 }
+function layoutTutorialStep(step,width) {
+  const bodyWidth=width-36,title=step.title?tutorialWrap(step.title,width-132,14):[];
+  const header=Math.max(48,26+title.length*18);
+  const notes=step.notes.flatMap(l=>tutorialWrap(l.text,bodyWidth,14).map(text=>({...l,text})));
+  let best;
+  const maximum=width>=1100?3:width>=700?2:1;
+  for(let columns=1;columns<=Math.min(maximum,Math.max(1,step.actions.length));columns++){
+    const actionWidth=(bodyWidth-(columns-1)*24)/columns;
+    const actions=step.actions.map(a=>({...layoutTutorialAction(a,actionWidth),width:actionWidth}));
+    let y=header;
+    for(let i=0;i<actions.length;i+=columns){
+      const row=actions.slice(i,i+columns);if(columns>1)y+=22;
+      row.forEach((a,col)=>Object.assign(a,{x:col*(actionWidth+24),y}));
+      y+=Math.max(...row.map(a=>a.height))+16;
+    }
+    const candidate={...step,actions,actionColumns:columns,notes,notesY:y,title,header,width,height:Math.max(140,y+notes.length*20+18)};
+    if(!best||candidate.height<best.height)best=candidate;
+  }
+  return best;
+}
 function layoutPlanTutorial(model) {
   if(model.routes)return layoutBranchedTutorial(model);
   const width=1440,pad=32,gap=32,columns=model.steps.length>24?4:3;
   const nodeWidth=(width-pad*2-gap*(columns-1))/columns;
-  const boxes=model.steps.map(s=>{
-    const bodyWidth=nodeWidth-36;
-    const title=s.title?tutorialWrap(s.title,nodeWidth-132,14):[];
-    const header=Math.max(48,26+title.length*18);
-    const actions=s.actions.map(a=>layoutTutorialAction(a,bodyWidth));
-    let y=header;
-    actions.forEach(a=>{a.y=y;y+=a.height+16;});
-    const notes=s.notes.flatMap(l=>tutorialWrap(l.text,bodyWidth,14).map(text=>({...l,text})));
-    return {...s,actions,notes,notesY:y,title,header,width:nodeWidth,height:Math.max(140,y+notes.length*20+18)};
+  const boxes=model.steps.map(step=>{
+    let box={...layoutTutorialStep(step,nodeWidth),span:1};
+    for(let span=2;box.height>560&&span<=columns;span++){
+      const wider={...layoutTutorialStep(step,span*nodeWidth+(span-1)*gap),span};
+      if(wider.height<box.height)box=wider;
+    }
+    return box;
   });
   const openingColumns=model.opening.length>3?2:1,openingWidth=model.branchFinal?0:openingColumns===2?570:370;
   const finalX=model.branchFinal?pad:pad+openingWidth+24;
@@ -245,11 +263,18 @@ function layoutPlanTutorial(model) {
   const openingHeight=openingNoteY+conditionLines.length*20+18;
   const overviewY=100,overviewHeight=Math.max(180,openingHeight,finalHeight+10);
   let y=overviewY+overviewHeight+72;
-  for(let i=0;i<boxes.length;i+=columns) {
-    const rowIndex=Math.floor(i/columns),row=boxes.slice(i,i+columns),height=Math.max(...row.map(b=>b.height));
-    row.forEach((b,col)=>Object.assign(b,{x:pad+(rowIndex%2?columns-1-col:col)*(nodeWidth+gap),y,height}));
-    y+=height+gap;
+  const rows=[];let used=columns;
+  for(const box of boxes){
+    if(used+box.span>columns){rows.push([]);used=0;}
+    box.column=used;used+=box.span;rows.at(-1).push(box);
   }
+  rows.forEach((row,rowIndex)=>{
+    const height=Math.max(...row.map(b=>b.height)),direction=rowIndex%2?-1:1;
+    row.forEach(b=>Object.assign(b,{row:rowIndex,direction,
+      x:direction===1?pad+b.column*(nodeWidth+gap):width-pad-b.column*(nodeWidth+gap)-b.width,
+      y:y+(height-b.height)/2}));
+    y+=height+gap;
+  });
   if(!boxes.length)y+=65;
   const footer=[...model.warnings.map(text=>({text,color:'warning'})),...(model.note?[{text:model.note,color:'note'}]:[])].flatMap(l=>tutorialWrap(l.text,width-pad*2,14).map(text=>({...l,text})));
   return {width,height:y+footer.length*20+60,pad,gap,columns,boxes,openingWidth,openingNoteY,finalX,finalWidth,openingRows,finalCards,finalNotes,conditionLines,overviewY,overviewHeight,footerY:y,footer};
@@ -289,12 +314,12 @@ function renderPlanTutorialSvg(model,layout=layoutPlanTutorial(model),assets={})
   // arrows cannot cross text, including an incomplete final row.
   layout.boxes.forEach((box,i)=>{
     if(i===layout.boxes.length-1)return;
-    const next=layout.boxes[i+1],right=Math.floor(i/layout.columns)%2===0;
+    const next=layout.boxes[i+1],right=box.direction===1;
     const fromX=right?box.x+box.width:box.x,fromY=box.y+box.height/2;
     const toX=right?next.x:next.x+next.width,toY=next.y+next.height/2;
     let d=`M ${fromX} ${fromY} L ${toX- (right?4:-4)} ${toY}`;
-    if(next.y!==box.y) {
-      const turnX=fromX+(right?19:-19),endX=right?next.x+next.width:next.x;
+    if(next.row!==box.row) {
+      const turnX=right?layout.width-layout.pad+19:layout.pad-19,endX=right?next.x+next.width:next.x;
       d=`M ${fromX} ${fromY} H ${turnX} V ${toY} H ${endX+(right?4:-4)}`;
     }
     out.push(`<path class="tutorial-connector" d="${d}" fill="none" stroke="#2c745e" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#tutorial-arrow)"/>`);
@@ -304,9 +329,12 @@ function renderPlanTutorialSvg(model,layout=layoutPlanTutorial(model),assets={})
     out.push(rect(box.x+16,box.y+14,76,25,'#e8f1e9','#e8f1e9',7),text(`Step ${box.number}`,box.x+27,box.y+32,13,'accent',700));
     box.title.forEach((l,i)=>out.push(text(l,box.x+105,box.y+32+i*18,14,'ink',600)));
     for(const [index,action] of box.actions.entries()) {
-      const ax=box.x+18,ay=box.y+action.y;
+      const ax=box.x+18+action.x,ay=box.y+action.y;
       out.push(`<g class="tutorial-action" data-tutorial-action="${esc(action.id)}">`);
-      if(index)out.push(`<path d="M ${ax} ${ay-8} H ${box.x+box.width-18}" stroke="#e3ebe5"/>`);
+      if(box.actionColumns>1){
+        out.push(rect(ax-6,ay-26,action.width+12,action.height+32,'none','#e3ebe5',7));
+        out.push(text(`操作 ${index+1}`,ax+4,ay-9,12,'accent',600));
+      }else if(index)out.push(`<path d="M ${ax} ${ay-8} H ${ax+action.width}" stroke="#e3ebe5"/>`);
       action.stages.forEach((s,i)=>{
         const next=action.stages[i+1];if(!next)return;
         const d=s.y===next.y?`M ${ax+s.x+s.width+2} ${ay+s.y+s.height/2} L ${ax+next.x-3} ${ay+next.y+next.height/2}`:

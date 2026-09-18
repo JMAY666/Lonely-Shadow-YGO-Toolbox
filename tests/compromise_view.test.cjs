@@ -110,6 +110,15 @@ function tutorial(extra={}) {
   for(const file of ['activation.js','review.js','plan-tutorial.js','compromise-tutorial.js'])vm.runInContext(fs.readFileSync(path.join(web,file),'utf8'),context);
   return vm.runInContext('({buildPlanTutorial,layoutPlanTutorial,renderPlanTutorialSvg,tutorialAssets})',context);
 }
+test('branch connectors from a short Step pass below its taller row neighbour',()=>{
+  const tools=tutorial(),base=tools.buildPlanTutorial(require('./fixtures/opponent-hand-reveal.cjs')());
+  const [long,short]=base.steps,main={...base,steps:[short,long]};
+  const model={name:'mixed row branch',routes:[{id:'main',label:'main',model:main},
+    {id:'branch',label:'branch',valid:true,source:{node_id:short.id,action_id:short.actions[0].id,checkpoint:1},facts:[],model:{...base,branchFinal:true,steps:[short]}}]};
+  const layout=tools.layoutPlanTutorial(model),route=layout.routes[0],[a,b]=route.inner.boxes;
+  assert.equal(a.row,b.row);assert(a.height<b.height);
+  assert(layout.connections[0].gapY>route.y+route.head+b.y+b.height,'The branch line must not cross the tall neighbour');
+});
 function planFixture() {
   const card={code:10,instance_id:1,name:'我方效果',controller:0,location:8,sequence:0};
   const action={id:'3:0',kind:'effect',cards:[card],status:'resolved',costs:[],results:[],targets:[],evidence_refs:['3:0','9:0']};

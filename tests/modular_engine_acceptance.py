@@ -116,6 +116,10 @@ def main(runtime, url, evidence):
                 answer(choice['response'],s)
             else:raise AssertionError(json.dumps(p))
         raise AssertionError('Unsettled core')
+    if os.environ.get('YGO_MODULAR_RULES_ONLY')=='1':
+        from modular_continuous_rules import run
+        run(runtime,evidence,api,start,current,answer,choose,save,finish,wait,lambda:sid)
+        return
     if os.environ.get('YGO_MODULAR_IMPLICIT_ONLY')=='1':
         from modular_implicit import run
         run(api,start,current,answer,choose,save,evidence)
