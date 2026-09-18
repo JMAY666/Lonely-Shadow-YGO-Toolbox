@@ -34,6 +34,7 @@ module.exports=async({page,root,evidence,pass})=>{
   try{
     const id=await setup(source,Array(5).fill(1184620));
     const opening=await generate();assert.equal(opening.confirmed,0);assert.equal(opening.anchor,null);
+    await require('./forecast-source-tags-smoke.cjs').verify({page,evidence,automatic:true});
     assert.equal((await page.evaluate(id=>api('/api/native/status?id='+id),opening.id)).visible,false);
     const journal=path.join(root,'runtime/_trainer/sessions',opening.id,'native.jsonl'),nativeBefore=fs.readFileSync(journal);
     const refusal=await page.evaluate(async id=>{try{await modularDispatch('duel','plan-close',{id});return '';}catch(e){return e.message;}},opening.id);

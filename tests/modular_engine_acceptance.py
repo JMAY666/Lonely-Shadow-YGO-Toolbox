@@ -31,6 +31,11 @@ def main(runtime, url, evidence):
             if result: return result
             time.sleep(.07)
         raise AssertionError('Native acceptance condition timed out')
+    tags = api('/api/tags')
+    fixture_tag = next((tag['id'] for tag in tags['tags'] if tag['name'] == 'TEST ONLY modular acceptance'), None)
+    if not fixture_tag:
+        fixture_tag = api('/api/tags/save', {'name': 'TEST ONLY modular acceptance', 'revision': tags['revision']})['tag']['id']
+    fixture_selection = {'tag_ids': [fixture_tag], 'primary_ids': [fixture_tag]}
     sid = None
     def state():
         path=runtime/'_trainer/sessions'/sid/'modular-state.json'
@@ -65,7 +70,7 @@ def main(runtime, url, evidence):
     def start(deck, hand, name):
         nonlocal sid
         request=evidence/'modular-layout.request';request.write_text('layout',encoding='ascii');wait(lambda:not request.exists())
-        saved=api('/api/decks',{'name':name.replace('/','-')+' '+uuid.uuid4().hex[:5],'deck':deck})
+        saved=api('/api/decks',{'name':name.replace('/','-')+' '+uuid.uuid4().hex[:5],'deck':deck,'tag_selection':fixture_selection})
         sid=api('/api/start',{'deck_id':saved['id'],'design':{'name':'TEST ONLY '+name,'notes':'Isolated real-engine fixture',
             'revision':saved['revision'],'conditions':{'hand_count':len(hand),'slots':hand,'banned':[]},'opponent_ai':False}})['id']
         return current()
@@ -93,6 +98,7 @@ def main(runtime, url, evidence):
             body['annotations']=edits
         preview=api('/api/plans/preview',body)
         plan=api('/api/plans/save',{**body,'annotations':preview['annotations'],'confirmation':preview['confirmation']})
+        plan=api('/api/plans/classify',{'id':plan['id'],'revision':plan.get('edit_revision',0),'classification':fixture_selection})
         wait(lambda:not any(h['status'] in ('running','starting','stopping') for h in api('/api/history')))
         return plan
     def idle():

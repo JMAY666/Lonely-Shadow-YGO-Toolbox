@@ -4,7 +4,7 @@ const AutoDuelModel=(()=>{
   const key=frame=>JSON.stringify([frame?.round_id,frame?.opening?.snapshot_id]);
   const create=context=>({context:structuredClone(context),deck:structuredClone(context.deck),hand:[...context.hand],count:context.hand.length,
     stage:5,reached:5,result:null,plan:null,routes:null,graph:null,position:null,forecast:null,
-    planSort:'shortest',favoritesOnly:false,enabled:true,ended:false,busy:false,message:'',generation:0,
+    planSort:'largest',favoritesOnly:false,enabled:true,ended:false,busy:false,message:'',generation:0,
     session:'automatic-'+crypto.randomUUID()});
   return {key,create};
 })();

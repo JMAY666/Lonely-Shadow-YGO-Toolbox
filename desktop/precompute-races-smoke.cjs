@@ -24,7 +24,7 @@ module.exports=async({page,evidence,pass})=>{
   assert.notEqual(latest.id,old.id);assert.notEqual(latest.job,old.job);assert.equal(latest.data.result.coverage.total,1);assert.equal(latest.data.result.precise,false);
   const refusal=await page.evaluate(async old=>{try{await forecastRequest(duelState(),'plan-adopt',old);return '';}catch(error){return error.message;}},old);
   assert.match(refusal,/未完成|失效|释放|版本|变化/);
-  await page.evaluate(async()=>{const f=duelState().forecast;f.selected=[];await searchDuelBrain();f.preference='safest';await searchDuelBrain();});
+  await page.evaluate(async()=>{const f=duelState().forecast;f.selected=[];await searchDuelBrain();f.preference='cheapest';await searchDuelBrain();});
   const failed=await page.evaluate(()=>({data:duelState().forecast.data,job:duelState().forecast.job,error:duelState().forecast.error}));
   assert.equal(failed.data,null);assert.equal(failed.job,null);assert.match(failed.error,/来源/);
   await page.evaluate(async source=>{duelState().forecast.selected=[source.plans.shortest];await searchDuelBrain({refresh:true});},source);

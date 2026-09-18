@@ -15,6 +15,7 @@ module.exports=async({page,root,evidence,pass})=>{
   assert.equal(await page.locator('#duel #native-stage').count(),0);
   const diagnostic=await page.evaluate(()=>({error:duelState().forecast.error,data:duelState().forecast.data}));
   assert(diagnostic.data?.result?.candidates.length,JSON.stringify(diagnostic));
+  await require('./forecast-source-tags-smoke.cjs').verify({page,evidence});
   const sid=diagnostic.data.id;
   await page.locator('#duel-brain-toggle').click();
   assert.equal(await page.locator('#duel-brain-content').isVisible(),false);

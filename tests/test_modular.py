@@ -145,13 +145,14 @@ class DecisionTests(unittest.TestCase):
         moved={**card,'sequence':2}
         self.assertIsNone(bind(decision,model(idle([moved],[effect]),{'cards':[moved]},{'choices':[effect]})))
 
-    def test_three_preferences_have_explainable_distinct_orders(self):
+    def test_four_preferences_have_explainable_orders(self):
         def candidate(name,steps,board,hand,continued):
             return {'id':name,'remaining':steps,'goal_met':True,'conditional':False,
                 'evaluation':{'board':board,'hand':hand,'extra':10,'lp':8000},
+                'resource_cost':{'status':'complete','hand':{'short':1,'large':2,'safe':0}[name],'main':0,'extra':0},
                 'robustness':{'status':'evaluated','scenarios':[{'continued':v} for v in continued]}}
         candidates=[candidate('short',2,1,1,[False]),candidate('large',6,3,3,[False]),candidate('safe',4,2,2,[True])]
-        for preference, expected in [('shortest','short'),('largest','large'),('safest','safe')]:
+        for preference, expected in [('shortest','short'),('largest','large'),('cheapest','safe'),('balanced','safe')]:
             actual=deepcopy(candidates);Modular.rank(actual,preference);self.assertEqual(actual[0]['id'],expected)
 
     def test_ambiguous_equal_effects_require_evidence_instead_of_first_index(self):

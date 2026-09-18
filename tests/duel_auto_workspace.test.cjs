@@ -4,8 +4,8 @@ const vm=require('node:vm');
 test('automatic workspaces own filters, selection, graph and shortcut sessions',()=>{
   const input={context_id:'a',deck:{id:'automatic/a'},hand:[1,1,2,3,4]};
   const a=model.create(input),b=model.create({...input,context_id:'b'});
-  a.hand[0]=7;a.planSort='largest';a.plan={id:'choice'};a.position={key:'main/step'};
-  assert.deepEqual(b.hand,[1,1,2,3,4]);assert.equal(b.planSort,'shortest');assert.equal(b.plan,null);assert.equal(b.position,null);
+  a.hand[0]=7;a.planSort='shortest';a.plan={id:'choice'};a.position={key:'main/step'};
+  assert.deepEqual(b.hand,[1,1,2,3,4]);assert.equal(b.planSort,'largest');assert.equal(b.plan,null);assert.equal(b.position,null);
   assert.notEqual(a.session,b.session);assert.deepEqual(input.hand,[1,1,2,3,4]);
 });
 test('automatic view/controller files use dedicated DOM, state and request boundaries',()=>{

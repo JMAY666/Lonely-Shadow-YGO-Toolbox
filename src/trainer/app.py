@@ -1054,7 +1054,14 @@ class Handler(BaseHTTPRequestHandler):
             else:
                 if path == '/api/superpre': return self.send(store.superpre.status())
                 if path == '/api/modular/data': return self.send(store.modular.data())
-                if path == '/api/modular/library': return self.send(store.modular.library.sync())
+                if path == '/api/modular/library':
+                    if 'deck_id' in query:
+                        with store.lock:
+                            saved = store.get_deck(query['deck_id'][0])
+                            if saved['revision'] != query.get('revision', [''])[0]:
+                                raise ValueError('卡组已修改，请重新确认构筑和起手')
+                            return self.send(store.modular.library.for_deck(saved))
+                    return self.send(store.modular.library.sync())
                 if path.startswith('/api/modular/source/'):
                     store.modular.library.sync()
                     return self.send(store.modular.library.entries[path.rsplit('/', 1)[1]])

@@ -7,6 +7,7 @@ import uuid
 
 from duel import validate_hand
 from modular_decisions import digest
+from planning_preferences import PREFERENCES, DEFAULT_PREFERENCE
 
 
 class Precompute:
@@ -43,8 +44,7 @@ class Precompute:
         validate_hand(saved['deck'], body.get('hand_count'), body.get('hand'))
         self.modular.library.sync()
         selected = body.get('sources', [])
-        if not isinstance(selected, list) or not selected or any(s not in self.modular.library.entries for s in selected):
-            raise ValueError('请选择可用来源后重试')
+        self.modular.library.validate_deck_sources(saved.get('tag_selection', {}), selected)
         state = None
         if body.get('id'):
             from duel_planner import context
@@ -106,14 +106,16 @@ class Precompute:
         return self.view(job, body, reused=True)
 
     def view(self, job, body, reused=False):
-        preference = body.get('preference', 'shortest')
+        preference = body.get('preference', DEFAULT_PREFERENCE)
+        if preference == 'safest': preference = DEFAULT_PREFERENCE
+        if preference not in PREFERENCES: raise ValueError('路线偏好无效')
         ctx = self.modular.sessions.get(job.get('sid'), {})
         result = {'job': job['job'], 'version': job['version'], 'status': job['status'], 'id': job['sid'],
                   'inputs': {'version': job['version']}, 'reused': reused,
                   'progress': deepcopy(ctx.get('forecast_progress', {})), 'error': job.get('error'),
                   'background_seconds': round(time.monotonic()-job['created'], 3) if job['status'] in ('queued', 'running') else job.get('seconds'),
                   'preferences': {p: {'status': job['status'], 'complete': r.get('complete', False), 'candidates': len(r['candidates'])}
-                                  for p, r in ctx.get('forecast_bank', {}).items()} if job.get('data') else {p: {'status': job['status']} for p in ('shortest', 'largest', 'balanced', 'safest')}}
+                                  for p, r in ctx.get('forecast_bank', {}).items()} if job.get('data') else {p: {'status': job['status']} for p in PREFERENCES}}
         if job.get('data') and not job['cancelled']:
             result['data'] = deepcopy(job['data'])
             result['data']['result'] = self.modular.public_result(ctx['forecast_bank'][preference])

@@ -4,7 +4,7 @@ const duelDefaults = TutorialBindings.defaults;
 const duelLabels = TutorialBindings.labels;
 const duelStages = Object.freeze({mode:0,function:1,deck:2,order:3,hand:4,plans:5,tutorial:6,complete:7});
 const newDuel = () => ({stage:duelStages.mode,reached:duelStages.mode,mode:null,operationMode:null,functionPage:'choice',automatic:DuelAutomatic.create(),deck:null,deckPage:'list',decks:[],first:false,count:5,hand:Array(5).fill(null),
-  marks:new Set(),target:null,result:null,plan:null,routes:null,graph:null,position:null,ended:false,enabled:false,planSort:'shortest',favoritesOnly:false,session:crypto.randomUUID()});
+  marks:new Set(),target:null,result:null,plan:null,routes:null,graph:null,position:null,ended:false,enabled:false,planSort:'largest',favoritesOnly:false,session:crypto.randomUUID()});
 const duelUI = {state:newDuel(),busy:false,generation:0,message:'',detailPreview:false,handCount:5,bindings:{...duelDefaults},shortcutStatus:null,shortcutQueue:Promise.resolve(),hoverTimer:null,closeTimer:null,previewAnchor:null,previewRect:null,previewKind:null,previewId:null,previewSuppressed:null,handHoverSuppressed:null};
 const duelState = () => duelUI.state;
 const duelInputKey=s=>JSON.stringify([s.deck?.id,s.deck?.revision,s.hand]);

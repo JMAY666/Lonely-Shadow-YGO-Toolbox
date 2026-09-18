@@ -8,13 +8,17 @@ import sys
 import unittest
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'src/trainer'))
 from duel_precompute import Precompute
+from modular import ModularLibrary
 
 
 class PreparationTests(unittest.TestCase):
     def setUp(self):
-        self.deck={'id':'d','revision':'v1','deck':{'main':[1,2],'extra':[],'side':[]}}
+        self.deck={'id':'d','revision':'v1','deck':{'main':[1,2],'extra':[],'side':[]},'tag_selection':{'tag_ids':['test']}}
+        library=object.__new__(ModularLibrary)
+        library.sync=lambda:None
+        library.entries={'p':{'version':'p1','status':'ready','tag_ids':['test']}}
         self.modular=SimpleNamespace(store=SimpleNamespace(get_deck=lambda _:deepcopy(self.deck)),
-            library=SimpleNamespace(sync=lambda:None,entries={'p':{'version':'p1'}}),sessions={},public_result=deepcopy)
+            library=library,sessions={},public_result=deepcopy)
         self.service=Precompute(self.modular);self.service.rules=Mock(return_value='rules1');self.service.ensure_worker=Mock()
         self.body={'consumer':'duel','session':'round1','slot':'opening','deck_id':'d','revision':'v1','hand_count':1,'hand':[1],'sources':['p']}
 
@@ -23,10 +27,10 @@ class PreparationTests(unittest.TestCase):
 
     def test_preferences_and_repeated_clicks_join_one_job(self):
         first=self.prepare()
-        for preference in ('shortest','largest','balanced','safest'):
+        for preference in ('shortest','largest','balanced','cheapest'):
             self.assertEqual(self.prepare(preference=preference)['job'],first['job'])
         self.assertEqual(len(self.service.jobs),1)
-        self.assertEqual(set(first['preferences']),{'shortest','largest','balanced','safest'})
+        self.assertEqual(set(first['preferences']),{'shortest','largest','balanced','cheapest'})
         self.service.ensure_worker.assert_called_once()
 
     def test_changes_cancel_old_tasks_and_prevent_adoption(self):
@@ -69,7 +73,7 @@ class PreparationTests(unittest.TestCase):
         calls=[]
         def generate(modular,body,on_started):
             sid='sid'+str(len(calls));calls.append(sid)
-            ctx={'forecast_bank':{p:{'candidates':[],'complete':True} for p in ('shortest','largest','balanced','safest')}}
+            ctx={'forecast_bank':{p:{'candidates':[],'complete':True} for p in ('shortest','largest','balanced','cheapest')}}
             modular.sessions[sid]=ctx;on_started(sid,ctx)
             if len(calls)==1:entered.set();release.wait(3)
             else:replaced.set()

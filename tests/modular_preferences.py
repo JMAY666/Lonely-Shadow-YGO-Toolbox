@@ -1,4 +1,4 @@
-"""Three real-engine goals with distinct decision/resource/interference order."""
+"""Real-engine goals compared by resource cost, terminal size, decisions and their average."""
 from modular_decisions import model, terminal_key
 from modular import board_pattern
 
@@ -18,12 +18,12 @@ def record_and_compare(api,start,current,choose,idle,save,wait,sid_fn,evidence):
     start(deck,[normal,normal,pot],'three preference comparison')
     sid=sid_fn();sources=[p['id'] for p in plans];before=current()
     results={}
-    for preference,wanted in (('shortest',plans[0]),('largest',plans[1]),('safest',plans[2])):
+    for preference,wanted in (('cheapest',plans[0]),('largest',plans[1]),('shortest',plans[0]),('balanced',None)):
         api('/api/modular/configure',{'id':sid,'sources':sources,'preference':preference})
         result=api('/api/modular/search',{'id':sid});results[preference]=result
         assert result['candidates'],result['status']
         best=result['candidates'][0]
-        assert best['steps'][-1]['source']['plan']==wanted['id'],(preference,[(c['remaining'],c['steps'][-1]['source']['name'],c['robustness']) for c in result['candidates']])
+        if wanted: assert best['steps'][-1]['source']['plan']==wanted['id'],(preference,[(c['remaining'],c['steps'][-1]['source']['name'],c['robustness']) for c in result['candidates']])
         assert current()==before
         print('PASS real preference',preference,best['remaining'],best['steps'][-1]['source']['name'],flush=True)
     import json
@@ -37,14 +37,14 @@ def record_and_compare(api,start,current,choose,idle,save,wait,sid_fn,evidence):
     wait(lambda:(s if (s:=current())['version']>before['version'] else None))
     if model(current()['raw'],current()['state'],current().get('effects'))['message']==18:choose(place=[0,8,0])
     idle();fixed=current()
-    api('/api/modular/configure',{'id':sid,'sources':sources,'preference':'safest'})
+    api('/api/modular/configure',{'id':sid,'sources':sources,'preference':'largest'})
     changed=api('/api/modular/search',{'id':sid})
-    assert changed['candidates'][0]['steps'][-1]['source']['plan']==plans[2]['id']
+    assert changed['candidates'][0]['steps'][-1]['source']['plan']==plans[1]['id']
     assert current()==fixed
     api('/api/modular/auto',{'id':sid,'enabled':True})
     done=wait(lambda:(s if not (s:=api('/api/modular/state/'+sid))['auto'] and not s['busy'] else None),timeout=120)
     assert done['reason']=='已到达所选路线的实际终场',done['reason']
-    assert sorted(board_pattern(terminal_key(done['state']['state']),False))==sorted(board_pattern(terminal_key(plans[2]['final_state']),False))
+    assert sorted(board_pattern(terminal_key(done['state']['state']),False))==sorted(board_pattern(terminal_key(plans[1]['final_state']),False))
     print('PASS mid-route preference change retains the live prefix and reaches the new terminal',flush=True)
     api('/api/stop',{'id':sid})
     import time

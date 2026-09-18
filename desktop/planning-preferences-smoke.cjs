@@ -11,7 +11,7 @@ module.exports=async({page,root,evidence,pass})=>{
   try {
     await page.evaluate(async ({source,baseline})=>{
       await refreshHistory();await switchModule('duel');duelUI.state=newDuel();const s=duelState();
-      s.deck=await api('/api/deck?id='+encodeURIComponent(source.deck));s.mode='BO1';s.operationMode='manual';s.first=true;s.count=5;s.hand=source.hand;
+      s.deck=await api('/api/deck?id='+encodeURIComponent(source.deck));s.mode='BO1';s.operationMode='manual';s.first=true;s.count=5;s.hand=source.hand;s.planSort='shortest';
       s.result={matches:[]};s.stage=duelStages.plans;s.reached=duelStages.plans;
       const sources=(await api('/api/modular/library')).sources.filter(p=>Object.values(source.plans).includes(p.id));
       s.forecast={sources,selected:sources.map(p=>p.id),preference:'shortest',precise:false,goal:[],generation:0,showResults:baseline,slot:'opening'};
@@ -22,12 +22,12 @@ module.exports=async({page,root,evidence,pass})=>{
     if(!baseline){
       await page.waitForFunction(()=>!!duelState().forecast?.jobState,null,{timeout:30000});
       assert.equal(await page.locator('#duel-brain-search').count(),0,'Preparation starts without opening the panel');
-      assert.deepEqual(Object.keys(await page.evaluate(()=>duelState().forecast.jobState.preferences)).sort(),['balanced','largest','safest','shortest']);
+      assert.deepEqual(Object.keys(await page.evaluate(()=>duelState().forecast.jobState.preferences)).sort(),['balanced','cheapest','largest','shortest']);
       await page.waitForFunction(()=>!duelState().forecast.busy&&!!duelState().forecast.data,null,{timeout:180000});
       timings.background_ms=await page.evaluate(()=>performance.now()-window.preparationStartedAt);
       timings.background_service_seconds=await page.evaluate(()=>duelState().forecast.jobState.background_seconds);
     }
-    for(const preference of ['shortest','largest','balanced','safest']){
+    for(const preference of ['shortest','largest','balanced','cheapest']){
       const click=Date.now();
       if(preference==='shortest'){
         if(baseline)await page.evaluate(()=>searchDuelBrain({refresh:true}));
@@ -37,7 +37,10 @@ module.exports=async({page,root,evidence,pass})=>{
       timings[preference+'_wait_ms']=Date.now()-click;
       const result=await page.evaluate(()=>duelState().forecast.data.result);results[preference]=result;
       assert.equal(result.coverage.total,3);assert.equal(result.coverage.checked,3);
-      if(preference!=='safest')assert.equal(result.candidates[0].terminal_source.plan,source.plans[preference],preference);
+      if(['shortest','largest'].includes(preference))assert.equal(result.candidates[0].terminal_source.plan,source.plans[preference],preference);
+      if(preference==='cheapest')assert.equal(result.candidates[0].resource_cost.hand,1);
+      if(preference==='balanced')assert.equal(result.candidates[0].ranking.average,Math.max(...result.candidates.map(c=>c.ranking.average)));
+      assert(result.candidates.every(c=>c.resource_cost.status==='complete'&&c.resource_cost.main===0&&c.resource_cost.extra===0));
       assert(new Set(result.candidates.map(c=>c.terminal_source?.plan)).size>=3,'Each preference is evaluated from the full discovered pool');
       if(result.limited)assert.match(await page.locator('#duel-brain-summary').textContent(),/搜索尚未完成/);
       await page.screenshot({path:path.join(evidence,'planning-'+preference+'.png')});

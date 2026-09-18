@@ -8,6 +8,7 @@ import uuid
 from duel import validate_hand
 from modular_decisions import model, public_state, bind_variants
 from module_conditions import advance_facts
+from planning_preferences import PREFERENCES, DEFAULT_PREFERENCE
 
 
 def context(modular, body, *, allow_stale=False):
@@ -59,8 +60,7 @@ def generate(modular, body, on_started=None):
             if saved['revision'] != body.get('revision'): raise ValueError('卡组已修改，请返回卡组选择重新确认')
             validate_hand(saved['deck'], body.get('hand_count'), body.get('hand')); store.validate(saved['deck'], training=True)
             selected = body.get('sources', []); modular.library.sync()
-            if not isinstance(selected, list) or not selected or any(source not in modular.library.entries for source in selected):
-                raise ValueError('请选择可用的展开来源；来源变化后请重新生成')
+            modular.library.validate_deck_sources(saved.get('tag_selection', {}), selected)
             from duel_continuation import anchor_source
             anchor = anchor_source(modular, body['anchor']) if body.get('anchor') else None
             session = store.start(saved['id'], design={
@@ -84,6 +84,7 @@ def generate(modular, body, on_started=None):
             else: raise ValueError('后台规则引擎尚未就绪，请重试')
             meta = modular.read(store.session_path(sid) / 'session.json')
             ctx['forecast_meta'] = {'catalog': deepcopy(meta['catalog']), 'initial': public_state(state['state']),
+                'tag_selection': deepcopy(saved.get('tag_selection', {})),
                 'rules_version': modular.precompute.rules(),
                 'consumer':body.get('consumer','duel'),'automatic_context':body.get('automatic_context'),
                 'inputs': {'deck': saved['revision'], 'engine': meta['engine_sha256'], 'scripts': meta['scripts_sha256']}}
@@ -96,7 +97,6 @@ def generate(modular, body, on_started=None):
             replay_anchor(modular, sid, ctx, anchor)
         result = modular.search(sid, refresh=refresh, **({'all_preferences': True} if body.get('all_preferences') else {}))
         if body.get('all_preferences'):
-            from modular import PREFERENCES
             bank = {}
             for preference in PREFERENCES:
                 # The search and scores are preference-independent until here;
@@ -105,14 +105,14 @@ def generate(modular, body, on_started=None):
                 modular.rank(ranked['candidates'], preference)
                 ranked['candidates'] = ranked['candidates'][:result['limits']['candidates']]
                 ranked['preference'] = preference
-                if preference == 'safest' and any(c['robustness']['status'] != 'evaluated' for c in ranked['candidates']): ranked['complete'] = False
                 bank[preference] = ranked
             ctx['forecast_bank'] = bank
             import json
             if len(json.dumps(bank, ensure_ascii=False).encode('utf-8')) > 16 * 1024 * 1024:
                 ctx.pop('forecast_bank', None)
                 raise ValueError('本轮候选超过后台缓存容量，请减少来源后重试；未缩减搜索范围或冒充无路线')
-            result = ctx['result'] = bank[body.get('preference', 'shortest')]
+            preference = body.get('preference', DEFAULT_PREFERENCE)
+            result = ctx['result'] = bank[DEFAULT_PREFERENCE if preference == 'safest' else preference]
         ctx['forecast_meta']['inputs']['sources'] = result['token'][2]
         ctx.pop('forecast_partial', None)
         ctx['forecast_touched'] = time.monotonic()
@@ -127,7 +127,7 @@ def adopt(modular, body):
     if ctx.get('forecast_job') and body.get('job') != ctx['forecast_job']:
         raise ValueError('请使用当前预计算任务及状态版本采用候选')
     if body.get('preference') and ctx.get('forecast_bank'):
-        result = ctx['forecast_bank'].get(body['preference']) or {}
+        result = ctx['forecast_bank'].get(DEFAULT_PREFERENCE if body['preference'] == 'safest' else body['preference']) or {}
         ctx['result'] = result
     candidate = next((c for c in result.get('candidates', []) if c['id'] == body.get('candidate')), None)
     if not candidate or not modular.valid_token(sid, candidate['token']): raise ValueError('候选来源或本局进度已变化，请重新生成')

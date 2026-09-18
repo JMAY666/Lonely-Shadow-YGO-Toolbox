@@ -16,9 +16,9 @@ from module_graph import decision_boundaries, decision_id
 from module_conditions import branch_condition, condition_matches, facts_from_report, advance_facts
 from plan_endboard import attach_terminal_marks, marked_terminal, marked_evaluation, satisfied_marked_terminal
 from planning_cache import PlanningCache
+from planning_preferences import PREFERENCES, DEFAULT_PREFERENCE, advance_resources, resource_cost, cost_key
 
 
-PREFERENCES = ('shortest', 'largest', 'balanced', 'safest')
 LIMITS = {'seconds': 32, 'nodes': 320, 'depth': 48, 'candidates': 24}
 EXTRACTOR_VERSION = 12
 
@@ -348,16 +348,20 @@ class ModularLibrary:
 
     def sync(self):
         with self.store.lock, self.lock:
+            vocabulary = self.store.library.all_tags()
+            tag_version = digest([vocabulary, self.store.catalog.sources])
             fresh = {}
             for path in sorted(self.store.plans.glob('*.json')):
                 try:
-                    info = path.stat(); stamp = (info.st_mtime_ns, info.st_size, info.st_ino)
+                    info = path.stat(); stamp = (info.st_mtime_ns, info.st_size, info.st_ino, tag_version)
                     if self.stamps.get(path.stem) == stamp and path.stem in self.entries and self.entries[path.stem]['status'] != 'failed':
                         fresh[path.stem] = self.entries[path.stem]; continue
-                    plan = self.read(path); version = digest([EXTRACTOR_VERSION,plan])
+                    plan = self.read(path)
+                    tag_ids = sorted(set(self.store.library.selection(plan, vocabulary)['tag_ids']) & vocabulary.keys())
+                    version = digest([EXTRACTOR_VERSION, plan, tag_ids])
                     previous = self.entries.get(path.stem)
                     if previous and previous['version'] == version:
-                        fresh[path.stem] = previous; continue
+                        fresh[path.stem] = previous; self.stamps[path.stem] = stamp; continue
                     obj = self.root / 'versions' / path.stem / f'{version}.json'
                     if obj.exists(): entry = self.read(obj)
                     else:
@@ -376,7 +380,7 @@ class ModularLibrary:
                                     edge['if_condition']=deepcopy(guard)
                                 if guard['status']!='verified':evidence['unknown'].append({'reason':'IF 条件尚无实际事件确认，请完成妥协场并核对打断结果'})
                             routes.append({'id': route_id, 'name': name, **evidence})
-                        entry = {'id': path.stem, 'name': plan['name'], 'version': version,
+                        entry = {'id': path.stem, 'name': plan['name'], 'version': version, 'tag_ids': tag_ids,
                                  'revision': plan.get('edit_revision', 0), 'routes': routes,
                                  'opening_conditions': deepcopy(plan.get('expansion', {}).get('conditions')),
                                  'actual_opening': deepcopy(plan.get('expansion', {}).get('actual_opening')),
@@ -395,6 +399,29 @@ class ModularLibrary:
                 self.write(self.root / 'index.json', {'schema': 1, 'version': version, 'entries': fresh})
                 self.entries, self.version = fresh, version
             return self.summary()
+
+    def deck_source_ids(self, selection):
+        # tag_ids contains both primary and secondary tags, using stable IDs.
+        selected = set(selection.get('tag_ids', []))
+        return {sid for sid, entry in self.entries.items()
+                if entry['status'] == 'ready' and selected.intersection(entry.get('tag_ids', []))}
+
+    def for_deck(self, saved):
+        with self.store.lock, self.lock:
+            result = self.sync()
+            selection = saved.get('tag_selection', {})
+            allowed = self.deck_source_ids(selection)
+            result['sources'] = [source for source in result['sources'] if source['id'] in allowed]
+            result['reason'] = ('' if allowed else '当前卡组没有可用 Tag，请在卡组编辑中设置并保存'
+                                if not set(selection.get('tag_ids', [])) & self.store.library.all_tags().keys()
+                                else '没有与当前卡组主、副 Tag 匹配的可用展开来源')
+            return result
+
+    def validate_deck_sources(self, selection, selected):
+        if not isinstance(selected, list) or not selected or any(not isinstance(s, str) for s in selected):
+            raise ValueError('请选择与当前卡组主、副 Tag 匹配的可用展开来源')
+        if not set(selected) <= self.deck_source_ids(selection):
+            raise ValueError('来源方案与当前卡组主、副 Tag 不匹配或已不可用，请刷新来源列表')
 
     def summary(self):
         return {'schema': 1, 'version': self.version, 'sources': [{**{k: v for k, v in e.items() if k != 'routes'},
@@ -496,9 +523,10 @@ class Modular:
         with self.lock:
             if sid not in self.sessions:
                 path = self.store.session_path(sid) / 'modular.json'
-                value = self.read(path) if path.exists() else {'schema': 1, 'id': sid, 'preference': 'shortest',
+                value = self.read(path) if path.exists() else {'schema': 1, 'id': sid, 'preference': DEFAULT_PREFERENCE,
                     'preference_version': 0, 'selected': [], 'goal': [], 'original_goal': None, 'audit': [], 'completed': [], 'pending': None}
                 value.update(auto=False, result=None, busy=False, followup=None, reason='手动模式')
+                if value.get('preference') not in PREFERENCES: value['preference'] = DEFAULT_PREFERENCE
                 value.setdefault('source_epoch', 0)
                 value.setdefault('precise', False)
                 value.setdefault('original_goal_kind','board' if value.get('original_goal') and isinstance(value['original_goal'][0],list) else 'cards')
@@ -540,12 +568,15 @@ class Modular:
         sid = body['id']; ctx = self.context(sid)
         with self.store.lock, self.lock:
             preference = body.get('preference', ctx['preference'])
+            if preference == 'safest': preference = DEFAULT_PREFERENCE  # Legacy clients keep working after the preference change.
             precise=body.get('precise',ctx['precise'])
             if type(precise) is not bool:raise ValueError('精确匹配开关无效')
             if preference not in PREFERENCES: raise ValueError('路线偏好无效')
             selected = body.get('sources', ctx['selected'])
             self.library.sync()
             if not isinstance(selected, list) or any(s not in self.library.entries for s in selected): raise ValueError('来源方案已经变化，请刷新来源列表')
+            if ctx.get('forecast_meta'):
+                self.library.validate_deck_sources(ctx['forecast_meta'].get('tag_selection', {}), selected)
             goal = body.get('goal', ctx['goal'])
             if not isinstance(goal, list) or len(goal) > 30 or any(type(c) is not int or c not in self.store.catalog.cards for c in goal): raise ValueError('终场条件应是有效卡牌编号列表')
             self.cancel_lease(sid)
@@ -641,6 +672,7 @@ class Modular:
             ctx = self.context(sid)
             if 'forecast_meta' not in ctx: return self._search(sid, **options)
             self.library.sync(); state = self.state(sid); expected = self.token(state, ctx)
+            self.library.validate_deck_sources(ctx['forecast_meta'].get('tag_selection', {}), ctx['selected'])
             if not state['running'] or state['answered'] or state['player'] != 0:
                 raise ValueError('引擎尚未开放我方决策')
             key = digest([state, expected[2], ctx['precise'], ctx['goal'], ctx.get('original_goal'), ctx['preference'],
@@ -712,7 +744,7 @@ class Modular:
             matching = list((previous or {}).get('satisfied_goal_sources', []))
             source = candidate.get('terminal_source')
             if source and source not in matching: matching.append(deepcopy(source))
-            if previous is None or (resource_rank(candidate['evaluation']), -candidate['remaining']) > (resource_rank(previous['evaluation']), -previous['remaining']):
+            if previous is None or (cost_key(candidate), tuple(-v for v in resource_rank(candidate['evaluation'])), candidate['remaining']) < (cost_key(previous), tuple(-v for v in resource_rank(previous['evaluation'])), previous['remaining']):
                 candidates[signature] = candidate
             candidates[signature]['satisfied_goal_sources'] = matching
         queued_paths = {()}
@@ -819,6 +851,8 @@ class Modular:
                     for edge in origins:
                         if not satisfies_delta(edge, current['state'], following['state']):
                             rejected['实际结果与来源连接不同，保留真实结果重新衔接'] += 1
+                        following['_resource_tracker'] = advance_resources(current['state'], following['state'],
+                            current.get('_resource_tracker') if steps else None)
                         step = {'edge': edge['id'], 'source': edge['source'], 'decision': edge['decision'],
                                 'bound_decision':semantic_response(prompt,response),
                                 'before': forecast_state(current['state'],current.get('_unknown_draws', [])),
@@ -850,6 +884,7 @@ class Modular:
                             remember({'id': digest([expected, extended, 'observation']), 'steps': route,
                                 'remaining': sum(not s['automatic'] for s in route), 'terminal': terminal,
                                 **pending_terminal,
+                                'resource_cost': resource_cost(following['_resource_tracker']),
                                 'evaluation': {**evaluation(terminal, self.store.catalog.cards), **marked_evaluation(pending_terminal)}, 'goal_met': False,
                                 'conditional': True, 'validation': 'needs_observation', 'observation_required': slots,
                                 'reason': '到达随机结果步骤，请填写实际抽牌或堆墓结果后继续计算',
@@ -875,6 +910,7 @@ class Modular:
                             candidate = {'id': digest([expected, extended, goal_edge['id']]) if forecast else digest([expected, [s['edge'] for s in route]]), 'steps': route,
                                 'terminal_goal_id': goal_edge['id'], 'terminal_source':goal_edge['source'], 'terminal_if':goal_edge.get('if_condition'),
                                 'remaining': sum(not s['automatic'] for s in route), 'terminal': terminal, 'evaluation': ev, **marked,
+                                'resource_cost': resource_cost(following['_resource_tracker']),
                                 'goal_met': not (Counter(goal)-actual), 'conditional': condition,
                                 'validation': 'conditional' if condition else 'engine_verified',
                                 'reason': '路径来自来源中的合法决策与空响应确认；引擎已到达标记终场目标，未标记中间牌不作为终场要求' if forecast else '每次选择均来自来源方案；隔离引擎已到达对应场上目标，手牌与可用权限按本局实际资源显示',
@@ -951,7 +987,7 @@ class Modular:
                   'status': 'found' if candidates else 'limited' if limited else 'incomplete' if unknown or any(e['status'] != 'ready' for e in self.library.entries.values() if e['id'] in ctx['selected']) else 'no_route',
                   'limited': limited, 'nodes': nodes, 'new_verifications': verified_nodes,
                   'seconds': round(time.monotonic()-start, 3), 'limits': bounds,
-                  'complete': not limited and not unknown and (scenario != 0 or preference != 'safest' or all(c['robustness']['status'] == 'evaluated' for c in candidates)),
+                  'complete': not limited and not unknown,
                   'coverage': {'total': len(source_checks),
                                'checked': sum(c['status'] not in ('queued', 'checking') for c in source_checks.values()),
                                'routes': list(source_checks.values())},
@@ -1054,18 +1090,20 @@ class Modular:
         if not candidates: return
         low = min(c['remaining'] for c in candidates); high = max(c['remaining'] for c in candidates)
         terminals = sorted(set(resource_rank(c['evaluation']) for c in candidates))
+        costs = sorted({cost_key(c) for c in candidates if not cost_key(c)[0]})
         for c in candidates:
             steps = 100 * (high-c['remaining']) / (high-low) if high > low else 100
             terminal = 100 * terminals.index(resource_rank(c['evaluation'])) / (len(terminals)-1) if len(terminals) > 1 else 100
-            c['ranking'] = {'steps': round(steps, 2), 'terminal': round(terminal, 2), 'average': round((steps+terminal)/2, 2)}
+            cost = cost_key(c)
+            resources = (100 * (len(costs)-1-costs.index(cost))/(len(costs)-1) if len(costs)>1 else 100) if not cost[0] else 0
+            c['ranking'] = {'resources': round(resources, 2), 'steps': round(steps, 2), 'terminal': round(terminal, 2),
+                            'average': round((resources+steps+terminal)/3, 2)}
         def key(c):
             ev = tuple(-v for v in resource_rank(c['evaluation']))
             common = (not c['goal_met'],)
+            if preference == 'cheapest': return (*common, *cost_key(c), c['conditional'], *ev, c['remaining'], c['id'])
             if preference == 'shortest': return (*common, c['remaining'], c['conditional'], *ev, c['id'])
             if preference == 'balanced': return (*common, -c['ranking']['average'], c['conditional'], c['remaining'], *ev, c['id'])
-            if preference == 'safest':
-                robust = c['robustness']
-                return (*common, robust['status'] != 'evaluated', -sum(s.get('original_terminal_retained', False) for s in robust['scenarios']), -sum(s.get('continued', False) for s in robust['scenarios']), *ev, c['remaining'], c['id'])
             return (*common, *ev, c['conditional'], c['remaining'], c['id'])
         candidates.sort(key=key)
 
@@ -1111,7 +1149,8 @@ class Modular:
         candidate=deepcopy(follow['candidate']);token=self.token(state,ctx)
         steps[0]['response']=response;steps[0]['bindings']=response_bindings(prompt,response)
         candidate.update(id=digest([token,[s['edge'] for s in steps]]),steps=steps,remaining=sum(not s.get('automatic') for s in steps),
-                         token=token,path=path,validation='next_step_rechecked',reason='当前一步在新局面重新校验；后续沿用此前验证的所选路线，变化时重新搜索')
+                         token=token,path=path,validation='next_step_rechecked',reason='当前一步在新局面重新校验；后续沿用此前验证的所选路线，变化时重新搜索',
+                         resource_cost={'status':'unassessed','basis':'当前仅复核下一步，重新搜索后核对剩余路线的资源投入'})
         with self.store.lock,self.lock:
             if not self.valid_token(sid,token):return None
             ctx['result']={'token':token,'candidates':[candidate],'preference':ctx['preference'],'precise':ctx['precise'],'status':'found','limited':False,

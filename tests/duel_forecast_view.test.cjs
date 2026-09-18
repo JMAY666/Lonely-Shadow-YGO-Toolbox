@@ -105,6 +105,26 @@ test('opening preparation preserves the previous tutorial and uses a separate or
   }
 });
 
+test('opening and refresh request only the confirmed deck library and drop ineligible selections',async()=>{
+  const {c,state,requests}=navigationFixture();const urls=[];
+  c.api=async url=>{urls.push(url);return {sources:[{id:'source',status:'ready'}]};};
+  await c.prepareDuelOpening(state);
+  assert(urls.every(url=>url==='/api/modular/library?deck_id=deck&revision=v1'));
+  const f=state.openingForecast;f.selected.push('unrelated');
+  await c.prepareForecast(state,f,{refresh:true});
+  assert.deepEqual([...f.selected],['source']);
+  assert(requests.filter(r=>r.intent==='plan-prepare').every(r=>!r.sources.includes('unrelated')));
+});
+
+test('an empty scoped library has a clear message and never requests a whole-library forecast',async()=>{
+  const {c,state,requests}=navigationFixture();
+  c.api=async()=>({sources:[],reason:'没有与当前卡组主、副 Tag 匹配的可用展开来源'});
+  await c.prepareDuelOpening(state);
+  assert.equal(state.openingForecast.busy,false);
+  assert.match(state.openingForecast.error,/Tag/);
+  assert(!requests.some(r=>r.intent==='plan-prepare'));
+});
+
 test('tutorial continuation keeps its session and confirmed prefix',async()=>{
   const {c,state,requests}=navigationFixture({stage:'tutorial'});
   await c.launchModularFromDuel();
@@ -122,7 +142,7 @@ test('ready opening clicks and preference switches do not restart preparation or
   const {c,state,requests}=navigationFixture();state.session='duel-owner';
   await c.launchModularFromDuel();const first=state.forecast;
   state.session='new-shortcut-registration';
-  await c.launchModularFromDuel();first.preference='safest';await c.searchDuelBrain();
+  await c.launchModularFromDuel();first.preference='cheapest';await c.searchDuelBrain();
   assert.equal(requests.filter(r=>r.intent==='plan-prepare').length,1);
   assert(requests.filter(r=>r.intent==='plan-poll').every(r=>r.session==='duel-owner'));
   assert.equal(state.plan.confirmed,2);assert.equal(state.forecast,first);
@@ -130,9 +150,9 @@ test('ready opening clicks and preference switches do not restart preparation or
 
 test('an explicit temporary preference survives preparation of a separate opening',async()=>{
   const {c,state}=navigationFixture();state.session='duel-owner';state.planSort='shortest';
-  state.forecast.preference='safest';state.forecast.preferenceManual=true;
+  state.forecast.preference='cheapest';state.forecast.preferenceManual=true;
   await c.launchModularFromDuel();
-  assert.equal(state.forecast.preference,'safest');assert.equal(state.forecast.preferenceManual,true);
+  assert.equal(state.forecast.preference,'cheapest');assert.equal(state.forecast.preferenceManual,true);
 });
 
 test('changing settings during the first search does not reuse its cancelled startup engine',async()=>{
@@ -159,7 +179,7 @@ test('failed new settings cannot resurrect a previous job by switching preferenc
   f.slot='opening';f.job='old-job';f.inputKey='old-input';f.selected=[];
   c.modularDispatch=async(consumer,intent,body)=>{requests.push({intent,...body});if(intent==='plan-prepare')throw Error('请选择来源');return {};};
   await c.searchDuelBrain();assert.equal(f.job,null);assert.equal(f.data,null);assert.match(f.error,/请选择/);
-  f.preference='safest';await c.searchDuelBrain();
+  f.preference='cheapest';await c.searchDuelBrain();
   assert(!requests.some(r=>r.intent==='plan-poll'));assert(requests.some(r=>r.intent==='plan-cancel'&&r.job==='old-job'));
 });
 

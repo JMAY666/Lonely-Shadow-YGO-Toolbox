@@ -72,7 +72,12 @@ class PlanningCacheTests(unittest.TestCase):
         cache.discard('a'); self.assertEqual(cache.bytes, 0)
 
     def search_fixture(self, complete=True):
-        ctx = dict(forecast_meta={},precise=False,goal=[],preference='shortest',preference_version=1)
+        from modular import ModularLibrary
+        ctx = dict(forecast_meta={'tag_selection': {'tag_ids': ['test']}},selected=['source'],
+                   precise=False,goal=[],preference='shortest',preference_version=1)
+        library=object.__new__(ModularLibrary)
+        library.sync=lambda:None
+        library.entries={'source':{'status':'ready','tag_ids':['test']}}
         state = dict(version=1,revision=0,player=0,running=True,answered=False,state={'cards': []})
         def candidate(name, steps, marks):
             return {'id': name, 'path': [name], 'steps': [{'edge': name}], 'remaining': steps, 'goal_met': True, 'conditional': False,
@@ -80,7 +85,7 @@ class PlanningCacheTests(unittest.TestCase):
         result = dict(seconds=2,complete=complete,limited=not complete,candidates=[candidate('short',1,1),candidate('large',5,3)])
         def compute(*args, **kwargs):
             value=deepcopy(result);Modular.rank(value['candidates'],ctx['preference']);return value
-        fake = SimpleNamespace(search_lock=threading.RLock(), context=lambda sid: ctx, library=SimpleNamespace(sync=lambda: None),
+        fake = SimpleNamespace(search_lock=threading.RLock(), context=lambda sid: ctx, library=library,
             state=lambda sid: deepcopy(state), token=lambda s,c: [s['version'],s['revision'],fake.version,c['preference_version']],
             version='source1', planning_cache=PlanningCache(), _search=Mock(side_effect=compute),
             valid_token=lambda *a: True, rank=Modular.rank, audit=Mock())

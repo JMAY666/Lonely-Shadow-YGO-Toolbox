@@ -49,6 +49,7 @@ module.exports=async({page,application,root,evidence,pass})=>{
     pass('Combo 3 continuation uses material pictures, summon and effect arrows, location maps and frozen prefix labels');
   }
   if(process.env.YGO_MODULAR_PIPELINE_ONLY==='1'){
+    await require('./forecast-source-tags-smoke.cjs')({page,root,evidence,pass});
     await require('./duel-forecast-smoke.cjs')({page,root,evidence,pass});
     await require('./automatic-forecast-smoke.cjs')({page,root,evidence,pass});
   }
