@@ -282,7 +282,7 @@ class SmartRecognition:
             if tags.get('vocabulary_revision') != digest(self.store.library.all_tags()): raise ValueError('TAG 资料已变化，请重试识别。')
             submitted = self.store.ygopro_capture.submitted_deck(job['capture_id'])
             self.validate_deck(submitted)
-            label = {'ygopro2': 'YGOPRO2', 'mdpro3': 'MDPRO3'}.get(job.get('platform'), 'YGOPro')
+            label = {'ygopro2': 'YGOPRO2', 'mdpro3': 'MDPRO3', 'masterduel': 'Yu-Gi-Oh! Master Duel'}.get(job.get('platform'), 'YGOPro')
             inputs = self.store.automatic_duel.checked_input({'name': label + ' 本局构筑', 'deck': construction['deck'],
                         'tag_selection': tags['selection']}, submitted, opening['cards'])
             confirmed = {'order': frame['detected_order'], 'source': 'software-audit', 'confirmed_ms': self.now()}

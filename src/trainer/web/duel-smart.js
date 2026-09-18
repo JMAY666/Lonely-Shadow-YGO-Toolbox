@@ -30,7 +30,7 @@ function paintSmartRecognition(run){
 }
 function resetCaptureDialog(){
   $('#duel-capture-title').textContent=`捕捉 ${duelPlatformLabel()} 进程`;$('#duel-capture-close').textContent='关闭';
-  $('#duel-capture-help').textContent=duelState().automatic.platform!=='ygopro'?`智能化识别会等待正式开局。请在 ${duelPlatformLabel()} 中正常准备、猜拳并选择先后攻。当前仅开放智能化识别。`:'智能化识别会等待正式开局。逐步识别请先在 YGOPro 主菜单点击「编辑卡组」，打开要识别的卡组并停留在该页面，再点击「获取卡组」。';
+  $('#duel-capture-help').textContent=duelState().automatic.platform==='masterduel'?'智能化识别会等待正式开局。请在 Yu-Gi-Oh! Master Duel 中正常开始对局、投硬币并完成先后攻选择；以最终对局结果确认先后攻。当前仅开放智能化识别。':duelState().automatic.platform!=='ygopro'?`智能化识别会等待正式开局。请在 ${duelPlatformLabel()} 中正常准备、猜拳并选择先后攻。当前仅开放智能化识别。`:'智能化识别会等待正式开局。逐步识别请先在 YGOPro 主菜单点击「编辑卡组」，打开要识别的卡组并停留在该页面，再点击「获取卡组」。';
   $('#duel-capture-retry').hidden=false;$('#duel-smart-retry').hidden=true;$('#duel-smart-restart').hidden=true;
 }
 function releaseSmartWorkspace(){

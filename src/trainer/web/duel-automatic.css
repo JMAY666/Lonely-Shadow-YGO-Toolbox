@@ -29,12 +29,14 @@
 @media(max-width:760px){.duel-opening-panel{padding:18px}.duel-opening-cards{grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:12px}}
 .duel-page[data-stage="1"] .duel-mode-grid{min-height:calc(100dvh - var(--app-bar-height) - 158px)}
 .duel-page[data-stage="1"] .duel-platform-grid{gap:clamp(18px,2.5vw,36px)}
-.duel-page[data-stage="1"] .duel-platform-grid .duel-platform{width:clamp(180px,calc((100% - clamp(36px,5vw,72px))/3),270px);padding:20px 14px 22px}
+.duel-page[data-stage="1"] .duel-platform-grid .duel-platform{width:clamp(180px,calc((100% - clamp(54px,7.5vw,108px))/4),270px);padding:20px 14px 22px}
 .duel-platform-grid .duel-platform>strong{font-size:clamp(26px,2.4vw,32px)}
 .duel-platform-grid .duel-platform>span{font-size:12px}
 .duel-page[data-stage="1"] .duel-platform{background-image:url('/brand/duel-ygopro.svg')}
 .duel-page[data-stage="1"] .duel-platform-grid .duel-mode.duel-platform-ygopro2{background-image:url('/brand/duel-ygopro2.svg')}
 .duel-page[data-stage="1"] .duel-platform-grid .duel-mode.duel-platform-mdpro3{background-image:url('/brand/duel-mdpro3.svg')}
+.duel-page[data-stage="1"] .duel-platform-grid .duel-mode.duel-platform-masterduel{background-image:url('/brand/duel-masterduel.svg')}
+.duel-platform-grid .duel-platform-masterduel>strong{font-size:clamp(20px,2vw,27px);line-height:1.15}
 .duel-demo-notice{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;margin:12px 0 22px}
 .duel-demo-notice>span{color:var(--accent);border:1px solid var(--border-selected);border-radius:5px;padding:3px 8px;white-space:nowrap}
 .duel-platform-label,.duel-eyebrow{font-size:12px;color:var(--text-muted)}

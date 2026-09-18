@@ -14,13 +14,14 @@ module.exports=async function({page,application,evidence,pass,existing,live=fals
   try {
     await click('automatic');
     assert.equal(await page.locator('#duel-substeps [aria-current="step"]').getAttribute('data-duel-function-page'),'platform');
-    assert.equal(await page.locator('.duel-platform').count(),3);
+    assert.equal(await page.locator('.duel-platform').count(),4);
     const grid=await page.locator('.duel-platform-grid').boundingBox(),platform=await page.locator('.duel-platform').first().boundingBox(),next=await page.locator('.duel-platform').nth(1).boundingBox();
     assert(Math.abs(platform.width-platform.height)<2);assert(Math.abs(next.width-platform.width)<2);
     const frames=await page.locator('.duel-platform').evaluateAll(items=>items.map(item=>{const b=item.getBoundingClientRect();return {x:b.x,y:b.y,width:b.width,height:b.height};}));
     for(const item of frames){assert(item.x>=grid.x&&item.x+item.width<=grid.x+grid.width+1);assert(Math.abs(item.width-platform.width)<2);}
     for(const y of new Set(frames.map(item=>item.y))){const row=frames.filter(item=>Math.abs(item.y-y)<1);assert(Math.abs((row[0].x+row.at(-1).x+row.at(-1).width)/2-grid.x-grid.width/2)<2);}
     assert.match(await page.locator('[data-duel-action="platform-mdpro3"]').innerText(),/MDPRO3\s+仿官方作品 Master Duel/);
+    assert.match(await page.locator('[data-duel-action="platform-masterduel"]').innerText(),/Yu-Gi-Oh!\s+Master Duel\s+史上最强的数位卡牌遊戏！/);
     assert.match(await page.locator('[data-duel-action="platform-ygopro2"]').innerText(),/YGOPRO2\s+新一代原版游戏/);
     assert.match(await page.locator('[data-duel-action="platform-ygopro2"]').evaluate(button=>getComputedStyle(button).backgroundImage),/\/brand\/duel-ygopro2\.svg/);
     await page.screenshot({path:path.join(evidence,'automatic-platforms.png')});

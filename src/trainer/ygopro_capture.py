@@ -164,8 +164,8 @@ class WindowsProcess:
 
 
 def processes(platform='ygopro'):
-    if platform not in ('ygopro', 'ygopro2', 'mdpro3'): raise CaptureError('不支持此游戏平台。')
-    label = {'ygopro': 'YGOPro', 'ygopro2': 'YGOPro2', 'mdpro3': 'MDPro3'}[platform]
+    if platform not in ('ygopro', 'ygopro2', 'mdpro3', 'masterduel'): raise CaptureError('不支持此游戏平台。')
+    label = {'ygopro': 'YGOPro', 'ygopro2': 'YGOPro2', 'mdpro3': 'MDPro3', 'masterduel': 'masterduel'}[platform]
     if os.name != 'nt':
         raise CaptureError('进程捕捉目前仅支持 Windows。')
     class ProcessEntry(ctypes.Structure):
@@ -200,8 +200,10 @@ def processes(platform='ygopro'):
                     digest = hashlib.sha256(image.read_bytes()).hexdigest()
                     item.update(image_hash=digest, supported=digest in PROFILES,
                                 version=PROFILES.get(digest, {}).get('version', '未适配的 YGOPro 构建'))
-                    if platform in ('ygopro2', 'mdpro3'):
-                        if platform == 'mdpro3':
+                    if platform in ('ygopro2', 'mdpro3', 'masterduel'):
+                        if platform == 'masterduel':
+                            from masterduel_capture import verify_build
+                        elif platform == 'mdpro3':
                             from mdpro3_capture import verify_build
                         else:
                             from ygopro2_capture import verify_build
@@ -240,8 +242,8 @@ class Capture:
     def attach(self, pid=None, platform='ygopro'):
         with self.lock:
             self.attached = None
-            if platform not in ('ygopro', 'ygopro2', 'mdpro3'): raise CaptureError('不支持此游戏平台。')
-            label = {'ygopro': 'YGOPro', 'ygopro2': 'YGOPro2', 'mdpro3': 'MDPro3'}[platform]
+            if platform not in ('ygopro', 'ygopro2', 'mdpro3', 'masterduel'): raise CaptureError('不支持此游戏平台。')
+            label = {'ygopro': 'YGOPro', 'ygopro2': 'YGOPro2', 'mdpro3': 'MDPro3', 'masterduel': 'masterduel'}[platform]
             found = processes() if platform == 'ygopro' else processes(platform)
             choices = [item for item in found if pid is None or item['pid'] == pid]
             if len(choices) != 1:
@@ -260,7 +262,7 @@ class Capture:
             attached = self.attached
             if not attached or capture_id != attached['capture_id']:
                 raise CaptureError('进程捕捉已失效，请重新捕捉。')
-            if attached.get('platform') in ('ygopro2', 'mdpro3'):
+            if attached.get('platform') in ('ygopro2', 'mdpro3', 'masterduel'):
                 raise CaptureError(attached['platform'].upper() + ' 当前仅支持智能化识别，尚未开放编辑器卡组识别。')
             with WindowsProcess(attached['pid']) as memory:
                 if memory.identity() != (attached['path'], attached['created']):
@@ -292,7 +294,7 @@ class Capture:
                 return False if os.name == 'nt' and ctypes.get_last_error() == 87 else None
 
     def order(self, capture_id, with_opening=False):
-        if self.attached and self.attached.get('platform') in ('ygopro2', 'mdpro3'):
+        if self.attached and self.attached.get('platform') in ('ygopro2', 'mdpro3', 'masterduel'):
             return self.live_sample(capture_id, with_deck=False, with_opening=with_opening)['frame']
         with self.lock:
             attached = self.attached
@@ -311,7 +313,7 @@ class Capture:
                 return result
 
     def submitted_deck(self, capture_id):
-        if self.attached and self.attached.get('platform') in ('ygopro2', 'mdpro3'):
+        if self.attached and self.attached.get('platform') in ('ygopro2', 'mdpro3', 'masterduel'):
             return self._unity_sample(capture_id, submitted=True)
         with self.lock:
             attached = self.attached
@@ -330,7 +332,7 @@ class Capture:
 
     def live_sample(self, capture_id, with_deck=True, with_opening=True):
         """One identity-checked sample; initial deal capture precedes deck work."""
-        if self.attached and self.attached.get('platform') in ('ygopro2', 'mdpro3'):
+        if self.attached and self.attached.get('platform') in ('ygopro2', 'mdpro3', 'masterduel'):
             return self._unity_sample(capture_id, with_deck=with_deck, with_opening=with_opening)
         with self.lock:
             attached = self.attached
@@ -357,12 +359,15 @@ class Capture:
     def _unity_sample(self, capture_id, *, with_deck=False, with_opening=False, submitted=False):
         with self.lock:
             attached = self.attached
-            if not attached or attached['capture_id'] != capture_id or attached.get('platform') not in ('ygopro2', 'mdpro3'):
+            if not attached or attached['capture_id'] != capture_id or attached.get('platform') not in ('ygopro2', 'mdpro3', 'masterduel'):
                 raise CaptureError('进程连接已失效，请重新捕捉。')
             with WindowsProcess(attached['pid']) as memory:
                 if memory.identity() != (attached['path'], attached['created']):
                     raise CaptureError('游戏进程身份已变化，请重新捕捉。')
-                if attached['platform'] == 'mdpro3':
+                if attached['platform'] == 'masterduel':
+                    from masterduel_capture import Reader
+                    module = 'GameAssembly.dll'
+                elif attached['platform'] == 'mdpro3':
                     from mdpro3_capture import Reader
                     module = 'GameAssembly.dll'
                 else:

@@ -27,7 +27,7 @@ def observe(opening, sample, frame, now):
             opening.update(status='ready', cards=list(hand), snapshot_id=uuid.uuid4().hex,
                            captured_ms=now(), captured_turn=sample['turn'],
                            detected_order='first' if frame['evidence']['is_first'] else 'second',
-                           method='initial-draw-and-own-hand', error='')
+                           method=sample.get('method', 'initial-draw-and-own-hand'), error='')
             opening['candidate'] = None
             return True
         opening['error'] = ''

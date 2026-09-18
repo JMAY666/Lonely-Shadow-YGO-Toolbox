@@ -54,10 +54,11 @@ function syncDuelOrderWatch() {
 }
 function duelAutomaticOrderPage() {
   const state=duelState().automatic.order,frame=state?.frame||{},ready=DuelOrder.ready(state),selected=DuelOrder.selected(state);
-  return `<section class="duel-order-panel" aria-labelledby="duel-order-title"><span class="duel-eyebrow">YGOPro · 自动识别</span><h2 id="duel-order-title">决定先／后攻</h2>
+  const coin=duelState().automatic.platform==='masterduel',phaseText=coin&&frame.phase==='waiting_choice'?'等待投硬币及先后攻选择完成':orderPhaseText[frame.phase];
+  return `<section class="duel-order-panel" aria-labelledby="duel-order-title"><span class="duel-eyebrow">${escape(duelPlatformLabel())} · 自动识别</span><h2 id="duel-order-title">决定先／后攻</h2>
     <p class="duel-order-process">${escape(duelProcessText(duelState().automatic.connection))}</p>
-    <div class="duel-order-status" role="status" aria-live="polite"><span class="duel-order-dot ${ready?'ready':''}"></span><strong id="duel-order-phase">${escape(orderPhaseText[frame.phase]||'正在连接监测')}</strong></div>
-    <p>${frame.phase==='choose_order'?'请在 YGOPro 中选择先攻或后攻，工具箱会自动读取最终结果。':frame.phase==='rps'?'请在游戏中完成猜拳；平局会继续等待，不会提前判断。':'在游戏中开始对局并完成双方选择。此页面会持续监测，无需反复点击读取。'}</p>
+    <div class="duel-order-status" role="status" aria-live="polite"><span class="duel-order-dot ${ready?'ready':''}"></span><strong id="duel-order-phase">${escape(phaseText||'正在连接监测')}</strong></div>
+    <p>${coin?'请正常完成投硬币与先后攻选择；工具箱以正式开局结果确认，不将硬币正反面直接当作先后攻。':frame.phase==='choose_order'?'请在游戏中选择先攻或后攻，工具箱会自动读取最终结果。':frame.phase==='rps'?'请在游戏中完成猜拳；平局会继续等待，不会提前判断。':'在游戏中开始对局并完成双方选择。此页面会持续监测，无需反复点击读取。'}</p>
     <div class="duel-order-result ${ready?'resolved':''}"><small>我方本局顺序</small><strong id="duel-order-result">${orderLabel(selected)}</strong><span>${ready?state.manual?`已手动更正 · 自动识别为${orderLabel(frame.detected_order)}`:'根据游戏本局开局数据识别':'等待正式开局后确定'}</span></div>
     <div class="duel-order-adjust" role="group" aria-label="手动更正先后攻"><span>更改结果</span>${duelButton('order-manual-first','先攻',!ready)}${duelButton('order-manual-second','后攻',!ready)}${duelButton('order-use-detected','使用自动结果',!ready||!state.manual)}</div>
     <p class="duel-order-error" role="alert">${escape(state?.error||frame.error||'')}</p><small id="duel-order-last-check">持续监测中</small>

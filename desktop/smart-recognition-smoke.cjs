@@ -38,7 +38,8 @@ async function check({page,evidence,pass},platform){
   const begin=async()=>{
     await page.locator(`[data-duel-action="platform-${platform}"]`).click();await page.waitForFunction(()=>!!duelState().automatic.connection);
     assert.equal(await page.locator('#duel-capture-next').isVisible(),platform==='ygopro');assert(await page.locator('#duel-capture-smart').isVisible());
-    assert.match(await page.locator('#duel-capture-title').innerText(),new RegExp(platform,'i'));
+    assert.match(await page.locator('#duel-capture-title').innerText(),new RegExp(platform==='masterduel'?'Yu-Gi-Oh! Master Duel':platform,'i'));
+    if(platform==='masterduel')assert.match(await page.locator('#duel-capture-help').innerText(),/投硬币/);
     await page.locator('#duel-capture-smart').click();
   };
   const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve};};
@@ -107,4 +108,4 @@ async function check({page,evidence,pass},platform){
     await page.evaluate(()=>startNewDuel());
   }
 }
-module.exports=async options=>{for(const platform of ['ygopro','ygopro2','mdpro3'])await check(options,platform);};
+module.exports=async options=>{for(const platform of ['ygopro','ygopro2','mdpro3','masterduel'])await check(options,platform);};

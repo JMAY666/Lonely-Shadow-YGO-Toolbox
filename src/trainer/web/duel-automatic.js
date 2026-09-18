@@ -32,9 +32,9 @@ const DuelAutomatic = (() => {
 if(typeof module!=='undefined')module.exports=DuelAutomatic;
 
 function duelPlatformPage() {
-  return '<div class="duel-mode-grid duel-platform-grid"><button data-duel-action="platform-ygopro" class="duel-mode duel-platform"><strong>YGOPro</strong><span>初代原版游戏</span></button><button data-duel-action="platform-ygopro2" class="duel-mode duel-platform duel-platform-ygopro2"><strong>YGOPRO2</strong><span>新一代原版游戏</span></button><button data-duel-action="platform-mdpro3" class="duel-mode duel-platform duel-platform-mdpro3"><strong>MDPRO3</strong><span>仿官方作品 Master Duel</span></button></div>';
+  return '<div class="duel-mode-grid duel-platform-grid"><button data-duel-action="platform-ygopro" class="duel-mode duel-platform"><strong>YGOPro</strong><span>初代原版游戏</span></button><button data-duel-action="platform-ygopro2" class="duel-mode duel-platform duel-platform-ygopro2"><strong>YGOPRO2</strong><span>新一代原版游戏</span></button><button data-duel-action="platform-mdpro3" class="duel-mode duel-platform duel-platform-mdpro3"><strong>MDPRO3</strong><span>仿官方作品 Master Duel</span></button><button data-duel-action="platform-masterduel" class="duel-mode duel-platform duel-platform-masterduel"><strong>Yu-Gi-Oh!<br>Master Duel</strong><span>史上最强的数位卡牌遊戏！</span></button></div>';
 }
-function duelPlatformLabel(){return {ygopro:'YGOPro',ygopro2:'YGOPRO2',mdpro3:'MDPRO3'}[duelState().automatic.platform]||'YGOPro';}
+function duelPlatformLabel(){return {ygopro:'YGOPro',ygopro2:'YGOPRO2',mdpro3:'MDPRO3',masterduel:'Yu-Gi-Oh! Master Duel'}[duelState().automatic.platform]||'YGOPro';}
 function duelProcessText(process) {
   return process?`${process.name} · PID ${process.pid} · ${process.title||process.version||''}`:'尚未捕捉进程';
 }
@@ -48,7 +48,7 @@ async function captureDuelProcess(pid,platform=duelState().automatic.platform||'
   draft.order=null;if(typeof stopDuelOrderWatch==='function')stopDuelOrderWatch();
   duelState().reached=Math.min(duelState().reached,duelStages.deck);
   if(duelState().stage>duelStages.deck){duelReach(duelStages.deck);draft.page='recognition';}
-  $('#duel-capture-status').textContent=`正在捕捉 ${duelPlatformLabel()}.exe…`;
+  $('#duel-capture-status').textContent=`正在捕捉 ${platform==='masterduel'?'masterduel':duelPlatformLabel()}.exe…`;
   $('#duel-capture-processes').replaceChildren();
   $('#duel-capture-next').hidden=true;
   $('#duel-capture-smart').hidden=true;
@@ -139,7 +139,7 @@ async function duelAutomaticAction(action) {
     });return true;
   }
   if(s.operationMode!=='automatic')return false;
-  if(['platform-ygopro','platform-ygopro2','platform-mdpro3','recapture-process'].includes(action)) {await captureDuelProcess(undefined,action==='recapture-process'?draft.platform:action.slice(9));return true;}
+  if(['platform-ygopro','platform-ygopro2','platform-mdpro3','platform-masterduel','recapture-process'].includes(action)) {await captureDuelProcess(undefined,action==='recapture-process'?draft.platform:action.slice(9));return true;}
   if(action==='get-deck') {
     if(typeof disposeAutoDuel==='function')await disposeAutoDuel();
     draft.fresh=false;draft.pending=null;

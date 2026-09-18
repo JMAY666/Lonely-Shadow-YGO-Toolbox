@@ -224,11 +224,15 @@ class SmartTests(unittest.TestCase):
     def test_mdpro3_identity_and_new_start_message_retire_old_context(self):
         self.check_unity_identity('mdpro3')
 
+    def test_masterduel_identity_and_new_start_message_retire_old_context(self):
+        self.check_unity_identity('masterduel')
+
     def check_unity_identity(self, platform):
         self.source.attached['platform'] = platform
         self.start(); self.deal(); first = self.wait(lambda v: v['stage'] == 'ready')
         self.assertEqual(first['platform'], platform)
-        self.assertEqual(first['context']['deck']['name'], platform.upper() + ' 本局构筑')
+        label = 'Yu-Gi-Oh! Master Duel' if platform == 'masterduel' else platform.upper()
+        self.assertEqual(first['context']['deck']['name'], label + ' 本局构筑')
         self.source.sample['frame']['evidence']['duel_token'] = 'first-start'
         self.wait(lambda v: v['frame']['evidence'].get('duel_token') == 'first-start')
         # If the idle boundary was missed, a different MSG_START still retires

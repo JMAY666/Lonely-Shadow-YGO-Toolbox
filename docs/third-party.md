@@ -13,3 +13,5 @@
 补丁脚本从 `.local/pristine` 保存的原始文件生成统一 diff，并将手写适配文件复制至 `.local/upstream/gframe`；重复运行不会重复叠加补丁。
 
 - MDPRO3 平台图案取自本次指纹匹配构建的 `MDPro3.exe` 内置 256px 图标，转换为 PNG 后以原像素嵌入 SVG，SHA-256 为 `7cbab40bb91d41f409186c0e63202e95f31161c354995c0c724546472cf9cdd3`。SVG 沿用其他平台的工具箱配色与边框，并非游戏官方重新设计的标志。原始角色图像权利归各自权利人；[MDPro3 项目](https://code.moenext.com/sherry_chaos/MDPro3) 的源码许可证不替代图像权利。
+- Master Duel 平台图案取自适配构建 `masterduel.exe` 内置图标，转换为 PNG 后以原像素嵌入 SVG，SHA-256 为 `c51d6e45352b651c8b5fe6e5be9d6b8eb2e9daf2332e15089c211060b654c179`。SVG 的背景与色调沿用工具箱主题；角色图像及游戏标志权利归各自权利人，不代表官方合作。
+- Master Duel 内部编号与 YDK 卡号的公开映射来自 [pixeltris/YgoMaster](https://github.com/pixeltris/YgoMaster/blob/0e2078237d46c2450f3a18697b8a756df256b8e9/YgoMaster/Data/YdkIds.txt)，固定提交 `0e2078237d46c2450f3a18697b8a756df256b8e9`，保留 [MIT 许可证](../src/trainer/data/masterduel-ydk-LICENSE.txt)。遵循上游 [`YdkHelper.LoadIdMap`](https://github.com/pixeltris/YgoMaster/blob/0e2078237d46c2450f3a18697b8a756df256b8e9/YgoMasterServer/YdkHelper.cs) 对同一内部编号保留首个映射的规则；不随应用引入上游的游戏修改或注入工具。元数据离线研究复用 [Il2CppDumper](https://github.com/Perfare/Il2CppDumper)，研究工具和客户端二进制保留在 `.local/`。

@@ -5,7 +5,7 @@ const {_electron:electron}=require('playwright'),fs=require('node:fs'),path=requ
 const workspace=path.resolve(__dirname,'..'),label=process.env.YGO_TEST_RUN;
 assert(label&&/^[a-z0-9-]+$/.test(label),'Set an explicit isolated run label');
 const platform=process.env.YGO_SMART_PLATFORM||'ygopro';
-assert(['ygopro','ygopro2','mdpro3'].includes(platform),'Unsupported platform');
+assert(['ygopro','ygopro2','mdpro3','masterduel'].includes(platform),'Unsupported platform');
 const root=path.join(workspace,'.local',platform+'-smart-live-'+label),evidence=path.join(root,'evidence');
 fs.mkdirSync(evidence,{recursive:true});
 let application,page,timer,busy=false,previous='',closed=false;
