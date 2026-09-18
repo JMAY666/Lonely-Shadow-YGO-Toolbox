@@ -7,6 +7,7 @@ files. Object offsets below were checked against this build's runtime metadata.
 import hashlib
 import struct
 
+from capture_memory import CheckedMemory
 from ygopro_capture import CaptureError
 
 
@@ -31,7 +32,7 @@ def verify_build(image, digest):
     return {'supported': True, 'version': 'YGOPRO2 · Unity / Mono x64（已核实构建）', 'component_hashes': hashes}
 
 
-class Reader:
+class Reader(CheckedMemory):
     def __init__(self, memory, mono_base):
         self.memory, self.base, self.guards = memory, mono_base, {}
         domain = self.pointer(mono_base + 0x2655e0)
@@ -62,44 +63,6 @@ class Reader:
     def fail():
         raise CaptureError('YGOPRO2 数据尚未稳定或布局不符，等待下一次读取。')
 
-    def read(self, address, size, guard=True):
-        if not 0x10000 <= address < 0x7fffffffffff or not 0 <= size <= 8192: self.fail()
-        data = self.memory.read(address, size)
-        if len(data) != size: self.fail()
-        if guard:
-            key = (address, size)
-            if key in self.guards and self.guards[key] != data: self.fail()
-            self.guards[key] = data
-        return data
-
-    def integer(self, address):
-        return struct.unpack('<i', self.read(address, 4))[0]
-
-    def pointer(self, address, nullable=False, aligned=True):
-        value = struct.unpack('<Q', self.read(address, 8))[0]
-        if nullable and value == 0: return 0
-        if not 0x10000 <= value < 0x7fffffffffff or (aligned and value % 8): self.fail()
-        return value
-
-    def boolean(self, address):
-        value = self.read(address, 1)[0]
-        if value not in (0, 1): self.fail()
-        return bool(value)
-
-    def cstring(self, address):
-        data = self.read(address, 96, guard=False)
-        if b'\0' not in data: self.fail()
-        data = self.read(address, data.index(0) + 1)
-        try: return data[:-1].decode('utf-8')
-        except UnicodeError: self.fail()
-
-    def string(self, address):
-        if not address: return ''
-        size = self.integer(address + 16)
-        if not 0 <= size <= 128: self.fail()
-        try: return self.read(address + 20, size * 2).decode('utf-16-le')
-        except UnicodeError: self.fail()
-
     def static(self, token, name):
         table = self.image + 0x3d0
         size = self.integer(table + 0x18)
@@ -118,20 +81,6 @@ class Reader:
                 return self.pointer(vtable + 0x18)
             klass = self.pointer(klass + 0x100, nullable=True)
         raise CaptureError('YGOPRO2 尚未初始化所需对象，请稍后重新捕捉。')
-
-    def verify(self):
-        if any(self.memory.read(a, size) != value for (a, size), value in self.guards.items()): self.fail()
-
-    def sequence(self, obj, element='Q', limit=256, prefix=None):
-        """Mono List<T>; validate header, capacity, contents and version twice."""
-        header = self.read(obj + 16, 16)
-        array, count, _ = struct.unpack('<Qii', header)
-        if not 0 <= count <= limit or array < 0x10000 or array % 8: self.fail()
-        capacity = struct.unpack('<Q', self.read(array + 24, 8))[0]
-        if not count <= capacity <= max(limit * 2, 4): self.fail()
-        taken = count if prefix is None else min(count, prefix)
-        raw = self.read(array + 32, taken * struct.calcsize(element))
-        return [value for (value,) in struct.iter_unpack('<' + element, raw)]
 
     def packages(self):
         return self.sequence(self.pointer(self.core + 232), limit=200000, prefix=128)

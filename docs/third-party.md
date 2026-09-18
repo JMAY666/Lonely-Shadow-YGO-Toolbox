@@ -11,3 +11,5 @@
 - 桌面包的 `resources/notices/native-sources.zip` 包含上述固定原生源码归档、各归档内的许可证、补丁和构建脚本；不包含原始安装的私人数据。运行所需 VC 运行库静态链接在当前 YGOPro x64 构建中，Python 的运行库随其官方嵌入包携带。
 
 补丁脚本从 `.local/pristine` 保存的原始文件生成统一 diff，并将手写适配文件复制至 `.local/upstream/gframe`；重复运行不会重复叠加补丁。
+
+- MDPRO3 平台图案取自本次指纹匹配构建的 `MDPro3.exe` 内置 256px 图标，转换为 PNG 后以原像素嵌入 SVG，SHA-256 为 `7cbab40bb91d41f409186c0e63202e95f31161c354995c0c724546472cf9cdd3`。SVG 沿用其他平台的工具箱配色与边框，并非游戏官方重新设计的标志。原始角色图像权利归各自权利人；[MDPro3 项目](https://code.moenext.com/sherry_chaos/MDPro3) 的源码许可证不替代图像权利。

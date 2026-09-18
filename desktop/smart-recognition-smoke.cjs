@@ -34,7 +34,7 @@ async function check({page,evidence,pass},platform){
     }
     return route.fulfill({json:{closed:true}});
   });
-  await page.route('**/api/modular/library',route=>route.fulfill({json:{sources:[{id:'synthetic-source',name:'合成来源',status:'ready'}]}}));
+  await page.route('**/api/modular/library*',route=>route.fulfill({json:{sources:[{id:'synthetic-source',name:'合成来源',status:'ready'}]}}));
   const begin=async()=>{
     await page.locator(`[data-duel-action="platform-${platform}"]`).click();await page.waitForFunction(()=>!!duelState().automatic.connection);
     assert.equal(await page.locator('#duel-capture-next').isVisible(),platform==='ygopro');assert(await page.locator('#duel-capture-smart').isVisible());
@@ -103,8 +103,8 @@ async function check({page,evidence,pass},platform){
     pass(platform+' smart recognition simulated UI: platform retained, cancellation including late start/poll, duplicate entry, automatic next-round monitoring and old-cycle rejection, frozen input, automatic matching/computation, selection preservation, second player and missed deal; no manual confirmation');
   }finally{
     holdStart?.resolve();holdPoll?.resolve();await page.evaluate(()=>cancelSmartRecognition());
-    for(const route of ['**/api/ygopro/attach','**/api/ygopro/smart/*','**/api/automatic-duel/*','**/api/modular/library'])await page.unroute(route);
+    for(const route of ['**/api/ygopro/attach','**/api/ygopro/smart/*','**/api/automatic-duel/*','**/api/modular/library*'])await page.unroute(route);
     await page.evaluate(()=>startNewDuel());
   }
 }
-module.exports=async options=>{for(const platform of ['ygopro','ygopro2'])await check(options,platform);};
+module.exports=async options=>{for(const platform of ['ygopro','ygopro2','mdpro3'])await check(options,platform);};

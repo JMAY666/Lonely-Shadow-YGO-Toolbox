@@ -103,7 +103,7 @@ class WindowsProcess:
         k.GetProcessTimes.restype = wintypes.BOOL
         self.handle = k.OpenProcess(0x410, False, pid)  # QUERY_INFORMATION | VM_READ
         if not self.handle:
-            raise CaptureError('无法读取 YGOPro 进程；请确认游戏仍在运行，且与工具箱使用相同权限。')
+            raise CaptureError('无法读取 游戏客户端 进程；请确认游戏仍在运行，且与工具箱使用相同权限。')
 
     def __enter__(self):
         return self
@@ -119,7 +119,7 @@ class WindowsProcess:
         buffer = ctypes.create_string_buffer(size)
         count = ctypes.c_size_t()
         if not self.kernel.ReadProcessMemory(self.handle, address, buffer, size, ctypes.byref(count)) or count.value != size:
-            raise CaptureError('YGOPro 数据暂时无法读取，请确认进程仍在运行后重新捕捉。')
+            raise CaptureError('游戏客户端 数据暂时无法读取，请确认进程仍在运行后重新捕捉。')
         return buffer.raw
 
     def identity(self):
@@ -127,7 +127,7 @@ class WindowsProcess:
         length = wintypes.DWORD(len(path))
         times = [wintypes.FILETIME() for _ in range(4)]
         if not self.kernel.QueryFullProcessImageNameW(self.handle, 0, path, ctypes.byref(length)) or not self.kernel.GetProcessTimes(self.handle, *(ctypes.byref(t) for t in times)):
-            raise CaptureError('无法核对 YGOPro 进程身份，请重新捕捉。')
+            raise CaptureError('无法核对 游戏客户端 进程身份，请重新捕捉。')
         return path.value, (times[0].dwHighDateTime << 32) | times[0].dwLowDateTime
 
     def alive(self):
@@ -136,7 +136,7 @@ class WindowsProcess:
         code = wintypes.DWORD()
         return code.value == 259 if self.kernel.GetExitCodeProcess(self.handle, ctypes.byref(code)) else None
 
-    def image_base(self, pid, name='YGOPro.exe'):
+    def image_base(self, pid, name='游戏客户端.exe'):
         class Module(ctypes.Structure):
             _fields_ = [('size', wintypes.DWORD), ('id', wintypes.DWORD), ('pid', wintypes.DWORD),
                         ('global_count', wintypes.DWORD), ('process_count', wintypes.DWORD),
@@ -151,7 +151,7 @@ class WindowsProcess:
         k.Module32NextW.restype = wintypes.BOOL
         snapshot = k.CreateToolhelp32Snapshot(0x18, pid)
         if snapshot == ctypes.c_void_p(-1).value:
-            raise CaptureError('无法核对 YGOPro 模块，请重新捕捉。')
+            raise CaptureError('无法核对 游戏客户端 模块，请重新捕捉。')
         try:
             module = Module(); module.size = ctypes.sizeof(module)
             available = k.Module32FirstW(snapshot, ctypes.byref(module))
@@ -164,8 +164,8 @@ class WindowsProcess:
 
 
 def processes(platform='ygopro'):
-    if platform not in ('ygopro', 'ygopro2'): raise CaptureError('不支持此游戏平台。')
-    label = 'YGOPro2' if platform == 'ygopro2' else 'YGOPro'
+    if platform not in ('ygopro', 'ygopro2', 'mdpro3'): raise CaptureError('不支持此游戏平台。')
+    label = {'ygopro': 'YGOPro', 'ygopro2': 'YGOPro2', 'mdpro3': 'MDPro3'}[platform]
     if os.name != 'nt':
         raise CaptureError('进程捕捉目前仅支持 Windows。')
     class ProcessEntry(ctypes.Structure):
@@ -196,12 +196,15 @@ def processes(platform='ygopro'):
                         item['path'], item['created'] = process.identity()
                     image = Path(item['path'])
                     if image.stat().st_size > 128 * 1024 * 1024:
-                        raise CaptureError('此 YGOPro 构建尚未适配。')
+                        raise CaptureError('此游戏客户端构建尚未适配。')
                     digest = hashlib.sha256(image.read_bytes()).hexdigest()
                     item.update(image_hash=digest, supported=digest in PROFILES,
                                 version=PROFILES.get(digest, {}).get('version', '未适配的 YGOPro 构建'))
-                    if platform == 'ygopro2':
-                        from ygopro2_capture import verify_build
+                    if platform in ('ygopro2', 'mdpro3'):
+                        if platform == 'mdpro3':
+                            from mdpro3_capture import verify_build
+                        else:
+                            from ygopro2_capture import verify_build
                         item.update(verify_build(image, digest))
                 except (OSError, CaptureError) as error:
                     item['error'] = str(error)
@@ -237,8 +240,8 @@ class Capture:
     def attach(self, pid=None, platform='ygopro'):
         with self.lock:
             self.attached = None
-            if platform not in ('ygopro', 'ygopro2'): raise CaptureError('不支持此游戏平台。')
-            label = 'YGOPro2' if platform == 'ygopro2' else 'YGOPro'
+            if platform not in ('ygopro', 'ygopro2', 'mdpro3'): raise CaptureError('不支持此游戏平台。')
+            label = {'ygopro': 'YGOPro', 'ygopro2': 'YGOPro2', 'mdpro3': 'MDPro3'}[platform]
             found = processes() if platform == 'ygopro' else processes(platform)
             choices = [item for item in found if pid is None or item['pid'] == pid]
             if len(choices) != 1:
@@ -257,8 +260,8 @@ class Capture:
             attached = self.attached
             if not attached or capture_id != attached['capture_id']:
                 raise CaptureError('进程捕捉已失效，请重新捕捉。')
-            if attached.get('platform') == 'ygopro2':
-                raise CaptureError('YGOPRO2 当前仅支持智能化识别，尚未开放编辑器卡组识别。')
+            if attached.get('platform') in ('ygopro2', 'mdpro3'):
+                raise CaptureError(attached['platform'].upper() + ' 当前仅支持智能化识别，尚未开放编辑器卡组识别。')
             with WindowsProcess(attached['pid']) as memory:
                 if memory.identity() != (attached['path'], attached['created']):
                     self.attached = None
@@ -289,7 +292,7 @@ class Capture:
                 return False if os.name == 'nt' and ctypes.get_last_error() == 87 else None
 
     def order(self, capture_id, with_opening=False):
-        if self.attached and self.attached.get('platform') == 'ygopro2':
+        if self.attached and self.attached.get('platform') in ('ygopro2', 'mdpro3'):
             return self.live_sample(capture_id, with_deck=False, with_opening=with_opening)['frame']
         with self.lock:
             attached = self.attached
@@ -308,8 +311,8 @@ class Capture:
                 return result
 
     def submitted_deck(self, capture_id):
-        if self.attached and self.attached.get('platform') == 'ygopro2':
-            return self._ygopro2_sample(capture_id, submitted=True)
+        if self.attached and self.attached.get('platform') in ('ygopro2', 'mdpro3'):
+            return self._unity_sample(capture_id, submitted=True)
         with self.lock:
             attached = self.attached
             if not attached or capture_id != attached['capture_id']:
@@ -327,8 +330,8 @@ class Capture:
 
     def live_sample(self, capture_id, with_deck=True, with_opening=True):
         """One identity-checked sample; initial deal capture precedes deck work."""
-        if self.attached and self.attached.get('platform') == 'ygopro2':
-            return self._ygopro2_sample(capture_id, with_deck=with_deck, with_opening=with_opening)
+        if self.attached and self.attached.get('platform') in ('ygopro2', 'mdpro3'):
+            return self._unity_sample(capture_id, with_deck=with_deck, with_opening=with_opening)
         with self.lock:
             attached = self.attached
             if not attached or capture_id != attached['capture_id']:
@@ -351,16 +354,21 @@ class Capture:
                     raise CaptureError('游戏场景已变化，请重新监测。')
                 return result
 
-    def _ygopro2_sample(self, capture_id, *, with_deck=False, with_opening=False, submitted=False):
-        from ygopro2_capture import Reader
+    def _unity_sample(self, capture_id, *, with_deck=False, with_opening=False, submitted=False):
         with self.lock:
             attached = self.attached
-            if not attached or attached['capture_id'] != capture_id or attached.get('platform') != 'ygopro2':
+            if not attached or attached['capture_id'] != capture_id or attached.get('platform') not in ('ygopro2', 'mdpro3'):
                 raise CaptureError('进程连接已失效，请重新捕捉。')
             with WindowsProcess(attached['pid']) as memory:
                 if memory.identity() != (attached['path'], attached['created']):
-                    raise CaptureError('YGOPRO2 进程身份已变化，请重新捕捉。')
-                reader = Reader(memory, memory.image_base(attached['pid'], 'mono.dll'))
+                    raise CaptureError('游戏进程身份已变化，请重新捕捉。')
+                if attached['platform'] == 'mdpro3':
+                    from mdpro3_capture import Reader
+                    module = 'GameAssembly.dll'
+                else:
+                    from ygopro2_capture import Reader
+                    module = 'mono.dll'
+                reader = Reader(memory, memory.image_base(attached['pid'], module))
                 if submitted: return reader.submitted_deck()
                 return {**reader.sample(with_deck, with_opening), 'capture_id': capture_id}
 

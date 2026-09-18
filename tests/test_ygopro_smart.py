@@ -219,10 +219,16 @@ class SmartTests(unittest.TestCase):
         self.assertEqual(self.service.poll(self.body)['error'],current['error'])
 
     def test_ygopro2_identity_and_new_start_message_retire_old_context(self):
-        self.source.attached['platform'] = 'ygopro2'
+        self.check_unity_identity('ygopro2')
+
+    def test_mdpro3_identity_and_new_start_message_retire_old_context(self):
+        self.check_unity_identity('mdpro3')
+
+    def check_unity_identity(self, platform):
+        self.source.attached['platform'] = platform
         self.start(); self.deal(); first = self.wait(lambda v: v['stage'] == 'ready')
-        self.assertEqual(first['platform'], 'ygopro2')
-        self.assertEqual(first['context']['deck']['name'], 'YGOPRO2 本局构筑')
+        self.assertEqual(first['platform'], platform)
+        self.assertEqual(first['context']['deck']['name'], platform.upper() + ' 本局构筑')
         self.source.sample['frame']['evidence']['duel_token'] = 'first-start'
         self.wait(lambda v: v['frame']['evidence'].get('duel_token') == 'first-start')
         # If the idle boundary was missed, a different MSG_START still retires

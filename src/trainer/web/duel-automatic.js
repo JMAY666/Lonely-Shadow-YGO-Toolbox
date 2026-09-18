@@ -32,9 +32,9 @@ const DuelAutomatic = (() => {
 if(typeof module!=='undefined')module.exports=DuelAutomatic;
 
 function duelPlatformPage() {
-  return '<div class="duel-mode-grid duel-platform-grid"><button data-duel-action="platform-ygopro" class="duel-mode duel-platform"><strong>YGOPro</strong><span>初代原版游戏</span></button><button data-duel-action="platform-ygopro2" class="duel-mode duel-platform duel-platform-ygopro2"><strong>YGOPRO2</strong><span>新一代原版游戏</span></button></div>';
+  return '<div class="duel-mode-grid duel-platform-grid"><button data-duel-action="platform-ygopro" class="duel-mode duel-platform"><strong>YGOPro</strong><span>初代原版游戏</span></button><button data-duel-action="platform-ygopro2" class="duel-mode duel-platform duel-platform-ygopro2"><strong>YGOPRO2</strong><span>新一代原版游戏</span></button><button data-duel-action="platform-mdpro3" class="duel-mode duel-platform duel-platform-mdpro3"><strong>MDPRO3</strong><span>仿官方作品 Master Duel</span></button></div>';
 }
-function duelPlatformLabel(){return duelState().automatic.platform==='ygopro2'?'YGOPRO2':'YGOPro';}
+function duelPlatformLabel(){return {ygopro:'YGOPro',ygopro2:'YGOPRO2',mdpro3:'MDPRO3'}[duelState().automatic.platform]||'YGOPro';}
 function duelProcessText(process) {
   return process?`${process.name} · PID ${process.pid} · ${process.title||process.version||''}`:'尚未捕捉进程';
 }
@@ -58,10 +58,10 @@ async function captureDuelProcess(pid,platform=duelState().automatic.platform||'
   if(!dialog.open)dialog.showModal();
   try {
     const result=await api('/api/ygopro/attach',{platform,...(pid===undefined?{}:{pid})});
-    $('#duel-capture-status').textContent=result.connected?(platform==='ygopro2'?'捕捉成功，可以开始智能化识别。':'捕捉成功，可以进入卡组识别。'):result.error;
+    $('#duel-capture-status').textContent=result.connected?(platform!=='ygopro'?'捕捉成功，可以开始智能化识别。':'捕捉成功，可以进入卡组识别。'):result.error;
     const processes=result.processes||[result.process];
     $('#duel-capture-processes').innerHTML=processes.filter(Boolean).map(process=>`<article><strong>${escape(duelProcessText(process))}</strong><p>${escape(process.path||'无法读取进程路径')}</p><small>${escape(process.version||process.error||'')}</small>${!result.connected&&process.supported?`<button type="button" data-capture-pid="${process.pid}">捕捉此进程</button>`:''}</article>`).join('');
-    if(result.connected){draft.connection=result.process;$('#duel-capture-next').hidden=platform==='ygopro2';$('#duel-capture-smart').hidden=false;}
+    if(result.connected){draft.connection=result.process;$('#duel-capture-next').hidden=platform!=='ygopro';$('#duel-capture-smart').hidden=false;}
   } catch(error) {$('#duel-capture-status').textContent=`捕捉失败：${error.message}`;}
   finally {
     dialog.dataset.busy='false';$('#duel-capture-retry').disabled=false;$('#duel-capture-close').disabled=false;
@@ -139,7 +139,7 @@ async function duelAutomaticAction(action) {
     });return true;
   }
   if(s.operationMode!=='automatic')return false;
-  if(['platform-ygopro','platform-ygopro2','recapture-process'].includes(action)) {await captureDuelProcess(undefined,action==='recapture-process'?draft.platform:action.slice(9));return true;}
+  if(['platform-ygopro','platform-ygopro2','platform-mdpro3','recapture-process'].includes(action)) {await captureDuelProcess(undefined,action==='recapture-process'?draft.platform:action.slice(9));return true;}
   if(action==='get-deck') {
     if(typeof disposeAutoDuel==='function')await disposeAutoDuel();
     draft.fresh=false;draft.pending=null;
@@ -169,5 +169,5 @@ if(typeof document!=='undefined') {
   $('#duel-capture-close').onclick=()=>{if(typeof smartRun==='function'&&smartRun())void cancelSmartRecognition();else $('#duel-capture-dialog').close();};
   $('#duel-capture-dialog').addEventListener('cancel',event=>{if(typeof smartRun==='function'&&smartRun()){event.preventDefault();void cancelSmartRecognition();}else if($('#duel-capture-dialog').dataset.busy==='true')event.preventDefault();});
   $('#duel-capture-processes').onclick=event=>{const button=event.target.closest('[data-capture-pid]');if(button&&$('#duel-capture-dialog').dataset.busy!=='true')void captureDuelProcess(Number(button.dataset.capturePid));};
-  $('#duel-capture-next').onclick=()=>{if(!duelState().automatic.connection||duelState().automatic.platform==='ygopro2')return;$('#duel-capture-dialog').close();duelState().automatic.page='recognition';duelReach(duelStages.deck);duelTell('');renderDuel();};
+  $('#duel-capture-next').onclick=()=>{if(!duelState().automatic.connection||duelState().automatic.platform!=='ygopro')return;$('#duel-capture-dialog').close();duelState().automatic.page='recognition';duelReach(duelStages.deck);duelTell('');renderDuel();};
 }

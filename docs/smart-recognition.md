@@ -1,8 +1,10 @@
-# YGOPro / YGOPRO2 智能化识别
+# YGOPro / YGOPRO2 / MDPRO3 智能化识别
 
 1.27.0 在「自动选择 → 平台选择 → YGOPro」捕捉弹窗新增「智能化识别」。原「进入卡组识别」及手动模式保留。
 
 1.28.0 新增「YGOPRO2 · 新一代原版游戏」，复用下述智能识别和持续监听流程，仅开放智能化识别。YGOPRO2 使用独立的 Unity/Mono 只读适配器，不共用 YGOPro 的原生对象偏移；只支持已核实构建的普通 BO1 对局。指纹、数据来源和真实联调见 [YGOPRO2 适配说明](ygopro2-recognition.md)。下文 `current_deck` 等原生内存位置仍专指 YGOPro。
+
+MDPRO3 新增独立 IL2CPP 只读适配器，复用同一智能识别和跨局监听流程，仅开放智能化识别，不提供编辑器卡组识别。构建指纹、读取边界和真实联调见 [MDPRO3 适配说明](mdpro3-recognition.md)。
 
 ## 正常流程
 
