@@ -63,3 +63,7 @@
 针对性用例位于 `tests/test_opening_conditions.py`、`tests/opening_rules.test.cjs` 和 `tests/plan_tutorial.test.cjs`。全量入口为 `npm test`。桌面用例 `desktop/condition-cards-smoke.cjs` 已纳入 `npm run test:desktop` 和 `npm run test:packaged`，也可通过 `node desktop/smoke.cjs --conditions-only` 单独定位。
 
 桌面验收只操作测试实例的渲染器和内部引擎接口，使用隔离数据，不操作系统鼠标或发送全局按键。日志、卡组、发牌实例和截图位于 `.local/`，应用包位于 `release/1.26.0/`，均不提交 Git。实际执行结果见 [1.26.0 验收记录](verification-1.26.0.md)。
+
+## 条件实例的显示（1.27.0）
+
+起手条件槽位使用条件牌卡背和条件说明。同一初始实体卡通过 `instance_id` 在后续召唤素材、费用／处理结果、区域卡片、详情和一图流中持续显示条件身份；另外一张同名卡不受影响。终场和方案缩略图同样使用该投影。记录依据、实际卡号和条件分配均保留，不改动引擎输入、真实结算或资源校验。其他满足条件的卡牌仍须按实际路线验证可执行性。旧记录缺少实例标识时不按卡名猜测后续归属。

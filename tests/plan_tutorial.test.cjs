@@ -48,7 +48,7 @@ test('tutorial shows the identified effect and random deck-top outcomes without 
   const r=setup(),plan=require('./fixtures/random-reveal.cjs')(),before=JSON.stringify(plan);
   const model=r.buildPlanTutorial(plan),svg=r.renderPlanTutorialSvg(model);
   assert.match(svg,/作为同调素材送去墓地/);assert.match(svg,/翻开对方卡组顶部/);assert.match(svg,/随机牌/);
-  assert.match(svg,/放回对方卡组最下面/);assert(!svg.includes('示例翻牌'));assert(!svg.includes('/pics/52155219'));
+  assert.match(svg,/选择放回对方卡组最上面或最下面/);assert(!svg.includes('示例翻牌'));assert(!svg.includes('/pics/52155219'));
   assert.equal(JSON.stringify(plan),before);
 });
 
@@ -60,6 +60,17 @@ test('field card activation without extra actions stays a simple card stage in o
   assert(!svg.includes('处理结果未记录'));assert(!svg.includes('发动①'));assert.equal(JSON.stringify(plan),before);
   a.status='negated';assert(r.renderPlanTutorialSvg(r.buildPlanTutorial(plan)).includes('发动被无效'));
   a.status='resolved';a.engine_effect.effect_type=0x82;assert(r.renderPlanTutorialSvg(r.buildPlanTutorial(plan)).includes('处理结果未记录'));
+});
+
+test('tutorial projects condition-origin actors and final instances while preserving distinct same-name targets',()=>{
+  const r=setup(),plan=fixture();
+  plan.expansion={conditions:{slots:[{kind:'condition',version:1,rule:{field:'level',op:'eq',value:3}}],banned:[]},actual_opening:[10]};
+  const before=JSON.stringify(plan),model=r.buildPlanTutorial(plan);
+  const stages=model.steps[0].actions[0].stages;
+  assert.equal(stages[0].cards[0].src,'/condition-card.svg');assert.match(stages[0].cards[0].name,/等级 = 3/);
+  assert.equal(stages.find(s=>s.label==='对象').cards[0].src,'/pics/10.jpg');
+  assert.equal(model.finalCards[0].src,'/condition-card.svg');
+  assert(!model.conditionsNote.includes('起手怪兽'));assert.equal(JSON.stringify(plan),before);
 });
 test('negated and unrecorded outcomes and random dependencies remain explicit',()=>{
   const r=setup(),plan=fixture();plan.actions[0].status='negated';plan.actions[0].results=[];

@@ -11,6 +11,12 @@ const reviewNode = () => reviewUI.nodes.find(n=>n.id===reviewUI.node);
 const reviewMaterials = (n,c) => c.instance_id==null?[]:(n?.state?.cards||[]).filter(x=>x.overlay_target!=null&&x.overlay_target===c.instance_id);
 const reviewDefinition = c => reviewUI.report?.catalog?.[c?.code] || {};
 const reviewKnown = c => !!c?.code && c.identity_known!==false;
+function reviewConditionOrigin(card,report=reviewUI.report) {
+  if(card?.instance_id==null||typeof OpeningRules==='undefined')return null;
+  const index=(report?.initial_hand||[]).findIndex(c=>c.instance_id!=null&&String(c.instance_id)===String(card.instance_id));
+  const rule=index<0?null:report?.expansion?.conditions?.slots?.[index];
+  return OpeningRules.is(rule)?{rule,slot:index,label:OpeningRules.describe(rule,report.catalog||{})}:null;
+}
 // Derive a display-only identity from draws / deck-top reveals, never card names.
 // Frozen reports (including older saved plans) and their annotations stay intact.
 const reviewDrawCache = new WeakMap();
@@ -34,10 +40,13 @@ function reviewRandomDraw(c,node=reviewNode(),report=reviewUI.report) {
   return reviewDrawCache.get(report).get(String(c.instance_id))?.find(d=>d.seq<=end)||null;
 }
 function reviewCardLabel(c,node,report=reviewUI.report) {
-  return reviewRandomDraw(c,node,report)?.label||(reviewKnown(c)?c.name||report?.catalog?.[c.code]?.name||String(c.code):'未知卡牌');
+  return reviewConditionOrigin(c,report)?.label||reviewRandomDraw(c,node,report)?.label||(reviewKnown(c)?c.name||report?.catalog?.[c.code]?.name||String(c.code):'未知卡牌');
 }
 function reviewDisplayText(text,cards,node,report=reviewUI.report) {
-  for(const c of cards||[])if(c.name&&reviewRandomDraw(c,node,report))text=String(text||'').replaceAll(c.name,reviewCardLabel(c,node,report));
+  for(const c of cards||[]) {
+    if(c.name&&(reviewConditionOrigin(c,report)||reviewRandomDraw(c,node,report)))text=String(text||'').replaceAll(c.name,reviewCardLabel(c,node,report));
+    if(c.materials?.length)text=reviewDisplayText(text,c.materials,node,report);
+  }
   return text||'';
 }
 const reviewPlace = l => {
@@ -148,14 +157,14 @@ function renderReviewSidebar() {
 function reviewCard(c, node=reviewUI.node, options={}) {
   const report=options.report||reviewUI.report;
   const key=String(++reviewUI.serial);reviewUI.cards.set(key,{card:c,node,report});
-  const random=!!reviewRandomDraw(c,node,report), known=reviewKnown(c)&&!random, definition=known?report?.catalog?.[c.code]||{}:{}, location=options.location||c;
+  const condition=reviewConditionOrigin(c,report),random=!!reviewRandomDraw(c,node,report), known=reviewKnown(c)&&!random&&!condition, definition=reviewKnown(c)?report?.catalog?.[c.code]||{}:{}, location=options.location||c;
   const label=reviewCardLabel(c,node,report);
   const badLink=!!(definition.type&0x4000000) && !!(c.position&12);
   const defense=location.location===4&&!badLink&&!!(c.position&12), down=[4,8,32,64].includes(location.location)&&!!(c.position&10);
   const materials=options.materials;
   const position=location.location===4?(badLink?'状态待核对':![1,2,4,8].includes(c.position)?'表示未记录':down?'里侧':defense?'守备':'攻击'):'';
-  return `<button class="review-card ${defense?'is-defense':''} ${materials?'has-materials':''} ${random?'random-card':known?'':'unknown-card'}" data-review-card="${key}" aria-haspopup="dialog" aria-label="${escape(label)}${options.catalogue?'':' · '+escape(reviewPlace(location))}">
-    <span class="review-art"><img src="${known&&(!down||options.face)?`/pics/${Number(c.code)}.jpg`:'/review-back.svg'}" alt="${escape(label)}" loading="lazy">${down?'<span class="face-label">里侧</span>':''}${!known?`<span class="unknown-mark">${random?'随机':'?'}</span>`:''}</span>
+  return `<button class="review-card ${defense?'is-defense':''} ${materials?'has-materials':''} ${condition?'condition-origin-card':random?'random-card':known?'':'unknown-card'}" data-review-card="${key}" aria-haspopup="dialog" aria-label="${escape(label)}${options.catalogue?'':' · '+escape(reviewPlace(location))}">
+    <span class="review-art"><img src="${condition?'/condition-card.svg':known&&(!down||options.face)?`/pics/${Number(c.code)}.jpg`:'/review-back.svg'}" alt="${escape(label)}" loading="lazy">${down?'<span class="face-label">里侧</span>':''}${!known&&!condition?`<span class="unknown-mark">${random?'随机':'?'}</span>`:''}</span>
     ${options.zone!==false?`<span class="region-badge side-${location.controller===1?'opponent':'self'}">${escape(reviewPlace(location))}</span>`:''}
     ${options.miniLocation&&[4,8].includes(location.location)?`<span class="compact-card-location">${reviewLocationIcon(location)}</span>`:''}
     ${position&&options.position!==false?`<span class="position-badge">${position}</span>`:''}${materials?`<span class="material-count">素材 ×${materials}</span>`:''}
@@ -183,7 +192,7 @@ function boardSlot(n, side, zone, seq, label, report=reviewUI.report) {
 }
 function zoneStack(n, side, zone, label, report=reviewUI.report) {
   const cards=boardCards(n,side,zone);
-  return `<button class="zone-stack side-${side===1?'opponent':'self'}" data-review-zone="${side}:${zone}"><span>${escape(label)}</span><span class="stack-art">${cards.length?`<img src="${zone===1||!reviewKnown(cards.at(-1))||reviewRandomDraw(cards.at(-1),n,report)?'/review-back.svg':`/pics/${Number(cards.at(-1).code)}.jpg`}" alt="">`:''}<strong>${n.state?.partial?'?':cards.length}</strong></span><small>查看区域</small></button>`;
+  return `<button class="zone-stack side-${side===1?'opponent':'self'}" data-review-zone="${side}:${zone}"><span>${escape(label)}</span><span class="stack-art">${cards.length?`<img src="${zone===1||!reviewKnown(cards.at(-1))?'/review-back.svg':reviewConditionOrigin(cards.at(-1),report)?'/condition-card.svg':reviewRandomDraw(cards.at(-1),n,report)?'/review-back.svg':`/pics/${Number(cards.at(-1).code)}.jpg`}" alt="">`:''}<strong>${n.state?.partial?'?':cards.length}</strong></span><small>查看区域</small></button>`;
 }
 function boardSide(n, side, report=reviewUI.report) {
   const opponent=side===1, related=n.opponent?.zones||[], show=z=>!opponent||related.includes(z);
@@ -245,7 +254,7 @@ function provenance(card,n,r=reviewUI.report) {
 }
 function renderReviewDetail() {
   const n=reviewUI.detailNode||reviewNode(), r=reviewUI.detailReport||reviewUI.report, c=reviewUI.selected;if(!c)return;
-  const random=reviewRandomDraw(c,n,r), known=reviewKnown(c)&&!random, d=known?r.catalog?.[c.code]||{}:{}, materials=reviewMaterials(n,c), sources=provenance(c,n,r);
+  const condition=reviewConditionOrigin(c,r),random=reviewRandomDraw(c,n,r), known=reviewKnown(c)&&!random&&!condition, d=known?r.catalog?.[c.code]||{}:{}, materials=reviewMaterials(n,c), sources=provenance(c,n,r);
   const randomDescription=random?.kind==='reveal'?`这张牌来自${random.controller===1?'对方':'我方'}卡组顶部翻开的牌，具体身份随本局卡组顺序变化，路线中用随机牌卡背表示。翻开后仍按效果选择要处理的牌，不表示随机选择除外。`:'本次由抽卡获得，路线中以随机卡背表示，不作为指定检索结果。实际使用的指定随机命中仍会列入随机依赖。';
   const editable=app.view==='history'&&flow.draft?.id===r.id;
   const edits=flow.draft?.id===r.id&&['history','confirmation'].includes(app.view)?reviewEdits():r.annotations||emptyEdits();
@@ -265,9 +274,9 @@ function renderReviewDetail() {
   if($('#copy-preview-card-name'))$('#copy-preview-card-name').hidden=!known || $('#deck-selection')?.hidden!==false;
   if(typeof updatePreviewMarkButton==='function')updatePreviewMarkButton();
   if(typeof updateDuelMarkButton==='function')updateDuelMarkButton();
-  $('#review-card-detail').innerHTML=`<img class="detail-card-art" src="${known?`/pics/${Number(c.code)}.jpg`:'/review-back.svg'}" alt="${escape(reviewCardLabel(c,n,r))}"><div class="detail-card-copy"><div class="detail-name"><h3>${escape(reviewCardLabel(c,n,r))}</h3><small>${known?`卡号 ${c.code}`:random?(random.kind==='reveal'?'卡组顶部翻开的 1 张牌':'随机抽到的 1 张牌'):'身份未记录'}</small></div><p>${escape(stats.join(' · '))}</p>
+  $('#review-card-detail').innerHTML=`<img class="detail-card-art" src="${condition?'/condition-card.svg':known?`/pics/${Number(c.code)}.jpg`:'/review-back.svg'}" alt="${escape(reviewCardLabel(c,n,r))}"><div class="detail-card-copy"><div class="detail-name"><h3>${escape(reviewCardLabel(c,n,r))}</h3><small>${condition?`起手条件槽位 ${condition.slot+1}`:known?`卡号 ${c.code}`:random?(random.kind==='reveal'?'卡组顶部翻开的 1 张牌':'随机抽到的 1 张牌'):'身份未记录'}</small></div><p>${escape(stats.join(' · '))}</p>
     ${materials.length||d.type&0x800000?`<div class="detail-tabs"><button id="review-body-tab" aria-pressed="${!reviewUI.materialTab}">本体</button><button id="review-material-tab" aria-pressed="${reviewUI.materialTab}">素材 ×${materials.length}</button></div>`:''}
-    ${reviewUI.materialTab?`<div class="material-list">${materials.map(m=>reviewCard(m,n.id,{name:true,face:reviewKnown(m),report:r})).join('')||'<p>当前没有素材。</p>'}</div>`:`<p class="detail-effect">${escape(known?d.desc||'本次记录未保存完整效果文本。':random?randomDescription:'当前节点未记录可公开的卡牌身份。')}</p><div class="card-provenance"><strong>截至本步的来源与移动</strong>${sources.length?sources.map(s=>`<p>${app.view==='history'&&r===reviewUI.report?`<button data-review-node="${escape(s.node.id)}">Step ${s.node.number}</button>`:`Step ${s.node.number}`} ${escape(s.text)}</p>`).join(''):'<p>来源未记录</p>'}</div>`}
+    ${reviewUI.materialTab?`<div class="material-list">${materials.map(m=>reviewCard(m,n.id,{name:true,face:reviewKnown(m),report:r})).join('')||'<p>当前没有素材。</p>'}</div>`:`<p class="detail-effect">${escape(condition?condition.label+'。沿同一张起手实例显示条件牌；其他候选是否能替换仍须规则校验。':known?d.desc||'本次记录未保存完整效果文本。':random?randomDescription:'当前节点未记录可公开的卡牌身份。')}</p><div class="card-provenance"><strong>截至本步的来源与移动</strong>${sources.length?sources.map(s=>`<p>${app.view==='history'&&r===reviewUI.report?`<button data-review-node="${escape(s.node.id)}">Step ${s.node.number}</button>`:`Step ${s.node.number}`} ${escape(reviewDisplayText(s.text,[c],n,r))}</p>`).join(''):'<p>来源未记录</p>'}</div>`}
     ${annotation!==null?reviewMarkEditor(c,d,edits,editable):''}${annotation!==null?`<label for="review-card-note">终场此卡说明 <small>关联本次卡牌实例</small></label><textarea id="review-card-note" rows="2" maxlength="4000" ${editable?'':'disabled'}>${escape(annotation)}</textarea>`:''}</div>`;
   if($('#review-body-tab'))$('#review-body-tab').onclick=()=>{reviewUI.materialTab=false;renderReviewDetail();};
   if($('#review-material-tab'))$('#review-material-tab').onclick=()=>{reviewUI.materialTab=true;renderReviewDetail();};
@@ -358,15 +367,26 @@ function renderRecordedStep(report,n,mode='compact') {
   if(report.temporary&&n.kind==='final')return renderForecastTerminal(n,report);
   n=reviewModuleNode(n,report);
   const context={...reviewLogContext(report,mode),editable:false,edits:{...emptyEdits(),...report.annotations}};
-  if(n.kind==='initial')return `<div class="compact-cards">${(report.initial_hand?.length?report.initial_hand:boardCards(n,0,2)).map(c=>reviewLogCard(c,n.id,{report,zone:false})).join('')}</div>`;
+  if(n.kind==='initial')return reviewOpeningCards(report,n);
   if(n.kind==='final')return reviewFinalCards(n,report,context.edits,{compact:mode==='compact'});
   const actions=(n.action_ids||[]).map(id=>(report.actions||[]).find(a=>a.id===id)).filter(Boolean);
   return (mode==='compact'?groupedLogActions(actions,report):actions).map(a=>reviewLogAction(a,n,context)).join('');
 }
-function reviewDeckOperation(event,cards=event.cards||[]) {
+function reviewOpeningCards(report,node) {
+  const cards=report.initial_hand?.length?report.initial_hand:boardCards(node,0,2),slots=report.expansion?.conditions?.slots||[];
+  const conditional=typeof OpeningRules!=='undefined'&&slots.some(OpeningRules.is);
+  const content=conditional?slots.map((rule,index)=>OpeningRules.is(rule)&&!reviewConditionOrigin(cards[index],report)?OpeningRules.face(rule,report.catalog||{}):cards[index]?reviewLogCard(cards[index],node.id,{report,zone:false}):'').join(''):
+    cards.map(c=>reviewLogCard(c,node.id,{report,zone:false})).join('');
+  return `<div class="compact-cards review-opening-cards">${content}</div>`;
+}
+function reviewDeckOperation(event,cards=event.cards||[],report) {
   if(event.message===30)return `翻开${cards[0]?.controller===1?'对方':'我方'}卡组顶部 ${cards.length} 张随机牌`;
   if(event.deck_operation) {
     const side=event.destination?.controller===1?'对方':event.destination?.controller===0?'我方':'未知方';
+    const action=report?.actions?.find(a=>a.results?.some(result=>result.event_ref===event.id));
+    const text=action?.effect_text_source!=='unknown'?action?.selected_effect_text||'':'';
+    if(['move_to_bottom','move_to_top'].includes(event.deck_operation)&&/最[上下]面(?:或|或者)最[上下]面/.test(text))
+      return `选择放回${side}卡组最上面或最下面`;
     return ({move_to_bottom:`放回${side}卡组最下面`,move_to_top:`放回${side}卡组最上面`,reorder:`调整${side}卡组顺序`,position_refresh:'更新卡组位置'})[event.deck_operation];
   }
   return '';
@@ -385,7 +405,7 @@ function reviewOperation(item,node,role='处理结果',context=reviewLogContext(
   const e=(context.report.events||[]).find(e=>e.id===(item.event_ref||item.id))||item;
   const cards=item.cards||e.cards||[], dest=e.destination, origin=e.origin;
   const names={50:dest?.location===16?'送墓':dest?.location===32?'除外':dest?.location&128?'成为素材':dest?.location===2&&origin?.location===1?'检索':dest?.location===2?'回收':'移动',53:'改变表示',54:'盖放',61:'通常召唤',63:'特殊召唤',65:'反转召唤',90:'抽卡',100:'支付 LP'};
-  const method=reviewDeckOperation(e,cards)||cards.find(c=>c.summon_method)?.summon_method||({75:'发动被无效',76:'效果被无效'}[e.message])||names[e.message]||'操作';
+  const method=reviewDeckOperation(e,cards,context.report)||cards.find(c=>c.summon_method)?.summon_method||({75:'发动被无效',76:'效果被无效'}[e.message])||names[e.message]||'操作';
   const materials=cards.flatMap(c=>c.materials||[]);
   return `<div class="log-operation"><small class="log-role">${escape(role)}</small><div class="log-flow">${materials.length?materials.map(c=>reviewLogCard(c,node,{report:context.report,name:true})).join('<b>＋</b>'):cards.map(c=>reviewLogCard(c,node,{report:context.report,name:true,location:origin||c.summon_origin||c})).join('')}<span class="log-arrow">→<em>${escape(method)}</em>→</span>${materials.length?cards.map(c=>reviewLogCard(c,node,{report:context.report,name:true,materials:reviewMaterials(context.nodes.find(n=>n.id===node),c).length})).join(''):`<span class="log-destination">${escape(dest?reviewPlace(dest):[61,63,65].includes(e.message)&&cards[0]?reviewPlace(cards[0]):e.message===90?'手牌':reviewDisplayText(item.text||e.result,cards,node,context.report)||'见实际记录')}</span>`}</div>
     <p class="log-summary">${escape(reviewDisplayText(item.text||eventSummary({...e,cards}),[...cards,...materials],node,context.report))}</p>${materials.length?`<p class="log-summary">${method==='超量召唤'?'参与卡牌成为结果怪兽的素材；当前数量以本步场面为准。':'参与卡牌的去向依下方记录，不能视作叠放素材。'}</p>`:''}</div>`;
@@ -397,7 +417,7 @@ function compactLocation(l) {
 function compactOperation(item,node,role='',context=reviewLogContext()) {
   const e=(context.report.events||[]).find(e=>e.id===(item.event_ref||item.id))||item;
   const cards=item.cards||e.cards||[], dest=e.destination, origin=e.origin;
-  const method=reviewDeckOperation(e,cards)||cards.find(c=>c.summon_method)?.summon_method||({50:dest?.location===16?'送墓':dest?.location===32?'除外':dest?.location&128?'成为素材':dest?.location===2&&origin?.location===1?'检索':dest?.location===2?'回收':'移动',53:'改变表示',54:'盖放',61:'通常召唤',63:'特殊召唤',65:'反转召唤',75:'发动被无效',76:'效果被无效',90:'抽卡',100:'支付 LP'}[e.message])||'处理结果';
+  const method=reviewDeckOperation(e,cards,context.report)||cards.find(c=>c.summon_method)?.summon_method||({50:dest?.location===16?'送墓':dest?.location===32?'除外':dest?.location&128?'成为素材':dest?.location===2&&origin?.location===1?'检索':dest?.location===2?'回收':'移动',53:'改变表示',54:'盖放',61:'通常召唤',63:'特殊召唤',65:'反转召唤',75:'发动被无效',76:'效果被无效',90:'抽卡',100:'支付 LP'}[e.message])||'处理结果';
   const materials=cards.flatMap(c=>c.materials||[]), opts={report:context.report,name:true,zone:false,position:false,miniLocation:true};
   const pictures=cs=>cs.map(c=>reviewLogCard(c,node,opts)).join('<b>＋</b>');
   const destination=dest?reviewPlace(dest):[61,63,65,54].includes(e.message)&&cards[0]?reviewPlace(cards[0]):e.message===90?'我方手牌':'';
@@ -459,7 +479,7 @@ function reviewLogAction(a,n,context=reviewLogContext()) {
 }
 function renderReviewLog() {
   const actions=new Map((reviewUI.report.actions||[]).map(a=>[a.id,a]));
-  $('#review-log').innerHTML=`<header><h3>展开日志</h3><div class="log-mode" role="group" aria-label="日志显示方式"><button data-log-mode="compact" aria-pressed="${reviewUI.logMode==='compact'}">简略</button><button data-log-mode="detailed" aria-pressed="${reviewUI.logMode==='detailed'}">详细</button></div><button id="review-log-close">收起</button></header><div class="log-scroll">${reviewUI.nodes.map(n=>`<section class="log-node" data-log-node="${escape(n.id)}"><button class="log-node-heading" data-review-node="${escape(n.id)}"><small>Step ${n.number}</small><strong class="log-node-title">${escape(reviewTitle(n))}</strong></button>${n.kind==='initial'?`<div class="compact-cards">${(reviewUI.report.initial_hand||boardCards(n,0,2)).map(c=>reviewLogCard(c,n.id,{zone:false})).join('')}</div>`:n.kind==='final'?reviewFinalCards(n,reviewUI.report,reviewEdits(),{compact:reviewUI.logMode==='compact'}):''}${(reviewUI.logMode==='compact'?groupedLogActions(n.action_ids.map(id=>actions.get(id)).filter(Boolean),reviewUI.report):n.action_ids.map(id=>actions.get(id)).filter(Boolean)).map(a=>reviewLogAction(a,n)).join('')||`<p>${n.kind==='initial'?'开始展开时的实际手牌。':n.kind==='final'?'结束后的最终状态与逐卡说明。':'本节点无额外操作。'}</p>`}</section>`).join('')}
+  $('#review-log').innerHTML=`<header><h3>展开日志</h3><div class="log-mode" role="group" aria-label="日志显示方式"><button data-log-mode="compact" aria-pressed="${reviewUI.logMode==='compact'}">简略</button><button data-log-mode="detailed" aria-pressed="${reviewUI.logMode==='detailed'}">详细</button></div><button id="review-log-close">收起</button></header><div class="log-scroll">${reviewUI.nodes.map(n=>`<section class="log-node" data-log-node="${escape(n.id)}"><button class="log-node-heading" data-review-node="${escape(n.id)}"><small>Step ${n.number}</small><strong class="log-node-title">${escape(reviewTitle(n))}</strong></button>${n.kind==='initial'?reviewOpeningCards(reviewUI.report,n):n.kind==='final'?reviewFinalCards(n,reviewUI.report,reviewEdits(),{compact:reviewUI.logMode==='compact'}):''}${(reviewUI.logMode==='compact'?groupedLogActions(n.action_ids.map(id=>actions.get(id)).filter(Boolean),reviewUI.report):n.action_ids.map(id=>actions.get(id)).filter(Boolean)).map(a=>reviewLogAction(a,n)).join('')||`<p>${n.kind==='initial'?(reviewUI.report.expansion?.conditions?.slots?.some(v=>v?.kind==='condition')?'条件槽位显示起手要求，具体实例保留在底层记录中。':'开始展开时的实际手牌。'):n.kind==='final'?'结束后的最终状态与逐卡说明。':'本节点无额外操作。'}</p>`}</section>`).join('')}
     <details class="review-evidence"><summary>完整报告与原始事件</summary><label><input id="all-events" type="checkbox">查看原始事件</label><a href="/api/raw/${escape(reviewUI.report.id)}" target="_blank">原始记录 JSONL</a><div id="review-raw-events"></div></details></div>`;
   $('#review-log-close').onclick=()=>setReviewDrawer(false);
   $('#review-log-edge-toggle').onclick=()=>setReviewDrawer(!reviewUI.drawer);

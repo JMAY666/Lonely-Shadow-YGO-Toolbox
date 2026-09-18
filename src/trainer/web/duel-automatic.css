@@ -67,3 +67,6 @@
 .duel-auto-overwrite p{color:var(--warning-text);font-size:12px;margin:0 0 10px;overflow-wrap:anywhere}.duel-auto-overwrite>div{display:flex;gap:8px;justify-content:flex-end}.duel-auto-overwrite button{font-size:12px;padding:7px 10px}
 @media(max-width:1000px){.duel-recognition-layout{grid-template-columns:minmax(0,1fr) 220px;gap:16px}.duel-recognition-panel,.duel-recognition-controls,.duel-auto-save-panel{padding:16px}.duel-auto-preview-layout{grid-template-columns:minmax(0,1fr) 264px;gap:16px}}
 @media(max-width:760px){.duel-recognition-layout,.duel-auto-preview-layout{grid-template-columns:minmax(0,1fr)}.duel-auto-save-panel{position:static;max-height:none;overflow:visible}.duel-recognition-empty{min-height:240px}.duel-recognition-controls{display:grid;grid-template-columns:1fr 1fr}.duel-recognition-controls>span,.duel-recognition-controls>h3,.duel-recognition-controls>p{grid-column:1/-1}.duel-auto-tag-options{max-height:none}}
+
+.duel-smart-progress{display:grid;gap:12px;padding-left:24px;font-size:13px;color:var(--text-muted)}
+.duel-smart-progress .observed{color:var(--text-main)}

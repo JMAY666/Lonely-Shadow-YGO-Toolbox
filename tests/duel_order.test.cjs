@@ -16,3 +16,8 @@ test('old confirmation cannot unlock a new round or an unsaved manual correction
   assert(Order.confirmed(state));state.manual='second';assert(!Order.confirmed(state));
   Order.accept(state,{...detected('next'),phase:'rps',detected_order:null,confirmed:null});assert(!Order.confirmed(state));
 });
+
+test('software-audited order unlocks read-only opening navigation without a manual confirmation',()=>{
+  const state=Order.create({...detected(),confirmed:{order:'first',source:'software-audit'}});
+  assert(Order.confirmed(state));state.manual='second';assert(!Order.confirmed(state));
+});

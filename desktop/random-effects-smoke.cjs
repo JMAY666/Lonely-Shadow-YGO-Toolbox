@@ -12,7 +12,7 @@ module.exports=async function({page,plan,pass,evidence}) {
       await page.evaluate(mode=>setReviewLogMode(mode),mode);
       assert.match(await action.locator('.log-effect-description').innerText(),/②效果[\s\S]*作为同调素材送去墓地/);
       const flow=action.locator(mode==='compact'?'.compact-chain':'.log-operation');
-      assert.match((await flow.allTextContents()).join(' '),/放回对方卡组最下面/);
+      assert.match((await flow.allTextContents()).join(' '),/选择放回对方卡组最上面或最下面/);
       assert.equal(await action.locator('.random-card').count(),4);
       assert.equal(await action.locator('img[src="/pics/52155219.jpg"],img[src="/pics/56003780.jpg"]').count(),0);
       const random=action.locator('.random-card').first();

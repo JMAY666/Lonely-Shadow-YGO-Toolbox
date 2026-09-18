@@ -1,4 +1,4 @@
-"""Read-only, build-verified capture of YGOPro's live deck editor.
+"""Read-only, build-verified capture of YGOPro's editor and initial duel state.
 
 No input, code injection, file import, or writes to the game process. Addresses
 are RVAs for explicitly verified images, not guesses for unknown client builds.
@@ -22,6 +22,7 @@ PROFILES = {
         'rps_window': 0x32d8, 'order_window': 0x32f8, 'gui_visible': 0xa8,
         'hand_vector': 0x13d8, 'client_code': 0x88, 'client_controller': 0xd1,
         'message': 0x7d9970, 'message_size': 0x7d9960,
+        'field_vectors': 0x13a8,
     },
 }
 ZONES = ('main', 'extra', 'side')
@@ -128,6 +129,12 @@ class WindowsProcess:
         if not self.kernel.QueryFullProcessImageNameW(self.handle, 0, path, ctypes.byref(length)) or not self.kernel.GetProcessTimes(self.handle, *(ctypes.byref(t) for t in times)):
             raise CaptureError('无法核对 YGOPro 进程身份，请重新捕捉。')
         return path.value, (times[0].dwHighDateTime << 32) | times[0].dwLowDateTime
+
+    def alive(self):
+        self.kernel.GetExitCodeProcess.argtypes = [wintypes.HANDLE, ctypes.POINTER(wintypes.DWORD)]
+        self.kernel.GetExitCodeProcess.restype = wintypes.BOOL
+        code = wintypes.DWORD()
+        return code.value == 259 if self.kernel.GetExitCodeProcess(self.handle, ctypes.byref(code)) else None
 
     def image_base(self, pid):
         class Module(ctypes.Structure):
@@ -255,6 +262,19 @@ class Capture:
                     previous = current
                 raise CaptureError('卡组持续变化，请停止操作后重新获取。')
 
+    def connection_alive(self, capture_id):
+        """Distinguish a closed/replaced client from temporarily unreadable state."""
+        with self.lock:
+            attached = self.attached
+            if not attached or attached['capture_id'] != capture_id: return False
+            try:
+                with WindowsProcess(attached['pid']) as process:
+                    if process.alive() is False: return False
+                    return process.identity() == (attached['path'], attached['created'])
+            except CaptureError:
+                # Access denied is not proof that the process exited.
+                return False if os.name == 'nt' and ctypes.get_last_error() == 87 else None
+
     def order(self, capture_id, with_opening=False):
         with self.lock:
             attached = self.attached
@@ -287,6 +307,78 @@ class Capture:
                 if read_order(memory, base, profile) != before:
                     raise CaptureError('对局状态正在变化，请重新确认起手。')
                 return deck
+
+    def live_sample(self, capture_id, with_deck=True, with_opening=True):
+        """One identity-checked sample; initial deal capture precedes deck work."""
+        with self.lock:
+            attached = self.attached
+            if not attached or capture_id != attached['capture_id']:
+                raise CaptureError('进程连接已失效，请重新捕捉。')
+            with WindowsProcess(attached['pid']) as memory:
+                if memory.identity() != (attached['path'], attached['created']):
+                    raise CaptureError('游戏进程身份已变化，请重新捕捉。')
+                base = memory.image_base(attached['pid']); profile = PROFILES[attached['image_hash']]
+                game = memory.read(base + profile['game'], 8)
+                frame = read_order(memory, base, profile)
+                result = {'frame': frame, 'game': game.hex(), 'capture_id': capture_id}
+                if frame['phase'] in ('waiting_choice', 'detected') and frame['evidence']['in_duel']:
+                    if with_opening:
+                        try: frame['opening_sample'] = read_opening_sample(memory, base, profile, frame)
+                        except CaptureError as error: frame['opening_sample'] = {'error': str(error)}
+                    if with_deck:
+                        try: result['construction'] = read_initial_deck(memory, base, profile)
+                        except CaptureError as error: result['deck_error'] = str(error)
+                if memory.read(base + profile['game'], 8) != game:
+                    raise CaptureError('游戏场景已变化，请重新监测。')
+                return result
+
+
+def read_initial_deck(memory, base, profile):
+    """Prove current_deck is the submitted construction in a normal opening.
+
+    In this fingerprinted client Ready loads current_deck before SendUpdateDeck;
+    MSG_START creates our zone containers from the server's deck/extra counts.
+    We require that early window and reconcile those counts, never import an
+    editor snapshot or reconstruct a deck from its remaining cards.
+    """
+    before = read_order(memory, base, profile)
+    info = before['evidence']
+    if (before['phase'] not in ('waiting_choice', 'detected') or not info['in_duel']
+            or not info['started'] or info['finished'] or info['turn'] > 1):
+        raise CaptureError('未处于正式开局的构筑核对窗口，不能使用编辑器或剩余牌库数据。')
+    game_data = memory.read(base + profile['game'], 8)
+    game = struct.unpack('<Q', game_data)[0]
+    if memory.read(game + profile['building'], 2) != b'\x00\x00':
+        raise CaptureError('编辑或换副状态尚未结束，无法核对本局构筑。')
+    deck = read_deck_vectors(memory, base, profile)
+    if not 40 <= len(deck['main']) <= 60:
+        raise CaptureError('本局主卡组不完整，需要 40–60 张。')
+    counts, buffers = [], []
+    for zone in range(7):
+        address = game + profile['field_vectors'] + zone * 48
+        header = memory.read(address, 24)
+        start, end, capacity = struct.unpack('<3Q', header)
+        if start == end == capacity == 0:
+            raw = b''
+        elif (0x10000 <= start <= end <= capacity < 0x7fffffffffff
+              and start % 8 == end % 8 == capacity % 8 == 0
+              and end - start <= 60 * 8 and capacity - start <= 8192):
+            raw = memory.read(start, end - start)
+        else:
+            raise CaptureError('开局区域尚未稳定，等待下一次构筑核对。')
+        counts.append(sum(pointer != 0 for (pointer,) in struct.iter_unpack('<Q', raw)))
+        buffers.append((address, header))
+        if raw: buffers.append((start, raw))
+    if (counts[0] + counts[1] != len(deck['main']) or counts[6] != len(deck['extra'])
+            or any(counts[2:6])):
+        raise CaptureError('服务器开局区域与完整构筑未对应，等待发牌稳定后核对。')
+    if (any(memory.read(address, len(raw)) != raw for address, raw in buffers)
+            or memory.read(base + profile['game'], 8) != game_data
+            or read_order(memory, base, profile) != before
+            or read_deck_vectors(memory, base, profile) != deck):
+        raise CaptureError('开局构筑或区域正在变化，等待一致快照。')
+    return {'deck': deck, 'method': 'submitted-current-deck-and-initial-zones',
+            'evidence': {'turn': info['turn'], 'own_counts': counts, 'game': game_data.hex()}}
 
 
 def read_opening_sample(memory, base, profile, order):

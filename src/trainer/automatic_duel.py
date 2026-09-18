@@ -47,6 +47,9 @@ class AutomaticDuels:
                 self.contexts[identifier]=stored
             value=self.contexts[identifier]
             if active and value.get('closed'):raise ValueError('此自动对局工作区已结束，请重新确认本局起手。')
+            recognition = value.get('input', {}).get('recognition_id')
+            if active and recognition and not self.store.ygopro_smart.context_valid(recognition, value['input']['round_id']):
+                raise ValueError('智能识别对局已失效或读取中断，请重新监测。')
             return value
 
     def save(self,context):
@@ -65,6 +68,11 @@ class AutomaticDuels:
             if not current.get('plan_input'):raise ValueError('本局缺少已核对的卡组快照，请重新确认起手。')
             inputs={**deepcopy(current['plan_input']), 'hand':list(opening['confirmed']['cards']),
                     'round_id':current['id'], 'snapshot_id':opening['snapshot_id'], 'turn_order':'first'}
+        return self.create(inputs)
+
+    def create(self, inputs):
+        """Internal entry after manual confirmation or the smart monitor's audit."""
+        inputs = deepcopy(inputs)
         with self.lock:
             for context in self.contexts.values():
                 if not context.get('closed') and context['input']==inputs:return self.public(context)
@@ -94,6 +102,7 @@ class AutomaticDuels:
         result=self.store.modular.dispatch(self.request(context,{},'match'))['result']
         for plan in result['matches']:
             plan['automatic_revision']=digest({key:value for key,value in plan.items() if key!='favorite'})
+        self.context(context['id'])
         return result
 
     def select(self,body):
@@ -117,7 +126,8 @@ class AutomaticDuels:
         result=self.store.modular.dispatch(request)['result']
         result_sid=result.get('id')
         with self.lock:
-            closed=context['closed']
+            recognition=context['input'].get('recognition_id')
+            closed=context['closed'] or bool(recognition and not self.store.ygopro_smart.context_valid(recognition, context['input']['round_id']))
             if not closed:
                 if result_sid and result_sid not in context['planner_ids']:context['planner_ids'].append(result_sid)
                 if intent=='plan-close':context['planner_ids']=[p for p in context['planner_ids'] if p!=sid]

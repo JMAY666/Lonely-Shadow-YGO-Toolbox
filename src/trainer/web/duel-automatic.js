@@ -38,6 +38,8 @@ function duelProcessText(process) {
   return process?`${process.name} · PID ${process.pid} · ${process.title||process.version||''}`:'尚未捕捉进程';
 }
 async function captureDuelProcess(pid) {
+  if(typeof cancelSmartRecognition==='function')await cancelSmartRecognition();
+  if(typeof resetCaptureDialog==='function')resetCaptureDialog();
   if(typeof disposeAutoDuel==='function')await disposeAutoDuel();
   const dialog=$('#duel-capture-dialog'),draft=duelState().automatic;
   draft.fresh=false;draft.connection=null;draft.pending=null;
@@ -47,6 +49,7 @@ async function captureDuelProcess(pid) {
   $('#duel-capture-status').textContent='正在捕捉 YGOPro.exe…';
   $('#duel-capture-processes').replaceChildren();
   $('#duel-capture-next').hidden=true;
+  $('#duel-capture-smart').hidden=true;
   $('#duel-capture-retry').disabled=true;
   $('#duel-capture-close').disabled=true;
   dialog.dataset.busy='true';
@@ -56,7 +59,7 @@ async function captureDuelProcess(pid) {
     $('#duel-capture-status').textContent=result.connected?'捕捉成功，可以进入卡组识别。':result.error;
     const processes=result.processes||[result.process];
     $('#duel-capture-processes').innerHTML=processes.filter(Boolean).map(process=>`<article><strong>${escape(duelProcessText(process))}</strong><p>${escape(process.path||'无法读取进程路径')}</p><small>${escape(process.version||process.error||'')}</small>${!result.connected&&process.supported?`<button type="button" data-capture-pid="${process.pid}">捕捉此进程</button>`:''}</article>`).join('');
-    if(result.connected){draft.connection=result.process;$('#duel-capture-next').hidden=false;}
+    if(result.connected){draft.connection=result.process;$('#duel-capture-next').hidden=false;$('#duel-capture-smart').hidden=false;}
   } catch(error) {$('#duel-capture-status').textContent=`捕捉失败：${error.message}`;}
   finally {
     dialog.dataset.busy='false';$('#duel-capture-retry').disabled=false;$('#duel-capture-close').disabled=false;
@@ -161,8 +164,8 @@ async function duelAutomaticAction(action) {
 }
 if(typeof document!=='undefined') {
   $('#duel-capture-retry').onclick=()=>void captureDuelProcess();
-  $('#duel-capture-close').onclick=()=>$('#duel-capture-dialog').close();
-  $('#duel-capture-dialog').addEventListener('cancel',event=>{if($('#duel-capture-dialog').dataset.busy==='true')event.preventDefault();});
+  $('#duel-capture-close').onclick=()=>{if(typeof smartRun==='function'&&smartRun())void cancelSmartRecognition();else $('#duel-capture-dialog').close();};
+  $('#duel-capture-dialog').addEventListener('cancel',event=>{if(typeof smartRun==='function'&&smartRun()){event.preventDefault();void cancelSmartRecognition();}else if($('#duel-capture-dialog').dataset.busy==='true')event.preventDefault();});
   $('#duel-capture-processes').onclick=event=>{const button=event.target.closest('[data-capture-pid]');if(button&&$('#duel-capture-dialog').dataset.busy!=='true')void captureDuelProcess(Number(button.dataset.capturePid));};
   $('#duel-capture-next').onclick=()=>{if(!duelState().automatic.connection)return;$('#duel-capture-dialog').close();duelState().automatic.page='recognition';duelReach(duelStages.deck);duelTell('');renderDuel();};
 }

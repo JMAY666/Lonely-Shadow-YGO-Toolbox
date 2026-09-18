@@ -31,7 +31,7 @@ const OpeningRules = (() => {
   function summary(plan){
     const c=plan?.expansion?.conditions;if(!has(c))return '';
     const catalog=plan.catalog||{};
-    return `<section class="opening-rule-summary"><h3>起手规则 · 条件集合</h3><div class="condition-summary-cards">${(c.slots||[]).map(v=>is(v)?face(v,catalog):`<span class="condition-exact">${v?`<img src="/pics/${Number(v)}.jpg" alt="">`:''}<strong>${safe(describe(v,catalog))}</strong></span>`).join('')}</div><p>整副起手禁止：${(c.banned||[]).map(v=>safe(describe(v,catalog))).join('；')||'无'}</p><p>记录时实际起手（实例）：${(plan.expansion.actual_opening||plan.initial_hand?.map(c=>c.code)||[]).map(v=>safe(describe(v,catalog))).join(' · ')||'未记录'}</p>${plan.opening_match?.actual_hand?`<p>当前用于匹配的实际手牌：${plan.opening_match.actual_hand.map(v=>safe(describe(v,catalog))).join(' · ')}</p>`:''}<p class="condition-boundary">满足起手集合不代表可执行同一路线；其他候选的效果、费用、素材和后续步骤仍需验证。</p></section>`;
+    return `<section class="opening-rule-summary"><h3>起手规则 · 条件集合</h3><div class="condition-summary-cards">${(c.slots||[]).map(v=>is(v)?face(v,catalog):`<span class="condition-exact">${v?`<img src="/pics/${Number(v)}.jpg" alt="">`:''}<strong>${safe(describe(v,catalog))}</strong></span>`).join('')}</div><p>整副起手禁止：${(c.banned||[]).map(v=>safe(describe(v,catalog))).join('；')||'无'}</p><p>具体起手实例保留在原始记录中用于规则校验；条件槽位及同一实例的后续展示使用条件牌。</p><p class="condition-boundary">满足起手集合不代表可执行同一路线；其他候选的效果、费用、素材和后续步骤仍需验证。</p></section>`;
   }
   const cache=new WeakMap();
   const key=d=>JSON.stringify([d.deck,d.conditions,typeof app==='undefined'?0:app.catalogEpoch||0]);

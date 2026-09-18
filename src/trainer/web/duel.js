@@ -65,6 +65,7 @@ async function enterDuelModule() {
   });
 }
 async function leaveDuelModule() {
+  if(typeof cancelSmartRecognition==='function')await cancelSmartRecognition();
   if(typeof stopDuelOrderWatch==='function')stopDuelOrderWatch();
   if($('#duel-brain-field')?.contains($('#native-stage')))restoreModularField();
   if(duelState().operationMode!=='automatic')duelState().enabled=false;
@@ -93,6 +94,7 @@ async function refreshDuelDeck() {
 function duelGo(stage) {
   const s=duelState();
   if(duelUI.busy||(s.operationMode==='automatic'?autoDuelState()?.ended:s.ended)||stage>s.reached||stage<duelStages.mode)return;
+  if(s.automatic.smartRun&&[duelStages.deck,duelStages.order].includes(stage))return;
   if(s.operationMode==='automatic'&&stage===duelStages.order&&!s.automatic.order?.frame?.monitor_id)return;
   if(s.operationMode==='automatic'&&stage===duelStages.hand&&!DuelOrder.confirmed(s.automatic.order))return;
   if(s.operationMode==='automatic'&&stage>=duelStages.plans&&!autoDuelState())return;
@@ -153,9 +155,9 @@ function duelSummaryCards(plan,kind,limit=Infinity) {
   const conditional=kind==='opening'&&typeof OpeningRules!=='undefined'&&OpeningRules.has(plan.expansion?.conditions);
   const cards=conditional?plan.expansion.conditions.slots.map(c=>({code:typeof c==='number'?c:null,name:OpeningRules.describe(c,plan.catalog),condition:OpeningRules.is(c),count:1})):kind==='opening'?plan.requirements?.opening||[]:marked;
   return cards.slice(0,limit).map(c=>{
-    const node=kind==='opening'?'initial':final.id,random=kind==='final'&&reviewRandomDraw(c,final,plan),known=c.code&&!random;
-    const label=random?(random.label||'随机抽牌'):c.name||c.constraint||plan.catalog?.[c.code]?.name||'任意手牌';
-    return `<figure><img src="${c.condition?'/condition-card.svg':known?`/pics/${Number(c.code)}.jpg`:'/review-back.svg'}" alt="${escape(label)}" loading="lazy"><figcaption>${escape(label)}</figcaption>${kind==='opening'?`<small>${c.condition?'条件集合 · ':''}×${c.count||1}</small>`:`<small class="duel-region">${escape(duelRegion(c))}</small>`}</figure>`;
+    const node=kind==='opening'?'initial':final.id,origin=kind==='final'&&reviewConditionOrigin(c,plan),random=kind==='final'&&reviewRandomDraw(c,final,plan),known=c.code&&!random&&!origin;
+    const label=origin?origin.label:random?(random.label||'随机抽牌'):c.name||c.constraint||plan.catalog?.[c.code]?.name||'任意手牌';
+    return `<figure><img src="${c.condition||origin?'/condition-card.svg':known?`/pics/${Number(c.code)}.jpg`:'/review-back.svg'}" alt="${escape(label)}" loading="lazy"><figcaption>${escape(label)}</figcaption>${kind==='opening'?`<small>${c.condition?'条件集合 · ':''}×${c.count||1}</small>`:`<small class="duel-region">${escape(duelRegion(c))}</small>`}</figure>`;
   }).join('');
 }
 function duelPlanSummary(plan,detailed=false) {
@@ -279,7 +281,7 @@ function renderDuel() {
   if(typeof selectForecastStage==='function')selectForecastStage(s);
   if(s.stage===duelStages.plans&&s.operationMode==='manual'&&s.result&&!s.openingForecast)void prepareDuelOpening(s);
   $('#duel').dataset.stage=String(s.stage);
-  $('#duel-steps').innerHTML=stages.map((name,i)=>`<button data-duel-stage="${i}" ${i>s.reached||duelUI.busy||s.operationMode==='automatic'&&(i===duelStages.hand&&!DuelOrder.confirmed(s.automatic.order)||i===duelStages.order&&!s.automatic.order?.frame?.monitor_id)?'disabled':''} ${i===mainStage?'aria-current="step"':''}><span>${i<mainStage?'✓':i+1}</span>${name}</button>`).join('');
+  $('#duel-steps').innerHTML=stages.map((name,i)=>`<button data-duel-stage="${i}" ${i>s.reached||duelUI.busy||s.automatic.smartRun&&[duelStages.deck,duelStages.order].includes(i)||s.operationMode==='automatic'&&(i===duelStages.hand&&!DuelOrder.confirmed(s.automatic.order)||i===duelStages.order&&!s.automatic.order?.frame?.monitor_id)?'disabled':''} ${i===mainStage?'aria-current="step"':''}><span>${i<mainStage?'✓':i+1}</span>${name}</button>`).join('');
   const automatic=s.operationMode==='automatic',deckPage=automatic?s.automatic.page:s.deckPage,hasDeck=automatic?!!s.automatic.deck&&s.automatic.fresh:!!s.deck;
   $('#duel-substeps').hidden=![duelStages.function,duelStages.deck,duelStages.hand,duelStages.plans,duelStages.tutorial].includes(s.stage)||automatic&&s.stage>=duelStages.hand&&!DuelOpening.first(s.automatic.order?.frame);
   $('#duel-substeps').setAttribute('aria-label',s.stage===duelStages.function?'功能选择流程':s.stage===duelStages.deck?'卡组选择流程':'卡组展开流程');
@@ -302,7 +304,8 @@ function renderDuel() {
     if(automatic){body=duelAutomaticOrderPage();footer=duelButton('confirm-order','确认，下一步',!DuelOrder.ready(s.automatic.order),true);}
     else body=`<div class="duel-mode-grid"><button class="duel-mode" data-duel-action="first"><strong>先手</strong></button><button class="duel-mode" disabled><strong>后手</strong><small>待开发</small></button></div>`;
   } else if(s.stage===duelStages.hand) {
-    if(automatic){body=duelAutomaticOpeningPage();if(DuelOpening.first(s.automatic.order?.frame))footer=duelButton('confirm-opening','确认起手，下一步',!DuelOpening.ready(s.automatic.order?.frame),true);}
+    if(automatic&&s.automatic.smartRun){body=smartOpeningPage();}
+    else if(automatic){body=duelAutomaticOpeningPage();if(DuelOpening.first(s.automatic.order?.frame))footer=duelButton('confirm-opening','确认起手，下一步',!DuelOpening.ready(s.automatic.order?.frame),true);}
     else {body=duelHandPage();footer=duelButton('match','方案选择',!!DuelModel.handError(s.deck.deck,s.count,s.hand),true);}
   } else if(s.stage===duelStages.plans) body=automatic?autoDuelWorkspacePage():duelMatchesPage();
   else if(s.stage===duelStages.tutorial) {
@@ -542,7 +545,7 @@ $('#duel').addEventListener('click',run(async event=>{
   if(action==='modular'){await launchModularFromDuel();return;}
   if(action==='report-outcome'){await openDuelObservation();return;}
   if(action==='bo1'){s.mode='BO1';duelReach(duelStages.function);duelTell('');renderDuel();return;}
-  if(action==='manual'){await duelWork(async()=>{s.decks=await api('/api/decks');if(s.operationMode==='automatic'){s.automatic.navigation={reached:s.reached};s.reached=s.manualReached||duelStages.function;closeAutoDuelPreview();}else if(s.operationMode!=='manual')invalidateDuel(duelStages.function);s.operationMode='manual';s.functionPage='choice';if(s.deck)await refreshDuelDeck();duelReach(duelStages.deck);duelTell('');});return;}
+  if(action==='manual'){if(typeof cancelSmartRecognition==='function')await cancelSmartRecognition();await duelWork(async()=>{s.decks=await api('/api/decks');if(s.operationMode==='automatic'){s.automatic.navigation={reached:s.reached};s.reached=s.manualReached||duelStages.function;closeAutoDuelPreview();}else if(s.operationMode!=='manual')invalidateDuel(duelStages.function);s.operationMode='manual';s.functionPage='choice';if(s.deck)await refreshDuelDeck();duelReach(duelStages.deck);duelTell('');});return;}
   if(action==='deck-list'){await duelWork(async()=>{s.decks=await api('/api/decks');s.deckPage='list';});return;}
   if(action==='refresh-decks'){await duelWork(async()=>{s.decks=await api('/api/decks');});return;}
   if(action==='start-duel'){await duelWork(async()=>{if(await refreshDuelDeck())duelReach(duelStages.order);});return;}
@@ -559,6 +562,7 @@ $('#duel').addEventListener('click',run(async event=>{
   if(action==='new')await startNewDuel();
 }));
 async function startNewDuel() {
+  if(typeof cancelSmartRecognition==='function')await cancelSmartRecognition();
   if(typeof disposeAutoDuel==='function')await disposeAutoDuel();
   dropDuelForecast(duelState());
   duelState().enabled=false;duelState().stage=duelStages.mode;await syncDuelShortcuts();++duelUI.generation;

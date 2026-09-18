@@ -204,6 +204,18 @@ async function activatePot(sid) {
     await require('./condition-cards-smoke.cjs')({page,nativeWait,hostWait,waitHistory,pass,evidence});
     await close();assert.deepEqual(errors,[]);fs.writeFileSync(path.join(evidence,'conditions-result.json'),JSON.stringify({checks,errors},null,2));return;
   }
+  if(process.argv.includes('--alias-scripts-only')){
+    await require('./alias-scripts-smoke.cjs')({page,nativeWait,nativeState,hostWait,waitHistory,pass,evidence});
+    await close();assert.deepEqual(errors,[]);return;
+  }
+  if(process.argv.includes('--condition-display-only')){
+    await require('./condition-origin-smoke.cjs')({page,evidence,pass});
+    await close();assert.deepEqual(errors,[]);fs.writeFileSync(path.join(evidence,'condition-display-result.json'),JSON.stringify({checks,errors},null,2));return;
+  }
+  if(process.argv.includes('--smart-only')){
+    await require('./smart-recognition-smoke.cjs')({page,application,root,evidence,pass});
+    await close();assert.deepEqual(errors,[]);fs.writeFileSync(path.join(evidence,'smart-result.json'),JSON.stringify({checks,errors},null,2));return;
+  }
   if(onlyAutomaticWorkspace){
     await require('./automatic-workspace-smoke.cjs')({page,application,root,evidence,pass});
     await close();assert.deepEqual(errors,[]);fs.writeFileSync(path.join(evidence,'automatic-workspace-result.json'),JSON.stringify({checks,errors},null,2));return;
@@ -318,6 +330,7 @@ async function activatePot(sid) {
     await require('./deck-tags-smoke.cjs')({page,application,deckId,deck,evidence,pass});
     await require('./modules-smoke.cjs')({page,application,deckId,deck,pass,evidence});
     await require('./duel-smoke.cjs')({page,application,root,evidence,pass});
+    await require('./smart-recognition-smoke.cjs')({page,application,root,evidence,pass});
   }
   await page.evaluate(()=>switchModule('expansion'));
   if (process.argv.includes('--decks-only')) {

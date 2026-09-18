@@ -1,12 +1,14 @@
 import copy
+import os
 from pathlib import Path
 import struct
+import subprocess
 import sys
 import unittest
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src/trainer'))
-from ygopro_capture import Capture, CaptureError, PROFILES, read_deck
+from ygopro_capture import Capture, CaptureError, PROFILES, WindowsProcess, read_deck
 
 
 class Memory:
@@ -103,6 +105,30 @@ class CaptureTests(unittest.TestCase):
             with self.assertRaisesRegex(CaptureError,'状态正在变化'):capture.submitted_deck('test')
             process.identity.return_value=('test',2)
             with self.assertRaisesRegex(CaptureError,'进程已变化'):capture.submitted_deck('test')
+
+    def test_connection_liveness_uses_exit_status_and_process_creation_identity(self):
+        capture=Capture();capture.attached={'pid':123,'path':'test','created':1,'capture_id':'test'}
+        with patch('ygopro_capture.WindowsProcess') as factory:
+            process=factory.return_value.__enter__.return_value
+            process.alive.return_value=True;process.identity.return_value=('test',1)
+            self.assertTrue(capture.connection_alive('test'))
+            process.identity.return_value=('test',2)
+            self.assertFalse(capture.connection_alive('test'))
+            process.identity.return_value=('test',1);process.alive.return_value=False
+            self.assertFalse(capture.connection_alive('test'))
+        self.assertFalse(capture.connection_alive('other-connection'))
+
+    @unittest.skipUnless(os.name=='nt', 'Windows process identity API')
+    def test_real_owned_process_exit_is_detected_without_writing_process_memory(self):
+        child=subprocess.Popen([sys.executable,'-c','import time; time.sleep(30)'],creationflags=subprocess.CREATE_NO_WINDOW)
+        try:
+            with WindowsProcess(child.pid) as reader:path,created=reader.identity()
+            capture=Capture();capture.attached={'pid':child.pid,'path':path,'created':created,'capture_id':'owned-test'}
+            self.assertTrue(capture.connection_alive('owned-test'))
+            child.terminate();child.wait(timeout=5)
+            self.assertFalse(capture.connection_alive('owned-test'))
+        finally:
+            if child.poll() is None:child.terminate();child.wait(timeout=5)
 
 
 if __name__ == '__main__':unittest.main()

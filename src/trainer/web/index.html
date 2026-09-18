@@ -288,7 +288,7 @@
   </form>
 </dialog>
 <dialog id="duel-shortcut-dialog" class="duel-shortcut-dialog" aria-labelledby="duel-shortcut-title"><h2 id="duel-shortcut-title">教程快捷键</h2><form id="duel-shortcut-form"><p>所有入口、软件内外共用这一套按键。按住可连续移动，进入教程时启用，结束或离开决斗时释放。</p><div id="duel-shortcut-fields"></div><p id="duel-shortcut-error" role="alert"></p><div class="duel-actions"><button id="duel-shortcut-cancel" type="button">取消</button><button id="duel-shortcut-save" class="primary" type="submit">保存</button></div></form></dialog>
-<dialog id="duel-capture-dialog" aria-labelledby="duel-capture-title" aria-describedby="duel-capture-help"><h2 id="duel-capture-title">捕捉 YGOPro 进程</h2><p id="duel-capture-status" role="status" aria-live="polite"></p><p id="duel-capture-help" class="duel-capture-help">请先在 YGOPro 主菜单点击「编辑卡组」，打开要识别的卡组并停留在该页面，再点击「获取卡组」。</p><div id="duel-capture-processes"></div><div class="duel-actions"><button id="duel-capture-close" type="button">关闭</button><button id="duel-capture-retry" type="button">重新捕捉</button><button id="duel-capture-next" type="button" class="primary" hidden>进入卡组识别</button></div></dialog>
+<dialog id="duel-capture-dialog" aria-labelledby="duel-capture-title" aria-describedby="duel-capture-help"><h2 id="duel-capture-title">捕捉 YGOPro 进程</h2><p id="duel-capture-status" role="status" aria-live="polite"></p><p id="duel-capture-help" class="duel-capture-help">请先在 YGOPro 主菜单点击「编辑卡组」，打开要识别的卡组并停留在该页面，再点击「获取卡组」。</p><div id="duel-capture-processes"></div><div class="duel-actions"><button id="duel-capture-close" type="button">关闭</button><button id="duel-capture-retry" type="button">重新捕捉</button><button id="duel-smart-retry" type="button" hidden>重试本局识别</button><button id="duel-smart-restart" type="button" hidden>重新监测</button><button id="duel-capture-smart" type="button" class="primary" hidden>智能化识别</button><button id="duel-capture-next" type="button" class="primary" hidden>进入卡组识别</button></div></dialog>
 <dialog id="branch-context-menu" class="branch-context-menu" role="dialog" aria-labelledby="branch-context-title"></dialog>
 <dialog id="deck-tags-dialog" class="deck-tags-dialog" aria-labelledby="deck-tags-title">
   <header><div><div class="eyebrow">DECK TAGS</div><h2 id="deck-tags-title">卡组 TAG 设置</h2><p id="deck-tags-name"></p></div><button id="deck-tags-cancel" type="button">取消</button></header>
@@ -317,5 +317,6 @@
 <script src="/deck-appearance.js"></script><script src="/duel-model.js"></script><script src="/tutorial-bindings.js"></script><script src="/duel-automatic.js"></script><script src="/duel-order.js"></script><script src="/duel-opening.js"></script><script src="/duel.js"></script><script src="/duel-forecast.js"></script><script src="/superpre.js"></script>
 <link rel="stylesheet" href="/duel-auto-workspace.css">
 <script src="/duel-auto-workspace.js"></script><script src="/duel-auto-views.js"></script><script src="/duel-auto-forecast.js"></script>
+<script src="/duel-smart.js"></script>
 </body>
 </html>

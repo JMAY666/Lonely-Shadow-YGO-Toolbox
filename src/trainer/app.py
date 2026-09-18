@@ -37,11 +37,23 @@ import superpre
 import ygopro_capture
 from ygopro_order import OrderMonitor
 from automatic_duel import AutomaticDuels
+from ygopro_smart import SmartRecognition
 
 WORKSPACE = Path(__file__).resolve().parents[2]
 RUNTIME = WORKSPACE / '.local/YGOPro-Lite'
 WEB = Path(__file__).parent / 'web'
 EXTRA_TYPES = 0x40 | 0x2000 | 0x800000 | 0x4000000
+
+
+def card_script_code(card):
+    """Match the pinned client's DataManager alias/artwork normalization.
+
+    Rule-name aliases keep their own effects; artwork variants within 20 ids
+    use the printed card's Lua script (then core get_original_code()).
+    """
+    code, alias = card['id'], card.get('alias') or 0
+    return alias if (code != 5405695 and alias and
+                     (card['type'] & 0x4000 or abs(code-alias) < 20)) else code
 
 
 def now(): return time.time_ns() // 1_000_000
@@ -126,7 +138,7 @@ class Catalog:
                     card = dict(row)
                     card['source'] = path.relative_to(runtime).as_posix()
                     card['extra'] = bool(card['type'] & EXTRA_TYPES)
-                    card['script_available'] = any((p / f"c{card['id']}.lua").exists() for p in scripts)
+                    card['script_available'] = any((p / f"c{card_script_code(card)}.lua").exists() for p in scripts)
                     self.cards[card['id']] = card
             self.sources.append({'path': path.relative_to(runtime).as_posix(), 'sha256': hashlib.sha256(path.read_bytes()).hexdigest()})
         if patch: self.sources.append({'path': 'expansions/' + superpre.ARCHIVE_NAME, 'sha256': patch['sha256']})
@@ -173,6 +185,7 @@ class Store:
         self.ygopro_capture = ygopro_capture.Capture()
         self.ygopro_order = OrderMonitor(self, atomic_json, now)
         self.automatic_duel = AutomaticDuels(self, read_json, atomic_json, now)
+        self.ygopro_smart = SmartRecognition(self, atomic_json, now)
         if desktop:
             from desktop_runtime import OwnedJob
             self.job = OwnedJob()
@@ -899,6 +912,7 @@ class Store:
 
     def shutdown(self, timeout=8):
         """Close only native processes launched here; preserve interrupted journals and reports."""
+        self.ygopro_smart.cancel_active()
         with self.lock:
             self.closing = True
             self.modular.precompute.invalidate_all()
@@ -987,7 +1001,13 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/plans/import-preview': return self.send(store.library.import_document(body, preview=True))
                 if path == '/api/plans/import': return self.send(store.library.import_document(body))
                 if path == '/api/decks': return self.send(store.save_deck(body))
-                if path == '/api/ygopro/attach': return self.send(store.ygopro_capture.attach(body.get('pid')))
+                if path == '/api/ygopro/attach':
+                    store.ygopro_smart.cancel_active()
+                    return self.send(store.ygopro_capture.attach(body.get('pid')))
+                if path == '/api/ygopro/smart/start': return self.send(store.ygopro_smart.start(body))
+                if path == '/api/ygopro/smart/poll': return self.send(store.ygopro_smart.poll(body))
+                if path == '/api/ygopro/smart/cancel': return self.send(store.ygopro_smart.cancel(body))
+                if path == '/api/ygopro/smart/retry': return self.send(store.ygopro_smart.retry(body))
                 if path == '/api/ygopro/deck':
                     result = store.ygopro_capture.deck(body.get('capture_id'))
                     store.validate(result['deck'])
@@ -1110,7 +1130,7 @@ class Handler(BaseHTTPRequestHandler):
                 files['/scrollbars.css'] = 'scrollbars.css'
                 for art in ('first', 'second', 'bo1', 'bo3', 'manual', 'automatic', 'ygopro'):
                     files[f'/brand/duel-{art}.svg'] = f'brand/duel-{art}.svg'
-                for name in ('duel.js', 'duel-automatic.js', 'duel-order.js', 'duel-opening.js', 'duel-automatic.css', 'duel-forecast.js', 'duel-model.js', 'tutorial-bindings.js', 'duel.css', 'deck-tag-view.js', 'deck-appearance.js', 'superpre.js', 'superpre.css'):
+                for name in ('duel.js', 'duel-smart.js', 'duel-automatic.js', 'duel-order.js', 'duel-opening.js', 'duel-automatic.css', 'duel-forecast.js', 'duel-model.js', 'tutorial-bindings.js', 'duel.css', 'deck-tag-view.js', 'deck-appearance.js', 'superpre.js', 'superpre.css'):
                     files['/' + name] = name
                 if path in files:
                     p = WEB / files[path]; return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0] + '; charset=utf-8')

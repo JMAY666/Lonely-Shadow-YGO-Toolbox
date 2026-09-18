@@ -37,6 +37,28 @@ class StoreTests(unittest.TestCase):
         assert self.root.resolve().is_relative_to(Path(__file__).resolve().parents[1] / '.local/test-runs')
         self.temp.cleanup()
 
+    def test_artwork_alias_scripts_match_native_loading_but_rule_aliases_keep_own_effects(self):
+        from app import Catalog, card_script_code
+        with closing(sqlite3.connect(self.root/'cards.cdb')) as db:
+            db.execute('ALTER TABLE datas ADD COLUMN alias INTEGER DEFAULT 0')
+            for code, alias in ((55144523,55144522),(55144541,55144522),(55144542,55144522),(999,55144522)):
+                db.execute('INSERT INTO datas VALUES(?,?,4,0,0,?)',(code,2,alias))
+                db.execute('INSERT INTO texts(id,name,desc) VALUES(?,?,?)',(code,'合成异画或规则同名卡','测试'))
+            db.commit()
+        self.store.catalog=Catalog(self.root)
+        self.assertTrue(self.store.catalog.cards[55144523]['script_available'])
+        self.assertTrue(self.store.catalog.cards[55144541]['script_available'])
+        self.assertFalse(self.store.catalog.cards[55144542]['script_available'])
+        self.assertFalse(self.store.catalog.cards[999]['script_available'])
+        self.assertEqual(card_script_code({'id':5405695,'alias':5405696,'type':2}),5405695)
+        deck={**self.deck,'main':[55144523]*20+[1184620]*20}
+        self.store.validate(deck,training=True)
+        # An unrelated script with the artwork id cannot replace its actual dependency.
+        (self.root/'script/c55144523.lua').write_text('-- not the native dependency')
+        (self.root/'script/c55144522.lua').unlink()
+        self.store.catalog=Catalog(self.root)
+        with self.assertRaisesRegex(ValueError,'缺少效果脚本'):self.store.validate(deck,training=True)
+
     def test_plan_favorite_is_persistent_separate_and_preserves_failed_writes(self):
         identifier = str(uuid.uuid4()); target = self.store.plan_path(identifier)
         plan = {'id': identifier, 'name': 'favorite fixture', 'deck_name': 'deck', 'saved_ms': 1}

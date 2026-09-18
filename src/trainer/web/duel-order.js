@@ -9,7 +9,7 @@ const DuelOrder = (()=>{
   const selected=state=>state?.manual||state?.frame?.detected_order||null;
   const ready=state=>state?.frame?.phase==='detected'&&['first','second'].includes(selected(state));
   const confirmed=state=>ready(state)&&state.frame.confirmed?.order===selected(state)&&
-    state.frame.confirmed.source===(state.manual!==null?'manual':'automatic');
+    (state.manual!==null?state.frame.confirmed.source==='manual':['automatic','software-audit'].includes(state.frame.confirmed.source));
   function confirmation(state) {
     if(!ready(state))throw Error('请等待本局先后攻识别完成。');
     const {monitor_id,round_id,revision}=state.frame;
@@ -26,6 +26,7 @@ const orderLabel=value=>value==='first'?'先攻':value==='second'?'后攻':'等�
 let duelOrderTimer=null,duelOrderEpoch=0,duelOrderWatching=null;
 function stopDuelOrderWatch() {clearTimeout(duelOrderTimer);duelOrderTimer=null;duelOrderWatching=null;++duelOrderEpoch;}
 function syncDuelOrderWatch() {
+  if(duelState().automatic.smartRun){stopDuelOrderWatch();return;}
   const s=duelState(),reviewingFrozen=!!s.automatic.workspace&&s.stage===duelStages.hand;
   const watch=!duelUI.busy&&!reviewingFrozen&&s.operationMode==='automatic'&&[duelStages.order,duelStages.hand].includes(s.stage)&&moduleUI.current==='duel'?s.automatic.order:null;
   if(watch===duelOrderWatching)return;

@@ -67,7 +67,7 @@ function autoDuelWorkspacePage(){
   const s=autoDuelState();
   if(!s)return '<section id="auto-duel-workspace" class="auto-duel-workspace"><p>自动工作区尚未就绪，请返回起手确认后重试。</p></section>';
   const stage=duelState().stage;s.stage=stage;
-  const content=stage===duelStages.plans?(s.result?autoDuelMatchesPage():`<p>方案列表读取未完成。</p>${autoDuelButton('rematch','重试')}`):
+  const content=stage===duelStages.plans?(s.result?autoDuelMatchesPage():`<h2>方案选择</h2><p role="status">${escape(s.matching?'正在匹配本局方案…':s.matchError||'方案列表读取未完成。')}</p>${s.matching?'':autoDuelButton('rematch','重试方案匹配')}`):
     stage===duelStages.tutorial&&s.plan?autoDuelTutorialPage():`<div class="auto-duel-complete"><span>✓</span><h2>展开教程已结束</h2><p>${escape(s.deck.name)} · ${escape(s.plan?.name||'')}</p>${autoDuelButton('new','再来一场',false,true)}</div>`;
   return `<section id="auto-duel-workspace" class="auto-duel-workspace" data-workspace="automatic" data-context="${escape(s.context.context_id)}"><div class="auto-duel-context"><strong>自动模式</strong><span>${escape(s.deck.name)} · 本局起手 ${s.hand.length} 张</span></div><p id="auto-duel-message" role="status" ${s.message?'':'hidden'}>${escape(s.message)}</p><section id="${stage===duelStages.plans?'auto-duel-plans':stage===duelStages.tutorial?'auto-duel-tutorial':'auto-duel-completed'}"><div id="auto-duel-content">${content}</div></section></section>`;
 }
@@ -98,6 +98,7 @@ async function handleAutoDuelClick(event){
   const action=button.dataset.autoDuelAction;if(!action)return;
   event.stopPropagation();
   if(action==='rematch')return refreshAutoDuel();
+  if(action==='smart-plans'){duelReach(duelStages.plans);renderDuel();return;}
   if(action==='favorites-only'){s.favoritesOnly=!s.favoritesOnly;renderAutoDuel();return;}
   if(action==='opening'){duelGo(duelStages.hand);return;}
   if(action==='modular')return autoLaunchModularFromDuel();

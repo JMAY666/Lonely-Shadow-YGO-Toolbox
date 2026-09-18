@@ -123,5 +123,20 @@ class AutomaticDuelsTests(unittest.TestCase):
             self.assertEqual(close.call_count,2)
             close.assert_called_with('automatic-duel',value['context_id'])
 
+    def test_invalidated_live_round_rejects_late_result_before_async_close_finishes(self):
+        value=self.prepare();service=self.store.automatic_duel;calls=[];valid=[True]
+        service.context(value['context_id'])['input']['recognition_id']='smart-owned'
+        self.store.ygopro_smart.context_valid=lambda *args:valid[0]
+        def dispatch(request):
+            calls.append(request)
+            if request['intent']=='plan':
+                valid[0]=False
+                return {'result':{'id':'late-owned-engine','inputs':{}}}
+            return {'result':{'closed':True,'inputs':{}}}
+        self.store.modular.dispatch=dispatch
+        with self.assertRaisesRegex(ValueError,'迟到'):
+            service.dispatch({'context_id':value['context_id'],'intent':'plan'})
+        self.assertEqual([call['intent'] for call in calls],['plan','plan-close'])
+
 
 if __name__=='__main__':unittest.main()

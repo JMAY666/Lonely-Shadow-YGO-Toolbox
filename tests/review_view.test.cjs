@@ -3,7 +3,7 @@ const {readFileSync}=require('node:fs');
 const path=require('node:path');
 const vm=require('node:vm');
 const test=require('node:test');
-const source=['activation.js','review.js'].map(file=>readFileSync(path.join(__dirname,'../src/trainer/web',file),'utf8')).join('\n');
+const source=['opening-rules.js','activation.js','review.js'].map(file=>readFileSync(path.join(__dirname,'../src/trainer/web',file),'utf8')).join('\n');
 function setup(extra={}){
   const context=vm.createContext({flow:{draft:null},app:{},Map,structuredClone,CSS:{escape:s=>s},
     escape:s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;'),
@@ -151,7 +151,7 @@ test('deck-top reveals and their later outcomes use random backs, selected effec
     r.reviewUI.logMode=mode;
     const html=r.reviewLogAction(plan.actions[0],node);
     assert.match(html,/②效果/);assert.match(html,/这张卡作为同调素材送去墓地的场合才能发动/);
-    assert.match(html,/翻开对方卡组顶部 2 张随机牌/);assert.match(html,/放回对方卡组最下面/);
+    assert.match(html,/翻开对方卡组顶部 2 张随机牌/);assert.match(html,/选择放回对方卡组最上面或最下面/);
     assert(!html.includes('示例翻牌'));assert(!html.includes('/pics/52155219'));assert(!html.includes('/pics/56003780'));
     assert.equal((html.match(/class="review-card[^\"]*random-card/g)||[]).length,4);
   }
@@ -160,6 +160,33 @@ test('deck-top reveals and their later outcomes use random backs, selected effec
   assert.match(r.reviewCard({...revealed,location:32,position:5},'final',{face:true,name:true}),/随机牌/);
   assert.match(r.reviewCard({...revealed,instance_id:99},'final',{face:true,name:true}),/pics\/52155219/);
   assert.equal(JSON.stringify(plan),before);
+});
+
+test('conditional opening identities follow materials, zones and later cards without hiding another identical copy',()=>{
+  const r=setup(),c={code:10,name:'实例甲',instance_id:1,controller:0,location:2,position:1},exact={...c,instance_id:2};
+  const rule={kind:'condition',version:1,rule:{field:'level',op:'eq',value:3}};
+  const result={code:20,name:'同调结果',instance_id:3,controller:0,location:4,sequence:0,position:1,materials:[c,exact],summon_method:'同调召唤'};
+  const event={id:'2:0',message:63,cards:[result]},action={id:'2:0',kind:'operation',summary:'同调召唤',cards:[result],evidence_refs:['2:0']};
+  const node={id:'step',kind:'step',number:2,action_ids:['2:0'],state:{cards:[{...c,location:16},result]}};
+  const plan={initial_hand:[c,exact],expansion:{conditions:{slots:[rule,10]},actual_opening:[10,10]},catalog:{},events:[event],actions:[action],review:{nodes:[node]}};
+  const before=JSON.stringify(plan);r.reviewUI.report=plan;r.reviewUI.nodes=[node];
+  const opening=r.context.reviewOpeningCards(plan,{id:'initial',kind:'initial'});
+  assert.match(opening,/condition-card.svg/);assert.equal((opening.match(/pics\/10.jpg/g)||[]).length,1);
+  for(const mode of ['compact','detailed']){
+    r.reviewUI.logMode=mode;const html=r.reviewLogAction(action,node);
+    assert.match(html,/condition-origin-card/);assert.match(html,/任意满足 等级 = 3/);
+    assert.equal((html.match(/pics\/10.jpg/g)||[]).length,1);assert.match(html,/pics\/20.jpg/);
+  }
+  assert(!r.reviewCard({...c,location:16},node,{report:plan,name:true}).includes('/pics/10'));
+  assert.match(r.reviewCard(exact,node,{report:plan,name:true}),/pics\/10.jpg/);
+  assert.match(r.reviewCard({...c,instance_id:null},node,{report:plan,name:true}),/pics\/10.jpg/);
+  assert.equal(JSON.stringify(plan),before);
+});
+
+test('a fixed bottom-only effect is not changed into an optional top placement',()=>{
+  const r=setup(),plan=require('./fixtures/random-reveal.cjs')();
+  plan.actions[0].selected_effect_text='将那张卡放回卡组最下面。';
+  assert.equal(r.context.reviewDeckOperation(plan.events[3],plan.events[3].cards,plan),'放回对方卡组最下面');
 });
 
 test('illegal Link defense is flagged instead of drawn as legal defense',()=>{

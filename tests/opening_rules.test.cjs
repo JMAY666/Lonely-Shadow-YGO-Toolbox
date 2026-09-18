@@ -18,7 +18,7 @@ test('condition faces and summaries escape user card names and retain grouping',
   const html=rules.face(r,{1:{name:'<script>unsafe</script>'}});
   assert(!html.includes('<script>'));assert(html.includes(' 或 '));assert(html.includes('排除（'));
   const plan={catalog:{1:{name:'实例'}},expansion:{conditions:{slots:[c],banned:[r]},actual_opening:[1]}};
-  assert.match(rules.summary(plan),/起手（实例）/);assert.match(rules.summary(plan),/其他候选/);
+  assert.match(rules.summary(plan),/具体起手实例保留在原始记录/);assert.match(rules.summary(plan),/其他候选/);
 });
 test('authoritative preview ignores stale replies and invalidates when deck, conditions or catalog changes',async()=>{
   const replies=[],e=setup(body=>new Promise(resolve=>replies.push(resolve)));

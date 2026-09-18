@@ -24,10 +24,10 @@ function tutorialNote(value) {
   return chars.length>150?chars.slice(0,149).join('')+'…':chars.join('');
 }
 function tutorialCard(c,node,plan) {
-  const known=reviewKnown(c)&&!reviewRandomDraw(c,node,plan);
+  const condition=reviewConditionOrigin(c,plan),known=reviewKnown(c)&&!reviewRandomDraw(c,node,plan)&&!condition;
   const fieldPosition=[0,1].includes(c.controller)&&[4,8].includes(c.location)&&Number.isInteger(c.sequence)&&reviewFieldSlots(c).some(s=>s.active)?
     {controller:c.controller,location:c.location,sequence:c.sequence}:null;
-  return {name:reviewCardLabel(c,node,plan),src:known?`/pics/${Number(c.code)}.jpg`:'/review-back.svg',fieldPosition};
+  return {name:reviewCardLabel(c,node,plan),src:condition?'/condition-card.svg':known?`/pics/${Number(c.code)}.jpg`:'/review-back.svg',fieldPosition};
 }
 function tutorialPositionMap(position,x,y) {
   if(!position)return '';
@@ -46,14 +46,14 @@ function tutorialOperationStages(item,node,plan,role='') {
   const dest=event.destination,origin=event.origin;
   const stage=(label,cs=cards,hint='',locations=true)=>({label:role?`${role} · ${label}`:label,role,cards:tutorialFlowCards(cs,node,plan,locations),hint});
   if(event.message===90)return [stage(`抽 ${cards.length} 张卡（随机）`,cards,'',false)];
-  if(event.message===30)return [stage(reviewDeckOperation(event,cards),cards,'',false)];
+  if(event.message===30)return [stage(reviewDeckOperation(event,cards,plan),cards,'',false)];
   const method=cards.find(c=>c.summon_method)?.summon_method||({61:'通常召唤',63:'特殊召唤',65:'反转召唤',54:'盖放'}[event.message]);
   if(method) {
     const materials=cards.flatMap(c=>c.materials||[]);
     return [...(materials.length?[stage('素材',materials)]:[]),stage(method)];
   }
   if(event.message===50&&dest) {
-    const deckOp=reviewDeckOperation(event,cards);
+    const deckOp=reviewDeckOperation(event,cards,plan);
     const operation=deckOp||(dest.location===16?(origin?.location===2&&(event.reason&0x4000)?'丢弃':'送墓'):dest.location===32?((dest.position&10)?'里侧除外':'除外'):dest.location&128?'成为素材':dest.location===2?(origin?.location===1?'检索':'回到手牌'):dest.location===1?'回到卡组':`移至${reviewPlace(dest)}`);
     const changedSide=origin?.controller!=null&&dest.controller!=null&&origin.controller!==dest.controller;
     const places=[origin&&![4,8].includes(origin.location)?reviewPlace(origin):'',
@@ -153,7 +153,7 @@ function buildPlanTutorial(plan,includeBranches=false) {
   return {name:plan.name||plan.expansion?.name||'展开',opening,openingKnown,finalCards,steps,warnings,
     stepLinks:reviewStepLinks(plan,['initial',...steps.map(n=>n.id),'final']),
     finalNote:tutorialNote(plan.requirements?.final?.notes||edits.nodes?.final?.notes),
-    conditionsNote:tutorialNote([conditional?'本次实际起手（实例）：'+(plan.expansion.actual_opening||[]).map(c=>OpeningRules.describe(c,plan.catalog)).join(' · '):'',plan.requirements?.note||edits.conditions_note].filter(Boolean).join('\n')),note:tutorialNote(plan.expansion?.notes)};
+    conditionsNote:tutorialNote([conditional?'条件槽位及同一实例的后续展示使用条件牌；具体实例保留于原始记录用于规则校验。':'',plan.requirements?.note||edits.conditions_note].filter(Boolean).join('\n')),note:tutorialNote(plan.expansion?.notes)};
 }
 
 function layoutTutorialStage(stage,maxWidth) {
