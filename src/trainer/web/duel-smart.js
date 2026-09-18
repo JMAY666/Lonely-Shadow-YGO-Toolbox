@@ -20,6 +20,7 @@ function paintSmartRecognition(run){
   $('#duel-capture-next').hidden=true;$('#duel-capture-smart').hidden=true;$('#duel-capture-retry').hidden=true;
   $('#duel-smart-retry').hidden=value.stage!=='failed'||!['tags','audit'].includes(value.failed_stage);
   $('#duel-smart-restart').hidden=!['failed','invalidated','second','closed'].includes(value.stage);
+  $('#duel-smart-restart').textContent=value.stage==='closed'?'重新捕捉程序':'重新监测';
   const steps=[['waiting','等待对局开始'],['deck','获取本局卡组'],['tags','识别 TAG'],['opening','等待先后攻及起手就绪'],['audit','自动校验']];
   const seen=new Set((value.events||[]).map(e=>e.stage));
   const details=value.construction?`主卡组 ${value.construction.deck.main.length} / 额外 ${value.construction.deck.extra.length} / 副卡组 ${value.construction.deck.side.length}`:'';
@@ -139,7 +140,12 @@ async function retrySmartRecognition(){
   catch(error){if(smartAlive(run)&&run.cycle===cycle){run.value.error=error.message;paintSmartRecognition(run);}}
   finally{if(run.cycle===cycle)run.retrying=false;}
 }
-async function restartSmartRecognition(){await cancelSmartRecognition();await beginSmartRecognition();}
+async function restartSmartRecognition(){
+  const reconnect=smartRun()?.value?.stage==='closed';
+  await cancelSmartRecognition();
+  if(reconnect)await captureDuelProcess();
+  if(duelState().automatic.connection)await beginSmartRecognition();
+}
 function smartOpeningPage(){
   const frame=duelState().automatic.order.frame,s=autoDuelState(),tags=s.deck.tag_selection;
   return `<section class="duel-opening-panel"><h2>本局自动校验结果</h2><p>正式开局 · 我方先攻 · 完整起手已冻结</p><p>主卡组 ${s.deck.deck.main.length} / 额外 ${s.deck.deck.extra.length} / 副卡组 ${s.deck.deck.side.length}</p><p>主 TAG：${escape(tags.primary_ids.map(id=>s.deck.tag_names[id]).join('、')||'无')}；副 TAG：${escape(tags.tag_ids.filter(id=>!tags.primary_ids.includes(id)).map(id=>s.deck.tag_names[id]).join('、')||'无')}</p>${duelOpeningCards(frame)}<p>TAG 采用现有本地系列统计。本局构筑独立保存，不覆盖卡组库。</p>${autoDuelButton('smart-plans','返回方案选择',false,true)}</section>`;
