@@ -218,6 +218,21 @@ class SmartTests(unittest.TestCase):
         self.assertEqual(self.service.jobs[self.body['request_id']]['tag_generation'],generation)
         self.assertEqual(self.service.poll(self.body)['error'],current['error'])
 
+    def test_ygopro2_identity_and_new_start_message_retire_old_context(self):
+        self.source.attached['platform'] = 'ygopro2'
+        self.start(); self.deal(); first = self.wait(lambda v: v['stage'] == 'ready')
+        self.assertEqual(first['platform'], 'ygopro2')
+        self.assertEqual(first['context']['deck']['name'], 'YGOPRO2 本局构筑')
+        self.source.sample['frame']['evidence']['duel_token'] = 'first-start'
+        self.wait(lambda v: v['frame']['evidence'].get('duel_token') == 'first-start')
+        # If the idle boundary was missed, a different MSG_START still retires
+        # the old context. A late first-turn sample cannot recover the old hand.
+        self.source.sample['frame']['evidence']['duel_token'] = 'next-start'
+        value = self.wait(lambda v: v['cycle'] == 1)
+        self.assertIsNone(value['context'])
+        self.assertNotEqual(value['frame']['round_id'], first['frame']['round_id'])
+        with self.assertRaises(ValueError): self.store.automatic_duel.context(first['context']['context_id'])
+
     def test_changed_deck_after_cancel_uses_new_tags_and_snapshot_only(self):
         self.start(); self.deal(); old = self.wait(lambda v: v['stage'] == 'ready')
         self.service.cancel(self.body)

@@ -15,7 +15,7 @@ function paintSmartRecognition(run){
   const value=run.value||{},dialog=$('#duel-capture-dialog');
   $('#duel-capture-title').textContent='智能化识别';
   $('#duel-capture-status').textContent=value.reading_error||value.message||'等待对局开始';
-  $('#duel-capture-help').textContent='在 YGOPro 中正常开始对局。TAG 沿用本地系列识别，起手已提前监测；工具箱只读取游戏数据。';
+  $('#duel-capture-help').textContent=`在 ${duelPlatformLabel()} 中正常开始对局。TAG 沿用本地系列识别，起手已提前监测；工具箱只读取游戏数据。`;
   $('#duel-capture-close').textContent='取消并返回';$('#duel-capture-close').disabled=false;
   $('#duel-capture-next').hidden=true;$('#duel-capture-smart').hidden=true;$('#duel-capture-retry').hidden=true;
   $('#duel-smart-retry').hidden=value.stage!=='failed'||!['tags','audit'].includes(value.failed_stage);
@@ -29,8 +29,8 @@ function paintSmartRecognition(run){
   dialog.dataset.busy='false';
 }
 function resetCaptureDialog(){
-  $('#duel-capture-title').textContent='捕捉 YGOPro 进程';$('#duel-capture-close').textContent='关闭';
-  $('#duel-capture-help').textContent='智能化识别会等待正式开局。逐步识别请先在 YGOPro 主菜单点击「编辑卡组」，打开要识别的卡组并停留在该页面，再点击「获取卡组」。';
+  $('#duel-capture-title').textContent=`捕捉 ${duelPlatformLabel()} 进程`;$('#duel-capture-close').textContent='关闭';
+  $('#duel-capture-help').textContent=duelState().automatic.platform==='ygopro2'?'智能化识别会等待正式开局。请在 YGOPRO2 中正常准备、猜拳并选择先后攻。当前仅开放智能化识别。':'智能化识别会等待正式开局。逐步识别请先在 YGOPro 主菜单点击「编辑卡组」，打开要识别的卡组并停留在该页面，再点击「获取卡组」。';
   $('#duel-capture-retry').hidden=false;$('#duel-smart-retry').hidden=true;$('#duel-smart-restart').hidden=true;
 }
 function releaseSmartWorkspace(){
@@ -58,7 +58,7 @@ async function beginSmartRecognition(){
   const state=duelState(),previous=state.automatic;if(!previous.connection)return;
   stopDuelOrderWatch();
   const run={id:crypto.randomUUID().replaceAll('-',''),previous,navigation:{stage:state.stage,reached:state.reached},cancelled:false,entered:false};
-  const draft=DuelAutomatic.create();draft.connection=previous.connection;draft.platform='ygopro';draft.smartRun=run;
+  const draft=DuelAutomatic.create();draft.connection=previous.connection;draft.platform=previous.platform;draft.smartRun=run;
   state.automatic=draft;paintSmartRecognition(run);
   if(!$('#duel-capture-dialog').open)$('#duel-capture-dialog').showModal();
   try {

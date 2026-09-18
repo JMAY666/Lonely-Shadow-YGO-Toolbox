@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict'),path=require('node:path');
 
 // UI/service-contract simulation. Real YGOPro rounds are a separate user-run check.
-module.exports=async({page,evidence,pass})=>{
+async function check({page,evidence,pass},platform){
   let cycle=0,contextId='synthetic-smart',mode='waiting',requestId='',starts=0,prepares=0,matches=0,holdStart=null,holdPoll=null,calculated=false;
   const cancelled=[],dispatches=[];
   const hand=[55144522,55144522,1184620,1184620,1184620];
@@ -11,7 +11,10 @@ module.exports=async({page,evidence,pass})=>{
   const snapshot=()=>({id:requestId,capture_id:'synthetic',cycle,stage:mode,message:mode==='waiting'?'等待对局开始':mode==='second'?'已识别为后攻，后攻展开暂未支持':mode==='failed'?'自动识别未完成':'自动校验通过',
     events:[{stage:'waiting'},{stage:'deck'},{stage:'tags'},{stage:'opening'},{stage:'audit'}],error:mode==='failed'?'未完整捕捉到本局初始发牌':'',failed_stage:mode==='failed'?'opening':null,
     frame,construction:{deck:deck.deck},tag_result:{tag_names:{},selection:deck.tag_selection},context:mode==='ready'?{context_id:contextId,round_id:frame.round_id,snapshot_id:frame.opening.snapshot_id,deck,hand}:null});
-  await page.route('**/api/ygopro/attach',route=>route.fulfill({json:{connected:true,process:{capture_id:'synthetic',name:'YGOPro.exe',pid:123,path:'synthetic/YGOPro.exe'}}}));
+  await page.route('**/api/ygopro/attach',route=>{
+    assert.equal(route.request().postDataJSON().platform,platform);
+    return route.fulfill({json:{connected:true,process:{capture_id:'synthetic',platform,name:platform+'.exe',pid:123,path:'synthetic/'+platform+'.exe'}}});
+  });
   await page.route('**/api/ygopro/smart/*',async route=>{
     const body=route.request().postDataJSON(),action=route.request().url().split('/').at(-1);
     if(action==='cancel'){cancelled.push(body.request_id);return route.fulfill({json:{stage:'cancelled'}});}
@@ -33,8 +36,9 @@ module.exports=async({page,evidence,pass})=>{
   });
   await page.route('**/api/modular/library',route=>route.fulfill({json:{sources:[{id:'synthetic-source',name:'合成来源',status:'ready'}]}}));
   const begin=async()=>{
-    await page.locator('[data-duel-action="platform-ygopro"]').click();await page.waitForFunction(()=>!!duelState().automatic.connection);
-    assert(await page.locator('#duel-capture-next').isVisible());assert(await page.locator('#duel-capture-smart').isVisible());
+    await page.locator(`[data-duel-action="platform-${platform}"]`).click();await page.waitForFunction(()=>!!duelState().automatic.connection);
+    assert.equal(await page.locator('#duel-capture-next').isVisible(),platform==='ygopro');assert(await page.locator('#duel-capture-smart').isVisible());
+    assert.match(await page.locator('#duel-capture-title').innerText(),new RegExp(platform,'i'));
     await page.locator('#duel-capture-smart').click();
   };
   const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve};};
@@ -58,7 +62,8 @@ module.exports=async({page,evidence,pass})=>{
     assert.deepEqual(await page.evaluate(()=>autoDuelState().hand),hand);
     assert.deepEqual(await page.evaluate(()=>[duelState().hand,duelState().plan.id]),[[123,123],'manual-sentinel']);
     assert(dispatches.every(body=>body.context_id==='synthetic-smart'));
-    await page.screenshot({path:path.join(evidence,'smart-plans-calculating.png')});
+    assert.equal(await page.evaluate(()=>duelState().automatic.platform),platform);
+    await page.screenshot({path:path.join(evidence,platform+'-smart-plans-calculating.png')});
     // A result arriving after selection must never reset selection/progress.
     await page.evaluate(()=>{autoDuelState().plan={id:'chosen-sentinel'};autoDuelState().position={key:'chosen-step',choice:2};});
     calculated=true;await page.waitForFunction(()=>autoDuelState()?.forecast?.data?.result?.complete===true);
@@ -95,10 +100,11 @@ module.exports=async({page,evidence,pass})=>{
     assert.match(await page.locator('#duel-capture-processes').innerText(),/进程连接已失效/);
     assert.equal(await page.locator('#duel-capture-status').textContent(),'启动监测失败');
     await page.locator('#duel-capture-close').click();assert(cancelled.length>=4);
-    pass('Smart recognition simulated UI: cancellation including late start/poll, duplicate entry, automatic next-round monitoring and old-cycle rejection, frozen input, automatic matching/computation, selection preservation, second player and missed deal; no manual confirmation');
+    pass(platform+' smart recognition simulated UI: platform retained, cancellation including late start/poll, duplicate entry, automatic next-round monitoring and old-cycle rejection, frozen input, automatic matching/computation, selection preservation, second player and missed deal; no manual confirmation');
   }finally{
     holdStart?.resolve();holdPoll?.resolve();await page.evaluate(()=>cancelSmartRecognition());
     for(const route of ['**/api/ygopro/attach','**/api/ygopro/smart/*','**/api/automatic-duel/*','**/api/modular/library'])await page.unroute(route);
     await page.evaluate(()=>startNewDuel());
   }
-};
+}
+module.exports=async options=>{for(const platform of ['ygopro','ygopro2'])await check(options,platform);};

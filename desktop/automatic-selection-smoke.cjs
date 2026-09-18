@@ -14,8 +14,13 @@ module.exports=async function({page,application,evidence,pass,existing,live=fals
   try {
     await click('automatic');
     assert.equal(await page.locator('#duel-substeps [aria-current="step"]').getAttribute('data-duel-function-page'),'platform');
-    const grid=await page.locator('.duel-platform-grid').boundingBox(),platform=await page.locator('.duel-platform').boundingBox();
-    assert(Math.abs(platform.width-platform.height)<2);assert(Math.abs(platform.x+platform.width/2-grid.x-grid.width/2)<2);
+    assert.equal(await page.locator('.duel-platform').count(),2);
+    const grid=await page.locator('.duel-platform-grid').boundingBox(),platform=await page.locator('.duel-platform').first().boundingBox(),next=await page.locator('.duel-platform').nth(1).boundingBox();
+    assert(Math.abs(platform.width-platform.height)<2);assert(Math.abs(next.width-platform.width)<2);
+    assert(Math.abs((platform.x+next.x+next.width)/2-grid.x-grid.width/2)<2);
+    assert.match(await page.locator('[data-duel-action="platform-ygopro2"]').innerText(),/YGOPRO2\s+新一代原版游戏/);
+    assert.match(await page.locator('[data-duel-action="platform-ygopro2"]').evaluate(button=>getComputedStyle(button).backgroundImage),/\/brand\/duel-ygopro2\.svg/);
+    await page.screenshot({path:path.join(evidence,'automatic-platforms.png')});
     await click('platform-ygopro');
     await page.waitForFunction(()=>document.querySelector('#duel-capture-dialog').dataset.busy==='false');
     assert(await page.locator('#duel-capture-dialog').isVisible());

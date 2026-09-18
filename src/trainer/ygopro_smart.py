@@ -17,7 +17,7 @@ STAGES = {'waiting': '等待对局开始', 'deck': '获取本局卡组', 'tags':
           'opening': '等待先后攻及起手就绪', 'audit': '自动校验', 'ready': '自动校验通过',
           'second': '已识别为后攻，后攻展开暂未支持', 'failed': '自动识别未完成',
           'cancelled': '已取消监测', 'invalidated': '监测连接已失效',
-          'closed': 'YGOPro 已关闭或连接已切换，智能识别已停止'}
+          'closed': '游戏客户端已关闭或连接已切换，智能识别已停止'}
 
 
 class SmartRecognition:
@@ -40,7 +40,7 @@ class SmartRecognition:
     def public(self, job):
         return deepcopy({key: job.get(key) for key in
             ('id', 'capture_id', 'stage', 'error', 'failed_stage', 'started_ms', 'events', 'frame',
-             'construction', 'tag_result', 'context', 'reading_error', 'cycle', 'note', 'previous_round')}) | {
+             'construction', 'tag_result', 'context', 'reading_error', 'cycle', 'note', 'previous_round', 'platform')}) | {
                  'message': '等待下一场对局开始' if job['stage']=='waiting' and job.get('previous_round') else STAGES[job['stage']]}
 
     def current(self, job):
@@ -62,9 +62,9 @@ class SmartRecognition:
                 if job.get('capture_id') not in (None, capture_id): raise ValueError('请求不属于当前连接。')
                 return self.public(job)
             attached = self.store.ygopro_capture.attached
-            if not attached or capture_id != attached['capture_id']: raise CaptureError('请先连接 YGOPro。')
+            if not attached or capture_id != attached['capture_id']: raise CaptureError('请先连接游戏平台。')
             self.cancel_active()
-            job = {'id': identifier, 'capture_id': capture_id, 'stage': 'waiting', 'error': '',
+            job = {'id': identifier, 'capture_id': capture_id, 'platform': attached.get('platform', 'ygopro'), 'stage': 'waiting', 'error': '',
                    'failed_stage': None, 'started_ms': self.now(), 'events': [], 'frame': None,
                    'construction': None, 'tag_result': None, 'context': None, 'reading_error': '',
                    'stop': threading.Event(), 'touched': time.monotonic(), 'last_sample': time.monotonic(),
@@ -194,6 +194,10 @@ class SmartRecognition:
                 self.reset_round(job, '本局已结束，已关闭本局工作区，自动等待下一场。')
             if raw['phase'] == 'unsupported': job['note'] = '当前模式不支持，保持连接并等待普通对局。'
         previous = job['monitor'].last_live
+        if (job['round_id'] and previous and previous['evidence'].get('duel_token')
+                and raw['evidence'].get('duel_token')
+                and previous['evidence']['duel_token'] != raw['evidence']['duel_token']):
+            self.reset_round(job, '检测到新的开局消息，旧构筑、起手和计算已关闭。')
         if (job['round_id'] and previous and previous['phase']=='detected' and raw['phase'] in ACTIVE
                 and (raw['phase']!='detected' or raw['evidence']['turn'] < previous['evidence']['turn'])):
             self.reset_round(job, '检测到下一场，旧构筑、起手和计算已关闭。')
@@ -278,7 +282,8 @@ class SmartRecognition:
             if tags.get('vocabulary_revision') != digest(self.store.library.all_tags()): raise ValueError('TAG 资料已变化，请重试识别。')
             submitted = self.store.ygopro_capture.submitted_deck(job['capture_id'])
             self.validate_deck(submitted)
-            inputs = self.store.automatic_duel.checked_input({'name': 'YGOPro 本局构筑', 'deck': construction['deck'],
+            label = 'YGOPRO2' if job.get('platform') == 'ygopro2' else 'YGOPro'
+            inputs = self.store.automatic_duel.checked_input({'name': label + ' 本局构筑', 'deck': construction['deck'],
                         'tag_selection': tags['selection']}, submitted, opening['cards'])
             confirmed = {'order': frame['detected_order'], 'source': 'software-audit', 'confirmed_ms': self.now()}
             monitor = job['monitor']; monitor.round['confirmed'] = confirmed

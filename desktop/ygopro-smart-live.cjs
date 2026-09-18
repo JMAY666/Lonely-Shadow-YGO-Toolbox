@@ -4,7 +4,9 @@
 const {_electron:electron}=require('playwright'),fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const workspace=path.resolve(__dirname,'..'),label=process.env.YGO_TEST_RUN;
 assert(label&&/^[a-z0-9-]+$/.test(label),'Set an explicit isolated run label');
-const root=path.join(workspace,'.local','ygopro-smart-live-'+label),evidence=path.join(root,'evidence');
+const platform=process.env.YGO_SMART_PLATFORM||'ygopro';
+assert(['ygopro','ygopro2'].includes(platform),'Unsupported platform');
+const root=path.join(workspace,'.local',platform+'-smart-live-'+label),evidence=path.join(root,'evidence');
 fs.mkdirSync(evidence,{recursive:true});
 let application,page,timer,busy=false,previous='',closed=false;
 const errors=[];
@@ -55,7 +57,7 @@ async function observe(){
     const command=JSON.parse(fs.readFileSync(control,'utf8'));fs.renameSync(control,path.join(evidence,'control-'+Date.now()+'.json'));
     if(command.action==='arm'){
       await page.evaluate(async()=>{await switchModule('duel');await startNewDuel();const s=duelState();s.mode='BO1';s.operationMode='automatic';s.functionPage='platform';s.stage=s.reached=duelStages.function;renderDuel();});
-      await page.locator('[data-duel-action="platform-ygopro"]').click();
+      await page.locator(`[data-duel-action="platform-${platform}"]`).click();
       await page.waitForFunction(()=>document.querySelector('#duel-capture-dialog').dataset.busy==='false');
       if(!await page.evaluate(()=>!!duelState().automatic.connection)){
         const choices=page.locator('#duel-capture-processes [data-capture-pid]');

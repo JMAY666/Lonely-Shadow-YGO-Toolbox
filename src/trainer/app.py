@@ -1003,7 +1003,7 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/decks': return self.send(store.save_deck(body))
                 if path == '/api/ygopro/attach':
                     store.ygopro_smart.cancel_active()
-                    return self.send(store.ygopro_capture.attach(body.get('pid')))
+                    return self.send(store.ygopro_capture.attach(body.get('pid'), body.get('platform', 'ygopro')))
                 if path == '/api/ygopro/smart/start': return self.send(store.ygopro_smart.start(body))
                 if path == '/api/ygopro/smart/poll': return self.send(store.ygopro_smart.poll(body))
                 if path == '/api/ygopro/smart/cancel': return self.send(store.ygopro_smart.cancel(body))
@@ -1128,7 +1128,7 @@ class Handler(BaseHTTPRequestHandler):
                 files.update({f'/{name}': name for name in ('opening-rules.js', 'condition-editor.js', 'condition-cards.css', 'condition-card.svg')})
                 files.update({'/deck-tags.js': 'deck-tags.js', '/deck-tags.css': 'deck-tags.css', '/theme.css': 'theme.css'})
                 files['/scrollbars.css'] = 'scrollbars.css'
-                for art in ('first', 'second', 'bo1', 'bo3', 'manual', 'automatic', 'ygopro'):
+                for art in ('first', 'second', 'bo1', 'bo3', 'manual', 'automatic', 'ygopro', 'ygopro2'):
                     files[f'/brand/duel-{art}.svg'] = f'brand/duel-{art}.svg'
                 for name in ('duel.js', 'duel-smart.js', 'duel-automatic.js', 'duel-order.js', 'duel-opening.js', 'duel-automatic.css', 'duel-forecast.js', 'duel-model.js', 'tutorial-bindings.js', 'duel.css', 'deck-tag-view.js', 'deck-appearance.js', 'superpre.js', 'superpre.css'):
                     files['/' + name] = name

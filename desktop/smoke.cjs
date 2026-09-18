@@ -213,6 +213,7 @@ async function activatePot(sid) {
     await close();assert.deepEqual(errors,[]);fs.writeFileSync(path.join(evidence,'condition-display-result.json'),JSON.stringify({checks,errors},null,2));return;
   }
   if(process.argv.includes('--smart-only')){
+    await require('./platform-branding-smoke.cjs')({page,application,evidence,pass});
     await require('./smart-recognition-smoke.cjs')({page,application,root,evidence,pass});
     await close();assert.deepEqual(errors,[]);fs.writeFileSync(path.join(evidence,'smart-result.json'),JSON.stringify({checks,errors},null,2));return;
   }
@@ -330,6 +331,7 @@ async function activatePot(sid) {
     await require('./deck-tags-smoke.cjs')({page,application,deckId,deck,evidence,pass});
     await require('./modules-smoke.cjs')({page,application,deckId,deck,pass,evidence});
     await require('./duel-smoke.cjs')({page,application,root,evidence,pass});
+    await require('./platform-branding-smoke.cjs')({page,application,evidence,pass});
     await require('./smart-recognition-smoke.cjs')({page,application,root,evidence,pass});
   }
   await page.evaluate(()=>switchModule('expansion'));
