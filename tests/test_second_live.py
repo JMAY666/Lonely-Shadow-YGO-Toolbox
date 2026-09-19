@@ -101,3 +101,24 @@ class SecondLiveTests(unittest.TestCase):
         value=self.api.event({**self.body(),'event_id':uuid.uuid4().hex,'kind':'verify','payload':{
             'turn':2,'turn_player':1,'phase':'main1','lp':[6000,8000],'opponent_hand_count':5,'confirmed':True}})
         self.assertEqual(value['current']['turn_player'],1) # Explicit human confirmation, not parity inference.
+
+    def test_observed_phase_and_turn_player_are_imported_but_do_not_create_a_response_window(self):
+        self.sample.update(phase='main1',turn_player=0,turn_player_basis='observed_new_turn')
+        self.preview();self.doc=self.api.dispatch('live-apply',self.apply_body())
+        self.assertEqual(self.doc['current']['phase'],'main1');self.assertEqual(self.doc['current']['turn_player'],0)
+        self.assertIsNone(self.doc['current']['window']);self.assertFalse(self.doc['capabilities']['engine_reconstruction'])
+        with self.assertRaisesRegex(ValueError,'阶段或回合玩家'):
+            self.api.event({**self.body(),'event_id':uuid.uuid4().hex,'kind':'verify','payload':{
+                'turn':2,'turn_player':1,'phase':'main1','lp':[6000,8000],'opponent_hand_count':5,'confirmed':True}})
+
+    def test_material_parent_mapping_is_snapshot_local_and_dangling_materials_are_rejected(self):
+        self.sample['cards'].extend([
+            {'controller':0,'owner':0,'location':4,'sequence':0,'position':1,'code':1184620},
+            {'controller':0,'owner':1,'location':128,'sequence':0,'position':1,'code':1184620,'material_host':[0,0]}])
+        self.preview();self.doc=self.api.dispatch('live-apply',self.apply_body())
+        host=next(c for c in self.doc['current']['cards'] if c['location']==4)
+        material=next(c for c in self.doc['current']['cards'] if c['location']==128)
+        self.assertEqual(material['host_id'],host['id']);self.assertNotIn('material_host',material)
+        self.sample['cards'][-1]['material_host']=[1,5];self.preview();before=deepcopy(self.api.load(self.doc['id']))
+        with self.assertRaisesRegex(ValueError,'承载关系'):self.api.dispatch('live-apply',self.apply_body())
+        self.assertEqual(self.api.load(self.doc['id']),before)

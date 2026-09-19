@@ -6,12 +6,39 @@ instances, deck order, or causes of movement are inferred from these snapshots.
 import struct
 
 from ygopro_capture import CaptureError, read_order
+from ygopro_context import read_phase
 
 
-LAYOUT = 'ygopro-55dd3e8e-public-resources-v1'
+LAYOUT = 'ygopro-55dd3e8e-public-resources-v2'
 ZONES = (1, 2, 4, 8, 16, 32, 64)
-MISSING = ['当前阶段与回合玩家', '完整连锁及合法响应窗口', '素材与指示物', '效果次数、持续限制与召唤权限',
+MISSING = ['完整连锁、战斗细分时点及合法响应窗口', '指示物', '效果次数、持续限制与召唤权限',
            '两次采样之间的公开事件、费用及移动原因', '卡池与禁限表认证']
+
+
+def read_materials(read, pointer, host, profile, seen):
+    start, end, capacity = struct.unpack('<3Q', read(pointer + profile['overlay_vector'], 24))
+    if start == end == capacity == 0: return []
+    if not (0x10000 <= start <= end <= capacity < 0x7fffffffffff and start % 8 == end % 8 == capacity % 8 == 0
+            and end - start <= 120 * 8 and capacity - start <= 8192):
+        raise CaptureError('素材容器未稳定或超出范围。')
+    result = []
+    for sequence, (material,) in enumerate(struct.iter_unpack('<Q', read(start, end - start))):
+        if material < 0x10000 or material % 8 or material in seen:
+            raise CaptureError('素材重复或与其他区域冲突。')
+        seen.add(material)
+        owner, controller, location, slot = read(material + profile['client_controller'] - 1, 4)
+        parent = struct.unpack('<Q', read(material + profile['overlay_target'], 8))[0]
+        if owner not in (0, 1) or controller not in (0, 1) or location != 128 or slot != sequence or parent != pointer:
+            raise CaptureError('素材归属正在变化，等待承载关系一致。')
+        code = None
+        if host['controller'] == 0 or host['position'] & 5:
+            code = struct.unpack('<I', read(material + profile['client_code'], 4))[0]
+            if code > 0x0fffffff: raise CaptureError('素材身份无效。')
+            code = code or None
+        result.append({'controller': host['controller'], 'owner': owner, 'location': 128,
+                       'sequence': sequence, 'position': 1 if code else 8, 'code': code,
+                       'material_host': [host['controller'], host['sequence']]})
+    return result
 
 
 def read_snapshot(memory, base, profile):
@@ -26,13 +53,17 @@ def read_snapshot(memory, base, profile):
     game = struct.unpack('<Q', read(base + profile['game'], 8))[0]
     if read(game + profile['building'], 2) != b'\0\0':
         raise CaptureError('编辑或换副期间不能读取本局资源。')
+    restricted = read(game + profile['cant_check_grave'], 1)[0]
+    if restricted not in (0, 1): raise CaptureError('客户端信息可见性状态无效。')
+    if restricted: raise CaptureError('客户端当前限制查看墓地，暂停资源详情读取；请等待限制解除')
+    phase = read_phase(read, game, profile)
     # Adjacent fields in the pinned client sources: DuelInfo.lp follows its
     # twelve bools; ClientCard owner/controller/location/sequence/position are
     # five consecutive bytes. Existing probes anchor duel_info, code and d1.
     lp = list(struct.unpack('<2i', read(game + profile['duel_info'] + 12, 8)))
     if any(v < 0 or v > 2**31 - 1 for v in lp):
         raise CaptureError('生命值暂不完整，等待结算稳定。')
-    counts, cards, seen = [dict(), dict()], [], set()
+    counts, cards, seen = [{'128': 0}, {'128': 0}], [], set()
     for zone_index, location in enumerate(ZONES):
         for player in (0, 1):
             header = read(game + profile['field_vectors'] + 24 * (2 * zone_index + player), 24)
@@ -48,14 +79,16 @@ def read_snapshot(memory, base, profile):
             counts[player][str(location)] = sum(p != 0 for p in pointers)
             if location not in (4, 8) and any(p == 0 for p in pointers):
                 raise CaptureError('非场上区域出现空指针，等待区域完整。')
+            occupied = [p for p in pointers if p]
+            if (len(set(occupied)) != len(occupied)
+                    or any(not 0x10000 <= p < 0x7fffffffffff or p % 8 or p in seen for p in occupied)):
+                raise CaptureError('卡牌对象重复或同时出现在多个区域，未发布重复计数。')
+            seen.update(occupied)
             # Neither deck is inspected, nor is the opponent's hand dereferenced.
             if location == 1 or player == 1 and location == 2:
                 continue
             for sequence, pointer in enumerate(pointers):
                 if not pointer and location in (4, 8): continue
-                if pointer < 0x10000 or pointer % 8 or pointer in seen:
-                    raise CaptureError('卡牌指针重复或区域正在移动。')
-                seen.add(pointer)
                 owner, controller, actual_location, actual_sequence, position = read(pointer + profile['client_controller'] - 1, 5)
                 if owner not in (0, 1) or controller != player or actual_location != location or actual_sequence != sequence:
                     raise CaptureError('卡牌位置与所属区域不一致，等待下一次快照。')
@@ -70,10 +103,15 @@ def read_snapshot(memory, base, profile):
                 # Unknown extra-deck cards stay aggregate counts, never a private
                 # order. Sequence is only a snapshot location, not an instance id.
                 if player == 1 and location == 64 and not public: continue
-                cards.append({'controller': player, 'owner': owner, 'location': location,
-                              'sequence': sequence, 'position': position, 'code': code})
+                card = {'controller': player, 'owner': owner, 'location': location,
+                        'sequence': sequence, 'position': position, 'code': code}
+                cards.append(card)
+                if location == 4:
+                    materials = read_materials(read, pointer, card, profile, seen)
+                    cards.extend(materials); counts[player]['128'] += len(materials)
     if any(memory.read(a, len(b)) != b for a, b in guards) or read_order(memory, base, profile) != before:
         raise CaptureError('读取期间局面变化，未发布混合快照。')
     return {'layout': LAYOUT, 'game': f'{game:x}', 'turn': before['evidence']['turn'],
             'order': before['detected_order'], 'lp': lp, 'counts': counts, 'cards': cards,
-            'missing': MISSING, 'phase': None, 'rules_complete': False}
+            'missing': [*MISSING, *(['当前阶段：控件未提供可确认的文字'] if phase is None else [])],
+            'phase': phase, 'phase_basis': 'client_phase_label' if phase else 'unknown', 'rules_complete': False}

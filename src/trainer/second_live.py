@@ -50,7 +50,7 @@ class SecondLive:
     def panel(self, doc):
         preview = self.previews.get(doc['id'])
         value = {'supported': doc['input']['platform'] == 'ygopro' and bool(doc['input'].get('connection')),
-                 'missing': ['阶段、素材、完整连锁、次数及持续限制尚未接入', '采样不能还原中间发生的所有动作'],
+                 'missing': ['完整连锁、响应窗口、次数及持续限制尚未接入', '采样不能还原中间发生的所有动作'],
                  'history_count': len(doc.get('live_history', []))}
         if preview:
             value['preview'] = {k: deepcopy(preview[k]) for k in ('id', 'snapshot', 'created_ms', 'revision')}
@@ -131,14 +131,22 @@ class SecondLive:
                 if code in self.owner.store.catalog.cards:
                     doc['catalog'].setdefault(str(code), deepcopy(self.owner.store.catalog.cards[code]))
             old = deepcopy(doc['current'])
+            hosts = {(c['controller'], c['sequence']): c['id'] for c in cards if c['location'] == 4}
+            for card in cards:
+                if card['location'] == 128:
+                    host = hosts.get(tuple(card.pop('material_host', [])))
+                    if not host: raise ValueError('素材承载关系不完整，未采用此次快照')
+                    card['host_id'] = host
             # Shared historical use records are retained conservatively; no used
             # effect is refunded by a resource snapshot. Unmapped instance scopes
             # and unobserved materials are not claimed to be restored.
             current = deepcopy(old)
-            current.update(cards=cards, turn=sample['turn'], turn_player=None,
-                phase='unknown', lp=sample['lp'], opponent_hand_count=sample['counts'][1]['2'],
+            current.update(cards=cards, turn=sample['turn'], turn_player=sample.get('turn_player'),
+                phase=sample.get('phase') or 'unknown', lp=sample['lp'], opponent_hand_count=sample['counts'][1]['2'],
                 zone_counts=sample['counts'], window=None, resource_roles={},
-                stale_reason='已核对公开资源；阶段、素材、实例次数和持续限制仍待核对，不能据此重建规则')
+                live_context={'phase': sample.get('phase'), 'turn_player': sample.get('turn_player'),
+                              'turn_player_basis': sample.get('turn_player_basis', 'unknown')},
+                stale_reason='已核对公开资源；未读取的时点、完整连锁、实例次数和持续限制仍待核对，不能据此重建规则')
             current.pop('hint_window', None)
             current.pop('native_rules', None)
             for row in current.get('effect_counts', {}).values():
@@ -164,6 +172,9 @@ class SecondLive:
             raise ValueError('已接入公开资源读取；实际卡牌变化请重新读取并核对，避免重复扣牌或猜测中间动作')
         if kind == 'verify' and any(payload.get(k) != doc['current'][k] for k in ('turn','lp','opponent_hand_count')):
             raise ValueError('核对值与已读取资源不同；请重新读取，不能静默覆盖识别字段')
+        context = doc['current'].get('live_context', {})
+        if kind == 'verify' and any(context.get(k) is not None and payload.get(k) != context[k] for k in ('phase', 'turn_player')):
+            raise ValueError('阶段或回合玩家与已读取依据不同，请重新读取，不能用人工选择覆盖')
         if kind in ('verify', 'window', 'hint_window'):
             self.check_current(doc)
             error = self.status(doc)

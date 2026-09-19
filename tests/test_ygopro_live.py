@@ -14,6 +14,13 @@ class Memory(OrderMemory):
         super().__init__(started=1,in_duel=1,first=0,turn=2,lobby=0)
         struct.pack_into('<2i',self.memory[self.game+PROFILE['duel_info']],12,6000,8000)
         self.memory[self.game+PROFILE['building']]=b'\0\0'
+        self.memory[self.game+PROFILE['cant_check_grave']]=b'\0'
+        gui=0x3800000;text=0x3900000
+        self.memory[self.game+PROFILE['phase_button']]=struct.pack('<Q',gui)
+        self.memory[gui+PROFILE['gui_id']]=struct.pack('<i',268)
+        self.memory[gui+PROFILE['gui_visible']]=b'\1'
+        self.memory[gui+PROFILE['gui_text']]=struct.pack('<QII',text,3,3)
+        self.memory[text]='Ｍ１\0'.encode('utf-16-le')
         self.private=set();self.pointers={}
         for zi,location in enumerate((1,2,4,8,16,32,64)):
             for player in (0,1):
@@ -24,6 +31,7 @@ class Memory(OrderMemory):
                 position=1 if location==4 else 5 if location==16 else 10
                 self.memory[pointer+PROFILE['client_controller']-1]=bytes([player,player,location,0,position])
                 self.memory[pointer+PROFILE['client_code']]=struct.pack('<I',1184620+slot)
+                if location==4:self.memory[pointer+PROFILE['overlay_vector']]=bytes(24)
                 if location==1 or player==1 and location in (2,8,32,64):self.private.add(pointer+PROFILE['client_code'])
         self.reads=[]
 
@@ -39,7 +47,7 @@ class LiveResourceTests(unittest.TestCase):
     def test_private_codes_are_not_read_and_combined_positions_are_valid(self):
         m=Memory();v=read_snapshot(m,m.base,PROFILE)
         self.assertEqual(v['lp'],[6000,8000]);self.assertEqual(v['turn'],2)
-        self.assertFalse(v['rules_complete']);self.assertIsNone(v['phase'])
+        self.assertFalse(v['rules_complete']);self.assertEqual(v['phase'],'main1')
         self.assertFalse(any(c['location']==1 or c['controller']==1 and c['location'] in (2,64) for c in v['cards']))
         hidden=[c for c in v['cards'] if c['controller']==1 and c['location'] in (8,32)]
         self.assertTrue(all(c['code'] is None for c in hidden));self.assertEqual(len(hidden),2)
@@ -90,3 +98,48 @@ class LiveResourceTests(unittest.TestCase):
         reader.kernel=SimpleNamespace(CreateToolhelp32Snapshot=Call(lambda *a:1),Module32FirstW=Call(first),
             Module32NextW=Call(lambda *a:False),CloseHandle=Call(lambda h:closed.append(h)))
         self.assertEqual(reader.image_base(123),0x140000000);self.assertEqual(closed,[1])
+
+    def test_materials_follow_the_host_not_a_stale_controller_and_reject_orphans(self):
+        m=Memory();host=m.pointers[0,4];material=0x7000000;vector=0x7100000
+        m.memory[host+PROFILE['overlay_vector']]=struct.pack('<3Q',vector,vector+8,vector+8)
+        m.memory[vector]=struct.pack('<Q',material)
+        m.memory[material+PROFILE['client_controller']-1]=bytes([1,1,128,0])
+        m.memory[material+PROFILE['overlay_target']]=struct.pack('<Q',host)
+        m.memory[material+PROFILE['client_code']]=struct.pack('<I',1184620)
+        v=read_snapshot(m,m.base,PROFILE);row=next(c for c in v['cards'] if c['location']==128)
+        self.assertEqual((row['controller'],row['owner'],row['material_host']),(0,1,[0,0]))
+        self.assertEqual(v['counts'][0]['128'],1)
+        m.memory[material+PROFILE['overlay_target']]=struct.pack('<Q',host+8)
+        with self.assertRaisesRegex(CaptureError,'归属'):read_snapshot(m,m.base,PROFILE)
+
+    def test_unknown_opponent_host_never_exposes_its_material_codes(self):
+        m=Memory();host=m.pointers[1,4];material=0x7000000;vector=0x7100000
+        m.memory[host+PROFILE['client_controller']-1]=bytes([1,1,4,0,8]);m.private.add(host+PROFILE['client_code'])
+        m.memory[host+PROFILE['overlay_vector']]=struct.pack('<3Q',vector,vector+8,vector+8)
+        m.memory[vector]=struct.pack('<Q',material)
+        m.memory[material+PROFILE['client_controller']-1]=bytes([1,1,128,0])
+        m.memory[material+PROFILE['overlay_target']]=struct.pack('<Q',host)
+        m.private.add(material+PROFILE['client_code'])
+        v=read_snapshot(m,m.base,PROFILE)
+        self.assertIsNone(next(c for c in v['cards'] if c['location']==128)['code'])
+
+    def test_hidden_or_unknown_phase_caption_grants_no_phase_and_wrong_widget_is_rejected(self):
+        m=Memory();gui=0x3800000;text=0x3900000
+        m.memory[gui+PROFILE['gui_visible']]=b'\0'
+        self.assertIsNone(read_snapshot(m,m.base,PROFILE)['phase'])
+        m.memory[gui+PROFILE['gui_visible']]=b'\1';m.memory[text]='？\0\0'.encode('utf-16-le')
+        self.assertIsNone(read_snapshot(m,m.base,PROFILE)['phase'])
+        m.memory[gui+PROFILE['gui_id']]=struct.pack('<i',269)
+        with self.assertRaisesRegex(CaptureError,'控件身份'):read_snapshot(m,m.base,PROFILE)
+        m.memory[gui+PROFILE['gui_id']]=struct.pack('<i',268)
+        m.memory[gui+PROFILE['gui_text']]=struct.pack('<QII',text,9999,200);m.private.add(text)
+        with self.assertRaisesRegex(CaptureError,'边界'):read_snapshot(m,m.base,PROFILE)
+
+    def test_same_object_in_hidden_deck_and_visible_hand_cannot_be_counted_twice(self):
+        m=Memory();m.memory[0x4000000]=struct.pack('<Q',m.pointers[0,2])
+        with self.assertRaisesRegex(CaptureError,'多个区域'):read_snapshot(m,m.base,PROFILE)
+
+    def test_visibility_restriction_stops_before_reading_card_identities(self):
+        m=Memory();m.memory[m.game+PROFILE['cant_check_grave']]=b'\1'
+        m.private.update(m.pointers[k]+PROFILE['client_code'] for k in m.pointers)
+        with self.assertRaisesRegex(CaptureError,'限制查看墓地'):read_snapshot(m,m.base,PROFILE)

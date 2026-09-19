@@ -78,7 +78,8 @@ async function retireSecondDuel(workspace){
 
 function secondCardView(doc,c){
   const name=secondName(doc,c.code),selected=secondUI.selectedCard===c.id;
-  const position=[4,8].includes(c.location)?`${c.sequence==null?'位置待核对':`第 ${c.sequence+1} 格`} · ${{1:'表侧',4:'守备',8:'里侧'}[c.position]||'表示待核对'}`:c.location===128?'素材':'';
+  const host=c.location===128?doc.current.cards.find(row=>row.id===(c.host_id||c.parent_id)):null;
+  const position=[4,8].includes(c.location)?`${c.sequence==null?'位置待核对':`第 ${c.sequence+1} 格`} · ${{1:'表侧',4:'守备',8:'里侧'}[c.position]||'表示待核对'}`:c.location===128?`素材 · ${host?secondName(doc,host.code):'归属待核对'}`:'';
   return `<button type="button" class="second-card ${selected?'selected':''}" data-second-card="${escape(c.id)}" aria-pressed="${selected}"><img src="${c.code?'/pics/'+c.code+'.jpg':'/review-back.svg'}" alt=""><span>${escape(name)}</span>${position?`<small>${escape(position)}</small>`:''}</button>`;
 }
 function secondCardOptions(doc,cards){return cards.map(c=>[c.id,`${c.controller?'对手':'我方'} · ${SecondDuelModel.zones[c.location]} · ${secondName(doc,c.code)}`]);}
