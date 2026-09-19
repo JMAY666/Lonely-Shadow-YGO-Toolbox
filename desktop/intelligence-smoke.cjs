@@ -60,7 +60,7 @@ module.exports=async({page,application,root,evidence,pass})=>{
   await action('add');await pick(14558127);assert.equal(await field('note').inputValue(),'手坑用途');await save();
   assert.equal(await page.evaluate(()=>Object.keys(intelUI.data.handtraps).length),1);
   assert.equal((await page.evaluate(()=>api('/api/tag-members/purpose%3Ahandtrap'))).cards.length,1);
-  await page.locator('#intel-filter-kind').selectOption('spell');assert.match(await page.locator('#intel-list').textContent(),/没有匹配/);
+  await page.locator('.intel-filter-more summary').click();await page.locator('#intel-filter-kind').selectOption('spell');assert.match(await page.locator('#intel-list').textContent(),/没有匹配/);
   await page.locator('[data-intel-clear="intel-filter"]').click();await page.locator('#intel-filter-tag').selectOption('purpose:handtrap');await page.locator('#intel-filter-q').fill('14558127');assert.equal(await page.locator('[data-intel-edit="14558127"]').count(),1);
   await page.locator('[data-intel-clear="intel-filter"]').click();await page.locator('#intel-folder').selectOption(folder);await action('folder-remove');await page.locator('#flow-confirm').click();await page.waitForFunction(()=>!intelUI.busy&&!Object.keys(intelUI.data.folders).length);
   await page.locator('#intel-folder').selectOption('ungrouped');await page.locator('[data-intel-edit="14558127"]').click();assert.equal(await field('note').inputValue(),'手坑用途');await action('cancel');

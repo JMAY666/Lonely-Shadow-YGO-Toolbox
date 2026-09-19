@@ -5,7 +5,7 @@ const intelCopy=value=>structuredClone(value);
 const intelNotes=value=>value?.notes??(value?.note?[{text:value.note,source_refs:[]}]:[]);
 const intelNotesText=value=>intelNotes(value).map(n=>n.text.trim()).filter(Boolean).join('\n\n');
 function intelNoteSource(row,annotation){return [...new Set((row.source_refs||[]).map(ref=>{const s=(annotation.sources||[]).find(s=>`${s.key}@${s.fingerprint}`===ref);return s?`${s.plan_name} · ${s.branch_id?'分支':'主线'}`:'保留的来源';}))].join(' / ')||'手动标注';}
-function intelCardSummary(item){if(intelUI.tab!=='endboards')return `<p>${escape(item.note||'尚未填写用途')}</p>`;const count=[item,...Object.values(item.effects),...item.unmatched_effects||[]].reduce((sum,v)=>sum+intelNotes(v).filter(n=>n.text.trim()).length,0);return `<p>${escape(item.note||`已标注 ${Object.keys(item.effects).length} 个效果`)}</p><small>${count} 条备注 · ${item.sources?.length||0} 个来源${item.unmatched_effects?.length?` · ${item.unmatched_effects.length} 个效果待核对`:''}</small>`;}
+function intelCardSummary(item){if(intelUI.tab!=='endboards')return `<span class="intel-list-summary">${escape(item.note||'尚未填写用途')}</span>`;const count=[item,...Object.values(item.effects),...item.unmatched_effects||[]].reduce((sum,v)=>sum+intelNotes(v).filter(n=>n.text.trim()).length,0);return `<span class="intel-list-summary">${escape(item.note||`已标注 ${Object.keys(item.effects).length} 个效果`)}</span><small>${count} 条备注 · ${item.sources?.length||0} 个来源${item.unmatched_effects?.length?` · ${item.unmatched_effects.length} 个效果待核对`:''}</small>`;}
 function intelEnsureNotes(annotation){for(const value of [annotation,...Object.values(annotation.effects||{}),...(annotation.unmatched_effects||[])]){value.notes=intelCopy(intelNotes(value));if(!value.notes.length)value.notes=[{text:'',source_refs:[]}];}annotation.unmatched_effects||=[];}
 function intelSyncNotes(annotation){for(const value of [annotation,...Object.values(annotation.effects||{}),...(annotation.unmatched_effects||[])])value.note=intelNotesText(value);}
 function intelCombineNotes(a,b){const rows=[];for(const item of [...a,...b]){const text=item.text.trim();if(!text)continue;let found=rows.find(n=>n.text===text);if(!found){found={text,source_refs:[]};rows.push(found);}found.source_refs=[...new Set([...found.source_refs,...item.source_refs||[]])];}return rows;}
@@ -17,12 +17,19 @@ function intelStatus(message,error=false){const el=$('#intel-status');el.textCon
 function intelDirty(){intelUI.dirty=true;intelStatus('有未保存的修改，切换模块后仍可回来继续。');}
 async function intelDiscard(){return !intelUI.dirty||await confirmFlow('放弃当前情报站的未保存内容？','已保存的卡牌标注与断点资料保持不变。','放弃修改');}
 function intelTagOptions(value=''){return `<option value="">全部 TAG</option>`+(intelUI.data?.tags||[]).map(t=>`<option value="${escape(t.id)}" ${t.id===value?'selected':''}>${escape(t.name)}${t.kind==='purpose'?' · 用途':''}</option>`).join('');}
-function intelFilters(prefix){return `<div class="intel-filters" id="${prefix}-filters"><input id="${prefix}-q" aria-label="搜索卡名或卡号" placeholder="卡名／卡号"><select id="${prefix}-tag" aria-label="TAG 筛选">${intelTagOptions()}</select>${['kind','attribute','race','level'].map(key=>`<select id="${prefix}-${key}" aria-label="${{kind:'卡牌类型',attribute:'属性',race:'种族',level:'等级／阶级／LINK'}[key]}">${$(key==='kind'?'#filter':'#filter-'+key).innerHTML}</select>`).join('')}<button type="button" data-intel-clear="${prefix}">清空筛选</button></div>`;}
+function intelFilters(prefix,{records=false}={}){
+  const fields=records?'':['kind','attribute','race','level'].map(key=>`<label class="intel-filter">${{kind:'卡牌类型',attribute:'属性',race:'种族',level:'等级／阶级／LINK'}[key]}<select id="${prefix}-${key}" aria-label="${{kind:'卡牌类型',attribute:'属性',race:'种族',level:'等级／阶级／LINK'}[key]}">${$(key==='kind'?'#filter':'#filter-'+key).innerHTML}</select></label>`).join('');
+  const advanced=prefix==='intel-filter'&&!records?`<details class="intel-filter-more"><summary>卡牌筛选<span id="intel-filter-active"></span></summary><div class="intel-filter-grid">${fields}</div></details>`:fields;
+  return `<div class="intel-filters" id="${prefix}-filters"><label class="intel-filter intel-filter-search">${records?'搜索断点':'搜索卡牌'}<input type="search" id="${prefix}-q" aria-label="${records?'搜索断点':'搜索卡名或卡号'}" placeholder="${records?'标题、主题、TAG、卡名／卡号':'卡名／卡号'}"></label><label class="intel-filter intel-filter-tag">TAG<select id="${prefix}-tag" aria-label="TAG 筛选">${intelTagOptions()}</select></label>${advanced}<button type="button" class="intel-filter-reset" data-intel-clear="${prefix}">清空筛选</button></div>`;
+}
 function intelFilterValues(prefix){return Object.fromEntries(['q','tag','kind','attribute','race','level'].map(k=>[k,$(`#${prefix}-${k}`)?.value||'']));}
 function intelMatchesCard(code,f){const c=intelCard(code),q=tagSearchKey(f.q);return (!q||tagSearchKey(c.name).includes(q)||String(code).includes(q))&&(!f.tag||intelUI.data.card_tags?.[code]?.includes(f.tag))&&(!f.kind||({monster:c.type&1,spell:c.type&2,trap:c.type&4,extra:c.extra})[f.kind])&&(!f.attribute||c.attribute===Number(f.attribute))&&(!f.race||c.race===Number(f.race))&&(f.level===''||!!(c.type&1)&&(c.level&255)===Number(f.level));}
 function intelShell(){
-  $('#intelligence').innerHTML=`<header class="intel-heading"><div><div class="eyebrow">PERSONAL KNOWLEDGE</div><h1>情报站</h1><p>管理可复用的卡牌标注，记录对手操作与对应的应对方式。</p></div><button id="intel-refresh">刷新资料</button></header><nav class="intel-tabs" aria-label="情报站分类">${Object.entries(intelNames).map(([key,name])=>`<button data-intel-tab="${key}" aria-pressed="${intelUI.tab===key}">${key==='records'?'':'卡牌标注 · '}${name}</button>`).join('')}</nav><p id="intel-status" class="intel-status" role="status"></p><div id="intel-controls"></div><section id="intel-picker" class="intel-picker" hidden></section><section id="intel-sources" class="intel-sources" hidden></section><div class="intel-layout"><section id="intel-list" class="intel-list" aria-label="资料列表"></section><section id="intel-editor" class="intel-editor" aria-label="资料编辑"></section></div>`;
-  intelControls();intelList();intelEditor();
+  $('#intelligence').innerHTML=`<header class="intel-heading"><div><div class="eyebrow">PERSONAL KNOWLEDGE</div><h1>情报站</h1></div><button id="intel-refresh">刷新资料</button></header><div class="intel-topbar"><nav class="intel-tabs" aria-label="情报站分类">${Object.entries(intelNames).map(([key,name])=>`<button data-intel-tab="${key}" aria-pressed="${intelUI.tab===key}"><span>${name}</span><small data-intel-count="${key}">0</small></button>`).join('')}</nav><div id="intel-actions" class="intel-actions"></div></div><p id="intel-status" class="intel-status" role="status"></p><section id="intel-picker" class="intel-picker" aria-label="选择卡牌" hidden></section><section id="intel-sources" class="intel-sources" aria-label="方案标记来源" hidden></section><div class="intel-layout"><aside class="intel-library" aria-label="资料检索"><div id="intel-controls"></div><section id="intel-list" class="intel-list" aria-label="资料列表"></section></aside><section id="intel-editor" class="intel-editor" aria-label="资料编辑"></section></div>`;
+  intelControls();intelList();
+  const first=$('#intel-list [data-intel-edit]')?.dataset.intelEdit;
+  if(first&&!intelUI.draft){intelUI.kind=intelUI.tab;intelUI.draft=intelCopy(intelUI.data[intelUI.tab][first]);}
+  intelEditor();
 }
 async function enterIntelligence(){
   if(intelUI.dirty){intelStatus('当前未保存内容已保留。其他入口如有更新，保存时会提示核对。');return;}
@@ -33,24 +40,28 @@ async function enterIntelligence(){
 function intelControls(){
   const d=intelUI.data;if(!d)return;
   const hand=intelUI.tab==='handtraps',records=intelUI.tab==='records';
-  $('#intel-controls').innerHTML=`<div class="intel-toolbar"><div>${hand?`<select id="intel-folder" aria-label="手坑文件夹"><option value="">全部手坑</option><option value="ungrouped">未分组</option>${Object.values(d.folders).map(f=>`<option value="${escape(f.id)}">${escape(f.name)}</option>`).join('')}</select> <button data-intel-action="folder-new">新建文件夹</button> <button data-intel-action="folder-edit">重命名</button> <button data-intel-action="folder-remove">删除文件夹</button>`:records?`<select id="intel-topic" aria-label="断点主题"><option value="">全部主题</option>${Object.values(d.topics).map(t=>`<option value="${escape(t.id)}">${escape(t.name)}</option>`).join('')}</select> <button data-intel-action="topic-new">新建主题</button> <button data-intel-action="topic-edit">编辑主题</button>`:`<span class="intel-help">通用用途由你维护；应用到方案后可单独调整。</span>`}</div><div>${!hand&&!records?'<button data-intel-action="sources">汇总方案标记</button> ':''}<button class="primary" data-intel-action="add">${records?'新增断点':'添加卡牌'}</button></div></div>${records?`<div class="intel-filters" id="intel-filter-filters"><input id="intel-filter-q" aria-label="搜索断点" placeholder="标题、主题、TAG、卡名／卡号"><select id="intel-filter-tag" aria-label="TAG 筛选">${intelTagOptions()}</select><button data-intel-clear="intel-filter">清空筛选</button></div>`:intelFilters('intel-filter')}`;
+  for(const key of Object.keys(intelNames))$(`[data-intel-count="${key}"]`).textContent=Object.keys(d[key]).length;
+  $('#intel-actions').innerHTML=`${!hand&&!records?'<button data-intel-action="sources">汇总方案标记</button>':''}<button class="primary" data-intel-action="add">${records?'新增断点':'添加卡牌'}</button>`;
+  $('#intel-controls').innerHTML=`${hand?`<div class="intel-group"><select id="intel-folder" aria-label="手坑文件夹"><option value="">全部手坑</option><option value="ungrouped">未分组</option>${Object.values(d.folders).map(f=>`<option value="${escape(f.id)}">${escape(f.name)}</option>`).join('')}</select><div class="intel-group-actions"><button data-intel-action="folder-new">新建文件夹</button><button data-intel-action="folder-edit">重命名</button><button data-intel-action="folder-remove">删除文件夹</button></div></div>`:records?`<div class="intel-group"><select id="intel-topic" aria-label="断点主题"><option value="">全部主题</option>${Object.values(d.topics).map(t=>`<option value="${escape(t.id)}">${escape(t.name)}</option>`).join('')}</select><div class="intel-group-actions"><button data-intel-action="topic-new">新建主题</button><button data-intel-action="topic-edit">编辑主题</button></div></div>`:''}${intelFilters('intel-filter',{records})}`;
 }
 function intelList(){
   if(!intelUI.data)return;
   const d=intelUI.data,f=intelFilterValues('intel-filter'),records=intelUI.tab==='records';
+  const active=Object.entries(f).filter(([key,value])=>!['q','tag'].includes(key)&&value).length;
+  if($('#intel-filter-active'))$('#intel-filter-active').textContent=active?` · ${active} 项已选`:'';
   let entries=Object.values(d[intelUI.tab]);
   if(records){const topic=$('#intel-topic').value,q=tagSearchKey(f.q);entries=entries.filter(r=>{const t=d.topics[r.topic_id],codes=r.steps.flatMap(s=>[s.opponent,...s.responses.flatMap(o=>o.cards)]).filter(Boolean),tagIds=[...(t?.tag_ids||[]),...codes.flatMap(c=>d.card_tags?.[c]||[])];return (!topic||r.topic_id===topic)&&(!f.tag||tagIds.includes(f.tag))&&(!q||[r.title,t?.name,...tagIds.map(id=>d.tags.find(t=>t.id===id)?.name),...codes.flatMap(code=>[String(code),intelCard(code).name])].some(s=>tagSearchKey(s).includes(q)));});}
   else {entries=entries.filter(item=>intelMatchesCard(item.code,f));if(intelUI.tab==='handtraps'){const folder=$('#intel-folder').value;entries=entries.filter(item=>!folder||(folder==='ungrouped'?!item.folder_id:item.folder_id===folder));}}
-  $('#intel-list').innerHTML=`<p>${entries.length} ${records?'条记录':'张卡牌'}</p>`+entries.map(item=>records?`<article class="intel-source"><strong>${escape(item.title)}</strong><p>${escape(d.topics[item.topic_id]?.name||'缺失主题')} · ${item.steps.length} 个步骤</p>${intelBadge(item.status)}<p><button data-intel-edit="${escape(item.id)}">查看与编辑</button></p></article>`:`<article class="intel-list-row">${tagCatalogueCard(intelCard(item.code))}<div><strong>${escape(intelCard(item.code).name)}</strong><small>${item.code}</small>${intelCard(item.code).missing?intelBadge('卡库缺失，资料保留'):''}${intelCardSummary(item)}${(d.card_tags?.[item.code]||[]).map(id=>intelBadge(d.tags.find(t=>t.id===id)?.name||id)).join('')}<div><button data-intel-edit="${item.code}">编辑标注</button></div></div></article>`).join('')+(entries.length?'':'<p>没有匹配的资料。可以清空筛选或添加新资料。</p>');
-  pruneReviewCards();
+  $('#intel-list').innerHTML=`<header class="intel-list-heading"><h2>${records?'断点记录':'卡牌资料'}</h2><small>${entries.length} / ${Object.keys(d[intelUI.tab]).length} ${records?'条记录':'张卡牌'}</small></header>`+entries.map(item=>records?`<article class="intel-list-row intel-record-row"><button class="intel-list-select" data-intel-edit="${escape(item.id)}"><strong>${escape(item.title)}</strong><span class="intel-list-summary">${escape(d.topics[item.topic_id]?.name||'缺失主题')} · ${item.steps.length} 个步骤</span>${intelBadge(item.status)}</button></article>`:`<article class="intel-list-row">${tagCatalogueCard(intelCard(item.code))}<button class="intel-list-select" data-intel-edit="${item.code}" aria-label="编辑标注：${escape(intelCard(item.code).name)}"><strong>${escape(intelCard(item.code).name)}</strong><small>${item.code}</small>${intelCard(item.code).missing?intelBadge('卡库缺失，资料保留'):''}${intelCardSummary(item)}<span class="intel-list-tags">${(d.card_tags?.[item.code]||[]).map(id=>intelBadge(d.tags.find(t=>t.id===id)?.name||id)).join('')}</span></button></article>`).join('')+(entries.length?'':'<p class="intel-list-empty">没有匹配的资料</p>');
+  intelHighlight();pruneReviewCards();
 }
+function intelHighlight(){const key=intelUI.kind===intelUI.tab?String(intelUI.draft?.id??intelUI.draft?.code??''):'';document.querySelectorAll('#intel-list [data-intel-edit]').forEach(button=>{const selected=button.dataset.intelEdit===key;button.setAttribute('aria-pressed',String(selected));button.closest('.intel-list-row').classList.toggle('is-selected',selected);});}
 const intelField=(label,path,value,{area=false,max=4000}={})=>`<label class="intel-field">${escape(label)}${area?`<textarea data-intel-field="${path}" maxlength="${max}" rows="2">${escape(value||'')}</textarea>`:`<input data-intel-field="${path}" maxlength="${max}" value="${escape(value||'')}">`}</label>`;
 function intelTopicOptions(selected){return Object.values(intelUI.data.topics).map(t=>`<option value="${t.id}" ${selected===t.id?'selected':''}>${escape(t.name)}</option>`).join('');}
 function intelRef(code,remove){return `<div>${tagCatalogueCard(intelCard(code))}${intelCard(code).missing?intelBadge('卡库缺失'):''}${remove?`<button data-intel-ref-remove="${remove}">移除引用</button>`:''}</div>`;}
 function intelEndboardEditor(draft,c){
   const effects=reviewEffectParts(draft.desc);
-  return `<p>统一维护此卡的通用用途与效果；不同备注可并列保留，加入通用库不会增加路线评分或阻抗次数。</p>
-    <label class="intel-label"><input type="checkbox" data-intel-field="candidate" ${draft.candidate?'checked':''}> 作为终场候选卡牌</label>
+  return `<label class="intel-label"><input type="checkbox" data-intel-field="candidate" ${draft.candidate?'checked':''}> 作为终场候选卡牌</label>
     ${intelNotesEditor('卡牌通用用途',draft,'notes',draft)}<h3>关注的效果</h3>
     ${!c.missing&&draft.desc!==c.desc?'<p class="intel-error">保存的效果文本与当前卡库不同，应用前需要核对。</p><button data-intel-action="reset-effects">采用当前文本，保留旧备注待核对</button>':''}
     ${effects.map(p=>`<div class="effect-mark"><label><input type="checkbox" data-intel-effect="${p.key}" ${draft.effects[p.key]?'checked':''}><span>${escape(p.text)}</span></label>${draft.effects[p.key]?intelNotesEditor(`${p.label}效果的用途或阻抗备注`,draft.effects[p.key],`effects.${p.key}.notes`,draft):''}</div>`).join('')}
@@ -59,15 +70,19 @@ function intelEndboardEditor(draft,c){
 }
 function intelEditor(){
   const draft=intelUI.draft,kind=intelUI.kind,d=intelUI.data;
-  if(!draft||!d){$('#intel-editor').innerHTML='<h2>选择一份资料</h2><p>从左侧选择标注或断点，也可以添加新资料。</p>';return;}
+  const scrollTop=$('#intel-editor .intel-editor-body')?.scrollTop||0;
+  intelHighlight();
+  if(!draft||!d){$('#intel-editor').innerHTML='<div class="intel-empty"><img src="/app-icon.svg" alt=""><h2>尚未选择资料</h2></div>';delete $('#intel-editor').dataset.entry;return;}
+  const entry=`${kind}:${draft.id??draft.code??'new'}`,sameEntry=$('#intel-editor').dataset.entry===entry;
+  $('#intel-editor').dataset.entry=entry;
   let html='';
   if(kind==='endboards')intelEnsureNotes(draft);
   if(kind==='endboards'||kind==='handtraps'){
     const c=intelCard(draft.code);
-    html=`<div class="intel-editor-heading"><h2>${escape(c.name)}</h2><small>${draft.code}</small></div><div class="intel-card-refs">${intelRef(draft.code)}</div>`;
+    html=`<header class="intel-card-heading"><div class="intel-card-refs">${intelRef(draft.code)}</div><div class="intel-card-identity"><span class="intel-kicker">${intelNames[kind]}</span><h2>${escape(c.name)}</h2><small>${draft.code}</small><div class="intel-list-tags">${(d.card_tags?.[draft.code]||[]).map(id=>intelBadge(d.tags.find(t=>t.id===id)?.name||id)).join('')}</div></div></header>`;
     if(c.missing)html+='<p>卡库暂时缺少这张卡；已保存的编号、备注和效果文本仍保留。</p>';
     if(kind==='endboards')html+=intelEndboardEditor(draft,c);
-    else html+=`<p>此卡已由你确认为手坑用途。专用 TAG 与其他 TAG 可以同时保留。</p>${intelField('用途说明','note',draft.note,{area:true})}${intelField('使用条件','condition',draft.condition,{area:true})}<label class="intel-field">文件夹<select data-intel-field="folder_id"><option value="">未分组</option>${Object.values(d.folders).map(f=>`<option value="${f.id}" ${f.id===draft.folder_id?'selected':''}>${escape(f.name)}</option>`).join('')}</select></label>`;
+    else html+=`${intelField('用途说明','note',draft.note,{area:true})}${intelField('使用条件','condition',draft.condition,{area:true})}<label class="intel-field">文件夹<select data-intel-field="folder_id"><option value="">未分组</option>${Object.values(d.folders).map(f=>`<option value="${f.id}" ${f.id===draft.folder_id?'selected':''}>${escape(f.name)}</option>`).join('')}</select></label>`;
   }else if(kind==='folder')html=`<h2>${draft.id?'重命名文件夹':'新建文件夹'}</h2>${intelField('文件夹名称','name',draft.name,{max:80})}<p>文件夹为单层分类，移动或删除文件夹会保留卡牌标注。</p>`;
   else if(kind==='topic'){
     html=`<h2>${draft.id?'编辑主题':'新建主题'}</h2>${intelField('主题名称','name',draft.name,{max:80})}<label class="intel-field">关联已有卡组（可选）<select data-intel-field="deck_id"><option value="">不绑定卡组</option>${draft.deck_id&&!intelUI.decks.some(deck=>deck.id===draft.deck_id)?`<option selected value="${escape(draft.deck_id)}">原卡组暂不可用（保留引用）</option>`:''}${intelUI.decks.map(deck=>`<option value="${escape(deck.id)}" ${draft.deck_id===deck.id?'selected':''}>${escape(deck.name)}</option>`).join('')}</select></label><label class="intel-field">关联 TAG（可多选）<select multiple size="6" data-intel-field="tag_ids">${d.tags.map(t=>`<option value="${escape(t.id)}" ${draft.tag_ids.includes(t.id)?'selected':''}>${escape(t.name)}</option>`).join('')}</select></label>${intelField('主题说明','note',draft.note,{area:true})}`;
@@ -75,7 +90,8 @@ function intelEditor(){
     const topic=d.topics[draft.topic_id];
     html=`<div class="intel-topic-head"><h2>${escape(topic?.name||'选择适用主题')}</h2>${(topic?.tag_ids||[]).map(id=>intelBadge(d.tags.find(t=>t.id===id)?.name||id)).join('')}<p>${escape(topic?.note||'')} ${topic?.deck_id?`· 关联卡组：${escape(intelUI.decks.find(deck=>deck.id===topic.deck_id)?.name||'原卡组暂不可用')}`:''}</p></div><p>${intelBadge(draft.status||'待补充')} 手动策略资料，尚未经规则引擎验证。每步的应对选项分别选择；多卡配合请标为组合。</p>${intelField('记录标题','title',draft.title,{max:120})}<label class="intel-field">适用主题<select data-intel-field="topic_id">${intelTopicOptions(draft.topic_id)}</select></label>${draft.steps.map((step,i)=>intelStep(step,i)).join('')}<button data-intel-action="step-add">＋ 添加断点步骤</button>${intelField('记录补充备注','note',draft.note,{area:true})}`;
   }
-  $('#intel-editor').innerHTML=html+`<div class="intel-editor-actions"><button class="primary" data-intel-action="save">保存${kind==='folder'?'文件夹':kind==='topic'?'主题':'资料'}</button><button data-intel-action="cancel">取消编辑</button>${(draft.id||d[kind]?.[draft.code])?`<button class="danger" data-intel-action="remove">${kind==='handtraps'?'移除手坑标记':kind==='endboards'?'移除通用标注':'删除'}</button>`:''}</div>`;
+  $('#intel-editor').innerHTML=`<div class="intel-editor-body">${html}</div><div class="intel-editor-actions"><button class="primary" data-intel-action="save">保存${kind==='folder'?'文件夹':kind==='topic'?'主题':'资料'}</button><button data-intel-action="cancel">取消编辑</button>${kind!=='folder'&&(draft.id||d[kind]?.[draft.code])?`<button class="danger" data-intel-action="remove">${kind==='handtraps'?'移除手坑标记':kind==='endboards'?'移除通用标注':'删除'}</button>`:''}</div>`;
+  if(sameEntry)$('#intel-editor .intel-editor-body').scrollTop=scrollTop;
   if(kind==='endboards')document.querySelectorAll('#intel-editor details .intel-source').forEach((el,i)=>el.insertAdjacentHTML('beforeend',`<button data-intel-source-plan="${escape(draft.sources[i].plan_id)}">打开来源方案</button>`));
   if(kind==='handtraps'&&draft.folder_id&&!d.folders[draft.folder_id]){
     const select=$('#intel-editor [data-intel-field="folder_id"]');select.insertAdjacentHTML('afterbegin',`<option value="${escape(draft.folder_id)}">原文件夹已被删除，请重新选择</option>`);select.value=draft.folder_id;
@@ -100,6 +116,7 @@ async function intelWrite(op,value,{keep=false}={}){
 function intelClosePicker(){intelUI.picker=null;intelUI.pickerSerial++;clearTimeout(intelUI.pickerTimer);if($('#intel-picker'))$('#intel-picker').hidden=true;}
 function intelOpenPicker(callback,{main=false,shortcut=false}={}){
   closeReviewDetail();intelUI.picker={callback,main,shortcut,cards:[],total:0};
+  $('#intel-sources').hidden=true;
   $('#intel-picker').hidden=false;$('#intel-picker').innerHTML=`<header class="intel-editor-heading"><h2>${main?'从完整主卡组卡库选择手坑':'选择卡牌'}</h2><button data-intel-action="picker-close">关闭选卡</button></header>${shortcut?'<label>选择范围 <select id="intel-picker-scope"><option value="handtraps">手坑库快捷选择</option><option value="all">完整卡库</option></select></label>':''}<p>${main?'由你确认这张卡从手牌干扰的用途；不按怪兽类型自动推断。':'选择断点应对卡牌不会自动加入手坑库。'}</p>${intelFilters('intel-pick')}<p id="intel-picker-status" role="status"></p><div id="intel-picker-cards" class="tag-card-grid"></div><button data-intel-action="picker-more" id="intel-picker-more" hidden>加载更多</button>`;
   void intelSearchPicker();$('#intel-picker').scrollIntoView({block:'start'});
 }
@@ -110,9 +127,11 @@ async function intelSearchPicker(more=false){
   finally{if(serial===intelUI.pickerSerial)$('#intel-picker-more').disabled=false;}
 }
 async function intelShowSources(){
-  $('#intel-sources').hidden=false;$('#intel-sources').innerHTML='<p>正在读取已有方案和分支的终场标记…</p>';
+  intelClosePicker();
+  const fallback='<header class="intel-editor-heading"><h2>方案标记来源</h2><button data-intel-action="sources-close">返回资料</button></header>';
+  $('#intel-sources').hidden=false;$('#intel-sources').innerHTML=fallback+'<p>正在读取已有方案和分支的终场标记…</p>';
   try{const result=await api('/api/intelligence/sources');intelUI.sources=result;$('#intel-sources').innerHTML=`<header class="intel-editor-heading"><h2>已有方案 · 统一合并标注</h2><div><button class="primary" data-intel-action="merge-all" ${result.groups.length?'':'disabled'}>全部合并到通用库</button> <button data-intel-action="sources-close">收起</button></div></header><p>同一卡牌统一成一份通用标注，效果取并集，相同备注去重，不同备注并列保留。每条备注可查看来源；历史方案保持原样。</p>${result.warnings.map(w=>`<p class="intel-error">${escape(w)}</p>`).join('')}${result.groups.map(g=>`<section class="intel-source-group"><header class="intel-editor-heading"><strong>${escape(g.card.name)} · ${g.code} · ${g.sources.length} 个来源</strong><button data-intel-merge-card="${g.code}">合并此卡全部标注</button></header><details><summary>查看来源与原始备注</summary>${g.sources.map(s=>`<article class="intel-source"><strong>${escape(s.plan_name)} · ${s.branch_id?'分支':'主线'} · 实例 ${escape(s.instance_id)} · ${escape(zoneNames[s.location]||s.location)}</strong><p>${escape(s.annotation.note||'无卡牌备注')}</p>${Object.entries(s.annotation.effects).map(([key,v])=>`<p>${escape(reviewEffectParts(s.annotation.desc).find(p=>p.key===key)?.text||'原效果 '+key)}<br>用途：${escape(v.note||'未填')}</p>`).join('')}<button data-intel-import="${escape(s.key)}">仅合并此来源</button></article>`).join('')}</details></section>`).join('')||'<p>没有已保存的终场标记。</p>'}`;}
-  catch(e){$('#intel-sources').innerHTML=`<p class="intel-error">读取来源失败：${escape(e.message)}</p>`;}
+  catch(e){$('#intel-sources').innerHTML=fallback+`<p class="intel-error">读取来源失败：${escape(e.message)}</p>`;}
 }
 async function intelMergeSources(sources){
   if(!sources.length||!await intelDiscard())return;
@@ -138,7 +157,7 @@ async function intelAction(action){
     const saved=latest[kind==='folder'?'folders':kind==='topic'?'topics':kind]?.[draft?.id||draft?.code];
     // Keep both versions visible before accepting an overwrite. Nothing is saved here.
     intelUI.conflict={latest};
-    $('#intel-conflict')?.remove();$('#intel-editor').insertAdjacentHTML('afterbegin',`<section id="intel-conflict" class="intel-source"><h3>其他入口已保存的新版</h3>${intelConflictHtml(saved,kind,latest)}<p>下方仍是你的未保存输入。核对后，点击继续编辑，再自行决定是否保存覆盖。</p><button data-intel-action="accept-latest">已核对，保留我的输入继续编辑</button></section>`);
+    $('#intel-conflict')?.remove();$('#intel-editor .intel-editor-body').insertAdjacentHTML('afterbegin',`<section id="intel-conflict" class="intel-source"><h3>其他入口已保存的新版</h3>${intelConflictHtml(saved,kind,latest)}<p>下方仍是你的未保存输入。核对后，点击继续编辑，再自行决定是否保存覆盖。</p><button data-intel-action="accept-latest">已核对，保留我的输入继续编辑</button></section>`);$('#intel-editor .intel-editor-body').scrollTop=0;
     intelStatus('已读取新版，尚未覆盖任何资料。');return;
   }
   if(action==='accept-latest'){

@@ -204,6 +204,10 @@ async function activatePot(sid) {
 (async () => {
   await launch(true);
   if(onlyIntelligence){
+    if(process.argv.includes('--layout-only')){
+      await require('./intelligence-layout-smoke.cjs')({page,application,evidence,pass});
+      await close();assert.deepEqual(errors,[]);fs.writeFileSync(path.join(evidence,'layout-result.json'),JSON.stringify({checks,errors,globalInput:false},null,2));return;
+    }
     if(process.argv.includes('--merge-only')){
       await require('./intelligence-merge-smoke.cjs')({page,application,root,evidence,pass});
       const before=await page.evaluate(()=>api('/api/intelligence'));
