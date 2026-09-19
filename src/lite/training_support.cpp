@@ -104,6 +104,11 @@ bool TrainingTestControlled() {
     char enabled[4]{};
     return GetEnvironmentVariableA("YGO_TRAIN_TEST_CONTROL", enabled, sizeof enabled) && enabled[0] == '1';
 }
+bool TrainingLearningControlled() {
+    char enabled[8]{};
+    return TrainingTestControlled() && GetEnvironmentVariableA("YGO_TRAIN_LEARNING", enabled, sizeof enabled)
+        && enabled[0] == '1';
+}
 static void TrainingTestInput() {
     if(!TrainingTestControlled()) return;
     std::ifstream command(TrainingPath("test-command.txt"));

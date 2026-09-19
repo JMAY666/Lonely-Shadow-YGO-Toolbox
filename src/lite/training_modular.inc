@@ -52,10 +52,25 @@ static std::string modularState(intptr_t engine) {
     return out.str();
 }
 static void modularPublish(intptr_t engine) {
+    std::string learning;
+    if(learningEnabled() && !pendingAnswered) {
+        try {
+            std::vector<unsigned char> buffer(65536);
+            const auto began = std::chrono::steady_clock::now();
+            const int length = record(engine, {CoreCall::LearningSnapshot}, buffer.data(), &buffer);
+            const std::string value(buffer.begin(), buffer.begin() + length);
+            const auto micros = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - began).count();
+            learning = ",\"learning\":" + value + ",\"learning_query_us\":" + std::to_string(micros);
+            TrainingWrite("\"kind\":\"learning_snapshot\",\"node\":" + std::to_string(cursor)
+                + ",\"version\":" + std::to_string(promptVersion) + ",\"value\":" + value);
+        } catch(const std::exception& error) {
+            learning = ",\"learning\":{\"schema\":2,\"available\":false,\"error\":\"" + std::string(error.what()) + "\"}";
+        }
+    }
     atomicFile("modular-state.json", "{\"version\":" + std::to_string(promptVersion)
         + ",\"revision\":" + std::to_string(revision) + ",\"node\":" + std::to_string(cursor)
         + ",\"player\":" + std::to_string(pendingPlayer) + ",\"answered\":" + (pendingAnswered ? "true" : "false")
-        + ",\"raw\":\"" + encode(pendingPrompt) + "\",\"effects\":" + TrainingDecisionEffects(engine) + ",\"state\":" + modularState(engine) + '}');
+        + ",\"raw\":\"" + encode(pendingPrompt) + "\",\"effects\":" + TrainingDecisionEffects(engine) + ",\"state\":" + modularState(engine) + learning + '}');
 }
 static bool modularTick(intptr_t engine) {
     std::ifstream request(TrainingPath("modular.request"));
@@ -247,6 +262,12 @@ static bool modularTick(intptr_t engine) {
         bool firstPrivate = true;
         for(const auto id : probeCore.modular_private_cards) { if(!firstPrivate) out << ','; firstPrivate = false; out << id; }
         out << "]}";
+        if(learningEnabled()) {
+            auto text = out.str(); text.pop_back();
+            out.str(""); out.clear();
+            out << text << ",\"learning\":" << learningSnapshot(candidate)
+                << ",\"boundary_raw\":\"" << encode(boundaryBytes) << "\"}";
+        }
         modularCache = {candidate, expected, scenario, path, batches, boundaryBytes, ended, observationKey.str()};
         candidate = 0; restoring = false;
         atomicFile("modular-result.json", out.str());

@@ -1,8 +1,8 @@
-# 游戏王学生模型 GPU 环境验证
+# 游戏王学生训练与规则引擎闭环验证
 
-本目录是独立训练环境及小样本验收，不参与正式桌面打包。目标是确认游戏王决策网络可以在本机 AMD GPU 上执行前向、反向、优化器更新、恢复及 CPU 导出。这里训练的是新建的小型动作排序学生，**没有继续训练或转换旧 `0546_26550M.tflite` 权重**。
+本目录包含独立训练环境、小样本验收和 P0B/P1 规则引擎实验，不参与正式桌面打包。游戏王决策网络在本机 AMD GPU 上训练，导出后由独立 CPU 进程返回动作。这里训练的是新建的小型动作排序学生，**没有继续训练或转换旧 `0546_26550M.tflite` 权重**。
 
-整体实验范围及后续教师/学生对照见[验证计划 v2](../../docs/ai-learning-feasibility-plan.md)。计划已将 P0A 环境与训练工具链标为完成，默认采用 GPU 训练、CPU 单条部署；下一执行包从引擎吞吐、观察/动作契约和学生连续执行开始，不重复以这 78 个样本证明策略能力。
+整体实验范围及后续教师/学生对照见[验证计划](../../docs/ai-learning-feasibility-plan.md)，新的字段定义与拒绝边界见[观察/动作契约 v2](../../docs/ai-learning-contract-v2.md)。下文先保留 P0A 的 78 样本原始结果，再介绍 P1 独立实现；二者不能合并为策略评测。
 
 ## 独立环境
 
@@ -92,4 +92,39 @@ powershell -NoProfile -File experiments/ygo_learning/setup.ps1
 
 虚拟环境、数据、权重、CPU 导出和 JSON 报告均位于 `.local/ygo-learning/`，沿用现有忽略规则。每次运行创建单独的 `student-smoke-*` 目录，保存源码副本和哈希，以便核对被测试的版本。旧 POC 模型、证据和正式用户数据保持原样。
 
-本次不新增应用按钮、不向实际对局发送动作，也不把这个小样本学生当作已训练好的通用游戏王 AI。后续仍需补齐动态局面、正式数据划分、教师质量和未见局面的策略评测。
+上述 P0A 探针没有新增应用按钮或进行实际对局评测。动态局面与连续执行由下述 P1 单独验收；正式数据划分、教师质量和未见局面的策略评测仍属于后续阶段。
+
+## P0B/P1：独立执行器和数据契约
+
+`desktop_p1.cjs` 创建隐藏的 Electron 验收实例，通过内部训练接口运行真实核心。它使用 `.local/ygo-learning/p0b-p1/`，要求测试控制与学习模式同时启用，保留有意义的连锁窗口；没有全局键鼠输入，也不操作正式用户对局。
+
+| 文件 | 职责 |
+| --- | --- |
+| `contract_v2.py` | 玩家可见的动态状态、容量校验、完整响应候选、模型特征 |
+| `native_session.py` / `confirmed_history.py` | 同一窗口的租约提交、精确回执、后继状态与已执行历史恢复 |
+| `mechanisms.py` | 12 类各 5 个真实机制案例，以及 5 场受控相剑开发示范 |
+| `export_v2.py` / `train_v2.py` | 只从确认过的开发示范生成训练数据；GPU 训练、恢复与 CPU 导出 |
+| `policy_client.py` / `policy_worker.py` | 有时限的独立 CPU 进程、版本/形状校验和失败停止 |
+| `development.py` | 50 个新起手自行执行，30 个共同窗口的延迟对照，独立记录循环、正常结束与不支持 |
+| `journal_audit.py` / `report_p1.py` | 对照原始日志、确认没有跳过有意义的我方选择，核对完整重放与成本 |
+| `throughput_compare.py` | 两个隔离引擎的吞吐对照；保留隐藏窗口的渲染开销 |
+| `budget.py` / `provenance.py` | 已知进程的内存/磁盘/时间边界、原生规则文件与代码版本绑定 |
+
+从仓库根目录运行以下步骤。引擎需先按项目构建说明编译并执行 `python scripts/prepare_desktop.py`；训练环境继续复用上文已验证的版本。命令中的目录占位符替换为该步骤打印的实际输出，禁止使用正式用户数据。
+
+```powershell
+node experiments/ygo_learning/desktop_p1.cjs --suite=mechanisms
+node experiments/ygo_learning/desktop_p1.cjs --suite=demonstrations
+.local/ygo-agent-pilot/.venv/Scripts/python.exe -X utf8 experiments/ygo_learning/export_v2.py "<机制目录>" "<示范目录>"
+.local/ygo-learning/.venv/Scripts/python.exe -X utf8 experiments/ygo_learning/train_v2.py "<数据目录>/data.npz"
+.local/ygo-learning/.venv/Scripts/python.exe -X utf8 experiments/ygo_learning/verify_worker_v2.py "<模型目录>" "<数据目录>/data.npz"
+node experiments/ygo_learning/desktop_p1.cjs --suite=development --count=50 --model="<模型目录>"
+.local/ygo-agent-pilot/.venv/Scripts/python.exe -X utf8 experiments/ygo_learning/throughput_compare.py
+.local/ygo-learning/.venv/Scripts/python.exe -X utf8 -m unittest discover -s experiments/ygo_learning -p 'test_*v2.py' -v
+```
+
+修复某个机制断言后可通过 `--groups`、`--first-variant` 和 `--variants` 只运行受影响的部分。汇总验收仍要求 60 个互不重复且断言通过的案例，并保留原失败尝试；不能以部分通过的目录声称全套成功。
+
+新学生为 1,466,609 参数，本轮开发数据含 423 个多选决策。RX 9070 XT 完成 400 次全批更新约 6.76 秒，训练内已观察标签集合命中率约 98.35%；CPU/GPU 梯度、优化器恢复、导出动作一致性和新的 CPU 进程检查通过。训练样本来自受控机制和开发示范，标签不表示最优策略；实际连续执行和时间预算以[本轮验收记录](../../docs/ai-learning-p0b-p1-results.md)为准。
+
+模型包拒绝旧契约、变化的代码/规则文件和损坏的部署文件。类型计数器、溢出求和、无法唯一定位的实例或容量溢出等首轮边界明确停止。学生的循环停止不计为完成回合，结束回合请求也必须等到真实回合变更后才计为完成。当前没有 T0/T1 教师生成的正式数据、未见局面策略增益或自动更新/产品接入的验证结论。

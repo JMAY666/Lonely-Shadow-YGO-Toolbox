@@ -242,6 +242,10 @@ def main():
 
     t = read("gframe/duelclient.cpp")
     t = replace(t, '#include "duelclient.h"', '#include "duelclient.h"\n#include "lite_support.h"\n#include "training_support.h"')
+    t = replace(t, 'if(!select_trigger && !mainGame->dField.chain_forced &&',
+                'if(!(TrainingLearningControlled() && count > 0) && !select_trigger && !mainGame->dField.chain_forced &&')
+    t = replace(t, 'if(mainGame->chkAutoChain->isChecked() && mainGame->dField.chain_forced &&',
+                'if(!TrainingLearningControlled() && mainGame->chkAutoChain->isChecked() && mainGame->dField.chain_forced &&')
     t = t.replace('mainGame->btnLeaveGame->setText(dataManager.GetSysString(1351))', 'mainGame->btnLeaveGame->setText(TrainingActive() ? L"展开结束" : dataManager.GetSysString(1351))')
     signature='bool DuelClient::StartClient(unsigned int ip, unsigned short port, bool create_game) {'
     t=replace(t,signature,signature+'''

@@ -23,7 +23,7 @@
 
 namespace ygo {
 struct CoreCall {
-    enum Kind { Process, Response, Integer, Start, FieldInfo, FieldCards, Card, Auto, Scene } kind;
+    enum Kind { Process, Response, Integer, Start, FieldInfo, FieldCards, Card, Auto, Scene, LearningSnapshot } kind;
     uint64_t serial = 0;
     int result = 0;
     uint8_t player = 0, location = 0, sequence = 0;
@@ -59,6 +59,8 @@ static bool opponentManual = false;
 static uint64_t promptVersion = 0;
 static std::string lastControlToken;
 static std::vector<unsigned char> pendingPrompt;
+
+#include "training_learning.inc"
 
 static std::string encode(const std::vector<unsigned char>& bytes) {
     std::ostringstream out;
@@ -169,6 +171,14 @@ static int execute(intptr_t engine, CoreCall& call, unsigned char* buffer, std::
     case CoreCall::FieldInfo: return query_field_info(engine, buffer);
     case CoreCall::FieldCards: return query_field_card(engine, call.player, call.location, call.flags, buffer, call.cache);
     case CoreCall::Card: return query_card(engine, call.player, call.location, call.sequence, call.flags, buffer, call.cache);
+    case CoreCall::LearningSnapshot: {
+        if(!learningEnabled()) throw std::runtime_error("learning_query_disabled");
+        const auto value = learningSnapshot(engine);
+        if(!storage || value.size() > 2 * 1024 * 1024) throw std::runtime_error("learning_query_size");
+        if(storage->size() < value.size()) storage->resize(value.size());
+        std::memcpy(storage->data(), value.data(), value.size());
+        return static_cast<int>(value.size());
+    }
     case CoreCall::Scene: {
         if(call.bytes.size() % 4 || call.bytes.size() > 240) throw std::runtime_error("invalid_scene");
         std::multiset<uint32_t> wanted;
@@ -390,7 +400,7 @@ bool TrainingResumeBranch(intptr_t& engine, std::vector<unsigned char>& prompt) 
         CoreCall call{}; int kind, player, location, sequence;
         while(tape >> call.serial >> kind >> call.result >> player >> location >> sequence >> call.flags >> call.cache >> encoded) {
             if(!needed.count(call.serial)) continue;
-            if(kind < 0 || kind > CoreCall::Scene) throw std::runtime_error("invalid_replay");
+            if(kind < 0 || kind > CoreCall::LearningSnapshot) throw std::runtime_error("invalid_replay");
             call.kind = static_cast<CoreCall::Kind>(kind); call.player = player; call.location = location; call.sequence = sequence;
             call.bytes = decode(encoded);
             if(source.count(call.serial) || player < 0 || player > 1 || location < 0 || location > 255 || sequence < 0 || sequence > 255

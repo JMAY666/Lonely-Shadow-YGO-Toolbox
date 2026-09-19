@@ -180,6 +180,24 @@
  	unsigned char* pbuf = msg;
  	wchar_t textBuffer[256]{};
  	mainGame->dInfo.curMsg = BufferIO::Read<uint8_t>(pbuf);
+@@ -1830,7 +1788,7 @@
+ 					panelmode = true;
+ 			}
+ 		}
+-		if(!select_trigger && !mainGame->dField.chain_forced && (mainGame->ignore_chain || ((count == 0 || specount == 0) && !mainGame->always_chain)) && (count == 0 || !mainGame->chain_when_avail)) {
++		if(!(TrainingLearningControlled() && count > 0) && !select_trigger && !mainGame->dField.chain_forced && (mainGame->ignore_chain || ((count == 0 || specount == 0) && !mainGame->always_chain)) && (count == 0 || !mainGame->chain_when_avail)) {
+ 			SetResponseI(-1);
+ 			mainGame->dField.ClearChainSelect();
+ 			if(mainGame->chkWaitChain->isChecked() && !mainGame->ignore_chain) {
+@@ -1839,7 +1797,7 @@
+ 			DuelClient::SendResponse();
+ 			return true;
+ 		}
+-		if(mainGame->chkAutoChain->isChecked() && mainGame->dField.chain_forced && !(mainGame->always_chain || mainGame->chain_when_avail)) {
++		if(!TrainingLearningControlled() && mainGame->chkAutoChain->isChecked() && mainGame->dField.chain_forced && !(mainGame->always_chain || mainGame->chain_when_avail)) {
+ 			for(size_t i = 0; i < mainGame->dField.activatable_descs.size();++i) {
+ 				auto it = mainGame->dField.activatable_descs[i];
+ 				if(it.second >> 8) {
 @@ -2554,7 +2512,7 @@
  		if(!mainGame->dInfo.isReplay && mainGame->dInfo.player_type < 7) {
  			mainGame->dField.tag_surrender = false;
@@ -2444,7 +2462,7 @@
  	static void SinglePlayThread();
 --- a/gframe/training_history.cpp
 +++ b/gframe/training_history.cpp
-@@ -0,0 +1,565 @@
+@@ -0,0 +1,575 @@
 +// Reconstruct a second, independent Lua/core instance before changing the live duel.
 +// Record every core call made by the adapter, including queries that can evaluate Lua.
 +#include "training_support.h"
@@ -2470,7 +2488,7 @@
 +
 +namespace ygo {
 +struct CoreCall {
-+    enum Kind { Process, Response, Integer, Start, FieldInfo, FieldCards, Card, Auto, Scene } kind;
++    enum Kind { Process, Response, Integer, Start, FieldInfo, FieldCards, Card, Auto, Scene, LearningSnapshot } kind;
 +    uint64_t serial = 0;
 +    int result = 0;
 +    uint8_t player = 0, location = 0, sequence = 0;
@@ -2506,6 +2524,8 @@
 +static uint64_t promptVersion = 0;
 +static std::string lastControlToken;
 +static std::vector<unsigned char> pendingPrompt;
++
++#include "training_learning.inc"
 +
 +static std::string encode(const std::vector<unsigned char>& bytes) {
 +    std::ostringstream out;
@@ -2616,6 +2636,14 @@
 +    case CoreCall::FieldInfo: return query_field_info(engine, buffer);
 +    case CoreCall::FieldCards: return query_field_card(engine, call.player, call.location, call.flags, buffer, call.cache);
 +    case CoreCall::Card: return query_card(engine, call.player, call.location, call.sequence, call.flags, buffer, call.cache);
++    case CoreCall::LearningSnapshot: {
++        if(!learningEnabled()) throw std::runtime_error("learning_query_disabled");
++        const auto value = learningSnapshot(engine);
++        if(!storage || value.size() > 2 * 1024 * 1024) throw std::runtime_error("learning_query_size");
++        if(storage->size() < value.size()) storage->resize(value.size());
++        std::memcpy(storage->data(), value.data(), value.size());
++        return static_cast<int>(value.size());
++    }
 +    case CoreCall::Scene: {
 +        if(call.bytes.size() % 4 || call.bytes.size() > 240) throw std::runtime_error("invalid_scene");
 +        std::multiset<uint32_t> wanted;
@@ -2837,7 +2865,7 @@
 +        CoreCall call{}; int kind, player, location, sequence;
 +        while(tape >> call.serial >> kind >> call.result >> player >> location >> sequence >> call.flags >> call.cache >> encoded) {
 +            if(!needed.count(call.serial)) continue;
-+            if(kind < 0 || kind > CoreCall::Scene) throw std::runtime_error("invalid_replay");
++            if(kind < 0 || kind > CoreCall::LearningSnapshot) throw std::runtime_error("invalid_replay");
 +            call.kind = static_cast<CoreCall::Kind>(kind); call.player = player; call.location = location; call.sequence = sequence;
 +            call.bytes = decode(encoded);
 +            if(source.count(call.serial) || player < 0 || player > 1 || location < 0 || location > 255 || sequence < 0 || sequence > 255
@@ -3045,9 +3073,50 @@
 +bool TrainingRetry(intptr_t engine);
 +void TrainingModularClose();
 +}
+--- a/gframe/training_learning.inc
++++ b/gframe/training_learning.inc
+@@ -0,0 +1,38 @@
++// Test-only dynamic observation. Its engine calls are recorded and replayed.
++static bool learningEnabled() {
++    return TrainingLearningControlled();
++}
++static std::string learningGuard(intptr_t engine) {
++    const auto f = reinterpret_cast<duel*>(engine)->game_field;
++    std::ostringstream out;
++    out << TrainingComparableState(TrainingState(engine)) << ':' << f->core.summon_count[0]
++        << ':' << f->core.summon_count[1] << ':' << f->core.extra_summon[0] << ':' << f->core.extra_summon[1];
++    for(int player = 0; player < 3; ++player) {
++        std::map<uint32_t, int32_t> counts(f->core.effect_count_code[player].begin(), f->core.effect_count_code[player].end());
++        for(const auto& entry : counts) out << ':' << player << ',' << entry.first << ',' << entry.second;
++    }
++    return out.str();
++}
++static std::string learningSnapshot(intptr_t engine) {
++    const auto d = reinterpret_cast<duel*>(engine);
++    const auto before = learningGuard(engine);
++    std::vector<card*> cards(d->cards.begin(), d->cards.end());
++    std::sort(cards.begin(), cards.end(), [](card* a, card* b){ return a->cardid < b->cardid; });
++    std::ostringstream out;
++    out << "{\"schema\":2,\"available\":true,\"source\":\"recorded_core_query\",\"cards\":[";
++    bool first = true;
++    for(const auto c : cards) {
++        if(!c->data.code || (!c->current.location && !c->overlay_target)) continue;
++        if(!first) out << ',';
++        first = false;
++        out << "{\"instance_id\":" << c->cardid << ",\"type\":" << c->get_type()
++            << ",\"attribute\":" << c->get_attribute() << ",\"race\":" << c->get_race()
++            << ",\"level\":" << c->get_level() << ",\"rank\":" << c->get_rank()
++            << ",\"link\":" << c->get_link() << ",\"link_marker\":" << c->get_link_marker()
++            << ",\"attack\":" << c->get_attack() << ",\"defense\":" << c->get_defense()
++            << ",\"base_attack\":" << c->get_base_attack() << ",\"base_defense\":" << c->get_base_defense() << '}';
++    }
++    out << "]}";
++    if(before != learningGuard(engine)) throw std::runtime_error("learning_query_changed_state");
++    return out.str();
++}
 --- a/gframe/training_modular.inc
 +++ b/gframe/training_modular.inc
-@@ -0,0 +1,259 @@
+@@ -0,0 +1,280 @@
 +// Included in training_history.cpp: all engine work stays on the duel thread.
 +// A probe reconstructs a disposable core. It never replaces the live engine.
 +static bool modularDecisionWaiting(intptr_t engine) {
@@ -3102,10 +3171,25 @@
 +    return out.str();
 +}
 +static void modularPublish(intptr_t engine) {
++    std::string learning;
++    if(learningEnabled() && !pendingAnswered) {
++        try {
++            std::vector<unsigned char> buffer(65536);
++            const auto began = std::chrono::steady_clock::now();
++            const int length = record(engine, {CoreCall::LearningSnapshot}, buffer.data(), &buffer);
++            const std::string value(buffer.begin(), buffer.begin() + length);
++            const auto micros = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - began).count();
++            learning = ",\"learning\":" + value + ",\"learning_query_us\":" + std::to_string(micros);
++            TrainingWrite("\"kind\":\"learning_snapshot\",\"node\":" + std::to_string(cursor)
++                + ",\"version\":" + std::to_string(promptVersion) + ",\"value\":" + value);
++        } catch(const std::exception& error) {
++            learning = ",\"learning\":{\"schema\":2,\"available\":false,\"error\":\"" + std::string(error.what()) + "\"}";
++        }
++    }
 +    atomicFile("modular-state.json", "{\"version\":" + std::to_string(promptVersion)
 +        + ",\"revision\":" + std::to_string(revision) + ",\"node\":" + std::to_string(cursor)
 +        + ",\"player\":" + std::to_string(pendingPlayer) + ",\"answered\":" + (pendingAnswered ? "true" : "false")
-+        + ",\"raw\":\"" + encode(pendingPrompt) + "\",\"effects\":" + TrainingDecisionEffects(engine) + ",\"state\":" + modularState(engine) + '}');
++        + ",\"raw\":\"" + encode(pendingPrompt) + "\",\"effects\":" + TrainingDecisionEffects(engine) + ",\"state\":" + modularState(engine) + learning + '}');
 +}
 +static bool modularTick(intptr_t engine) {
 +    std::ifstream request(TrainingPath("modular.request"));
@@ -3297,6 +3381,12 @@
 +        bool firstPrivate = true;
 +        for(const auto id : probeCore.modular_private_cards) { if(!firstPrivate) out << ','; firstPrivate = false; out << id; }
 +        out << "]}";
++        if(learningEnabled()) {
++            auto text = out.str(); text.pop_back();
++            out.str(""); out.clear();
++            out << text << ",\"learning\":" << learningSnapshot(candidate)
++                << ",\"boundary_raw\":\"" << encode(boundaryBytes) << "\"}";
++        }
 +        modularCache = {candidate, expected, scenario, path, batches, boundaryBytes, ended, observationKey.str()};
 +        candidate = 0; restoring = false;
 +        atomicFile("modular-result.json", out.str());
@@ -3309,7 +3399,7 @@
 +}
 --- a/gframe/training_support.cpp
 +++ b/gframe/training_support.cpp
-@@ -0,0 +1,411 @@
+@@ -0,0 +1,416 @@
 +// Local recorder for the pinned YGOPro core. No rule decisions are inferred from text.
 +#include "training_support.h"
 +#include "game.h"
@@ -3415,6 +3505,11 @@
 +bool TrainingTestControlled() {
 +    char enabled[4]{};
 +    return GetEnvironmentVariableA("YGO_TRAIN_TEST_CONTROL", enabled, sizeof enabled) && enabled[0] == '1';
++}
++bool TrainingLearningControlled() {
++    char enabled[8]{};
++    return TrainingTestControlled() && GetEnvironmentVariableA("YGO_TRAIN_LEARNING", enabled, sizeof enabled)
++        && enabled[0] == '1';
 +}
 +static void TrainingTestInput() {
 +    if(!TrainingTestControlled()) return;
@@ -3723,7 +3818,7 @@
 +}
 --- a/gframe/training_support.h
 +++ b/gframe/training_support.h
-@@ -0,0 +1,27 @@
+@@ -0,0 +1,28 @@
 +#pragma once
 +#include <cstddef>
 +#include <cstdint>
@@ -3736,6 +3831,7 @@
 +bool TrainingEmbedded();
 +bool TrainingOpening();
 +bool TrainingTestControlled();
++bool TrainingLearningControlled();
 +bool TrainingOpponentAI();
 +void TrainingCaptureFrame();
 +void TrainingBoot();
