@@ -1,0 +1,5 @@
+# RX 9070 XT / gfx1201, CPython 3.13, isolated environment only.
+--index-url https://repo.amd.com/rocm/whl-multi-arch
+--extra-index-url https://pypi.org/simple
+torch[device-gfx1201]==2.12.0+rocm7.14.1
+numpy==2.4.4

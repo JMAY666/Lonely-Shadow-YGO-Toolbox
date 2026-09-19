@@ -1,0 +1,21 @@
+# Verified environment lock; install only into .local/ygo-learning/.venv.
+--index-url https://repo.amd.com/rocm/whl-multi-arch
+--extra-index-url https://pypi.org/simple
+amd-torch-device-gfx12-0==2.12.0+rocm7.14.1
+amd-torch-device-gfx1201==2.12.0+rocm7.14.1
+filelock==3.29.1
+fsspec==2026.4.0
+jinja2==3.1.6
+markupsafe==3.0.3
+mpmath==1.3.0
+networkx==3.6.1
+numpy==2.4.4
+rocm==7.14.1
+rocm-bootstrap==0.1.0
+rocm-sdk-core==7.14.1
+rocm-sdk-device-gfx1201==7.14.1
+rocm-sdk-libraries==7.14.1
+setuptools==81.0.0
+sympy==1.14.0
+torch==2.12.0+rocm7.14.1
+typing-extensions==4.15.0

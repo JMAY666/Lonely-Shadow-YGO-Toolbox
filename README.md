@@ -188,6 +188,7 @@ npm run build
 | 日志、快照与资源统计依据 | [记录说明](docs/recording.md) |
 | 已执行检查及尚未验证事项 | [验收记录](docs/verification.md) |
 | 现成模型在真实引擎中的逐步指导试验（未接入正式界面） | [ygo-agent 本机试验](experiments/ygo_agent/README.md) |
+| 新学生 GPU 训练环境、检查点恢复与 CPU 导出（有限小样本，未接入正式界面） | [学生 GPU 环境试验](experiments/ygo_learning/README.md) |
 | 上游组件与许可证 | [第三方来源](docs/third-party.md) |
 
 ---
