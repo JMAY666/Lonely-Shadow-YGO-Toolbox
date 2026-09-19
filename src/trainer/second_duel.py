@@ -55,6 +55,8 @@ class SecondDuels:
         self.hints = SecondHints(self)
         from second_routes import SecondRoutes
         self.routes = SecondRoutes(self)
+        from second_live import SecondLive
+        self.live = SecondLive(self)
 
     def load(self, key):
         key = identifier(key)
@@ -106,7 +108,7 @@ class SecondDuels:
             return '本局记录已结束'
         if doc['epoch'] != self.epoch:
             return '应用已重启，请核对当前局面后恢复记录；旧响应窗口不会恢复'
-        return self.connection_error(doc) or self.routes.connection_error(doc) or doc['current'].get('stale_reason', '')
+        return self.connection_error(doc) or self.routes.connection_error(doc) or self.live.status(doc) or doc['current'].get('stale_reason', '')
 
     def public(self, doc):
         value = deepcopy(doc)
@@ -122,6 +124,7 @@ class SecondDuels:
         value['hint_options'] = self.hints.options()
         value['advice'] = self.hints.public(doc)
         value['route_panel'] = self.routes.public(doc)
+        value['live_panel'] = self.live.panel(doc)
         value['capabilities']['engine_reconstruction'] = value['route_panel']['current']
         value['capabilities']['routes'] = value['route_panel']['current'] and value['route_panel']['route_ready']
         for hint in value.get('advice_history', []):
@@ -208,6 +211,9 @@ class SecondDuels:
 
     def state(self, body):
         with self.lock:
+            current = deepcopy(self.load(body.get('id')))
+        self.live.check_current(current)
+        with self.lock:
             return self.public(self.load(body.get('id')))
 
     def history(self):
@@ -250,6 +256,7 @@ class SecondDuels:
             if not isinstance(payload, dict):
                 raise ValueError('实际情况格式无效')
             self.routes.check_annotation(doc, kind, payload)
+            self.live.check_annotation(doc, kind, payload)
             updated = deepcopy(doc)
             before = deepcopy(updated['current'])
             updated['current']['window'] = None
@@ -432,6 +439,8 @@ class SecondDuels:
         raise ValueError('尚未支持此类后攻填报，原状态保留')
 
     def dispatch(self, action, body):
+        if action in ('live-preview', 'live-apply'):
+            return self.live.dispatch(action, body)
         if action == 'review-window':
             from second_native import review
             with self.lock:

@@ -1140,7 +1140,7 @@ class Handler(BaseHTTPRequestHandler):
                 files['/scrollbars.css'] = 'scrollbars.css'
                 for art in ('first', 'second', 'bo1', 'bo3', 'manual', 'automatic', 'ygopro', 'ygopro2', 'mdpro3', 'masterduel'):
                     files[f'/brand/duel-{art}.svg'] = f'brand/duel-{art}.svg'
-                for name in ('duel.js', 'duel-smart.js', 'duel-second.js', 'duel-second-hints.js', 'duel-second-routes.js', 'duel-second-battle.js', 'duel-second.css', 'duel-automatic.js', 'duel-order.js', 'duel-opening.js', 'duel-automatic.css', 'duel-forecast.js', 'duel-model.js', 'tutorial-bindings.js', 'duel.css', 'deck-tag-view.js', 'deck-appearance.js', 'superpre.js', 'superpre.css'):
+                for name in ('duel.js', 'duel-smart.js', 'duel-second.js', 'duel-second-hints.js', 'duel-second-routes.js', 'duel-second-battle.js', 'duel-second-live.js', 'duel-second.css', 'duel-automatic.js', 'duel-order.js', 'duel-opening.js', 'duel-automatic.css', 'duel-forecast.js', 'duel-model.js', 'tutorial-bindings.js', 'duel.css', 'deck-tag-view.js', 'deck-appearance.js', 'superpre.js', 'superpre.css'):
                     files['/' + name] = name
                 if path in files:
                     p = WEB / files[path]; return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0] + '; charset=utf-8')

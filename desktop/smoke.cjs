@@ -12,7 +12,7 @@ const label = packaged ? 'packaged' : 'development';
 const onlyCompromise=process.argv.includes('--compromise-only');
 const onlySelection=process.argv.includes('--selection-only');
 const onlyDuel=process.argv.includes('--duel-only');
-const onlySecond=process.argv.includes('--second-only');
+const onlySecond=process.argv.includes('--second-only')||process.argv.includes('--second-live-only');
 const onlyAutomatic=process.argv.includes('--automatic-only');
 const onlyAutomaticWorkspace=process.argv.includes('--automatic-workspace-only');
 const onlyNative=process.argv.includes('--native-only');
@@ -203,8 +203,11 @@ async function activatePot(sid) {
 (async () => {
   await launch(true);
   if(onlySecond){
-    await require('./second-duel-smoke.cjs')({page,application,root,evidence,pass});
-    await require('./second-hints-smoke.cjs')({page,application,root,evidence,pass});
+    if(!process.argv.includes('--second-live-only')){
+      await require('./second-duel-smoke.cjs')({page,application,root,evidence,pass});
+      await require('./second-hints-smoke.cjs')({page,application,root,evidence,pass});
+    }
+    await require('./second-live-smoke.cjs')({page,application,root,evidence,pass});
     await close();assert.deepEqual(errors,[]);fs.writeFileSync(path.join(evidence,'second-result.json'),JSON.stringify({checks,errors,globalInput:false},null,2));return;
   }
   if(onlyTutorialPresentation){
