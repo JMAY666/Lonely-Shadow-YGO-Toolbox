@@ -44,7 +44,7 @@ module.exports=async({page,application,evidence,pass})=>{
       await save('endboard.save',{code,desc:c.desc,candidate:true,notes:[{text:'终场用途备注，保留卡牌在不同方案中的标注。',source_refs:[]},{text:'另一条独立备注，可单独补充适用条件。',source_refs:[]}],effects:{'0':{note:'效果用途与发动条件待结合具体场面核对。'}}});
     }
     const folder=await save('folder.save',{name:'常用手坑'});
-    await save('handtrap.save',{code:14558127,folder_id:folder,note:'从手牌发动的干扰用途备注。',condition:'发动时点与适用范围待核对。'});
+    await save('handtrap.save',{code:14558127,folder_id:folder,note:'从手牌发动的干扰用途备注。',condition:'发动时点与适用范围待核对。',effects:{'1':{notes:[{text:'在对方发动包含卡组检索的效果时考虑使用。'},{text:'是否能够发动仍须核对当前效果与局面条件。'}]}}});
     const topic=await save('topic.save',{name:'对手操作与应对',tag_ids:[],note:'本地断点记录'});
     await save('record.save',{title:'效果发动时的应对记录',topic_id:topic,note:'验收用资料',steps:[{opponent:55144522,action:'对手发动效果',timing:'效果发动时',condition:'待核对具体场面',note:'记录对手操作',responses:[{mode:'alternative',cards:[14558127],method:'记录一种可选应对',condition:'满足适用条件',expected:'待核对',note:''}]}]});
     await enterIntelligence();
@@ -87,6 +87,11 @@ module.exports=async({page,application,evidence,pass})=>{
     assert.equal(await page.locator('#intel-list [aria-pressed="true"]').count(),1);
     for(const [width,height] of [[1440,950],[900,650]]){
       await resize(width,height);await checkLayout();await capture(`intelligence-${tab}-${width}`);
+      if(tab==='handtraps'){
+        await page.locator('[data-intel-field="effects.1.notes.0.text"]').scrollIntoViewIfNeeded();
+        await checkLayout();await capture(`intelligence-handtrap-effects-${width}`);
+        await page.locator('.intel-editor-body').evaluate(el=>el.scrollTop=0);
+      }
     }
   }
   await action('step-add');
@@ -98,6 +103,10 @@ module.exports=async({page,application,evidence,pass})=>{
   for(const width of [760,390]){
     await resize(width,844);await checkLayout();await capture(`intelligence-stacked-${width}`);
   }
+  await page.locator('[data-intel-tab="handtraps"]').click();
+  await checkLayout();await page.locator('[data-intel-field="effects.1.notes.0.text"]').scrollIntoViewIfNeeded();
+  await page.screenshot({path:path.join(evidence,'intelligence-handtrap-effects-390.png'),preserveScroll:true});
+  await page.locator('[data-intel-tab="endboards"]').click();
   pass('Hand-trap folders and breakpoint steps use the shared layout; narrow views stack without horizontal overflow');
 
   await resize(1440,950);

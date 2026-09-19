@@ -64,6 +64,72 @@ class IntelligenceTests(unittest.TestCase):
             self.store.library.edit_tag({'id': HANDTRAP_ID, 'revision': tag['revision'], 'name': '手坑', 'card_ids': [23995346]})
         self.assertEqual(len(self.store.intelligence.snapshot()['handtraps']), 3)
 
+    def test_handtrap_effect_notes_persist_independently_through_tag_and_folder_edits(self):
+        code = 55144522
+        self.store.catalog.cards[code]['desc'] = '①：测试手牌效果。②：测试其他效果。'
+        folder = self.command('folder.save', {'name': '效果分类'})['saved_id']
+        endboard = self.command('endboard.save', {'code': code, 'effects': {'0': {'note': '独立终场备注'}}})['endboards'][str(code)]
+        saved = self.command('handtrap.save', {'code': code, 'folder_id': folder, 'note': '卡牌用途', 'condition': '使用条件',
+            'effects': {'0': {'notes': [{'text': '时点甲'}, {'text': '时点乙'}, {'text': '时点甲'}]}, '1': {'note': ''}}})['handtraps'][str(code)]
+        self.assertEqual(saved['effects']['0']['note'], '时点甲\n\n时点乙')
+        self.assertEqual(len(saved['effects']['0']['notes']), 2)
+        self.assertIn('1', saved['effects'], 'A selected effect can have no note')
+        self.command('handtrap.save', {'code': code, 'condition': '补充条件'})
+        self.store.library.edit_tag({'id': HANDTRAP_ID, 'revision': self.store.library.document()['revision'],
+                                    'name': '手坑', 'card_ids': [code, 1184620]})
+        self.command('folder.remove', {'id': folder})
+        restarted = Store(self.root).intelligence.snapshot()
+        self.assertEqual(restarted['handtraps'][str(code)], {**saved, 'folder_id': None, 'condition': '补充条件'})
+        self.assertEqual(restarted['handtraps']['1184620']['effects'], {})
+        self.assertEqual(restarted['endboards'][str(code)], endboard)
+        updated = self.command('handtrap.save', {'code': code, 'effects': {'0': saved['effects']['0']}})['handtraps'][str(code)]
+        self.assertNotIn('1', updated['effects'])
+        cleared = self.command('handtrap.save', {'code': code, 'effects': {}})['handtraps'][str(code)]
+        self.assertEqual(cleared['effects'], {})
+        self.assertEqual(cleared['note'], '卡牌用途')
+
+    def test_legacy_handtraps_gain_effect_fields_without_read_time_writes(self):
+        self.command('handtrap.save', {'code': 55144522, 'note': '原用途', 'condition': '原条件'})
+        original = read_json(self.store.library.path)
+        legacy = original['intelligence']['handtraps']['55144522']
+        for key in ('desc', 'effects', 'unmatched_effects'): legacy.pop(key)
+        atomic_json(self.store.library.path, original)
+        before = self.store.library.path.read_bytes()
+        loaded = self.store.intelligence.snapshot()['handtraps']['55144522']
+        self.assertEqual(loaded, {**legacy, 'desc': self.store.catalog.cards[55144522]['desc'], 'effects': {}, 'unmatched_effects': []})
+        self.assertEqual(self.store.library.path.read_bytes(), before)
+        saved = self.command('handtrap.save', {**loaded, 'effects': {'0': {'note': '新增效果备注'}}})['handtraps']['55144522']
+        self.assertEqual(saved['note'], '原用途'); self.assertEqual(saved['condition'], '原条件')
+        self.assertEqual(read_json(self.store.root/'backups/tags'/f"{original['revision']}.json"), original)
+
+    def test_invalid_handtrap_effect_annotations_do_not_change_saved_data(self):
+        self.command('handtrap.save', {'code': 55144522, 'effects': {'0': {'note': '保留备注'}}})
+        before = self.store.library.path.read_bytes()
+        for change in ({'effects': []}, {'effects': {'99': {'note': '无效编号'}}}, {'effects': {'0': '无效备注'}},
+                       {'effects': {'0': {'notes': [{'text': 'x' * 4001}]}}}, {'effects': {'0': {'notes': '无效格式'}}},
+                       {'unmatched_effects': [{'text': None}]}, {'desc': '伪造卡面文本'}):
+            with self.subTest(change=change):
+                with self.assertRaises(ValueError): self.command('handtrap.save', {'code': 55144522, **change})
+                self.assertEqual(self.store.library.path.read_bytes(), before)
+
+    def test_handtrap_text_changes_and_missing_cards_preserve_effect_notes_for_reconciliation(self):
+        saved = self.command('handtrap.save', {'code': 55144522, 'effects': {'0': {'note': '旧效果备注'}}})['handtraps']['55144522']
+        original_card = self.store.catalog.cards.pop(55144522)
+        missing = self.command('handtrap.save', {'code': 55144522, 'note': '缺卡时补充用途'})['handtraps']['55144522']
+        self.assertEqual(missing['desc'], saved['desc']); self.assertEqual(missing['effects'], saved['effects'])
+        self.store.catalog.cards[55144522] = {**original_card, 'desc': '①：更新后的效果。'}
+        retained = self.command('handtrap.save', {'code': 55144522, 'condition': '补充条件'})['handtraps']['55144522']
+        self.assertEqual(retained['desc'], saved['desc']); self.assertEqual(retained['effects'], saved['effects'])
+        pending = self.command('handtrap.save', {'code': 55144522, 'desc': '①：更新后的效果。', 'effects': {},
+            'unmatched_effects': [{'text': saved['desc'], **saved['effects']['0']}]})['handtraps']['55144522']
+        self.assertEqual(pending['unmatched_effects'][0]['note'], '旧效果备注')
+        self.assertEqual(Store(self.root).intelligence.snapshot()['handtraps']['55144522'], pending)
+        resolved = self.command('handtrap.save', {'code': 55144522, 'effects': {'0': pending['unmatched_effects'][0]},
+                                               'unmatched_effects': []})['handtraps']['55144522']
+        self.assertEqual(resolved['effects']['0']['note'], '旧效果备注')
+        self.assertEqual(resolved['unmatched_effects'], [])
+        self.assertEqual(resolved['note'], '缺卡时补充用途')
+
     def test_other_tag_entry_point_shares_validation_notes_and_membership(self):
         self.command('handtrap.save', {'code': 55144522, 'note': '保留'})
         self.store.library.edit_tag({'id': HANDTRAP_ID, 'revision': self.store.library.document()['revision'], 'name': '手坑', 'card_ids': [55144522, 1184620, 1184620]})

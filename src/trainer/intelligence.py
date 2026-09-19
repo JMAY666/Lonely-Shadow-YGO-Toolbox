@@ -27,17 +27,26 @@ def handtrap_id(document):
     return matching[0] if matching else HANDTRAP_ID
 
 
+def handtrap_data(value, catalog):
+    annotation = normalize_mark({
+        'desc': value.get('desc', catalog.get(value['code'], {}).get('desc', '')),
+        'effects': value.get('effects', {}), 'unmatched_effects': value.get('unmatched_effects', [])})
+    return {'note': '', 'condition': '', 'folder_id': None, **deepcopy(value),
+            **{key: annotation[key] for key in ('desc', 'effects', 'unmatched_effects')}}
+
+
 def data(document, catalog):
     from plan_tags import member_ids
     if 'intelligence' in document:
         value = deepcopy(document['intelligence'])
         if value.get('version') != 1: raise ValueError('情报站资料版本不受支持，原文件已保留')
         value['endboards'] = {key: normalize_mark(mark) for key, mark in value['endboards'].items()}
+        value['handtraps'] = {key: handtrap_data(mark, catalog) for key, mark in value['handtraps'].items()}
         return value
     identifier = handtrap_id(document)
     previous = document.get('entries', {}).get(identifier, {})
     return {'version': 1, 'handtrap_tag_id': identifier, 'endboards': {},
-            'handtraps': {str(code): {'code': code, 'note': '', 'condition': '', 'folder_id': None}
+            'handtraps': {str(code): handtrap_data({'code': code}, catalog)
                           for code in member_ids(previous, catalog)},
             'folders': {}, 'topics': {}, 'records': {}}
 
@@ -104,7 +113,7 @@ class Intelligence:
         retained = set(map(int, knowledge['handtraps']))
         for code in selected: self.check_handtrap(code, retained)
         knowledge['handtraps'] = {str(code): knowledge['handtraps'].get(str(code),
-            {'code': code, 'note': '', 'condition': '', 'folder_id': None}) for code in sorted(set(selected))}
+            handtrap_data({'code': code}, self.store.catalog.cards)) for code in sorted(set(selected))}
         document['intelligence'] = knowledge
         document['entries'][knowledge['handtrap_tag_id']] = purpose_tag(document)
 
@@ -137,9 +146,8 @@ class Intelligence:
                         group['sources'].append(source)
             return {'groups': list(groups.values()), 'warnings': warnings}
 
-    def endboard(self, value, previous=None, trusted=False):
+    def annotation(self, value, previous=None, trusted=False):
         code = self.check_code(value.get('code'), [previous['code']] if previous else ([value.get('code')] if trusted else []))
-        if type(value.get('candidate', True)) is not bool: raise ValueError('终场候选标记无效')
         desc = value.get('desc', self.card(code)['desc'])
         text(desc, 50000)
         if not trusted and desc != self.card(code)['desc'] and desc != (previous or {}).get('desc'):
@@ -154,10 +162,14 @@ class Intelligence:
         for key, item in effects.items():
             if key not in {str(i) for i in range(len(parts))} or not isinstance(item, dict): raise ValueError('效果编号已改变，请核对卡面文本')
             checked[key] = {**notes_value(checked_notes(item, (previous or {}).get('effects', {}).get(key))), 'source_refs': refs(item.get('source_refs', []))}
-        return normalize_mark({'code': code, 'candidate': value.get('candidate', True), **notes_value(checked_notes(value, previous)),
+        return normalize_mark({'code': code, **notes_value(checked_notes(value, previous)),
                 'desc': desc, 'effects': checked, 'sources': deepcopy((previous or {}).get('sources', [])),
                 'merged_source_refs': deepcopy((previous or {}).get('merged_source_refs', [])),
                 'unmatched_effects': deepcopy(value.get('unmatched_effects', []))})
+
+    def endboard(self, value, previous=None, trusted=False):
+        if type(value.get('candidate', True)) is not bool: raise ValueError('终场候选标记无效')
+        return {**self.annotation(value, previous, trusted), 'candidate': value.get('candidate', True)}
 
     def validate_record(self, value, knowledge, previous):
         title = text(value.get('title', ''), 120, True)
@@ -231,7 +243,10 @@ class Intelligence:
                 previous = knowledge['handtraps'].get(str(code), {})
                 folder = value.get('folder_id', previous.get('folder_id'))
                 if folder is not None and folder not in knowledge['folders']: raise ValueError('文件夹不存在')
-                knowledge['handtraps'][str(code)] = {'code': code, 'folder_id': folder, 'note': text(value.get('note', previous.get('note', ''))), 'condition': text(value.get('condition', previous.get('condition', '')))}
+                annotation = self.annotation({**previous, **value}, previous or None)
+                knowledge['handtraps'][str(code)] = {'code': code, 'folder_id': folder,
+                    'note': text(value.get('note', previous.get('note', ''))), 'condition': text(value.get('condition', previous.get('condition', ''))),
+                    **{key: annotation[key] for key in ('desc', 'effects', 'unmatched_effects')}}
             elif op == 'handtrap.remove': knowledge['handtraps'].pop(str(value.get('code')), None)
             elif op in ('folder.save', 'topic.save'):
                 key = 'folders' if op.startswith('folder') else 'topics'
