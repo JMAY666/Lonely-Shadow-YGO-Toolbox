@@ -117,6 +117,8 @@ def process_identity(pid):
 
 
 class Catalog:
+    script_code = staticmethod(card_script_code)
+
     def __init__(self, runtime):
         self.cards, self.sources = {}, []
         self.patch_root = superpre.resource_root(runtime)
@@ -129,6 +131,7 @@ class Catalog:
                      *superpre.resource_files(runtime, '.cdb')]
         scripts = [runtime / 'script', runtime / 'expansions/script']
         if self.patch_root: scripts.append(self.patch_root / 'script')
+        self.script_dirs = scripts
         for path in databases:
             if not path.exists(): raise ValueError(f'缺少卡牌数据库：{path.name}')
             with closing(sqlite3.connect(path.resolve().as_uri() + '?mode=ro', uri=True)) as db:
@@ -987,7 +990,7 @@ class Handler(BaseHTTPRequestHandler):
                 origin = self.headers.get('Origin')
                 if origin and origin != f'http://127.0.0.1:{self.server.server_port}': raise ValueError('请求来源不匹配')
                 length = int(self.headers.get('Content-Length', 0))
-                maximum = MAX_BYTES if path in ('/api/plans/import', '/api/plans/import-preview') else 1_000_000 if path == '/api/tags/save' else 100_000
+                maximum = MAX_BYTES if path in ('/api/plans/import', '/api/plans/import-preview') else 1_000_000 if path in ('/api/tags/save', '/api/tags/related') else 100_000
                 if not 0 < length < maximum: raise ValueError('请求长度无效，分享文件上限为 20 MB')
                 body = json.loads(self.rfile.read(length))
                 if path == '/api/superpre': return self.send(store.superpre.start(body.get('action')))
@@ -997,6 +1000,7 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/modular/execute': return self.send(store.modular.execute(body))
                 if path == '/api/modular/auto': return self.send(store.modular.automatic(body))
                 if path == '/api/tags/save': return self.send(store.library.edit_tag(body))
+                if path == '/api/tags/related': return self.send(store.library.related(body))
                 if path == '/api/plans/classify': return self.send(store.library.save_selection(body))
                 if path == '/api/plans/import-preview': return self.send(store.library.import_document(body, preview=True))
                 if path == '/api/plans/import': return self.send(store.library.import_document(body))

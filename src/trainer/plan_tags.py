@@ -76,6 +76,13 @@ def contains_card(tag, code, card):
     return code in tag.get('include_cards', []) or bool(tag.get('setcode') and matches_set(card.get('setcode'), tag['setcode']))
 
 
+def membership_basis(tag, code, card):
+    if code in tag.get('exclude_cards', []): return '手动排除'
+    if code in tag.get('include_cards', []): return '手动加入'
+    if tag.get('setcode') and matches_set(card.get('setcode'), tag['setcode']): return '卡库系列'
+    return ''
+
+
 def member_ids(tag, catalog):
     baseline = {code for code, card in catalog.items() if tag.get('setcode') and matches_set(card.get('setcode'), tag['setcode'])}
     return sorted((baseline | set(tag.get('include_cards', []))) - set(tag.get('exclude_cards', [])))
@@ -123,7 +130,8 @@ def suggest(plan, tags, catalog):
         for identifier, tag in tags.items():
             if contains_card(tag, code, card):
                 counts[identifier] += 1
-                evidence.setdefault(identifier, []).append({'code': code, 'name': card.get('name', str(code))})
+                evidence.setdefault(identifier, []).append({'code': code, 'name': card.get('name', str(code)),
+                                                            'basis': membership_basis(tag, code, card)})
     ranked = sorted(counts, key=lambda key: (-counts[key], -((tags[key].get('setcode') or 0) >> 12).bit_count(), tags[key]['name'], key))
     candidates = [{'id': key, 'count': counts[key], 'total': len(codes), 'ratio': counts[key] / len(codes),
                    'cards': evidence[key], 'eligible': counts[key] >= MIN_CARDS and counts[key] / len(codes) >= MIN_RATIO}

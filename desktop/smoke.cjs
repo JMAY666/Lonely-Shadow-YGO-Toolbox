@@ -18,15 +18,16 @@ const onlyNative=process.argv.includes('--native-only');
 const onlyModular=process.argv.includes('--modular-only');
 const onlyConditions=process.argv.includes('--conditions-only');
 const onlyTutorialPresentation=process.argv.includes('--tutorial-presentation-only');
+const onlyTags=process.argv.includes('--tags-only');
 const modularSuite=Object.entries({implicit:'YGO_MODULAR_IMPLICIT_ONLY',if:'YGO_MODULAR_IF_ONLY',mechanics:'YGO_MODULAR_MECHANICS_ONLY',rules:'YGO_MODULAR_RULES_ONLY',precision:'YGO_MODULAR_PRECISION_ONLY',preferences:'YGO_MODULAR_PREFERENCES_ONLY',routes:'YGO_MODULAR_ADDITIONAL_ONLY',cross:'YGO_MODULAR_CROSS_ONLY',planning:'YGO_MODULAR_PLANNING_ONLY',pipeline:'YGO_MODULAR_PIPELINE_ONLY',forecast:'YGO_MODULAR_FORECAST_ONLY'}).find(([,key])=>process.env[key]==='1')?.[0]||'core';
-const profileSuffix=onlyTutorialPresentation?'-tutorial-presentation':onlyConditions?'-conditions':onlyModular?'-modular-'+modularSuite:onlyCompromise?'-compromise':onlySelection?'-selection':onlyDuel?'-duel':onlyAutomatic?'-automatic':onlyAutomaticWorkspace?'-automatic-workspace':onlyNative?'-native':'';
+const profileSuffix=onlyTags?'-tags':onlyTutorialPresentation?'-tutorial-presentation':onlyConditions?'-conditions':onlyModular?'-modular-'+modularSuite:onlyCompromise?'-compromise':onlySelection?'-selection':onlyDuel?'-duel':onlyAutomatic?'-automatic':onlyAutomaticWorkspace?'-automatic-workspace':onlyNative?'-native':'';
 const runLabel=process.env.YGO_TEST_RUN||'';
 assert(/^[a-z0-9-]*$/.test(runLabel),'Isolated test run label must contain only letters, digits and hyphens');
 const runSuffix=profileSuffix+(runLabel?'-'+runLabel:'');
 const root = path.join(workspace, '.local', `desktop-check-${label}${runSuffix}`);
 const evidence = path.join(workspace, '.local', 'evidence', `electron-${label}${runSuffix}`);
-const importSource=process.env.YGO_DESKTOP_TEST_SOURCE||(onlyNative||onlyTutorialPresentation?path.join(root,'empty-import'):path.join(workspace,'.local','YGOPro-Lite'));
-if((onlyNative||onlyTutorialPresentation)&&!process.env.YGO_DESKTOP_TEST_SOURCE)fs.mkdirSync(importSource,{recursive:true});
+const importSource=process.env.YGO_DESKTOP_TEST_SOURCE||(onlyNative||onlyTutorialPresentation||onlyTags?path.join(root,'empty-import'):path.join(workspace,'.local','YGOPro-Lite'));
+if((onlyNative||onlyTutorialPresentation||onlyTags)&&!process.env.YGO_DESKTOP_TEST_SOURCE)fs.mkdirSync(importSource,{recursive:true});
 fs.mkdirSync(evidence, { recursive: true });
 const executable = packaged ? path.resolve(workspace, process.env.YGO_PACKAGE_DIR||require('../package.json').build.directories.output, 'win-unpacked', require('../package.json').build.win.executableName + '.exe') : require('electron');
 const checks = [], errors = [];
@@ -201,6 +202,10 @@ async function activatePot(sid) {
 
 (async () => {
   await launch(true);
+  if(onlyTags){
+    await require('./tag-relations-smoke.cjs')({page,application,root,evidence,pass});
+    await close();assert.deepEqual(errors,[]);fs.writeFileSync(path.join(evidence,'result.json'),JSON.stringify({checks,errors,globalInput:false},null,2));return;
+  }
   if(onlyTutorialPresentation){
     await require('./tutorial-presentation-smoke.cjs')({page,application,evidence,pass});
     await close();assert.deepEqual(errors,[]);fs.writeFileSync(path.join(evidence,'result.json'),JSON.stringify({checks,errors,globalInput:false},null,2));return;

@@ -53,7 +53,7 @@ function renderDeckTagOptions() {
   $('#deck-tags-options').innerHTML = deckTagUI.tags.slice(0,deckTagUI.visible).map(tag => {
     const item = evidence.get(tag.id), role = deckTagRole(tag.id);
     const info = item ? `${item.count} / ${item.total} 张 · ${(item.ratio * 100).toFixed(1)}%` : tag.deck_card_ids.length ? '仅副卡组关联' : '本卡组暂无关联卡牌';
-    const cards = item ? item.cards.map(c => `${c.name} ×${c.count}`).join('、') : '';
+    const cards = item ? item.cards.map(c => `${c.name} ×${c.count}${c.basis ? `（${c.basis}）` : ''}`).join('、') : '';
     return `<article class="deck-tag-option ${role ? 'selected' : ''}"><div><strong>${escape(tag.name)}</strong><small>${escape(tag.aliases.join(' / '))}</small><p>${escape(info)}</p>${cards ? `<details><summary>查看依据卡牌</summary><p>${escape(cards)}</p></details>` : ''}</div><div class="deck-tag-role">${[['primary','主 TAG'],['secondary','副 TAG']].map(([value,label]) => `<button type="button" data-deck-tag="${escape(tag.id)}" data-role="${value}" aria-label="${escape(tag.name)}：${label}" aria-pressed="${role === value}">${label}</button>`).join('')}</div></article>`;
   }).join('') || '<p class="deck-tags-empty">没有匹配的 TAG，试试其他文字或清除选卡。</p>';
   $('#deck-tags-more').hidden = deckTagUI.visible >= deckTagUI.tags.length;

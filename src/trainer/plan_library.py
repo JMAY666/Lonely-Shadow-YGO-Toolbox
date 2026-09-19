@@ -22,6 +22,8 @@ class PlanLibrary:
         self.store, self.read, self.write, self.clock = store, read, write, clock
         self.builtins = tags.builtin_tags(store.runtime)
         self.path = store.root / 'tag-library.json'
+        self._relations = None
+        self._relations_resources = None
 
     def document(self):
         return self.read(self.path) if self.path.exists() else {'version': 1, 'revision': 0, 'entries': {}}
@@ -57,15 +59,50 @@ class PlanLibrary:
             document['entries'][tag['id']] = tag
             document['revision'] += 1
             self.save_vocabulary(document)
-            return {'tag': tag, 'revision': document['revision']}
+            return self.members(tag['id'])
 
     def members(self, identifier):
         with self.store.lock:
             tag = self.all_tags().get(identifier)
             if not tag: raise ValueError('标签不存在')
+            def card(code):
+                value = self.store.catalog.cards.get(code, {'id': code, 'name': f'未安装卡牌 {code}', 'desc': '', 'type': 0})
+                return {**value, 'tag_basis': tags.membership_basis(tag, code, value),
+                        'tag_default_member': bool(tag.get('setcode') and tags.matches_set(value.get('setcode'), tag['setcode']))}
             return {'tag': tag, 'revision': self.document()['revision'],
-                    'cards': [self.store.catalog.cards.get(code, {'id': code, 'name': f'未安装卡牌 {code}', 'desc': '', 'type': 0})
-                              for code in tags.member_ids(tag, self.store.catalog.cards)]}
+                    'cards': [card(code) for code in tags.member_ids(tag, self.store.catalog.cards)],
+                    'excluded_cards': [card(code) for code in sorted(set(tag.get('exclude_cards', [])))]}
+
+    def related(self, body):
+        from card_relations import CardRelations
+        with self.store.lock:
+            identifier = body.get('id')
+            if identifier is not None and not isinstance(identifier, str): raise ValueError('标签编号无效')
+            tag = self.all_tags().get(identifier) if identifier else None
+            if identifier and not tag: raise ValueError('标签不存在，请刷新标签库')
+            catalog = self.store.catalog
+            selected = body.get('card_ids', tags.member_ids(tag, catalog.cards) if tag else [])
+            # Reuse membership validation, including retained unavailable cards.
+            draft_tag = tags.edit_members(tag or {}, selected, catalog.cards)
+            seed = body.get('seed_id')
+            if seed is not None and (type(seed) is not int or seed not in catalog.cards):
+                raise ValueError('请选择当前卡库中的关联卡牌')
+            query, kind, offset = body.get('query', ''), body.get('kind', ''), body.get('offset', 0)
+            if not isinstance(query, str) or len(query) > 120: raise ValueError('搜索文字最多 120 个字符')
+            if kind not in ('', 'series', 'text_series', 'text_card', 'script_series', 'script_card', 'alias'):
+                raise ValueError('关联类型无效')
+            if type(offset) is not int or not 0 <= offset <= 20000: raise ValueError('关联卡片分页无效')
+            if not selected and seed is None and not (tag and tag.get('setcode')):
+                return {'total': 0, 'offset': offset, 'cards': [], 'script_errors': 0, 'seed_name': None}
+            resources = (catalog, self.builtins)
+            if self._relations_resources is None or any(a is not b for a, b in zip(resources, self._relations_resources)):
+                self._relations = CardRelations(catalog.cards, self.builtins, catalog.script_dirs, catalog.script_code)
+                self._relations_resources = resources
+            seeds = [seed] if seed is not None else selected
+            result = self._relations.search(seeds, series=tag.get('setcode') if tag and seed is None else None,
+                                            excluded=[*selected, *draft_tag.get('exclude_cards', [])],
+                                            query=query, kind=kind, offset=offset)
+            return {**result, 'seed_name': catalog.cards[seed]['name'] if seed is not None else None}
 
     def save_selection(self, body):
         with self.store.lock:

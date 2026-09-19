@@ -234,14 +234,23 @@
     <details id="history-archive"><summary>历史记录与未保存草稿 <span id="history-count" hidden></span></summary><div id="history-list" class="panel history-list"></div></details>
   </section>
   <section id="tags" class="tag-manager-page" hidden aria-label="TAG 管理">
-    <header><div><div class="eyebrow">TAG LIBRARY</div><h1>TAG 管理</h1><p>维护标签名称、别名和包含的卡牌，供卡组与展开方案共用。</p></div><div class="library-actions"><button id="tag-manager-new" class="primary">新增 TAG</button><button id="tag-manager-refresh">刷新标签库</button></div></header>
+    <header><div><div class="eyebrow">TAG LIBRARY</div><h1>TAG 管理</h1><p>从系列成员发现关联卡片，整理供卡组与展开方案共用的 TAG。</p></div><div class="library-actions"><button id="tag-manager-new" class="primary">新增 TAG</button><button id="tag-manager-refresh">刷新标签库</button></div></header>
     <div class="tag-manager-layout"><aside class="panel tag-manager-sidebar"><label for="tag-manager-search">查找标签</label><input id="tag-manager-search" type="search" placeholder="正名或其他叫法"><div id="tag-manager-list"></div></aside>
       <article class="panel tag-manager-editor"><div id="tag-manager-empty" class="empty">选择标签，查看和编辑它包含的卡牌。</div><form id="tag-manager-form" hidden>
         <div class="tag-manager-heading"><div><h2 id="tag-manager-title">标签详情</h2><small id="tag-manager-source"></small></div><button id="tag-manager-save" class="primary" type="submit">保存修改</button></div>
         <div class="tag-manager-fields"><label>标签正名<input id="tag-manager-name" maxlength="60" required></label><label>其他叫法（每行一个）<textarea id="tag-manager-aliases" rows="3"></textarea></label></div>
         <p id="tag-manager-status" role="status"></p>
-        <div class="tag-member-heading"><h3>包含的卡牌 <small id="tag-member-count"></small></h3><input id="tag-member-filter" type="search" placeholder="筛选已包含的卡牌" aria-label="筛选已包含的卡牌"></div>
+        <div class="tag-member-heading"><h3>包含的卡牌 <small id="tag-member-count"></small></h3><div class="tag-member-filters"><select id="tag-member-kind" aria-label="卡牌归属依据"><option value="">全部成员</option value="卡库系列">卡库系列</option><option value="手动加入">手动加入</option></select><input id="tag-member-filter" type="search" placeholder="筛选已包含的卡牌" aria-label="筛选已包含的卡牌"></div></div>
+        <p class="tag-scope-help">卡库系列由系列编号确定；手动加入的关联卡同样参与 TAG 匹配。卡库更新后，新系列成员自动补入，手动排除继续保留。</p>
         <div id="tag-member-cards" class="tag-card-grid"></div>
+        <button id="tag-members-more" type="button" hidden>加载更多成员</button>
+        <details id="tag-excluded-section" hidden><summary>已排除的卡牌 <span id="tag-excluded-count"></span></summary><p class="tag-scope-help">这些卡牌不会参与本 TAG 的自动匹配，也不会重复出现在关联候选中。</p><div id="tag-excluded-cards" class="tag-card-grid"></div></details>
+        <section id="tag-related-section" class="tag-related-section" aria-label="关联卡片">
+          <div class="tag-member-heading"><div><div class="eyebrow">RELATED CARDS</div><h3 id="tag-related-title">TAG 关联候选</h3></div><div class="library-actions"><button id="tag-related-back" type="button" hidden>返回 TAG 关联</button><button id="tag-related-refresh" type="button">重新查找</button></div></div>
+          <p class="tag-scope-help">根据当前卡库的系列、效果点名和脚本引用发现直接关联。关联不代表同一系列或当前可发动；加入 TAG 并保存后才参与匹配。</p>
+          <div class="tag-related-filters"><input id="tag-related-query" type="search" maxlength="120" placeholder="筛选关联卡名或卡号" aria-label="筛选关联卡片"><select id="tag-related-kind" aria-label="关联依据"><option value="">全部关联依据</option><option value="text_series">效果提及系列</option><option value="text_card">效果点名卡片</option><option value="script_series">脚本引用系列</option><option value="script_card">脚本引用卡片</option><option value="series">同系列</option><option value="alias">同名卡关系</option></select></div>
+          <p id="tag-related-status" role="status"></p><div id="tag-related-cards" class="tag-card-grid" aria-busy="false"></div><button id="tag-related-more" type="button" hidden>加载更多关联卡片</button>
+        </section>
         <section class="tag-add-section"><h3>添加卡牌</h3><label>搜索卡名、卡号或效果<input id="tag-add-search" type="search" placeholder="输入卡牌信息查找"></label><p id="tag-add-status" role="status"></p><div id="tag-add-results" class="tag-card-grid"></div><button id="tag-add-more" type="button" hidden>加载更多</button></section>
       </form></article></div>
   </section>

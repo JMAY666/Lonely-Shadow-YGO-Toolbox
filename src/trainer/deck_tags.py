@@ -2,7 +2,7 @@
 from collections import Counter
 import json
 
-from plan_tags import contains_card, normalized, validate_selection
+from plan_tags import contains_card, membership_basis, normalized, validate_selection
 
 PREFIX = '#trainer-tags: '
 MIN_CARDS, MIN_RATIO = 2, 0.05
@@ -41,7 +41,7 @@ def suggest(deck, tags, catalog):
     total = sum(copies.values())
     candidates = []
     for key, tag in tags.items():
-        cards = [{'code': code, 'name': catalog[code]['name'], 'count': count}
+        cards = [{'code': code, 'name': catalog[code]['name'], 'count': count, 'basis': membership_basis(tag, code, catalog[code])}
                  for code, count in sorted(copies.items()) if contains_card(tag, code, catalog[code])]
         count = sum(card['count'] for card in cards)
         if count:

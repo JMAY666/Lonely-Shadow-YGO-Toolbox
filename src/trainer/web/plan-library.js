@@ -113,7 +113,7 @@ async function openPlanTags(id) {
   renderChosenTags();renderTagOptions();
   $('#tag-evidence').innerHTML=planLibraryUI.info.suggestions.candidates.map(item=>{
     const tag=planLibraryUI.info.tags.find(t=>t.id===item.id);
-    return `<p><strong>${escape(tag?.name||item.id)}</strong> · ${item.count}/${item.total} 种 · ${Math.round(item.ratio*100)}% · ${item.eligible?'达到阈值':'未达到阈值'}<br><small>${item.cards.map(c=>escape(c.name)).join('、')}</small></p>`;
+    return `<p><strong>${escape(tag?.name||item.id)}</strong> · ${item.count}/${item.total} 种 · ${Math.round(item.ratio*100)}% · ${item.eligible?'达到阈值':'未达到阈值'}<br><small>${item.cards.map(c=>escape(c.name+(c.basis?`（${c.basis}）`:''))).join('、')}</small></p>`;
   }).join('')||'<p>当前记录没有足够的系列卡牌证据，可手动添加。</p>';
   $('#plan-tags-dialog').showModal();
 }
