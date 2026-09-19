@@ -101,9 +101,10 @@ function secondWorkspacePage(){
     <div class="duel-section-heading"><h2>${secondUI.view?'后攻记录回看':'BO1 后攻局面记录'}</h2><div class="second-actions">${secondUI.view&&!secondWorkspace()?.readonly?secondButton('back-live','返回当前记录'):''}${readonly&&!doc.closed&&!doc.input.connection?secondButton('resume','核对后继续记录此局'):''}${secondButton('history','历史记录')}${!readonly?secondButton('refresh','刷新记录')+secondButton('close','结束本局'):''}${!readonly&&doc.input.platform==='manual'?`<button type="button" data-second-route-action="${doc.native_link?'sync':'sources'}">${doc.native_link?'同步实际局面':'关联内置后攻练习'}</button>`:''}${duelButton('new','开始新一局')}</div></div>
     <p class="second-status" id="second-status" role="status"></p><p id="second-error" role="alert"></p>
     <div class="second-overview"><strong>${state.turn_player?'对手':'我方'}回合 · 第 ${state.turn} 回合 · ${escape(SecondDuelModel.phases[state.phase])}</strong><span>我方手牌 <b id="second-hand-count">${own.length}</b> 张</span><span>LP ${state.lp[0]} / ${state.lp[1]}</span></div>
-    <p class="second-scope">开局来源：${doc.input.opening.source==='readonly_opening'?'只读捕获':'人工确认'}。${doc.native_link?'当前资源按关联内置练习的原生日志同步，原始起手保持不变。':'当前资源由玩家填报。'}条件提示覆盖已列本地案例，路线重建限有完整日志的内置后攻练习；外部平台规则与斩杀仍未验证。</p>
+    <p class="second-scope">开局来源：${doc.input.opening.source==='readonly_opening'?'只读捕获':'人工确认'}。${doc.native_link?'当前资源按关联内置练习的原生日志同步，原始起手保持不变。':'当前资源由玩家填报。'}条件提示覆盖已列本地案例，路线重建限有完整日志的内置后攻练习；外部平台规则未验证。指定攻击顺序可单独进行条件演练，未提供全面斩杀搜索。</p>
     ${typeof secondHintsPage==='function'?(state.turn_player===0?`<details class="second-panel"><summary>对手回合交康记录与条件提示</summary>${secondHintsPage(doc,readonly)}</details>`:secondHintsPage(doc,readonly)):''}
     ${typeof secondRoutesPage==='function'?(state.turn_player===1?`<details class="second-panel" ${secondUI.nativeSources?.id===doc.id?'open':''}><summary>两阶段内置练习接入与后攻路线</summary>${secondRoutesPage(doc,readonly)}</details>`:secondRoutesPage(doc,readonly)):''}
+    ${typeof secondBattlePage==='function'?secondBattlePage(doc,readonly):''}
     <details class="second-panel"><summary>原始起手 · ${doc.input.opening.cards.length} 张（保持不变）</summary><div class="second-opening">${doc.input.opening.cards.map(code=>`<figure><img src="/pics/${code}.jpg" alt=""><figcaption>${escape(secondName(doc,code))}</figcaption></figure>`).join('')}</div></details>
     <section class="second-panel"><h3>当前我方手牌</h3><div class="second-cards" id="second-hand">${own.map(c=>secondCardView(doc,c)).join('')||'<p>当前手牌为空</p>'}</div></section>
     <details class="second-panel" open><summary>已记录场面、墓地、除外与素材</summary><div class="second-public">${[0,1].map(player=>[4,8,16,32,128].map(zone=>{const rows=visible.filter(c=>c.controller===player&&c.location===zone);return rows.length?`<section><h4>${player?'对手':'我方'}${SecondDuelModel.zones[zone]}</h4><div class="second-cards">${rows.map(c=>secondCardView(doc,c)).join('')}</div></section>`:'';}).join('')).join('')||'<p>尚未录入这些区域；空白不代表已经核对为空。</p>'}</div></details>
@@ -126,6 +127,7 @@ function paintSecondStatus(){
   target.dataset.valid=String(!doc.status_reason&&!secondUI.view);
   if(typeof paintSecondHintFreshness==='function')paintSecondHintFreshness();
   if(typeof paintSecondRouteStatus==='function')paintSecondRouteStatus();
+  if(typeof paintSecondBattle==='function')paintSecondBattle();
 }
 async function secondSubmit(kind,payload){
   const workspace=secondWorkspace();if(!workspace||secondUI.busy||secondUI.view)return;
@@ -164,6 +166,7 @@ function mountSecondDuel(){
   for(const button of document.querySelectorAll('[data-second-action]'))button.onclick=run(()=>secondAction(button.dataset.secondAction));
   if(typeof mountSecondHints==='function')mountSecondHints();
   if(typeof mountSecondRoutes==='function')mountSecondRoutes();
+  if(typeof mountSecondBattle==='function')mountSecondBattle();
   const query=$('#second-card-query');let searchVersion=0,timer;
   if(query)query.oninput=()=>{clearTimeout(timer);const version=++searchVersion,q=query.value.trim();timer=setTimeout(async()=>{
     if(!q)return;

@@ -24,15 +24,24 @@ def own_main(node):
 
 def supported_window(node):
     state = node['state']
-    return own_main(node) or (node.get('player') == 0 and bytes.fromhex(node['raw'])[0] in (12, 16) and
+    return stage_of(node) != 'opponent_turn' or (node.get('player') == 0 and bytes.fromhex(node['raw'])[0] in (12, 16) and
                               state.get('turn') == 1 and state.get('turn_player') == 1)
+
+
+def stage_of(node):
+    if own_main(node): return 'own_turn'
+    state = node['state']; message = bytes.fromhex(node['raw'])[0]
+    if state.get('turn') == 2 and state.get('turn_player') == 0 and node.get('player') == 0 and not state.get('chain_depth'):
+        if message == 10 and state.get('phase') in (8,16,128): return 'battle'
+        if message == 11 and state.get('phase') == 256: return 'after_battle'
+    return 'opponent_turn'
 
 
 def native_window(node, current):
     state = node['state']; chains = state.get('chains') or []
     result = {'basis': 'native_legal_menu', 'recognized': False, 'responders': [],
               'notice': '原生菜单仅证明当前开放的效果；具体对象、处理结果和策略仍需核对'}
-    if own_main(node): return result
+    if stage_of(node) != 'opponent_turn': return result
     prompt = model(node['raw'], state, node.get('effects'))
     ids = {c.get('native_instance'): c['id'] for c in current['cards'] if c.get('native_instance') is not None}
     for choice in prompt['choices']:

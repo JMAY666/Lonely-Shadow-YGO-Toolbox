@@ -14,10 +14,10 @@ from modular_decisions import canonical_state, digest, public_state
 from planning_preferences import PREFERENCES
 from report import read_journal
 from timeline import route_rows
-from second_native import ANNOTATIONS, own_main, supported_window, native_window, carry_annotations, public_actions, public_outcomes
+from second_native import ANNOTATIONS, stage_of, supported_window, native_window, carry_annotations, public_actions, public_outcomes
 
 
-PHASES = {1: 'draw', 2: 'standby', 4: 'main1', 8: 'battle', 16: 'battle', 32: 'battle', 64: 'battle', 256: 'main2', 512: 'end'}
+PHASES = {1: 'draw', 2: 'standby', 4: 'main1', 8: 'battle', 16: 'battle', 32: 'battle', 64: 'battle', 128: 'battle', 256: 'main2', 512: 'end'}
 
 
 def same_deck(a, b):
@@ -62,7 +62,7 @@ def visible_candidate(candidate):
     result['steps'] = [{k: deepcopy(step[k]) for k in ('source', 'bound_decision', 'automatic', 'effect_label',
                       'operation_label', 'before', 'state') if k in step} for step in candidate['steps']]
     result['assumption'] = '对手不追加响应；公开场面响应和实际偏差需同步真实练习后重算'
-    result['battle'] = '本期只规划主要阶段的有来源操作；未验证战斗、伤害或斩杀'
+    result['battle'] = '本路线未验证战斗；请在实际场面同步后，单独验证指定攻击顺序'
     return result
 
 
@@ -95,7 +95,7 @@ class SecondRoutes:
             raise ValueError('原生决策节点标识不完整或无效，拒绝恢复')
         state = node['state']
         if node.get('answered') or not node.get('raw') or not supported_window(node):
-            raise ValueError('等待对手首回合的我方响应窗口，或我方首回合主要阶段 1 的已结算决策点；其他选择需在原练习中完成')
+            raise ValueError('等待对手首回合的我方响应窗口，或我方首回合已结算的主要阶段／战斗操作点；其他选择需在原练习中完成')
         restore = folder / f"restore-{node['node']}.txt"
         tape = folder / 'core-calls.txt'
         if not restore.exists() or not tape.exists():
@@ -112,7 +112,7 @@ class SecondRoutes:
                 meta, node, stamp = self.sample(row['id'], doc)
                 records.append({'id': row['id'], 'name': meta['name'], 'status': row['status'],
                                 'checkpoint': node['node'], 'stamp': stamp,
-                                'stage': 'own_turn' if own_main(node) else 'opponent_turn',
+                                'stage': stage_of(node),
                                 'hand_count': sum(c['controller'] == 0 and c['location'] == 2 for c in node['state']['cards'])})
             except (OSError, ValueError, KeyError, TypeError):
                 continue
@@ -126,7 +126,7 @@ class SecondRoutes:
             if stamp != link['stamp']: return '原练习已进入新窗口，请同步实际局面；旧提示和路线已停止采用'
             if link['rules'] != self.store.modular.precompute.rules(force=force):
                 return '规则资源已变化，请重新同步核对，旧建议不能采用'
-            if not own_main(node) and not self.store.alive(meta): return '原练习已结束，对手响应窗口仅供回看'
+            if stage_of(node) == 'opponent_turn' and not self.store.alive(meta): return '原练习已结束，对手响应窗口仅供回看'
         except (OSError, ValueError, KeyError, TypeError):
             return '原练习当前窗口无法可靠读取，请完成原练习中的选择后重新同步'
         return ''
@@ -176,6 +176,7 @@ class SecondRoutes:
         value = {'supported': doc['input']['platform'] == 'manual', 'linked': bool(doc.get('native_link')),
                  'current': self.valid(doc, binding), 'status': (binding or {}).get('status', 'unlinked'),
                  'route_ready': bool(binding and binding.get('stage', 'own_turn') == 'own_turn'),
+                 'battle_ready': bool(binding and binding.get('stage', 'own_turn') in ('own_turn','battle')),
                  'reason': (binding or {}).get('reason', '仅有场面记录尚不能重建规则状态，请关联同一内置后攻练习'),
                  'history': deepcopy(doc.get('route_history', []))}
         if value['linked'] and not value['current']:
@@ -305,8 +306,11 @@ class SecondRoutes:
                     self.owner.save(updated)
                     self.invalidate(doc['id'])
                     self.bindings[doc['id']] = {'sid': sid, 'source': source_id, 'stamp': stamp, 'rules': rules,
-                        'stage': 'own_turn' if own_main(node) else 'opponent_turn',
-                        'revision': updated['revision'], 'status': 'ready', 'reason': '完整历史重放通过；可以选择来源比较后续',
+                        'stage': stage_of(node),
+                        'revision': updated['revision'], 'status': 'ready', 'reason': {'own_turn':'完整历史重放通过；可以选择来源比较后续或验证攻击顺序',
+                            'battle':'战斗操作点已重建；可以验证尚未执行的指定攻击顺序',
+                            'after_battle':'已同步主要阶段 2；当前只供回看，未接入此阶段的展开续算',
+                            'opponent_turn':'对手回合响应点已重建；请核对当前具体效果和干扰条件'}[stage_of(node)],
                         'sources': sources,
                         'selected': [], 'preference': 'largest'}
                     return self.owner.public(updated)
@@ -320,7 +324,7 @@ class SecondRoutes:
             doc = self.request(body)
             binding = self.bindings.get(doc['id'])
             if not self.valid(doc, binding, force=True): raise ValueError('请先同步本局真实规则状态；仅凭手牌或场面不能续算')
-            if binding.get('stage', 'own_turn') != 'own_turn': raise ValueError('当前是对手回合，先核对干扰窗口；进入我方主要阶段后同步并续算')
+            if binding.get('stage', 'own_turn') != 'own_turn': raise ValueError('路线续算只支持我方首回合主要阶段 1；请同步对应的实际操作点')
             if any(r['status'] != 'expired' for r in doc['current']['usage'] + doc['current']['restrictions']):
                 raise ValueError('还有未结构化的人工次数或限制备注，请先核对；不能静默合并到原生规则权限')
             if binding['status'] == 'running': return self.owner.public(doc)
@@ -344,8 +348,8 @@ class SecondRoutes:
                             if goal == 'clear' and c.get('controller') == 1 and c.get('location') == 4 and c.get('position', 0) & 5]}
                     modular.configure({'id': binding['sid'], 'sources': selected, 'preference': preference, 'precise': False, 'goal': []})
                     result = modular.search(binding['sid'], refresh=True, limits={'seconds': 24, 'nodes': 240})
-                    # Second-turn support deliberately excludes battle and later
-                    # turns until separate combat validation has been delivered.
+                    # Sourced routes stay in Main Phase 1. Explicit attack-order
+                    # validation has a separate, bounded entry point.
                     candidates = [c for c in result['candidates'] if all(s['state'].get('turn') == 2 and s['state'].get('phase') == 4 for s in c['steps'])]
                     with self.owner.lock:
                         current = self.owner.load(doc['id'])
@@ -387,5 +391,8 @@ class SecondRoutes:
             return self.owner.public(updated)
 
     def dispatch(self, action, body):
+        if action == 'route-battle':
+            from second_battle import preview
+            return preview(self, body)
         return {'route-sources': self.sources, 'route-sync': self.sync, 'route-generate': self.generate,
                 'route-choose': self.choose}[action](body)

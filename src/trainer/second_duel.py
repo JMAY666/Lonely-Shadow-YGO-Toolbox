@@ -439,7 +439,7 @@ class SecondDuels:
                 hint = next((h for h in doc.get('advice_history', []) if h['id'] == body.get('advice_id')), None)
                 if not hint: raise ValueError('该局没有此响应窗口记录')
                 return review(doc, hint)
-        if action in ('route-sources', 'route-sync', 'route-generate', 'route-choose'):
+        if action in ('route-sources', 'route-sync', 'route-generate', 'route-choose', 'route-battle'):
             return self.routes.dispatch(action, body)
         if action == 'advice':
             return self.hints.generate(body)

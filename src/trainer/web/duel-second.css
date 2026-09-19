@@ -42,3 +42,5 @@
 .second-routes li{overflow-wrap:anywhere}
 .second-routes li small{display:block}
 .second-window-review{border-left:3px solid var(--accent);padding:4px 14px;margin:12px 0;overflow-wrap:anywhere}
+.second-battle fieldset{display:flex;flex-wrap:wrap;gap:12px;min-width:0;width:100%;border:1px solid var(--border-subtle)}
+.second-battle .second-hint-item{margin-top:12px}
