@@ -23,12 +23,6 @@ PROFILES = {
         'hand_vector': 0x13d8, 'client_code': 0x88, 'client_controller': 0xd1,
         'message': 0x7d9970, 'message_size': 0x7d9960,
         'field_vectors': 0x13a8,
-        'resource_layout': 'ygopro-55dd3e8e-public-resources-v3',
-        'phase_button': 0x3708, 'gui_id': 0xf8, 'gui_text': 0xb0,
-        'overlay_target': 0xf0, 'overlay_vector': 0xf8,
-        'cant_check_grave': 0x179b,
-        'chain_vector': 0x1610, 'activation_vector': 0x1580, 'activation_descriptions': 0x15c8,
-        'hint_widget': 0x2ed8, 'client_selectable': 0x7f, 'client_commands': 0xec,
     },
 }
 ZONES = ('main', 'extra', 'side')
@@ -244,8 +238,6 @@ class Capture:
     def __init__(self):
         self.lock = threading.Lock()
         self.attached = None
-        from ygopro_context import TurnObserver
-        self.turn_observer = TurnObserver()
 
     def attach(self, pid=None, platform='ygopro'):
         with self.lock:
@@ -318,7 +310,6 @@ class Capture:
                 if with_opening and result['phase'] in ('waiting_choice', 'detected') and result['evidence']['in_duel']:
                     try:result['opening_sample'] = read_opening_sample(memory, base, profile, result)
                     except CaptureError as error:result['opening_sample'] = {'error':str(error)}
-                self.observe_turn(memory, base, profile, attached, result)
                 return result
 
     def submitted_deck(self, capture_id):
@@ -363,42 +354,7 @@ class Capture:
                         except CaptureError as error: result['deck_error'] = str(error)
                 if memory.read(base + profile['game'], 8) != game:
                     raise CaptureError('游戏场景已变化，请重新监测。')
-                self.observe_turn(memory, base, profile, attached, frame)
                 return result
-
-    def observe_turn(self, memory, base, profile, attached, frame):
-        from ygopro_context import read_turn_marker
-        try:
-            game = struct.unpack('<Q', memory.read(base + profile['game'], 8))[0]
-            marker = read_turn_marker(memory, base, profile, frame)
-            self.turn_observer.observe(attached['capture_id'], game, frame, marker)
-        except (CaptureError, KeyError, ValueError, struct.error):
-            self.turn_observer.last = None
-            self.turn_observer.player = None
-
-    def resource_snapshot(self, capture_id):
-        from ygopro_live import read_snapshot, LAYOUT
-        with self.lock:
-            attached = self.attached
-            if not attached or attached['capture_id'] != capture_id or attached.get('platform', 'ygopro') != 'ygopro':
-                raise CaptureError('当前连接不支持 YGOPro 公开资源快照。')
-            profile = PROFILES.get(attached['image_hash'])
-            if not profile or profile.get('resource_layout') != LAYOUT:
-                raise CaptureError('此客户端的公开资源布局未验证，不能套用其他构建。')
-            with WindowsProcess(attached['pid']) as memory:
-                identity = (attached['path'], attached['created'])
-                if memory.identity() != identity: raise CaptureError('客户端已重新启动，请重新捕捉。')
-                base = memory.image_base(attached['pid'], 'YGOPro.exe')
-                first = read_snapshot(memory, base, profile)
-                time.sleep(.025)
-                second = read_snapshot(memory, base, profile)
-                if first != second or memory.identity() != identity:
-                    raise CaptureError('公开资源正在变化，等待下一次一致快照。')
-                player = self.turn_observer.current(capture_id, int(second['game'], 16), second['order'] == 'first', second['turn'])
-                missing = list(second['missing'])
-                if player is None: missing.append('回合玩家：未连续捕获对应新回合消息，仍需人工核对')
-                return {**second, 'turn_player': player, 'turn_player_basis': 'observed_new_turn' if player is not None else 'unknown',
-                        'missing': missing, 'capture_id': capture_id, 'image_hash': attached['image_hash']}
 
     def _unity_sample(self, capture_id, *, with_deck=False, with_opening=False, submitted=False):
         with self.lock:

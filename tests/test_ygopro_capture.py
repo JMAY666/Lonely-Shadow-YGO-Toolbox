@@ -4,6 +4,7 @@ from pathlib import Path
 import struct
 import subprocess
 import sys
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -45,6 +46,18 @@ class Memory:
 
 
 class CaptureTests(unittest.TestCase):
+    def test_default_module_lookup_keeps_existing_ygopro_recognition_working(self):
+        class Call:
+            def __init__(self,fn):self.fn=fn
+            def __call__(self,*a):return self.fn(*a)
+        closed=[]
+        def first(_,ref):
+            ref._obj.name='YGOPro.exe';ref._obj.base=0x140000000;return True
+        reader=WindowsProcess.__new__(WindowsProcess)
+        reader.kernel=SimpleNamespace(CreateToolhelp32Snapshot=Call(lambda *a:1),Module32FirstW=Call(first),
+            Module32NextW=Call(lambda *a:False),CloseHandle=Call(lambda h:closed.append(h)))
+        self.assertEqual(reader.image_base(123),0x140000000);self.assertEqual(closed,[1])
+
     def test_read_live_vectors_and_unsaved_changes(self):
         memory = Memory()
         self.assertEqual(read_deck(memory, memory.base, memory.profile), {'main':[123,123,456], 'extra':[789], 'side':[456]})

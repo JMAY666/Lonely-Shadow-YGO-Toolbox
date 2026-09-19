@@ -8,21 +8,9 @@ async function check({page,evidence,pass},platform){
   const hand=[55144522,55144522,1184620,1184620,1184620];
   const deck={id:'automatic/synthetic-smart',name:'智能识别合成构筑',revision:'fixture',deck:{main:[...hand,...Array(35).fill(1184620)],extra:[],side:[14558127]},tag_selection:{tag_ids:[],primary_ids:[]},tag_names:{}};
   const frame={phase:'detected',monitor_id:'synthetic-smart',round_id:'synthetic-round',detected_order:'first',confirmed:{order:'first',source:'software-audit'},opening:{status:'ready',snapshot_id:'synthetic-opening',cards:hand,confirmed:{snapshot_id:'synthetic-opening'}}};
-  const snapshot=()=>({id:requestId,capture_id:'synthetic',cycle,stage:mode,message:mode==='waiting'?'等待对局开始':mode==='second'?'已识别为后攻，可记录当前局面；后攻路线仍待接入':mode==='failed'?'自动识别未完成':'自动校验通过',
+  const snapshot=()=>({id:requestId,capture_id:'synthetic',cycle,stage:mode,message:mode==='waiting'?'等待对局开始':mode==='second'?'已识别为后攻，后攻展开暂未支持':mode==='failed'?'自动识别未完成':'自动校验通过',
     events:[{stage:'waiting'},{stage:'deck'},{stage:'tags'},{stage:'opening'},{stage:'audit'}],error:mode==='failed'?'未完整捕捉到本局初始发牌':'',failed_stage:mode==='failed'?'opening':null,
-    frame:mode==='second'?{...frame,detected_order:'second',confirmed:{order:'second',source:'software-audit'}}:frame,construction:{deck:deck.deck},tag_result:{tag_names:{},selection:deck.tag_selection},context:mode==='ready'?{context_id:contextId,round_id:frame.round_id,snapshot_id:frame.opening.snapshot_id,deck,hand}:null});
-  let secondDoc=null;
-  await page.route('**/api/second-duel/*',route=>{
-    const body=route.request().postDataJSON(),action=route.request().url().split('/').at(-1);
-    if(action==='start'){
-      assert.equal(body.recognition_id,requestId);assert.equal(body.round_id,frame.round_id);
-      secondDoc={id:body.request_id,revision:0,closed:false,events:[],catalog:{},status_reason:'请核对当前局面',
-        input:{round_id:frame.round_id,platform,opening:{cards:hand,source:'readonly_opening'},deck:deck.deck},
-        current:{cards:hand.map((code,i)=>({id:'card-'+i,code,controller:0,location:2})),turn:1,turn_player:1,phase:'unknown',lp:[8000,8000],usage:[],restrictions:[],window:null}};
-    }
-    if(action==='close')secondDoc.closed=true;
-    return route.fulfill({json:secondDoc});
-  });
+    frame,construction:{deck:deck.deck},tag_result:{tag_names:{},selection:deck.tag_selection},context:mode==='ready'?{context_id:contextId,round_id:frame.round_id,snapshot_id:frame.opening.snapshot_id,deck,hand}:null});
   await page.route('**/api/ygopro/attach',route=>{
     assert.equal(route.request().postDataJSON().platform,platform);
     return route.fulfill({json:{connected:true,process:{capture_id:'synthetic',platform,name:platform+'.exe',pid:123,path:'synthetic/'+platform+'.exe'}}});
@@ -104,10 +92,9 @@ async function check({page,evidence,pass},platform){
     await page.waitForRequest(request=>request.url().endsWith('/ygopro/smart/poll'));
     await page.locator('#duel-capture-close').click();pending.resolve();
     await page.waitForFunction(()=>!smartRun());assert.equal(await page.evaluate(()=>duelState().stage),1);assert.equal(prepares,2);
-    mode='second';await begin();await page.waitForFunction(()=>smartRun()?.value?.stage==='second'&&!!secondWorkspace()?.doc);
-    assert(await page.locator('#second-workspace').isVisible());assert(await page.locator('#duel-capture-dialog').isHidden());assert.equal(prepares,2);
-    assert.deepEqual(await page.evaluate(()=>secondWorkspace().doc.input.opening.cards),hand);
-    await page.evaluate(()=>cancelSmartRecognition());mode='failed';await begin();await page.waitForFunction(()=>smartRun()?.value?.stage==='failed');
+    mode='second';await begin();await page.waitForFunction(()=>smartRun()?.value?.stage==='second');
+    assert.match(await page.locator('#duel-capture-status').textContent(),/后攻展开暂未支持/);assert.equal(prepares,2);
+    await page.locator('#duel-capture-close').click();mode='failed';await begin();await page.waitForFunction(()=>smartRun()?.value?.stage==='failed');
     assert.match(await page.locator('#duel-capture-processes').innerText(),/初始发牌/);assert(await page.locator('#duel-smart-restart').isVisible());assert.equal(prepares,2);
     await page.locator('#duel-capture-close').click();mode='start-failure';await begin();
     await page.waitForFunction(()=>smartRun()?.value?.stage==='invalidated');
@@ -117,7 +104,7 @@ async function check({page,evidence,pass},platform){
     pass(platform+' smart recognition simulated UI: platform retained, cancellation including late start/poll, duplicate entry, automatic next-round monitoring and old-cycle rejection, frozen input, automatic matching/computation, selection preservation, second player and missed deal; no manual confirmation');
   }finally{
     holdStart?.resolve();holdPoll?.resolve();await page.evaluate(()=>cancelSmartRecognition());
-    for(const route of ['**/api/ygopro/attach','**/api/ygopro/smart/*','**/api/automatic-duel/*','**/api/second-duel/*','**/api/modular/library*'])await page.unroute(route);
+    for(const route of ['**/api/ygopro/attach','**/api/ygopro/smart/*','**/api/automatic-duel/*','**/api/modular/library*'])await page.unroute(route);
     await page.evaluate(()=>startNewDuel());
   }
 }
