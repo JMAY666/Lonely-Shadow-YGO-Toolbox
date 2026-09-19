@@ -286,6 +286,8 @@ function renderReviewDetail() {
   if($('#review-material-tab'))$('#review-material-tab').onclick=()=>{reviewUI.materialTab=true;renderReviewDetail();};
   if($('#review-card-detail .card-provenance'))$('#review-card-detail .card-provenance').hidden=n.kind==='catalog';
   bindReviewMarks(c,edits,editable);
+  if(annotation!==null&&known&&typeof mountIntelReview==='function')void mountIntelReview(c,d,edits,editable);
+  else if($('#intel-review-template'))$('#intel-review-template').hidden=true;
   if($('#review-card-note')&&editable)$('#review-card-note').oninput=e=>{edits.cards[String(c.instance_id)]=e.target.value;reviewUI.pending=null;refreshFinalMarks();};
   $('#review-card-popover').hidden=false;positionReviewDetail();
 }
@@ -766,7 +768,7 @@ function reviewEffectParts(desc='') {
 }
 function reviewMarkEditor(c,d,edits,editable) {
   const mark=edits.final_marks?.[String(c.instance_id)]||{};
-  return `<label><input type="checkbox" id="review-final-mark" ${mark.marked?'checked':''} ${editable?'':'disabled'}>标记为终场有效卡牌</label><div class="effect-marks">${reviewEffectParts(d.desc).map(p=>`<div class="effect-mark ${mark.effects?.[p.key]?'is-marked':''}"><label><input type="checkbox" data-final-effect="${p.key}" ${mark.effects?.[p.key]?'checked':''} ${editable?'':'disabled'}><span>${escape(p.text)}</span></label>${mark.effects?.[p.key]?`<input data-final-effect-note="${p.key}" aria-label="${p.label}效果备注" placeholder="用途或阻抗说明（可留空）" maxlength="4000" value="${escape(mark.effects[p.key].note||'')}" ${editable?'':'disabled'}>`:''}</div>`).join('')}</div>`;
+  return `<label><input type="checkbox" id="review-final-mark" ${mark.marked?'checked':''} ${editable?'':'disabled'}>标记为终场有效卡牌</label><div class="effect-marks">${reviewEffectParts(d.desc).map(p=>`<div class="effect-mark ${mark.effects?.[p.key]?'is-marked':''}"><label><input type="checkbox" data-final-effect="${p.key}" ${mark.effects?.[p.key]?'checked':''} ${editable?'':'disabled'}><span>${escape(p.text)}</span></label>${mark.effects?.[p.key]?`<input data-final-effect-note="${p.key}" aria-label="${p.label}效果备注" placeholder="用途或阻抗说明（可留空）" maxlength="4000" value="${escape(mark.effects[p.key].note||'')}" ${editable?'':'disabled'}>`:''}</div>`).join('')}</div><section id="intel-review-template" class="intel-inline-template"></section>`;
 }
 function bindReviewMarks(c,edits,editable) {
   const box=$('#review-final-mark');if(!box||!editable)return;

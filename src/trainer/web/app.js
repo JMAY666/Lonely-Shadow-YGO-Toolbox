@@ -55,6 +55,7 @@ function displayView(view) {
   $('#home').hidden = view !== 'home';
   $('#duel').hidden = view !== 'duel';
   $('#modular').hidden = view !== 'modular';
+  $('#intelligence').hidden = view !== 'intelligence';
   const selecting = view === 'decks' && typeof moduleUI !== 'undefined' && moduleUI.current === 'expansion' && !activeDesignDeckEdit();
   $('#editor').hidden = view !== 'decks' || selecting;
   $('#deck-selection').hidden = !selecting;

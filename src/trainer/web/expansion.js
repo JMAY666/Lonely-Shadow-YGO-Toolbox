@@ -14,6 +14,7 @@ function unsavedSummary() {
   if (typeof editorUnsavedSummary === 'function') messages.push(...editorUnsavedSummary());
   else if (app.dirty) messages.push('构筑有未保存修改。');
   if (typeof tagManagerUI!=='undefined'&&tagManagerUI.dirty) messages.push('TAG 管理的名称、别名或卡牌范围尚未保存。');
+  if (typeof intelUI!=='undefined'&&intelUI.dirty) messages.push('情报站有尚未保存的资料。');
   if (flow.design) messages.push('前置设计尚未开始，退出后需要重新填写。');
   if (app.active) messages.push('展开尚未结束，退出将保留中断记录，尚未保存为正式方案。');
   if (draftDirty()) messages.push('当前方案的名称、分支条件、步骤或卡牌说明尚未保存。');

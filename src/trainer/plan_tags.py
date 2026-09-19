@@ -37,7 +37,9 @@ def builtin_tags(runtime):
 
 
 def vocabulary(builtins, document):
-    return {**deepcopy(builtins), **deepcopy(document.get('entries', {}))}
+    from intelligence import purpose_tag
+    purpose = purpose_tag(document)
+    return {**deepcopy(builtins), **deepcopy(document.get('entries', {})), purpose['id']: purpose}
 
 
 def edit_tag(body, tags):
@@ -128,6 +130,7 @@ def suggest(plan, tags, catalog):
         card = plan.get('catalog', {}).get(str(code), {})
         if 'setcode' not in card: card = catalog.get(code, card)
         for identifier, tag in tags.items():
+            if tag.get('kind') == 'purpose': continue
             if contains_card(tag, code, card):
                 counts[identifier] += 1
                 evidence.setdefault(identifier, []).append({'code': code, 'name': card.get('name', str(code)),

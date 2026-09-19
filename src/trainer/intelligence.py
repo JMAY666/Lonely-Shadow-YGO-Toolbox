@@ -1,0 +1,252 @@
+"""Personal card knowledge, committed atomically with the shared TAG vocabulary.
+
+General marks are never consulted by route evaluation and never write a plan.
+Hand-trap TAG membership is a projection of the same records, not a second list.
+"""
+from copy import deepcopy
+import hashlib
+import json
+import re
+import uuid
+
+HANDTRAP_ID = 'purpose:handtrap'
+EXTRA_TYPES = 0x40 | 0x2000 | 0x800000 | 0x4000000
+
+
+def main_card(card):
+    return bool(card.get('type', 0) & 7) and not card.get('type', 0) & (EXTRA_TYPES | 0x4000)
+
+
+def handtrap_id(document):
+    from plan_tags import normalized
+    saved = document.get('intelligence', {}).get('handtrap_tag_id')
+    if saved: return saved
+    # Reuse an existing user-named TAG's identity; saved deck references survive.
+    matching = [key for key, tag in document.get('entries', {}).items()
+                if normalized(tag['name']) == '手坑']
+    return matching[0] if matching else HANDTRAP_ID
+
+
+def data(document, catalog):
+    from plan_tags import member_ids
+    if 'intelligence' in document:
+        value = deepcopy(document['intelligence'])
+        if value.get('version') != 1: raise ValueError('情报站资料版本不受支持，原文件已保留')
+        return value
+    identifier = handtrap_id(document)
+    previous = document.get('entries', {}).get(identifier, {})
+    return {'version': 1, 'handtrap_tag_id': identifier, 'endboards': {},
+            'handtraps': {str(code): {'code': code, 'note': '', 'condition': '', 'folder_id': None}
+                          for code in member_ids(previous, catalog)},
+            'folders': {}, 'topics': {}, 'records': {}}
+
+
+def purpose_tag(document, catalog=None):
+    identifier = handtrap_id(document)
+    previous = document.get('entries', {}).get(identifier, {})
+    members = (document.get('intelligence') or {}).get('handtraps')
+    return {**previous, 'id': identifier, 'name': '手坑', 'aliases': previous.get('aliases', []),
+            'setcode': previous.get('setcode') if members is None else None, 'source': '情报站 · 功能用途', 'kind': 'purpose', 'purpose': 'handtrap',
+            'include_cards': sorted(map(int, members)) if members is not None else previous.get('include_cards', []),
+            'exclude_cards': previous.get('exclude_cards', []) if members is None else []}
+
+
+def text(value, limit=4000, required=False):
+    if not isinstance(value, str) or len(value) > limit or (required and not value.strip()):
+        raise ValueError(f'文字须为{1 if required else 0}–{limit}个字符')
+    return value.strip()
+
+
+def effect_parts(desc):
+    return [part for part in re.split(r'(?=[①②③④⑤⑥⑦⑧⑨⑩][：:])', desc or '') if part]
+
+
+class Intelligence:
+    def __init__(self, store):
+        self.store = store
+
+    @property
+    def library(self): return self.store.library
+
+    def card(self, code):
+        value = self.store.catalog.cards.get(code)
+        return deepcopy(value) if value else {'id': code, 'name': f'卡库缺失 · {code}', 'desc': '', 'type': 0, 'missing': True}
+
+    def snapshot(self):
+        with self.store.lock:
+            from plan_tags import contains_card
+            document = self.library.document()
+            knowledge = data(document, self.store.catalog.cards)
+            codes = set(map(int, knowledge['endboards'])) | set(map(int, knowledge['handtraps']))
+            for record in knowledge['records'].values(): codes.update(self.record_codes(record))
+            tags = self.library.all_tags()
+            return {**knowledge, 'revision': document['revision'],
+                    'cards': {str(code): self.card(code) for code in codes},
+                    'card_tags': {str(code): [key for key, tag in tags.items() if contains_card(tag, code, self.store.catalog.cards.get(code, {}))] for code in codes},
+                    'tags': list(tags.values())}
+
+    @staticmethod
+    def record_codes(record):
+        return {code for step in record.get('steps', [])
+                for code in [step.get('opponent'), *(c for response in step.get('responses', []) for c in response.get('cards', []))]
+                if code is not None}
+
+    def check_code(self, code, retained=()):
+        if type(code) is not int or not 0 < code < 2**32: raise ValueError('卡牌编号无效')
+        if code not in self.store.catalog.cards and code not in retained: raise ValueError('卡库缺少这张卡，新引用请从卡库选择')
+        return code
+
+    def check_handtrap(self, code, retained=()):
+        self.check_code(code, retained)
+        card = self.store.catalog.cards.get(code)
+        if card and not main_card(card): raise ValueError('手坑只允许主卡组卡牌，不能加入额外卡组卡牌或衍生物')
+
+    def sync_members(self, document, selected):
+        if not isinstance(selected, list) or len(selected) > 20000: raise ValueError('手坑卡牌列表无效')
+        knowledge = data(document, self.store.catalog.cards)
+        retained = set(map(int, knowledge['handtraps']))
+        for code in selected: self.check_handtrap(code, retained)
+        knowledge['handtraps'] = {str(code): knowledge['handtraps'].get(str(code),
+            {'code': code, 'note': '', 'condition': '', 'folder_id': None}) for code in sorted(set(selected))}
+        document['intelligence'] = knowledge
+        document['entries'][knowledge['handtrap_tag_id']] = purpose_tag(document)
+
+    def sources(self):
+        """Keep each instance/branch alternative intact; never merge conflicting claims."""
+        with self.store.lock:
+            groups, warnings = {}, []
+            for path in sorted(self.store.plans.glob('*.json')):
+                try: plan = self.library.read(path)
+                except (OSError, ValueError):
+                    warnings.append(f'{path.stem} 暂不可读，未导入'); continue
+                routes = [(None, plan)] + [(b.get('id'), b['report']) for b in plan.get('branches', []) if b.get('report')]
+                for branch_id, route in routes:
+                    edits = route.get('annotations') or {}
+                    final = next((n.get('state') for n in route.get('review', {}).get('nodes', []) if n.get('kind') == 'final'), None) or route.get('final_state') or {}
+                    for card in final.get('cards', []):
+                        instance = str(card.get('instance_id'))
+                        mark = edits.get('final_marks', {}).get(instance, {})
+                        code = card.get('code')
+                        if not mark.get('marked') or type(code) is not int or code <= 0: continue
+                        details = route.get('catalog', {}).get(str(code), plan.get('catalog', {}).get(str(code), {}))
+                        annotation = {'code': code, 'candidate': True, 'note': edits.get('cards', {}).get(instance, ''),
+                                      'effects': deepcopy(mark.get('effects', {})), 'desc': details.get('desc', '')}
+                        key = f'{plan["id"]}:{branch_id or "main"}:{instance}'
+                        digest = hashlib.sha256(json.dumps(annotation, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+                        source = {'key': key, 'fingerprint': digest, 'plan_id': plan['id'], 'plan_name': plan.get('name', path.stem),
+                                  'branch_id': branch_id, 'instance_id': instance, 'location': card.get('location'),
+                                  'annotation': annotation}
+                        group = groups.setdefault(code, {'code': code, 'card': self.card(code), 'sources': []})
+                        group['sources'].append(source)
+            return {'groups': list(groups.values()), 'warnings': warnings}
+
+    def endboard(self, value, previous=None, trusted=False):
+        code = self.check_code(value.get('code'), [previous['code']] if previous else ([value.get('code')] if trusted else []))
+        if type(value.get('candidate', True)) is not bool: raise ValueError('终场候选标记无效')
+        desc = value.get('desc', self.card(code)['desc'])
+        text(desc, 50000)
+        if not trusted and desc != self.card(code)['desc'] and desc != (previous or {}).get('desc'):
+            raise ValueError('卡牌文本已更新，请重新打开标注并核对')
+        parts, checked = effect_parts(desc), {}
+        effects = value.get('effects', {})
+        if not isinstance(effects, dict) or len(effects) > 100: raise ValueError('效果标注格式无效')
+        for key, item in effects.items():
+            if key not in {str(i) for i in range(len(parts))} or not isinstance(item, dict): raise ValueError('效果编号已改变，请核对卡面文本')
+            checked[key] = {'note': text(item.get('note', ''))}
+        return {'code': code, 'candidate': value.get('candidate', True), 'note': text(value.get('note', '')),
+                'desc': desc, 'effects': checked, 'sources': deepcopy((previous or {}).get('sources', []))}
+
+    def validate_record(self, value, knowledge, previous):
+        title = text(value.get('title', ''), 120, True)
+        topic = value.get('topic_id')
+        if topic not in knowledge['topics']: raise ValueError('请选择适用主题')
+        retained = self.record_codes(previous or {})
+        steps = value.get('steps', [])
+        if not isinstance(steps, list) or not 1 <= len(steps) <= 100: raise ValueError('每条记录需要 1–100 个步骤')
+        result = []
+        for step in steps:
+            if not isinstance(step, dict): raise ValueError('断点步骤格式无效')
+            opponent = step.get('opponent')
+            if opponent is not None: self.check_code(opponent, retained)
+            responses = step.get('responses', [])
+            if not isinstance(responses, list) or len(responses) > 30: raise ValueError('每步最多 30 个应对选项')
+            options = []
+            for response in responses:
+                if not isinstance(response, dict): raise ValueError('应对选项格式无效')
+                cards = response.get('cards', [])
+                if not isinstance(cards, list) or len(cards) > 20: raise ValueError('应对卡牌数量无效')
+                for code in cards: self.check_code(code, retained)
+                mode = response.get('mode', 'alternative')
+                if mode not in ('alternative', 'combination'): raise ValueError('应对方式无效')
+                if len(cards) > 1 and mode != 'combination': raise ValueError('多个不同应对请分别添加选项；多卡配合须选择组合')
+                options.append({'cards': list(dict.fromkeys(cards)), 'mode': mode,
+                                **{k: text(response.get(k, '')) for k in ('method', 'condition', 'expected', 'note')}})
+            result.append({'opponent': opponent, **{k: text(step.get(k, '')) for k in ('action', 'timing', 'condition', 'note')}, 'responses': options})
+        status = '待核对' if all(s['opponent'] and s['action'] and s['timing'] and s['condition'] and s['responses'] and
+            all((r['cards'] or r['method']) and r['condition'] and r['expected'] for r in s['responses']) for s in result) else '待补充'
+        return {'title': title, 'topic_id': topic, 'steps': result, 'note': text(value.get('note', '')), 'status': status}
+
+    def command(self, body):
+        with self.store.lock:
+            document = self.library.document()
+            if body.get('revision') != document['revision']: raise ValueError('资料已在其他入口更新，当前输入保留；请刷新并核对后重试')
+            knowledge = data(document, self.store.catalog.cards)
+            op, value = body.get('op'), body.get('value', {})
+            if not isinstance(value, dict): raise ValueError('资料格式无效')
+            identifier = value.get('id')
+            if op in ('endboard.save', 'endboard.import'):
+                source = None
+                if op == 'endboard.import':
+                    source = next((s for g in self.sources()['groups'] for s in g['sources'] if s['key'] == value.get('source_key')), None)
+                    if not source or source['fingerprint'] != value.get('fingerprint'): raise ValueError('来源方案已改变，请刷新来源后选择')
+                    value = source['annotation']
+                previous = knowledge['endboards'].get(str(value.get('code')))
+                annotation = self.endboard(value, previous, trusted=bool(source))
+                if source:
+                    annotation['sources'] = [s for s in annotation['sources'] if s['key'] != source['key']] + [deepcopy(source)]
+                knowledge['endboards'][str(annotation['code'])] = annotation
+            elif op == 'endboard.remove': knowledge['endboards'].pop(str(value.get('code')), None)
+            elif op == 'handtrap.save':
+                code = value.get('code'); self.check_handtrap(code, set(map(int, knowledge['handtraps'])))
+                previous = knowledge['handtraps'].get(str(code), {})
+                folder = value.get('folder_id', previous.get('folder_id'))
+                if folder is not None and folder not in knowledge['folders']: raise ValueError('文件夹不存在')
+                knowledge['handtraps'][str(code)] = {'code': code, 'folder_id': folder, 'note': text(value.get('note', previous.get('note', ''))), 'condition': text(value.get('condition', previous.get('condition', '')))}
+            elif op == 'handtrap.remove': knowledge['handtraps'].pop(str(value.get('code')), None)
+            elif op in ('folder.save', 'topic.save'):
+                key = 'folders' if op.startswith('folder') else 'topics'
+                if identifier is not None and identifier not in knowledge[key]: raise ValueError('资料不存在，请刷新')
+                identifier = identifier or uuid.uuid4().hex
+                name = text(value.get('name', ''), 80, True)
+                from plan_tags import normalized
+                if any(normalized(v['name']) == normalized(name) and k != identifier for k, v in knowledge[key].items()): raise ValueError('已有同名资料')
+                item = {'id': identifier, 'name': name}
+                if key == 'topics':
+                    previous = knowledge[key].get(identifier, {})
+                    tag_ids = value.get('tag_ids', [])
+                    tags = self.library.all_tags()
+                    if not isinstance(tag_ids, list) or len(tag_ids) > 30 or any(t not in tags and t not in previous.get('tag_ids', []) for t in tag_ids): raise ValueError('关联 TAG 无效')
+                    deck = value.get('deck_id')
+                    if deck is not None and deck != previous.get('deck_id'): self.store.get_deck(deck)
+                    item.update(tag_ids=list(dict.fromkeys(tag_ids)), deck_id=deck, note=text(value.get('note', '')))
+                knowledge[key][identifier] = item
+            elif op == 'folder.remove':
+                if identifier not in knowledge['folders']: raise ValueError('文件夹不存在')
+                del knowledge['folders'][identifier]
+                for item in knowledge['handtraps'].values():
+                    if item['folder_id'] == identifier: item['folder_id'] = None
+            elif op == 'topic.remove':
+                if any(r['topic_id'] == identifier for r in knowledge['records'].values()): raise ValueError('主题仍有断点记录，请先移动或删除这些记录')
+                knowledge['topics'].pop(identifier, None)
+            elif op == 'record.save':
+                if identifier is not None and identifier not in knowledge['records']: raise ValueError('断点记录不存在')
+                record = self.validate_record(value, knowledge, knowledge['records'].get(identifier))
+                identifier = identifier or uuid.uuid4().hex
+                knowledge['records'][identifier] = {**record, 'id': identifier}
+            elif op == 'record.remove': knowledge['records'].pop(identifier, None)
+            else: raise ValueError('未知的情报站操作')
+            document['intelligence'] = knowledge
+            document['entries'][knowledge['handtrap_tag_id']] = purpose_tag(document)
+            document['revision'] += 1
+            self.library.save_vocabulary(document)
+            return {**self.snapshot(), 'saved_id': identifier}

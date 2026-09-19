@@ -1,0 +1,49 @@
+.intel-page { padding:24px 0 50px; max-width:1600px; margin:auto; }
+.intel-heading,.intel-toolbar,.intel-editor-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.intel-heading h1 { margin:4px 0 10px; }
+.intel-page p,.intel-help { color:var(--text-muted); font-size:13px; line-height:1.7; }
+.intel-tabs { display:flex; gap:8px; flex-wrap:wrap; border-bottom:1px solid var(--border-subtle); padding:15px 0; margin-bottom:18px; }
+.intel-tabs button[aria-pressed=true] { background:var(--surface-selected); border-color:var(--border-selected); color:var(--text-accent); }
+.intel-filters { display:flex; flex-wrap:wrap; gap:8px; margin:14px 0; }
+.intel-filters input { flex:1; min-width:160px; }
+.intel-filters select { max-width:210px; }
+.intel-layout { display:grid; grid-template-columns:minmax(235px,.8fr) minmax(0,1.65fr); gap:20px; align-items:start; }
+.intel-list,.intel-editor,.intel-picker,.intel-sources { padding:20px; border:1px solid var(--border-subtle); border-radius:12px; background:var(--surface-panel); min-width:0; }
+.intel-editor { scroll-margin-top:80px; }
+.intel-list { max-height:72vh; overflow:auto; }
+.intel-list-row { display:grid; grid-template-columns:60px minmax(0,1fr); gap:12px; border-bottom:1px solid var(--border-subtle); padding:12px 0; }
+.intel-list-row .review-card { width:58px; }
+.intel-list-row p { margin:6px 0; white-space:pre-wrap; overflow-wrap:anywhere; }
+.intel-list-row strong { display:block; overflow-wrap:anywhere; }
+.intel-list-row button[data-intel-edit] { margin-top:8px; }
+.intel-label,.intel-field { display:block; margin:16px 0; font-size:13px; }
+.intel-field :is(input,textarea,select) { display:block; width:100%; margin-top:7px; }
+.intel-page textarea { padding:10px; border:1px solid var(--border-subtle); border-radius:6px; background:var(--surface-raised); color:var(--text-main); font:inherit; resize:vertical; min-height:65px; }
+.intel-fields { display:grid; grid-template-columns:1fr 1fr; gap:0 16px; }
+.intel-editor .effect-mark { border:1px solid var(--border-subtle); padding:12px; border-radius:6px; margin:10px 0; }
+.intel-editor .effect-mark label { display:flex; gap:8px; align-items:flex-start; font-size:13px; line-height:1.7; white-space:pre-wrap; }
+.intel-editor .effect-mark textarea { width:100%; margin-top:8px; }
+.intel-editor-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:22px; }
+.intel-badge { display:inline-block; font-size:11px; padding:3px 7px; border-radius:5px; background:var(--surface-selected); color:var(--text-accent); margin:3px 5px 0 0; }
+.intel-status { min-height:22px; white-space:pre-wrap; }
+.intel-error { color:var(--danger-text)!important; }
+.intel-picker,.intel-sources { margin:18px 0; scroll-margin-top:70px; }
+.intel-picker .tag-card-grid { grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); }
+.intel-picker .tag-card-tile button { margin-top:auto; }
+.intel-source { border-left:2px solid var(--border-selected); padding:8px 14px; margin:12px 0; }
+.intel-source p { white-space:pre-wrap; }
+.intel-step { position:relative; margin:22px 0 22px 12px; padding:0 0 0 24px; border-left:2px solid var(--border-selected); }
+.intel-step:before { content:''; position:absolute; width:10px; height:10px; border-radius:50%; top:5px; left:-6px; background:var(--text-accent); }
+.intel-step h3 { margin:0; font-size:16px; }
+.intel-response { margin:14px 0; padding:14px; background:var(--surface-raised); border:1px solid var(--border-subtle); border-radius:8px; }
+.intel-card-refs { display:flex; flex-wrap:wrap; gap:10px; margin:10px 0; align-items:flex-start; }
+.intel-card-refs .review-card { width:72px; }
+.intel-card-refs>div { display:flex; flex-direction:column; align-items:center; gap:5px; }
+.intel-card-refs button { font-size:12px; }
+.intel-topic-head { border-bottom:1px solid var(--border-subtle); padding-bottom:12px; margin-bottom:20px; }
+.intel-inline-template { border-top:1px solid var(--border-subtle); padding-top:12px; margin-top:12px; }
+.intel-inline-template p { white-space:pre-wrap; font-size:12px; }
+.intel-inline-template button { font-size:12px; padding:6px 8px; margin:5px 6px 0 0; }
+.intel-inline-template select { max-width:100%; }
+@media(max-width:1000px) { .intel-layout { grid-template-columns:minmax(200px,.65fr) minmax(0,1.3fr); gap:12px; } .intel-list,.intel-editor { padding:14px; } .intel-fields { grid-template-columns:1fr; } }
+@media(max-width:780px) { .intel-layout { grid-template-columns:1fr; } .intel-list { max-height:340px; } .intel-filters select { max-width:100%; } }

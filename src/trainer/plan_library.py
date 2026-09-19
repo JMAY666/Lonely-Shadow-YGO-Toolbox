@@ -42,7 +42,7 @@ class PlanLibrary:
             return {'id': identifier, 'edit_revision': plan.get('edit_revision', 0),
                     'classification': self.selection(plan, vocabulary),
                     'suggestions': tags.suggest(plan, vocabulary, self.store.catalog.cards),
-                    'tags': list(vocabulary.values()), 'tag_revision': document['revision']}
+                    'tags': [t for t in vocabulary.values() if t.get('kind') != 'purpose'], 'tag_revision': document['revision']}
 
     def save_vocabulary(self, document):
         if self.path.exists():
@@ -54,7 +54,16 @@ class PlanLibrary:
         with self.store.lock:
             document = self.document()
             if body.get('revision') != document['revision']: raise ValueError('标签库已更新，请重新打开后编辑；当前输入仍保留')
-            tag = tags.edit_tag(body, tags.vocabulary(self.builtins, document))
+            vocabulary = tags.vocabulary(self.builtins, document)
+            existing = vocabulary.get(body.get('id'), {})
+            if existing.get('purpose') == 'handtrap':
+                if body.get('name') != existing['name'] or body.get('aliases', []) != existing.get('aliases', []):
+                    raise ValueError('手坑为专用用途 TAG，名称与别名固定；可编辑卡牌范围')
+                self.store.intelligence.sync_members(document, body.get('card_ids', tags.member_ids(existing, self.store.catalog.cards)))
+                document['revision'] += 1
+                self.save_vocabulary(document)
+                return self.members(existing['id'])
+            tag = tags.edit_tag(body, vocabulary)
             if 'card_ids' in body: tag = tags.edit_members(tag, body['card_ids'], self.store.catalog.cards)
             document['entries'][tag['id']] = tag
             document['revision'] += 1

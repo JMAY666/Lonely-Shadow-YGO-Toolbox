@@ -12,6 +12,23 @@ function setup(extra={}){
   return {...context.r,context};
 }
 
+test('general annotations never reveal a masked unknown or random final card identity',()=>{
+  for(const [identity_known,drawn,expected] of [[false,false,0],[true,true,0],[true,false,1]]){
+    const elements=new Map();let requests=0;
+    const r=setup({$:key=>{if(!elements.has(key))elements.set(key,{hidden:false,innerHTML:''});return elements.get(key);},mountIntelReview:()=>{requests++;}});
+    r.context.positionReviewDetail=()=>{};
+    const c={code:10,name:'合成身份',instance_id:1,identity_known,controller:0,location:4,sequence:0};
+    const final={id:'final',kind:'final',action_ids:[],state:{cards:[c]}};
+    const report={id:'identity-test',catalog:{10:{name:'合成身份',desc:'通用效果',type:1}},actions:[],
+      annotations:{cards:{},final_marks:{}},review:{nodes:[final]},
+      events:drawn?[{id:'2:0',native_seq:2,message:90,cards:[{...c,location:2}]}]:[]};
+    Object.assign(r.reviewUI,{selected:c,detailNode:final,detailReport:report});
+    r.context.renderReviewDetail();
+    assert.equal(requests,expected);
+    if(!expected)assert.equal(elements.get('#intel-review-template').hidden,true);
+  }
+});
+
 test('frozen effect logs recover explicit reveal identity in compact and detailed views without rewriting results',()=>{
   const r=setup(),shown={code:20,name:'被展示的同调怪兽',instance_id:5,controller:0,location:64,sequence:0};
   const actor={code:10,name:'测试魔法',instance_id:1,controller:0,location:8,sequence:0};

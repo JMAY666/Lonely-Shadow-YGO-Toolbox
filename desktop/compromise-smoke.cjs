@@ -98,7 +98,7 @@ module.exports=async function({application,page,nativeState,nativeWait,hostWait,
   });fs.writeFileSync(path.join(evidence,'compromise-opponent.png'),Buffer.from(opponentPng,'base64'));
   const version=await opponent.evaluate(()=>typeof opponentState!=='undefined'&&opponentState.state.version);
   await opponent.evaluate(()=>submitOpponent('answer',opponentInt(999)));
-  await opponent.waitForFunction(previous=>opponentState.state.version>previous&&opponentState.state.manual,version);
+  await opponent.waitForFunction(previous=>opponentState.state?.version>previous&&opponentState.state?.manual,version);
   await assert.rejects(request('/api/opponent/control',{id:sid,command:'answer',version,raw:'00000000'}));
   await opponent.locator('[data-opponent-choice]').filter({hasText:'灰流丽'}).first().click();
   await nativeWait(sid,s=>s.prompt===11);
@@ -118,8 +118,8 @@ module.exports=async function({application,page,nativeState,nativeWait,hostWait,
   assert(responded.premises.some(p=>p.confirmed&&p.result==='效果被无效'&&p.source_cards.some(c=>c.code===ash)&&p.affected_cards.some(c=>c.code===pot)));
   pass('The same live duel legally resolves Ash against Avarice; its five targets stay in the graveyard, no mainline draws leak into the branch, and causal evidence is recorded');
   for(let i=0;i<2;i++) {
-    await opponent.locator('#opponent-release').click();await opponent.waitForFunction(()=>!opponentState.state.manual);
-    await page.locator('#take-opponent').click();await opponent.waitForFunction(()=>typeof opponentState!=='undefined'&&opponentState.state.manual);
+    await opponent.locator('#opponent-release').click();await opponent.waitForFunction(()=>opponentState.state?.manual===false);
+    await page.locator('#take-opponent').click();await opponent.waitForFunction(()=>typeof opponentState!=='undefined'&&opponentState.state?.manual===true);
   }
   const closing=opponent.waitForEvent('close');await opponent.locator('#opponent-close').click();await closing;
   assert((await request('/api/opponent/state/'+sid)).running);

@@ -28,15 +28,17 @@ async function selectManagedTag(id=null) {
   $('#tag-manager-empty').hidden=true;$('#tag-manager-form').hidden=false;
   $('#tag-manager-title').textContent=id?value.tag.name:'新增 TAG';$('#tag-manager-source').textContent=value.tag.source;
   $('#tag-manager-name').value=value.tag.name;$('#tag-manager-aliases').value=value.tag.aliases.join('\n');$('#tag-member-filter').value='';
+  $('#tag-manager-name').readOnly=$('#tag-manager-aliases').readOnly=value.tag.kind==='purpose';
   $('#tag-member-kind').value='';$('#tag-related-query').value='';$('#tag-related-kind').value='';
   tagManagerUI.seedId=null;tagManagerUI.seedName='';tagManagerUI.related=[];tagManagerUI.relatedTotal=0;
   $('#tag-manager-status').textContent='卡牌范围供卡组与方案共用；已保存的卡组标签和手动方案标签会保留。';
+  if(value.tag.kind==='purpose')$('#tag-manager-status').textContent='手坑用途 TAG：仅允许主卡组卡牌；与情报站同步，不参与卡组／方案系列自动识别。移除会同时解除手坑资料和文件夹归属。';
   renderTagManagerList();renderTagMembers();
   $('#tag-add-search').value='';tagManagerUI.results=[];tagManagerUI.total=0;tagManagerUI.searchSerial++;renderTagSearchResults();
   renderTagExcluded();void searchTagRelations();
 }
 function markTagDirty() {
-  tagManagerUI.dirty=true;$('#tag-manager-status').textContent='有未保存的修改。切换页面会保留，保存后参与自动识别。';
+  tagManagerUI.dirty=true;$('#tag-manager-status').textContent=tagManagerUI.draft?.kind==='purpose'?'有未保存的手坑成员修改。保存后与情报站同步，不参与系列自动识别。':'有未保存的修改。切换页面会保留，保存后参与自动识别。';
 }
 function tagCatalogueCard(card) {
   const report={id:'catalog:'+card.id,catalog:{[card.id]:card},events:[],review:{nodes:[{id:'catalog',kind:'catalog',action_ids:[]}]}};
@@ -60,7 +62,7 @@ async function searchTagCards(more=false) {
   const serial=++tagManagerUI.searchSerial,selected=tagManagerUI.serial,offset=more?tagManagerUI.results.length:0;
   $('#tag-add-status').textContent='正在查找卡牌…';$('#tag-add-more').disabled=true;
   try {
-    const result=await api(`/api/cards?q=${encodeURIComponent(q)}&offset=${offset}`);
+    const result=await api(`/api/cards?q=${encodeURIComponent(q)}&offset=${offset}&main_only=${tagManagerUI.draft?.kind==='purpose'?'1':'0'}`);
     if(serial!==tagManagerUI.searchSerial||selected!==tagManagerUI.serial)return;
     tagManagerUI.results=more?[...tagManagerUI.results,...result.cards]:result.cards;tagManagerUI.total=result.total;renderTagSearchResults();
   } catch(e){if(serial===tagManagerUI.searchSerial)$('#tag-add-status').textContent=e.message;}
@@ -78,7 +80,7 @@ async function saveManagedTag(e) {
     if(typeof refreshDeckTagName==='function')refreshDeckTagName(result.tag);
     $('#tag-manager-name').value=result.tag.name;$('#tag-manager-aliases').value=result.tag.aliases.join('\n');$('#tag-manager-title').textContent=result.tag.name;
     tagManagerUI.members=new Map(result.cards.map(c=>[c.id,c]));tagManagerUI.excluded=new Map((result.excluded_cards||[]).map(c=>[c.id,c]));
-    renderTagManagerList();renderTagMembers();renderTagExcluded();void searchTagRelations();$('#tag-manager-status').textContent='已保存名称、别名和卡牌范围，自动识别已使用最新设置。';
+    renderTagManagerList();renderTagMembers();renderTagExcluded();void searchTagRelations();$('#tag-manager-status').textContent=result.tag.kind==='purpose'?'已保存手坑范围，与情报站同步；系列自动识别不受影响。':'已保存名称、别名和卡牌范围，自动识别已使用最新设置。';
     void refreshPlans().catch(error=>{$('#tag-manager-status').textContent=`TAG 已保存；方案列表刷新失败：${error.message}。可稍后刷新。`;});
   }catch(error){$('#tag-manager-status').textContent=`保存失败：${error.message}。输入与卡牌选择仍保留。`;}
   finally{tagManagerUI.busy=false;$('#tag-manager-form').inert=false;}
@@ -126,5 +128,5 @@ $('#tags').addEventListener('click',run(async e=>{
   const findCard=id=>tagManagerUI.members.get(id)||tagManagerUI.excluded.get(id)||tagManagerUI.results.find(c=>c.id===id)||tagManagerUI.related.find(c=>c.id===id);
   if(b.dataset.cardRelated){const card=findCard(Number(b.dataset.cardRelated));if(card){tagManagerUI.seedId=card.id;tagManagerUI.seedName=card.name;$('#tag-related-query').value='';$('#tag-related-kind').value='';void searchTagRelations();$('#tag-related-section').scrollIntoView({block:'start'});}}
   if(b.dataset.memberRemove){closeReviewDetail();const card=tagManagerUI.members.get(Number(b.dataset.memberRemove));if(card?.tag_basis==='卡库系列')tagManagerUI.excluded.set(card.id,card);tagManagerUI.members.delete(Number(b.dataset.memberRemove));markTagDirty();renderTagMembers();renderTagExcluded();renderTagSearchResults();void searchTagRelations();}
-  if(b.dataset.memberAdd){const card=findCard(Number(b.dataset.memberAdd));if(card){closeReviewDetail();tagManagerUI.members.set(card.id,{...card,tag_basis:card.tag_default_member?'卡库系列':'手动加入'});markTagDirty();renderTagMembers();renderTagExcluded();renderTagSearchResults();void searchTagRelations();}}
+  if(b.dataset.memberAdd){const card=findCard(Number(b.dataset.memberAdd));if(card){if(tagManagerUI.draft?.kind==='purpose'&&(!(card.type&7)||card.type&(0x40|0x2000|0x800000|0x4000000|0x4000)))return notice('手坑只允许主卡组卡牌，不能加入额外卡组卡牌或衍生物。');closeReviewDetail();tagManagerUI.members.set(card.id,{...card,tag_basis:card.tag_default_member?'卡库系列':'手动加入'});markTagDirty();renderTagMembers();renderTagExcluded();renderTagSearchResults();void searchTagRelations();}}
 }));

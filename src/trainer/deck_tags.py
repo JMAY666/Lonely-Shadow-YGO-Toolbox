@@ -41,6 +41,7 @@ def suggest(deck, tags, catalog):
     total = sum(copies.values())
     candidates = []
     for key, tag in tags.items():
+        if tag.get('kind') == 'purpose': continue
         cards = [{'code': code, 'name': catalog[code]['name'], 'count': count, 'basis': membership_basis(tag, code, catalog[code])}
                  for code, count in sorted(copies.items()) if contains_card(tag, code, catalog[code])]
         count = sum(card['count'] for card in cards)
@@ -68,6 +69,7 @@ def options(deck, tags, catalog, query='', card_ids=None):
     rank = {item['id']: index for index, item in enumerate(suggestions['candidates'])}
     result = []
     for key, tag in tags.items():
+        if tag.get('kind') == 'purpose': continue
         if card_ids and not any(contains_card(tag, code, catalog[code]) for code in card_ids): continue
         if query and not (any(query in normalized(name) for name in [tag['name'], *tag.get('aliases', [])])
                           or any(contains_card(tag, card['id'], card) for card in matching_cards)): continue

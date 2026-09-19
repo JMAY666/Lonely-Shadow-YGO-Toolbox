@@ -38,6 +38,7 @@ import ygopro_capture
 from ygopro_order import OrderMonitor
 from automatic_duel import AutomaticDuels
 from ygopro_smart import SmartRecognition
+from intelligence import Intelligence, main_card
 
 WORKSPACE = Path(__file__).resolve().parents[2]
 RUNTIME = WORKSPACE / '.local/YGOPro-Lite'
@@ -149,10 +150,12 @@ class Catalog:
                                 and not (patch and p.name == superpre.ARCHIVE_NAME)]
         if self.archive_warning: raise ValueError('检测到尚未支持的扩展资源包；请先明确其与引擎的加载顺序，避免构筑资料不一致')
 
-    def search(self, q, kind='', offset=0, *, name_only=False, favorites=None, attribute='', race='', level=''):
+    def search(self, q, kind='', offset=0, *, name_only=False, favorites=None, attribute='', race='', level='', card_ids=None, main_only=False):
         q = q.strip().casefold()
         values = [c for c in self.cards.values() if (not q or q in c['name'].casefold() or (not name_only and (q in c['desc'].casefold() or q == str(c['id']))))
                   and (favorites is None or c['id'] in favorites)
+                  and (card_ids is None or c['id'] in card_ids)
+                  and (not main_only or main_card(c))
                   and (not attribute or c.get('attribute') == int(attribute))
                   and (not race or c.get('race') == int(race))
                   and (level == '' or (c['type'] & 1 and (c.get('level', 0) & 255) == int(level)))
@@ -180,6 +183,7 @@ class Store:
         self.catalog = Catalog(self.runtime)
         self.history_plan_names = {}
         self.library = PlanLibrary(self, read_json, atomic_json, now)
+        self.intelligence = Intelligence(self)
         self.compromise = Compromise(self, read_json, atomic_json, atomic_bytes)
         from modular import Modular
         self.modular = Modular(self, read_json, atomic_json, atomic_bytes)
@@ -990,7 +994,7 @@ class Handler(BaseHTTPRequestHandler):
                 origin = self.headers.get('Origin')
                 if origin and origin != f'http://127.0.0.1:{self.server.server_port}': raise ValueError('请求来源不匹配')
                 length = int(self.headers.get('Content-Length', 0))
-                maximum = MAX_BYTES if path in ('/api/plans/import', '/api/plans/import-preview') else 1_000_000 if path in ('/api/tags/save', '/api/tags/related') else 100_000
+                maximum = MAX_BYTES if path in ('/api/plans/import', '/api/plans/import-preview') else 1_000_000 if path in ('/api/tags/save', '/api/tags/related', '/api/intelligence') else 100_000
                 if not 0 < length < maximum: raise ValueError('请求长度无效，分享文件上限为 20 MB')
                 body = json.loads(self.rfile.read(length))
                 if path == '/api/superpre': return self.send(store.superpre.start(body.get('action')))
@@ -1000,6 +1004,7 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/modular/execute': return self.send(store.modular.execute(body))
                 if path == '/api/modular/auto': return self.send(store.modular.automatic(body))
                 if path == '/api/tags/save': return self.send(store.library.edit_tag(body))
+                if path == '/api/intelligence': return self.send(store.intelligence.command(body))
                 if path == '/api/tags/related': return self.send(store.library.related(body))
                 if path == '/api/plans/classify': return self.send(store.library.save_selection(body))
                 if path == '/api/plans/import-preview': return self.send(store.library.import_document(body, preview=True))
@@ -1071,6 +1076,11 @@ class Handler(BaseHTTPRequestHandler):
                     return self.send(store.modular.library.entries[path.rsplit('/', 1)[1]])
                 if path.startswith('/api/modular/state/'): return self.send(store.modular.status(path.rsplit('/', 1)[1]))
                 if path == '/api/bootstrap': return self.send({'token': self.server.token, 'cards': len(store.catalog.cards), 'sources': store.catalog.sources, 'runtime': str(store.runtime), 'embedded': bool(store.host)})
+                if path == '/api/intelligence': return self.send(store.intelligence.snapshot())
+                if path == '/api/intelligence/sources': return self.send(store.intelligence.sources())
+                if path.startswith('/api/intelligence/endboard/'):
+                    snapshot = store.intelligence.snapshot()
+                    return self.send({'revision': snapshot['revision'], 'annotation': snapshot['endboards'].get(path.rsplit('/', 1)[1])})
                 if path == '/api/native/status' and store.host: return self.send(store.host.status(store, query['id'][0]))
                 if path.startswith('/api/native/frame/') and store.host and store.host.test_control:
                     sid, frame = path.removeprefix('/api/native/frame/').split('/')
@@ -1080,7 +1090,17 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/plan-favorites': return self.send(store.plan_favorites())
                 if path == '/api/duel/settings': return self.send(store.duel_settings())
                 if path == '/api/cards':
+                    card_ids = None
+                    if query.get('tag', [''])[0]:
+                        from plan_tags import member_ids
+                        tag = store.library.all_tags().get(query['tag'][0])
+                        if not tag: raise ValueError('TAG 不存在，请刷新')
+                        card_ids = set(member_ids(tag, store.catalog.cards))
+                    if query.get('handtraps', [''])[0] == '1':
+                        members = set(map(int, store.intelligence.snapshot()['handtraps']))
+                        card_ids = members if card_ids is None else card_ids & members
                     return self.send(store.catalog.search(query.get('q', [''])[0], query.get('kind', [''])[0], max(0, int(query.get('offset', ['0'])[0])),
+                        card_ids=card_ids, main_only=query.get('main_only', [''])[0] == '1',
                         name_only=query.get('scope', [''])[0] == 'name',
                         favorites=set(store.favorites()['cards']) if query.get('favorites', [''])[0] == '1' else None,
                         **{key: query.get(key, [''])[0] for key in ('attribute', 'race', 'level')}))
@@ -1097,7 +1117,9 @@ class Handler(BaseHTTPRequestHandler):
                     return self.send({'ready': (store.session_path(path.rsplit('/', 1)[1]) / 'ready.json').exists()})
                 if path == '/api/plans': return self.send(store.list_plans())
                 if path.startswith('/api/plan-tags/'): return self.send(store.library.info(path.rsplit('/', 1)[1]))
-                if path == '/api/tags': return self.send({'tags': list(store.library.all_tags().values()), 'revision': store.library.document()['revision']})
+                if path == '/api/tags':
+                    with store.lock:
+                        return self.send({'tags': list(store.library.all_tags().values()), 'revision': store.library.document()['revision']})
                 if path.startswith('/api/tag-members/'): return self.send(store.library.members(path.rsplit('/', 1)[1]))
                 if path.startswith('/api/plan-export/'): return self.send(store.library.export(path.rsplit('/', 1)[1]))
                 if path.startswith('/api/plan/'):
@@ -1139,6 +1161,7 @@ class Handler(BaseHTTPRequestHandler):
                 files.update({f'/{name}': name for name in ('opening-rules.js', 'condition-editor.js', 'condition-cards.css', 'condition-card.svg')})
                 files.update({'/deck-tags.js': 'deck-tags.js', '/deck-tags.css': 'deck-tags.css', '/theme.css': 'theme.css'})
                 files['/scrollbars.css'] = 'scrollbars.css'
+                files.update({'/intelligence.js': 'intelligence.js', '/intelligence.css': 'intelligence.css'})
                 for art in ('first', 'second', 'bo1', 'bo3', 'manual', 'automatic', 'ygopro', 'ygopro2', 'mdpro3', 'masterduel'):
                     files[f'/brand/duel-{art}.svg'] = f'brand/duel-{art}.svg'
                 for name in ('duel.js', 'duel-smart.js', 'duel-automatic.js', 'duel-order.js', 'duel-opening.js', 'duel-automatic.css', 'duel-forecast.js', 'duel-model.js', 'tutorial-bindings.js', 'duel.css', 'deck-tag-view.js', 'deck-appearance.js', 'superpre.js', 'superpre.css'):
