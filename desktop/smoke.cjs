@@ -204,6 +204,13 @@ async function activatePot(sid) {
 (async () => {
   await launch(true);
   if(onlyIntelligence){
+    if(process.argv.includes('--merge-only')){
+      await require('./intelligence-merge-smoke.cjs')({page,application,root,evidence,pass});
+      const before=await page.evaluate(()=>api('/api/intelligence'));
+      await close();await launch();assert.deepEqual(await page.evaluate(()=>api('/api/intelligence')),before);
+      pass('Merged card marks, parallel notes, source versions and pending effects survive application/backend restart');
+      await close();assert.deepEqual(errors,[]);fs.writeFileSync(path.join(evidence,'merge-result.json'),JSON.stringify({checks,errors,globalInput:false},null,2));return;
+    }
     if(process.argv.includes('--identity-only')){
       await require('./intelligence-smoke.cjs').identity({page,pass});
       await close();assert.deepEqual(errors,[]);fs.writeFileSync(path.join(evidence,'identity-result.json'),JSON.stringify({checks,errors,globalInput:false},null,2));return;

@@ -5,7 +5,7 @@ module.exports=async({page,application,root,evidence,pass})=>{
   page.setDefaultTimeout(25000);
   const enter=async name=>{await page.locator('#module-'+name).click();await page.waitForFunction(name=>moduleUI.current===name&&!moduleUI.switching,name);};
   const action=name=>page.locator(`[data-intel-action="${name}"]`).click();
-  const field=name=>page.locator(`[data-intel-field="${name}"]`);
+  const field=name=>page.locator(name==='note'?'[data-intel-field="note"],[data-intel-field="notes.0.text"]':`[data-intel-field="${name.startsWith('effects.')?name.replace(/\.note$/,'.notes.0.text'):name}"]`);
   const tab=async name=>{await page.locator(`[data-intel-tab="${name}"]`).click();await page.waitForFunction(name=>intelUI.tab===name,name);};
   const save=async()=>{await action('save');await page.waitForFunction(()=>!intelUI.busy&&!intelUI.draft&&document.querySelector('#intel-status').textContent==='已保存。');};
   const queryPicker=async code=>{await page.locator('#intel-pick-q').fill(String(code));await page.locator(`[data-intel-choose="${code}"]`).waitFor();};
@@ -39,17 +39,17 @@ module.exports=async({page,application,root,evidence,pass})=>{
   await page.locator('#intel-review-scope').selectOption('local');await page.locator('#intel-review-save').click();
   assert.equal(await page.evaluate(async()=>(await api('/api/intelligence')).endboards[14558127].note),'失败时保留的输入');
   await page.locator('#intel-review-scope').selectOption('shared');await page.locator('#intel-review-save').click();
-  await page.waitForFunction(()=>document.querySelector('#intel-review-status').textContent.includes('通用标注已保存'));
+  await page.waitForFunction(()=>document.querySelector('#intel-review-status').textContent.includes('通用标注已合并保存'));
   await page.evaluate(()=>closeReviewDetail());await mount(second);await page.locator('#intel-review-apply').click();
-  assert.equal(await page.evaluate(()=>reviewEdits().cards['1']),'仅方案 A');
+  assert.equal(await page.evaluate(()=>reviewEdits().cards['1']),'失败时保留的输入\n\n仅方案 A');
   await page.locator('#review-card-note').fill('仅方案 B');
-  assert.equal(await page.evaluate(async()=>(await api('/api/intelligence')).endboards[14558127].note),'仅方案 A');
+  assert.equal(await page.evaluate(async()=>(await api('/api/intelligence')).endboards[14558127].note),'失败时保留的输入\n\n仅方案 A');
   await page.evaluate(()=>{closeReviewDetail();flow.draft=null;});await enter('intelligence');
-  await page.locator('[data-intel-edit="14558127"]').click();assert.equal(await field('note').inputValue(),'仅方案 A');await action('cancel');
+  await page.locator('[data-intel-edit="14558127"]').click();assert.equal(await page.locator('[data-intel-field="notes.1.text"]').inputValue(),'仅方案 A');await action('cancel');
   await action('sources');await page.locator('#intel-sources summary').waitFor();assert.equal(await page.locator('#intel-sources details').count(),1);
   await page.locator('#intel-sources summary').click();assert.equal(await page.locator('[data-intel-import]').count(),2);
-  await page.locator('[data-intel-import]').first().click();await page.locator('#flow-confirm').click();await page.waitForFunction(()=>!intelUI.busy&&document.querySelector('#intel-status').textContent==='已保存。');
-  await action('sources-close');plans.forEach(p=>assert.equal(fs.readFileSync(p.file,'utf8'),p.bytes));
+  await page.locator('[data-intel-import]').first().click();await page.waitForFunction(()=>!intelUI.busy&&document.querySelector('#intel-status').textContent.startsWith('已合并'));
+  await action('cancel');plans.forEach(p=>assert.equal(fs.readFileSync(p.file,'utf8'),p.bytes));
   pass('General marks copy into distinct instances, save from either entry, preserve plan-only edits and historical files, and import conflicting sources separately');
 
   await tab('handtraps');await action('folder-new');await field('name').fill('常用手坑');await save();

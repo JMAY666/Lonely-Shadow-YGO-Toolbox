@@ -21,7 +21,7 @@
 .intel-page textarea { padding:10px; border:1px solid var(--border-subtle); border-radius:6px; background:var(--surface-raised); color:var(--text-main); font:inherit; resize:vertical; min-height:65px; }
 .intel-fields { display:grid; grid-template-columns:1fr 1fr; gap:0 16px; }
 .intel-editor .effect-mark { border:1px solid var(--border-subtle); padding:12px; border-radius:6px; margin:10px 0; }
-.intel-editor .effect-mark label { display:flex; gap:8px; align-items:flex-start; font-size:13px; line-height:1.7; white-space:pre-wrap; }
+.intel-editor .effect-mark>label { display:flex; gap:8px; align-items:flex-start; font-size:13px; line-height:1.7; white-space:pre-wrap; }
 .intel-editor .effect-mark textarea { width:100%; margin-top:8px; }
 .intel-editor-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:22px; }
 .intel-badge { display:inline-block; font-size:11px; padding:3px 7px; border-radius:5px; background:var(--surface-selected); color:var(--text-accent); margin:3px 5px 0 0; }
@@ -32,6 +32,20 @@
 .intel-picker .tag-card-tile button { margin-top:auto; }
 .intel-source { border-left:2px solid var(--border-selected); padding:8px 14px; margin:12px 0; }
 .intel-source p { white-space:pre-wrap; }
+.intel-source-group { padding:14px 0; border-top:1px solid var(--border-subtle); }
+.intel-source-group summary { margin-top:12px; color:var(--text-muted); }
+.intel-parallel-notes { margin:16px 0; }
+.intel-parallel-notes h4 { margin:0; font-size:13px; }
+.intel-note-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr)); gap:10px; margin:10px 0; }
+.intel-note { min-width:0; padding:12px; border:1px solid var(--border-subtle); border-radius:8px; background:var(--surface-input); }
+.intel-note .intel-field { display:block; margin:0; }
+.intel-note :is(p,small) { white-space:pre-wrap; overflow-wrap:anywhere; }
+.intel-note p { margin:0 0 8px; }
+.intel-note small { display:block; font-size:11px; color:var(--text-muted); margin:8px 0; }
+.intel-note>button { font-size:11px; padding:4px 8px; }
+.intel-pending-effects { border-top:1px solid var(--warning-line); margin-top:20px; padding-top:12px; }
+.intel-pending-effects select { max-width:100%; }
+.intel-shared-effect { margin:12px 0; }
 .intel-step { position:relative; margin:22px 0 22px 12px; padding:0 0 0 24px; border-left:2px solid var(--border-selected); }
 .intel-step:before { content:''; position:absolute; width:10px; height:10px; border-radius:50%; top:5px; left:-6px; background:var(--text-accent); }
 .intel-step h3 { margin:0; font-size:16px; }

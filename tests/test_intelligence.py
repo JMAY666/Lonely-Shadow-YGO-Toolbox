@@ -7,6 +7,7 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src/trainer'))
 from app import Store, atomic_json, read_json
 from intelligence import HANDTRAP_ID
+from intelligence_marks import merge_marks, normalize_mark, source_ref
 from plan_tags import suggest, contains_card
 import deck_tags
 import test_store
@@ -119,6 +120,99 @@ class IntelligenceTests(unittest.TestCase):
         self.assertEqual(path.read_bytes(), before)
         with self.assertRaisesRegex(ValueError, '来源方案已改变'):
             self.command('endboard.import', {'source_key': first['key'], 'fingerprint': 'stale'})
+
+    def test_bulk_union_preserves_parallel_notes_effects_sources_and_existing_manual_data(self):
+        plan = sample(); plan['catalog']['101']['desc'] = '①：效果甲。②：效果乙。'
+        plan['annotations']['cards'] = {'1': '用途甲'}
+        plan['annotations']['final_marks'] = {'1': {'marked': True, 'effects': {'0': {'note': '阻抗甲'}}}}
+        branch = deepcopy(plan); branch['annotations']['cards']['1'] = '用途乙'
+        branch['annotations']['final_marks']['1']['effects'] = {'0': {'note': '阻抗乙'}, '1': {'note': '续航'}}
+        plan['branches'] = [{'id': 'branch', 'report': branch}]
+        target = self.store.plan_path(plan['id']); atomic_json(target, plan); before = target.read_bytes()
+        sources = self.store.intelligence.sources()['groups'][0]['sources']
+        self.command('endboard.import', {'source_key': sources[0]['key'], 'fingerprint': sources[0]['fingerprint']})
+        mark = self.store.intelligence.snapshot()['endboards']['101']
+        mark['notes'].append({'text': '手动用途', 'source_refs': []}); self.command('endboard.save', mark)
+        selected = {'sources': [{'key': s['key'], 'fingerprint': s['fingerprint']} for s in sources]}
+        result = self.command('endboard.merge-sources', selected)
+        merged = result['endboards']['101']
+        self.assertEqual([n['text'] for n in merged['notes']], ['用途甲', '手动用途', '用途乙'])
+        self.assertEqual([n['text'] for n in merged['effects']['0']['notes']], ['阻抗甲', '阻抗乙'])
+        self.assertEqual(set(merged['effects']), {'0', '1'})
+        self.assertEqual(merged['notes'][2]['source_refs'], [source_ref(sources[1])])
+        self.assertEqual(self.command('endboard.merge-sources', selected)['endboards']['101'], merged)
+        self.assertEqual(Store(self.root).intelligence.snapshot()['endboards']['101'], merged)
+        self.assertEqual(target.read_bytes(), before)
+        self.assertEqual(result['merged_count'], 1)
+
+    def test_equal_notes_merge_provenance_and_changed_source_keeps_old_version(self):
+        plan = sample(); plan['annotations']['cards'] = {'1': '相同用途'}
+        plan['annotations']['final_marks'] = {'1': {'marked': True, 'effects': {'0': {'note': '相同效果备注'}}}}
+        plan['branches'] = [{'id': 'branch', 'report': deepcopy(plan)}]
+        target = self.store.plan_path(plan['id']); atomic_json(target, plan)
+        def merge_all():
+            sources = [s for g in self.store.intelligence.sources()['groups'] for s in g['sources']]
+            return self.command('endboard.merge-sources', {'sources': [{'key': s['key'], 'fingerprint': s['fingerprint']} for s in sources]})
+        mark = merge_all()['endboards']['101']
+        self.assertEqual(len(mark['notes']), 1); self.assertEqual(len(mark['notes'][0]['source_refs']), 2)
+        self.assertEqual(len(mark['effects']['0']['notes']), 1)
+        plan['annotations']['cards']['1'] = '修订用途'; atomic_json(target, plan)
+        mark = merge_all()['endboards']['101']
+        self.assertEqual([n['text'] for n in mark['notes']], ['相同用途', '修订用途'])
+        self.assertEqual(len(mark['sources']), 3)
+
+    def test_changed_effect_order_maps_exact_text_and_unmatched_effects_stay_pending(self):
+        old = {'code': 55144522, 'candidate': True, 'desc': '①：原效果甲。②：原效果乙。', 'note': '旧用途',
+               'effects': {'0': {'note': '甲备注'}, '1': {'note': '乙备注'}}}
+        merged = merge_marks(None, old, target_desc='②：原效果乙。①：新效果。')
+        self.assertEqual(set(merged['effects']), {'0'})
+        self.assertEqual(merged['effects']['0']['note'], '乙备注')
+        self.assertEqual(merged['unmatched_effects'][0]['text'], '①：原效果甲。')
+        self.assertEqual(merged['unmatched_effects'][0]['note'], '甲备注')
+        self.assertEqual(merge_marks(merged, old), merged)
+
+    def test_merge_batch_stale_source_or_write_failure_cannot_partially_commit(self):
+        plan = sample(); plan['annotations']['final_marks'] = {str(i): {'marked': True, 'effects': {}} for i in (1, 2)}
+        atomic_json(self.store.plan_path(plan['id']), plan)
+        self.command('endboard.save', {'code': 55144522, 'note': '原资料'})
+        before = self.store.library.path.read_bytes()
+        sources = [s for g in self.store.intelligence.sources()['groups'] for s in g['sources']]
+        selected = [{'key': s['key'], 'fingerprint': s['fingerprint']} for s in sources]
+        with self.assertRaisesRegex(ValueError, '来源方案已改变'):
+            self.command('endboard.merge-sources', {'sources': [selected[0], {**selected[1], 'fingerprint': 'stale'}]})
+        self.assertEqual(self.store.library.path.read_bytes(), before)
+        with patch.object(self.store.library, 'write', side_effect=OSError('disk full')):
+            with self.assertRaises(OSError): self.command('endboard.merge-sources', {'sources': selected})
+        self.assertEqual(self.store.library.path.read_bytes(), before)
+
+    def test_merged_source_versions_do_not_restore_manually_removed_or_resolved_notes(self):
+        source = {'key': 'plan:main:1', 'fingerprint': 'version-one', 'plan_name': '来源',
+                  'annotation': {'code': 55144522, 'candidate': True, 'note': '旧用途', 'desc': '①：旧效果。', 'effects': {'0': {'note': '旧效果备注'}}}}
+        merged = merge_marks(None, source['annotation'], source=source, target_desc='①：新效果。')
+        merged['notes'] = [{'text': '手动修订', 'source_refs': []}]
+        merged['effects']['0'] = merged['unmatched_effects'].pop()
+        saved = normalize_mark(merged)
+        self.assertEqual(merge_marks(saved, source['annotation'], source=source), saved)
+        legacy = {**saved, 'merged_source_refs': []}
+        again = merge_marks(legacy, source['annotation'], source=source)
+        self.assertEqual([n['text'] for n in again['notes']], ['手动修订', '旧用途'])
+        self.assertEqual(len(again['unmatched_effects']), 1, 'Legacy source references do not silently discard old unmerged notes')
+
+    def test_legacy_notes_backed_up_and_plan_shared_save_merges_without_composite_duplicates(self):
+        self.command('endboard.save', {'code': 55144522, 'note': '用途甲', 'effects': {'0': {'note': '效果甲'}}})
+        original = read_json(self.store.library.path); mark = original['intelligence']['endboards']['55144522']
+        mark.pop('notes'); mark['effects']['0'].pop('notes'); atomic_json(self.store.library.path, original)
+        before = self.store.library.path.read_bytes()
+        self.assertEqual(self.store.intelligence.snapshot()['endboards']['55144522']['notes'][0]['text'], '用途甲')
+        self.assertEqual(self.store.library.path.read_bytes(), before, 'Reading old notes never migrates files')
+        merged = self.command('endboard.merge', {'code': 55144522, 'note': '用途乙', 'effects': {'0': {'note': '效果乙'}}})['endboards']['55144522']
+        self.assertEqual(read_json(self.store.root/'backups/tags'/f"{original['revision']}.json"), original)
+        value = {'code': 55144522, 'note': merged['note'], 'effects': {k: {'note': v['note']} for k, v in merged['effects'].items()}}
+        again = self.command('endboard.merge', value)['endboards']['55144522']
+        self.assertEqual(again, merged)
+        again['notes'][0]['text'] = '手动修订'; again['effects']['0']['notes'].pop()
+        saved = self.command('endboard.save', again)['endboards']['55144522']
+        self.assertEqual(saved['note'], '手动修订\n\n用途乙'); self.assertEqual(saved['effects']['0']['note'], '效果甲')
 
     def record(self):
         topic = self.command('topic.save', {'name': '自定义主题', 'tag_ids': [HANDTRAP_ID]})['saved_id']

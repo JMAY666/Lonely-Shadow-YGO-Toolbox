@@ -6,8 +6,8 @@ Hand-trap TAG membership is a projection of the same records, not a second list.
 from copy import deepcopy
 import hashlib
 import json
-import re
 import uuid
+from intelligence_marks import effect_parts, normalize_mark, note_items, notes_value, refs, merge_marks
 
 HANDTRAP_ID = 'purpose:handtrap'
 EXTRA_TYPES = 0x40 | 0x2000 | 0x800000 | 0x4000000
@@ -32,6 +32,7 @@ def data(document, catalog):
     if 'intelligence' in document:
         value = deepcopy(document['intelligence'])
         if value.get('version') != 1: raise ValueError('情报站资料版本不受支持，原文件已保留')
+        value['endboards'] = {key: normalize_mark(mark) for key, mark in value['endboards'].items()}
         return value
     identifier = handtrap_id(document)
     previous = document.get('entries', {}).get(identifier, {})
@@ -55,10 +56,6 @@ def text(value, limit=4000, required=False):
     if not isinstance(value, str) or len(value) > limit or (required and not value.strip()):
         raise ValueError(f'文字须为{1 if required else 0}–{limit}个字符')
     return value.strip()
-
-
-def effect_parts(desc):
-    return [part for part in re.split(r'(?=[①②③④⑤⑥⑦⑧⑨⑩][：:])', desc or '') if part]
 
 
 class Intelligence:
@@ -112,7 +109,7 @@ class Intelligence:
         document['entries'][knowledge['handtrap_tag_id']] = purpose_tag(document)
 
     def sources(self):
-        """Keep each instance/branch alternative intact; never merge conflicting claims."""
+        """Keep provenance snapshots intact while allowing an explicit knowledge union."""
         with self.store.lock:
             groups, warnings = {}, []
             for path in sorted(self.store.plans.glob('*.json')):
@@ -148,13 +145,19 @@ class Intelligence:
         if not trusted and desc != self.card(code)['desc'] and desc != (previous or {}).get('desc'):
             raise ValueError('卡牌文本已更新，请重新打开标注并核对')
         parts, checked = effect_parts(desc), {}
+        def checked_notes(item, old):
+            if old and 'note' in item and item.get('notes') == old.get('notes') and item['note'] != old.get('note'):
+                return note_items({'note': item['note']})
+            return note_items(item)
         effects = value.get('effects', {})
         if not isinstance(effects, dict) or len(effects) > 100: raise ValueError('效果标注格式无效')
         for key, item in effects.items():
             if key not in {str(i) for i in range(len(parts))} or not isinstance(item, dict): raise ValueError('效果编号已改变，请核对卡面文本')
-            checked[key] = {'note': text(item.get('note', ''))}
-        return {'code': code, 'candidate': value.get('candidate', True), 'note': text(value.get('note', '')),
-                'desc': desc, 'effects': checked, 'sources': deepcopy((previous or {}).get('sources', []))}
+            checked[key] = {**notes_value(checked_notes(item, (previous or {}).get('effects', {}).get(key))), 'source_refs': refs(item.get('source_refs', []))}
+        return normalize_mark({'code': code, 'candidate': value.get('candidate', True), **notes_value(checked_notes(value, previous)),
+                'desc': desc, 'effects': checked, 'sources': deepcopy((previous or {}).get('sources', [])),
+                'merged_source_refs': deepcopy((previous or {}).get('merged_source_refs', [])),
+                'unmatched_effects': deepcopy(value.get('unmatched_effects', []))})
 
     def validate_record(self, value, knowledge, previous):
         title = text(value.get('title', ''), 120, True)
@@ -194,16 +197,33 @@ class Intelligence:
             op, value = body.get('op'), body.get('value', {})
             if not isinstance(value, dict): raise ValueError('资料格式无效')
             identifier = value.get('id')
-            if op in ('endboard.save', 'endboard.import'):
-                source = None
-                if op == 'endboard.import':
-                    source = next((s for g in self.sources()['groups'] for s in g['sources'] if s['key'] == value.get('source_key')), None)
-                    if not source or source['fingerprint'] != value.get('fingerprint'): raise ValueError('来源方案已改变，请刷新来源后选择')
-                    value = source['annotation']
+            merged_count = None
+            if op in ('endboard.import', 'endboard.merge-sources'):
+                selected = [{'key': value.get('source_key'), 'fingerprint': value.get('fingerprint')}] if op == 'endboard.import' else value.get('sources')
+                if not isinstance(selected, list) or not 1 <= len(selected) <= 10000: raise ValueError('请选择需要合并的来源标注')
+                available = {s['key']: s for group in self.sources()['groups'] for s in group['sources']}
+                changed = set()
+                for selection in selected:
+                    if not isinstance(selection, dict): raise ValueError('来源选择格式无效')
+                    source = available.get(selection.get('key'))
+                    if not source or source['fingerprint'] != selection.get('fingerprint'): raise ValueError('来源方案已改变，请刷新来源后合并')
+                    code = source['annotation']['code']; previous = knowledge['endboards'].get(str(code))
+                    incoming = self.endboard(source['annotation'], trusted=True)
+                    knowledge['endboards'][str(code)] = merge_marks(previous, incoming, source=source,
+                        target_desc=self.store.catalog.cards.get(code, {}).get('desc'))
+                    changed.add(code)
+                merged_count = len(changed)
+            elif op in ('endboard.save', 'endboard.merge'):
                 previous = knowledge['endboards'].get(str(value.get('code')))
-                annotation = self.endboard(value, previous, trusted=bool(source))
-                if source:
-                    annotation['sources'] = [s for s in annotation['sources'] if s['key'] != source['key']] + [deepcopy(source)]
+                if op == 'endboard.merge' and previous:
+                    # Re-saving an unchanged flattened plan copy must not create a new composite note.
+                    if 'notes' not in value and value.get('note', '') == previous['note']: value['notes'] = deepcopy(previous['notes'])
+                    for key, effect in value.get('effects', {}).items():
+                        old = previous['effects'].get(key, {})
+                        if value.get('desc', previous['desc']) == previous['desc'] and 'notes' not in effect and effect.get('note', '') == old.get('note'):
+                            effect['notes'] = deepcopy(old.get('notes', []))
+                annotation = self.endboard(value, previous)
+                if op == 'endboard.merge': annotation = merge_marks(previous, annotation)
                 knowledge['endboards'][str(annotation['code'])] = annotation
             elif op == 'endboard.remove': knowledge['endboards'].pop(str(value.get('code')), None)
             elif op == 'handtrap.save':
@@ -249,4 +269,4 @@ class Intelligence:
             document['entries'][knowledge['handtrap_tag_id']] = purpose_tag(document)
             document['revision'] += 1
             self.library.save_vocabulary(document)
-            return {**self.snapshot(), 'saved_id': identifier}
+            return {**self.snapshot(), 'saved_id': identifier, 'merged_count': merged_count}
