@@ -23,10 +23,12 @@ PROFILES = {
         'hand_vector': 0x13d8, 'client_code': 0x88, 'client_controller': 0xd1,
         'message': 0x7d9970, 'message_size': 0x7d9960,
         'field_vectors': 0x13a8,
-        'resource_layout': 'ygopro-55dd3e8e-public-resources-v2',
+        'resource_layout': 'ygopro-55dd3e8e-public-resources-v3',
         'phase_button': 0x3708, 'gui_id': 0xf8, 'gui_text': 0xb0,
         'overlay_target': 0xf0, 'overlay_vector': 0xf8,
         'cant_check_grave': 0x179b,
+        'chain_vector': 0x1610, 'activation_vector': 0x1580, 'activation_descriptions': 0x15c8,
+        'hint_widget': 0x2ed8, 'client_selectable': 0x7f, 'client_commands': 0xec,
     },
 }
 ZONES = ('main', 'extra', 'side')

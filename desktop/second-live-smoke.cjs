@@ -21,7 +21,8 @@ module.exports=async({page,application,evidence,pass})=>{
    const before=structuredClone(doc.current);doc.revision++;
    const currentCards=structuredClone(cards).map(c=>({...c,position:c.position===10?8:c.position===5?1:c.position}));
    for(const c of currentCards)if(c.material_host)c.host_id=currentCards.find(h=>h.location===4&&h.controller===c.material_host[0]&&h.sequence===c.material_host[1]).id;
-   doc.current={...doc.current,cards:currentCards,lp:[6000,8000],phase:snapshot.phase||'unknown',turn:2,turn_player:snapshot.turn_player??null};
+   doc.current={...doc.current,cards:currentCards,lp:[6000,8000],phase:snapshot.phase||'unknown',turn:2,turn_player:snapshot.turn_player??null,
+     observed_chain:structuredClone(snapshot.chain),client_response:structuredClone(snapshot.response)};
    doc.live_link={snapshot_id:body.preview_id};doc.live_history=[...(doc.live_history||[]),{confirmed_ms:Date.now(),snapshot:structuredClone(snapshot)}];doc.live_panel={supported:true,history_count:doc.live_history.length};
    doc.events.push({id:'event',source:'readonly_public_snapshot',summary:'核对公开资源',time_ms:Date.now(),revision:doc.revision,before,payload:{}});
    doc.status_reason='未读取的时点、完整连锁与规则仍待核对';
@@ -59,6 +60,25 @@ module.exports=async({page,application,evidence,pass})=>{
   assert.equal(await page.locator('.second-card small').filter({hasText:'素材 ·'}).count(),2);
   assert.equal(await page.evaluate(()=>secondDoc().live_history[0].snapshot.cards.filter(c=>c.location===128).length),0);
   await page.locator('.second-public').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(evidence,'second-live-materials.png'),preserveScroll:true});
+  snapshot.chain={status:'snapshot',links:[{link:1,code:1184620,controller:1,location:8,sequence:0,processing_started:true}],notice:'测试：处理开始不等于结算完成'};
+  snapshot.response={status:'client_selection',choices:Array.from({length:4},(_,i)=>({option:i+1,code:1184620,controller:0,location:2,sequence:i,description:0})),rules_verified:false,omitted:1,notice:'测试：仅客户端选项'};
+  await page.locator('#second-live-read').click();await page.waitForFunction(()=>secondDoc().live_panel.preview?.snapshot.response?.status==='client_selection'&&!secondUI.busy);
+  const preview=page.locator('[data-client-context="preview"]');
+  assert.match(await preview.textContent(),/连锁 1.*曾开始处理，结果未确认/);
+  assert.match(await preview.textContent(),/不是当前发动许可或交康建议/);
+  assert.equal(await preview.locator('li:visible').count(),4); // One chain and three options; further choices collapse.
+  await preview.getByText('其余 1 项',{exact:true}).click();assert.equal(await preview.locator('li:visible').count(),5);
+  await page.locator('#second-live-apply input').check();await page.locator('#second-live-apply button').click();
+  await page.waitForFunction(()=>secondDoc().live_history?.length===3&&!secondUI.busy);
+  assert.match(await page.locator('[data-client-context="adopted"]').textContent(),/已采用快照/);
+  await page.locator('[data-client-context="adopted"]').evaluate(el=>el.scrollIntoView({block:'center'}));await page.screenshot({path:path.join(evidence,'second-live-chain.png'),preserveScroll:true});
+  snapshot.response={status:'unconfirmed',choices:[],rules_verified:false};
+  doc.status_reason='客户端资源已变化，当前记录尚未同步';
+  await page.waitForFunction(()=>document.querySelector('#second-status').textContent.includes('客户端资源已变化'));
+  await page.locator('#second-live-read').click();await page.waitForFunction(()=>secondDoc().live_panel.preview?.snapshot.response?.status==='unconfirmed'&&!secondUI.busy);
+  assert.match(await page.locator('[data-client-context="preview"]').textContent(),/不表示没有合法响应/);
+  assert.equal(await page.evaluate(()=>secondDoc().live_history[2].snapshot.response.choices.length),4);
+  assert.equal(await page.evaluate(()=>secondDoc().current.window),null);
   await page.locator('#second-live').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(evidence,'second-live.png'),preserveScroll:true});
   await application.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().find(w=>!w.getParentWindow()).setContentSize(900,650));
   await page.waitForFunction(()=>innerWidth===900);
@@ -67,7 +87,7 @@ module.exports=async({page,application,evidence,pass})=>{
   doc.status_reason='客户端资源已变化，当前记录尚未同步';
   await page.waitForFunction(()=>document.querySelector('#second-status').textContent.includes('客户端资源已变化'));
   assert.equal(await page.locator('#second-hand .second-card').count(),4);
-  pass('Synthetic public-resource UI preserves original history, unknown turn fallback, observed phase/player, material hosts and stale-state protection');
+  pass('Synthetic public-resource UI preserves original history, phase/player, material hosts, bounded chain/menu previews, past choices and stale-state protection');
  }finally{
   await page.unroute('**/api/second-duel/*',handle);
   await page.evaluate(async value=>{clearTimeout(secondUI.timer);setSecondWorkspace(null);await api('/api/second-duel/close',{id:value.id,round_id:value.input.round_id});},original);

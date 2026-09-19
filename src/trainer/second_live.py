@@ -50,7 +50,7 @@ class SecondLive:
     def panel(self, doc):
         preview = self.previews.get(doc['id'])
         value = {'supported': doc['input']['platform'] == 'ygopro' and bool(doc['input'].get('connection')),
-                 'missing': ['完整连锁、响应窗口、次数及持续限制尚未接入', '采样不能还原中间发生的所有动作'],
+                 'missing': ['完整连锁历史、合法响应认证、次数及持续限制尚未接入', '采样不能还原中间发生的所有动作'],
                  'history_count': len(doc.get('live_history', []))}
         if preview:
             value['preview'] = {k: deepcopy(preview[k]) for k in ('id', 'snapshot', 'created_ms', 'revision')}
@@ -92,7 +92,7 @@ class SecondLive:
                 updated = deepcopy(self.owner.load(doc['id']))
                 if len(updated.get('live_reads', [])) >= 200: raise ValueError('本局读取记录已满，历史保留')
                 updated.setdefault('live_reads', []).append({k: deepcopy(value[k]) for k in ('id','revision','snapshot','created_ms')})
-                for card in sample['cards']:
+                for card in sample['cards'] + sample.get('chain', {}).get('links', []):
                     code = card.get('code')
                     if code in self.owner.store.catalog.cards:
                         updated['catalog'].setdefault(str(code), deepcopy(self.owner.store.catalog.cards[code]))
@@ -131,6 +131,10 @@ class SecondLive:
                 if code in self.owner.store.catalog.cards:
                     doc['catalog'].setdefault(str(code), deepcopy(self.owner.store.catalog.cards[code]))
             old = deepcopy(doc['current'])
+            for link in sample.get('chain', {}).get('links', []):
+                code = link.get('code')
+                if code in self.owner.store.catalog.cards:
+                    doc['catalog'].setdefault(str(code), deepcopy(self.owner.store.catalog.cards[code]))
             hosts = {(c['controller'], c['sequence']): c['id'] for c in cards if c['location'] == 4}
             for card in cards:
                 if card['location'] == 128:
@@ -146,7 +150,8 @@ class SecondLive:
                 zone_counts=sample['counts'], window=None, resource_roles={},
                 live_context={'phase': sample.get('phase'), 'turn_player': sample.get('turn_player'),
                               'turn_player_basis': sample.get('turn_player_basis', 'unknown')},
-                stale_reason='已核对公开资源；未读取的时点、完整连锁、实例次数和持续限制仍待核对，不能据此重建规则')
+                observed_chain=deepcopy(sample.get('chain')), client_response=deepcopy(sample.get('response')),
+                stale_reason='已核对可读局面；完整事件、合法响应窗口、实例次数和持续限制仍未重建')
             current.pop('hint_window', None)
             current.pop('native_rules', None)
             for row in current.get('effect_counts', {}).values():

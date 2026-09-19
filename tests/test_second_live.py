@@ -122,3 +122,22 @@ class SecondLiveTests(unittest.TestCase):
         self.sample['cards'][-1]['material_host']=[1,5];self.preview();before=deepcopy(self.api.load(self.doc['id']))
         with self.assertRaisesRegex(ValueError,'承载关系'):self.api.dispatch('live-apply',self.apply_body())
         self.assertEqual(self.api.load(self.doc['id']),before)
+
+    def test_chain_and_menu_only_changes_invalidate_apply_and_preserve_old_observations(self):
+        self.sample.update(chain={'status':'snapshot','links':[{'code':1184620,'link':1,'processing_started':False}]},
+                           response={'status':'client_selection','choices':[{'code':1184620,'option':1}],'rules_verified':False})
+        self.preview();self.doc=self.api.dispatch('live-apply',self.apply_body())
+        historical=deepcopy(self.doc['live_history']);opening=deepcopy(self.doc['input'])
+        self.assertIsNone(self.doc['current']['window'])
+        self.assertFalse(self.doc['capabilities']['engine_reconstruction'])
+        self.preview();body=self.apply_body()
+        self.sample['response']['status']='unconfirmed';self.sample['response']['choices']=[]
+        with self.assertRaisesRegex(ValueError,'客户端已变化'):self.api.dispatch('live-apply',body)
+        value=self.api.state({'id':self.doc['id']})
+        self.assertIn('客户端资源已变化',value['status_reason'])
+        self.assertEqual(value['current']['client_response']['status'],'client_selection') # A labeled historical read, not permission.
+        self.preview();self.doc=self.api.dispatch('live-apply',self.apply_body())
+        self.assertEqual(self.doc['live_history'][0],historical[0]);self.assertEqual(self.doc['input'],opening)
+        self.assertEqual(self.doc['current']['client_response']['status'],'unconfirmed')
+        self.preview();body=self.apply_body();self.sample['chain']['links'][0]['processing_started']=True
+        with self.assertRaisesRegex(ValueError,'客户端已变化'):self.api.dispatch('live-apply',body)

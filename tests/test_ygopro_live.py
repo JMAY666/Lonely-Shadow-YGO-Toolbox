@@ -15,6 +15,7 @@ class Memory(OrderMemory):
         struct.pack_into('<2i',self.memory[self.game+PROFILE['duel_info']],12,6000,8000)
         self.memory[self.game+PROFILE['building']]=b'\0\0'
         self.memory[self.game+PROFILE['cant_check_grave']]=b'\0'
+        self.memory[self.game+PROFILE['chain_vector']]=bytes(24)
         gui=0x3800000;text=0x3900000
         self.memory[self.game+PROFILE['phase_button']]=struct.pack('<Q',gui)
         self.memory[gui+PROFILE['gui_id']]=struct.pack('<i',268)

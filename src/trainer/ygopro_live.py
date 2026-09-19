@@ -7,11 +7,12 @@ import struct
 
 from ygopro_capture import CaptureError, read_order
 from ygopro_context import read_phase
+from ygopro_chain import chain_snapshot, response_snapshot
 
 
-LAYOUT = 'ygopro-55dd3e8e-public-resources-v2'
+LAYOUT = 'ygopro-55dd3e8e-public-resources-v3'
 ZONES = (1, 2, 4, 8, 16, 32, 64)
-MISSING = ['完整连锁、战斗细分时点及合法响应窗口', '指示物', '效果次数、持续限制与召唤权限',
+MISSING = ['完整连锁历史、效果对象及处理结果、战斗细分时点与合法响应认证', '指示物', '效果次数、持续限制与召唤权限',
            '两次采样之间的公开事件、费用及移动原因', '卡池与禁限表认证']
 
 
@@ -57,13 +58,14 @@ def read_snapshot(memory, base, profile):
     if restricted not in (0, 1): raise CaptureError('客户端信息可见性状态无效。')
     if restricted: raise CaptureError('客户端当前限制查看墓地，暂停资源详情读取；请等待限制解除')
     phase = read_phase(read, game, profile)
+    message = struct.unpack('<H', read(game + profile['duel_info'] + 32, 2))[0]
     # Adjacent fields in the pinned client sources: DuelInfo.lp follows its
     # twelve bools; ClientCard owner/controller/location/sequence/position are
     # five consecutive bytes. Existing probes anchor duel_info, code and d1.
     lp = list(struct.unpack('<2i', read(game + profile['duel_info'] + 12, 8)))
     if any(v < 0 or v > 2**31 - 1 for v in lp):
         raise CaptureError('生命值暂不完整，等待结算稳定。')
-    counts, cards, seen = [{'128': 0}, {'128': 0}], [], set()
+    counts, cards, seen, references = [{'128': 0}, {'128': 0}], [], set(), {}
     for zone_index, location in enumerate(ZONES):
         for player in (0, 1):
             header = read(game + profile['field_vectors'] + 24 * (2 * zone_index + player), 24)
@@ -106,12 +108,16 @@ def read_snapshot(memory, base, profile):
                 card = {'controller': player, 'owner': owner, 'location': location,
                         'sequence': sequence, 'position': position, 'code': code}
                 cards.append(card)
+                references[player,location,sequence] = pointer
                 if location == 4:
                     materials = read_materials(read, pointer, card, profile, seen)
                     cards.extend(materials); counts[player]['128'] += len(materials)
+    chain = chain_snapshot(read, game, profile, message)
+    response = response_snapshot(read, base, game, profile, before['evidence']['is_first'], message, cards, references)
     if any(memory.read(a, len(b)) != b for a, b in guards) or read_order(memory, base, profile) != before:
         raise CaptureError('读取期间局面变化，未发布混合快照。')
     return {'layout': LAYOUT, 'game': f'{game:x}', 'turn': before['evidence']['turn'],
             'order': before['detected_order'], 'lp': lp, 'counts': counts, 'cards': cards,
             'missing': [*MISSING, *(['当前阶段：控件未提供可确认的文字'] if phase is None else [])],
-            'phase': phase, 'phase_basis': 'client_phase_label' if phase else 'unknown', 'rules_complete': False}
+            'phase': phase, 'phase_basis': 'client_phase_label' if phase else 'unknown',
+            'chain': chain, 'response': response, 'rules_complete': False}
