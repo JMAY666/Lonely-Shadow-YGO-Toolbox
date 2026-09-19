@@ -13,11 +13,14 @@ module.exports=async function({page,plan,pass,evidence}) {
       assert.match(await action.locator('.log-effect-description').innerText(),/②效果[\s\S]*作为同调素材送去墓地/);
       const flow=action.locator(mode==='compact'?'.compact-chain':'.log-operation');
       assert.match((await flow.allTextContents()).join(' '),/选择放回对方卡组最上面或最下面/);
-      assert.equal(await action.locator('.random-card').count(),4);
+      // The two revealed cards share a quantity-only preview; their different
+      // later destinations remain two separate cards (three previews in total).
+      assert.equal(await action.locator('.random-card').count(),3);
+      assert.deepEqual(await action.locator('.random-card').evaluateAll(nodes=>nodes.map(node=>node.getAttribute('aria-label').split(' · ')[0])),['随机牌 ×2','随机牌','随机牌']);
       assert.equal(await action.locator('img[src="/pics/52155219.jpg"],img[src="/pics/56003780.jpg"]').count(),0);
       const random=action.locator('.random-card').first();
       await random.click();
-      assert.equal(await page.locator('.detail-name h3').textContent(),'随机牌');
+      assert.equal(await page.locator('.detail-name h3').textContent(),'随机牌 ×2');
       assert.match(await page.locator('.detail-effect').innerText(),/来自对方卡组顶部/);
       assert.match(await page.locator('.detail-effect').innerText(),/翻开后仍按效果选择/);
       await page.evaluate(()=>closeReviewDetail());

@@ -1,0 +1,53 @@
+{
+  "commit": "7888000e081519ea8258ed027e6d97ae8f3f0d0a",
+  "files": [
+    {
+      "path": "upstream/ygoinf/__init__.py",
+      "url": "https://raw.githubusercontent.com/sbl1996/ygo-agent/7888000e081519ea8258ed027e6d97ae8f3f0d0a/ygoinf/ygoinf/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "upstream/ygoinf/models.py",
+      "url": "https://raw.githubusercontent.com/sbl1996/ygo-agent/7888000e081519ea8258ed027e6d97ae8f3f0d0a/ygoinf/ygoinf/models.py",
+      "bytes": 11404,
+      "sha256": "c934c32d6aa3c2c09911c4ae64886977e70da70ac46ad702825f14db98f3e9a8"
+    },
+    {
+      "path": "upstream/ygoinf/features.py",
+      "url": "https://raw.githubusercontent.com/sbl1996/ygo-agent/7888000e081519ea8258ed027e6d97ae8f3f0d0a/ygoinf/ygoinf/features.py",
+      "bytes": 36147,
+      "sha256": "c54466fcaa8194b35dacf0dc7813dcac120f8313a568077d9f42481670ab6f63"
+    },
+    {
+      "path": "upstream/LICENSE",
+      "url": "https://raw.githubusercontent.com/sbl1996/ygo-agent/7888000e081519ea8258ed027e6d97ae8f3f0d0a/LICENSE",
+      "bytes": 1804,
+      "sha256": "a2ba8ba8b163bd6269fb6af6c7d94102dc80abafb5ef089de60fbe9219c51125"
+    },
+    {
+      "path": "code_list.txt",
+      "url": "https://raw.githubusercontent.com/sbl1996/ygo-agent/7888000e081519ea8258ed027e6d97ae8f3f0d0a/scripts/code_list.txt",
+      "bytes": 7676,
+      "sha256": "f3795910ac7a2eac06db0badb2db1288a93f5c237c6f92883a2d922aa2d3f339"
+    },
+    {
+      "path": "TenyiSword.ydk",
+      "url": "https://raw.githubusercontent.com/sbl1996/ygo-agent/7888000e081519ea8258ed027e6d97ae8f3f0d0a/assets/deck/TenyiSword.ydk",
+      "bytes": 573,
+      "sha256": "85b9b2dda4a24d3d6cd19e335d7a76d533dc3eca910fe3f09d9bc357a5c3ecce"
+    },
+    {
+      "path": "BlueEyes.ydk",
+      "url": "https://raw.githubusercontent.com/sbl1996/ygo-agent/7888000e081519ea8258ed027e6d97ae8f3f0d0a/assets/deck/BlueEyes.ydk",
+      "bytes": 647,
+      "sha256": "fcef44b1bd30e3a398fe076626bce2baa705aa56a2b7d2e28cd180b2a6d071e6"
+    },
+    {
+      "path": "model.tflite",
+      "url": "https://github.com/sbl1996/ygo-agent/releases/download/v0.1/0546_26550M.tflite",
+      "bytes": 17679932,
+      "sha256": "d4ad2a78b6a2a2c1a4560f8f12da6f4b3abb24735657115969e96d71a2364b10"
+    }
+  ]
+}
