@@ -10,6 +10,8 @@ import uuid
 from intelligence_marks import effect_parts, normalize_mark, note_items, notes_value, refs, merge_marks
 
 HANDTRAP_ID = 'purpose:handtrap'
+BREAKER_ID = 'purpose:boardbreaker'
+CARD_LIBRARIES = {'handtraps': ('handtrap', '手坑', HANDTRAP_ID), 'breakers': ('boardbreaker', '解场', BREAKER_ID)}
 EXTRA_TYPES = 0x40 | 0x2000 | 0x800000 | 0x4000000
 
 
@@ -17,14 +19,15 @@ def main_card(card):
     return bool(card.get('type', 0) & 7) and not card.get('type', 0) & (EXTRA_TYPES | 0x4000)
 
 
-def handtrap_id(document):
+def card_library_id(document, kind='handtraps'):
     from plan_tags import normalized
-    saved = document.get('intelligence', {}).get('handtrap_tag_id')
+    purpose, name, default = CARD_LIBRARIES[kind]
+    saved = document.get('intelligence', {}).get(purpose + '_tag_id')
     if saved: return saved
     # Reuse an existing user-named TAG's identity; saved deck references survive.
     matching = [key for key, tag in document.get('entries', {}).items()
-                if normalized(tag['name']) == '手坑']
-    return matching[0] if matching else HANDTRAP_ID
+                if normalized(tag['name']) == name]
+    return matching[0] if matching else default
 
 
 def handtrap_data(value, catalog):
@@ -41,22 +44,29 @@ def data(document, catalog):
         value = deepcopy(document['intelligence'])
         if value.get('version') != 1: raise ValueError('情报站资料版本不受支持，原文件已保留')
         value['endboards'] = {key: normalize_mark(mark) for key, mark in value['endboards'].items()}
-        value['handtraps'] = {key: handtrap_data(mark, catalog) for key, mark in value['handtraps'].items()}
+        for kind, (purpose, _, _) in CARD_LIBRARIES.items():
+            value[purpose + '_tag_id'] = card_library_id(document, kind)
+            if kind not in value:
+                previous = document.get('entries', {}).get(value[purpose + '_tag_id'], {})
+                value[kind] = {str(code): {'code': code} for code in member_ids(previous, catalog)}
+            value[kind] = {key: handtrap_data(mark, catalog) for key, mark in value[kind].items()}
         return value
-    identifier = handtrap_id(document)
-    previous = document.get('entries', {}).get(identifier, {})
-    return {'version': 1, 'handtrap_tag_id': identifier, 'endboards': {},
-            'handtraps': {str(code): handtrap_data({'code': code}, catalog)
-                          for code in member_ids(previous, catalog)},
-            'folders': {}, 'topics': {}, 'records': {}}
+    value = {'version': 1, 'endboards': {}, 'folders': {}, 'topics': {}, 'records': {}}
+    for kind, (purpose, _, _) in CARD_LIBRARIES.items():
+        identifier = card_library_id(document, kind)
+        previous = document.get('entries', {}).get(identifier, {})
+        value[purpose + '_tag_id'] = identifier
+        value[kind] = {str(code): handtrap_data({'code': code}, catalog) for code in member_ids(previous, catalog)}
+    return value
 
 
-def purpose_tag(document, catalog=None):
-    identifier = handtrap_id(document)
+def purpose_tag(document, catalog=None, kind='handtraps'):
+    purpose, name, _ = CARD_LIBRARIES[kind]
+    identifier = card_library_id(document, kind)
     previous = document.get('entries', {}).get(identifier, {})
-    members = (document.get('intelligence') or {}).get('handtraps')
-    return {**previous, 'id': identifier, 'name': '手坑', 'aliases': previous.get('aliases', []),
-            'setcode': previous.get('setcode') if members is None else None, 'source': '情报站 · 功能用途', 'kind': 'purpose', 'purpose': 'handtrap',
+    members = (document.get('intelligence') or {}).get(kind)
+    return {**previous, 'id': identifier, 'name': name, 'aliases': previous.get('aliases', []),
+            'setcode': previous.get('setcode') if members is None else None, 'source': '情报站 · 功能用途', 'kind': 'purpose', 'purpose': purpose,
             'include_cards': sorted(map(int, members)) if members is not None else previous.get('include_cards', []),
             'exclude_cards': previous.get('exclude_cards', []) if members is None else []}
 
@@ -83,7 +93,7 @@ class Intelligence:
             from plan_tags import contains_card
             document = self.library.document()
             knowledge = data(document, self.store.catalog.cards)
-            codes = set(map(int, knowledge['endboards'])) | set(map(int, knowledge['handtraps']))
+            codes = set(map(int, knowledge['endboards'])) | set(map(int, knowledge['handtraps'])) | set(map(int, knowledge['breakers']))
             for record in knowledge['records'].values(): codes.update(self.record_codes(record))
             tags = self.library.all_tags()
             return {**knowledge, 'revision': document['revision'],
@@ -107,15 +117,22 @@ class Intelligence:
         card = self.store.catalog.cards.get(code)
         if card and not main_card(card): raise ValueError('手坑只允许主卡组卡牌，不能加入额外卡组卡牌或衍生物')
 
-    def sync_members(self, document, selected):
+    def check_library_card(self, kind, code, retained=()):
+        if kind == 'handtraps': return self.check_handtrap(code, retained)
+        self.check_code(code, retained)
+        card = self.store.catalog.cards.get(code)
+        if card and (not card.get('type', 0) & 7 or card['type'] & 0x4000): raise ValueError('解场资料不能加入衍生物或非卡牌条目')
+
+    def sync_members(self, document, selected, kind='handtraps'):
         if not isinstance(selected, list) or len(selected) > 20000: raise ValueError('手坑卡牌列表无效')
         knowledge = data(document, self.store.catalog.cards)
-        retained = set(map(int, knowledge['handtraps']))
-        for code in selected: self.check_handtrap(code, retained)
-        knowledge['handtraps'] = {str(code): knowledge['handtraps'].get(str(code),
+        retained = set(map(int, knowledge[kind]))
+        for code in selected: self.check_library_card(kind, code, retained)
+        knowledge[kind] = {str(code): knowledge[kind].get(str(code),
             handtrap_data({'code': code}, self.store.catalog.cards)) for code in sorted(set(selected))}
         document['intelligence'] = knowledge
-        document['entries'][knowledge['handtrap_tag_id']] = purpose_tag(document)
+        tag = purpose_tag(document, kind=kind)
+        document['entries'][tag['id']] = tag
 
     def sources(self):
         """Keep provenance snapshots intact while allowing an explicit knowledge union."""
@@ -210,7 +227,13 @@ class Intelligence:
             if not isinstance(value, dict): raise ValueError('资料格式无效')
             identifier = value.get('id')
             merged_count = None
-            if op in ('endboard.import', 'endboard.merge-sources'):
+            import_result = None
+            if op == 'staples.import':
+                from intelligence_staples import import_staples
+                import_result = import_staples(self, document, knowledge)
+                if not import_result['changed']:
+                    return {**self.snapshot(), 'import_result': import_result}
+            elif op in ('endboard.import', 'endboard.merge-sources'):
                 selected = [{'key': value.get('source_key'), 'fingerprint': value.get('fingerprint')}] if op == 'endboard.import' else value.get('sources')
                 if not isinstance(selected, list) or not 1 <= len(selected) <= 10000: raise ValueError('请选择需要合并的来源标注')
                 available = {s['key']: s for group in self.sources()['groups'] for s in group['sources']}
@@ -238,24 +261,31 @@ class Intelligence:
                 if op == 'endboard.merge': annotation = merge_marks(previous, annotation)
                 knowledge['endboards'][str(annotation['code'])] = annotation
             elif op == 'endboard.remove': knowledge['endboards'].pop(str(value.get('code')), None)
-            elif op == 'handtrap.save':
-                code = value.get('code'); self.check_handtrap(code, set(map(int, knowledge['handtraps'])))
-                previous = knowledge['handtraps'].get(str(code), {})
+            elif op in ('handtrap.save', 'breaker.save'):
+                kind = 'handtraps' if op == 'handtrap.save' else 'breakers'
+                code = value.get('code'); self.check_library_card(kind, code, set(map(int, knowledge[kind])))
+                previous = knowledge[kind].get(str(code), {})
                 folder = value.get('folder_id', previous.get('folder_id'))
                 if folder is not None and folder not in knowledge['folders']: raise ValueError('文件夹不存在')
+                if folder and knowledge['folders'][folder].get('kind', 'handtraps') != kind: raise ValueError('请选择当前资料分类的文件夹')
                 annotation = self.annotation({**previous, **value}, previous or None)
-                knowledge['handtraps'][str(code)] = {'code': code, 'folder_id': folder,
+                knowledge[kind][str(code)] = {**previous, 'code': code, 'folder_id': folder,
                     'note': text(value.get('note', previous.get('note', ''))), 'condition': text(value.get('condition', previous.get('condition', ''))),
                     **{key: annotation[key] for key in ('desc', 'effects', 'unmatched_effects')}}
-            elif op == 'handtrap.remove': knowledge['handtraps'].pop(str(value.get('code')), None)
+            elif op in ('handtrap.remove', 'breaker.remove'):
+                knowledge['handtraps' if op == 'handtrap.remove' else 'breakers'].pop(str(value.get('code')), None)
             elif op in ('folder.save', 'topic.save'):
                 key = 'folders' if op.startswith('folder') else 'topics'
                 if identifier is not None and identifier not in knowledge[key]: raise ValueError('资料不存在，请刷新')
                 identifier = identifier or uuid.uuid4().hex
                 name = text(value.get('name', ''), 80, True)
+                previous_group = knowledge[key].get(identifier)
+                kind = previous_group.get('kind', 'handtraps') if previous_group is not None else value.get('kind', 'handtraps')
+                if key == 'folders' and kind not in CARD_LIBRARIES: raise ValueError('文件夹分类无效')
                 from plan_tags import normalized
-                if any(normalized(v['name']) == normalized(name) and k != identifier for k, v in knowledge[key].items()): raise ValueError('已有同名资料')
+                if any(normalized(v['name']) == normalized(name) and k != identifier and (key != 'folders' or v.get('kind', 'handtraps') == kind) for k, v in knowledge[key].items()): raise ValueError('已有同名资料')
                 item = {'id': identifier, 'name': name}
+                if key == 'folders': item['kind'] = kind
                 if key == 'topics':
                     previous = knowledge[key].get(identifier, {})
                     tag_ids = value.get('tag_ids', [])
@@ -268,7 +298,7 @@ class Intelligence:
             elif op == 'folder.remove':
                 if identifier not in knowledge['folders']: raise ValueError('文件夹不存在')
                 del knowledge['folders'][identifier]
-                for item in knowledge['handtraps'].values():
+                for item in [*knowledge['handtraps'].values(), *knowledge['breakers'].values()]:
                     if item['folder_id'] == identifier: item['folder_id'] = None
             elif op == 'topic.remove':
                 if any(r['topic_id'] == identifier for r in knowledge['records'].values()): raise ValueError('主题仍有断点记录，请先移动或删除这些记录')
@@ -281,7 +311,9 @@ class Intelligence:
             elif op == 'record.remove': knowledge['records'].pop(identifier, None)
             else: raise ValueError('未知的情报站操作')
             document['intelligence'] = knowledge
-            document['entries'][knowledge['handtrap_tag_id']] = purpose_tag(document)
+            for kind in CARD_LIBRARIES:
+                tag = purpose_tag(document, kind=kind)
+                document['entries'][tag['id']] = tag
             document['revision'] += 1
             self.library.save_vocabulary(document)
-            return {**self.snapshot(), 'saved_id': identifier, 'merged_count': merged_count}
+            return {**self.snapshot(), 'saved_id': identifier, 'merged_count': merged_count, 'import_result': import_result}

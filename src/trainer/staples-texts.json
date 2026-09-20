@@ -1,0 +1,514 @@
+{
+  "102380": {
+    "name": "熔岩魔神",
+    "type": 33554465,
+    "english_name": "Lava Golem",
+    "desc": "这张卡不能通常召唤。把对方场上2只怪兽解放的场合可以在对方场上特殊召唤。把这张卡特殊召唤的回合，自己不能通常召唤。\r\n①：自己准备阶段发动。自己受到1000伤害。",
+    "konami_id": 5496,
+    "card_url": "https://ygoprodeck.com/card/lava-golem-8"
+  },
+  "2263869": {
+    "name": "月女神之镞",
+    "type": 2,
+    "english_name": "Ultimate Slayer",
+    "desc": "对方不能对应这张卡的发动把怪兽的效果发动。\r\n①：从额外卡组把1只怪兽送去墓地，以和那只怪兽相同种类（融合·同调·超量·灵摆·连接）的对方场上1只怪兽为对象才能发动。那只怪兽回到卡组。",
+    "konami_id": 17469,
+    "card_url": "https://ygoprodeck.com/card/ultimate-slayer-13137"
+  },
+  "4031928": {
+    "name": "心变",
+    "type": 2,
+    "english_name": "Change of Heart",
+    "desc": "①：以对方场上1只怪兽为对象才能发动。那只怪兽的控制权直到结束阶段得到。",
+    "konami_id": 4860,
+    "card_url": "https://ygoprodeck.com/card/change-of-heart-359"
+  },
+  "6325660": {
+    "name": "霆王的闪光",
+    "type": 4,
+    "english_name": "Dominus Spark",
+    "desc": "这个卡名的卡在1回合只能发动1张。对方把手卡·墓地的怪兽的效果发动的回合，这张卡的发动从手卡也能用。\r\n①：以对方场上1只怪兽为对象才能发动。那只怪兽除外。自己墓地没有陷阱卡存在的场合，再让对方可以从自身手卡把1只怪兽特殊召唤。这张卡从手卡发动的场合，发动后，这次决斗中自己不能把地·水·炎·风属性怪兽的效果发动。",
+    "konami_id": 22586,
+    "card_url": "https://ygoprodeck.com/card/dominus-spark-15442"
+  },
+  "6637331": {
+    "name": "深渊之兽 德鲁伊鳞虫",
+    "type": 33,
+    "english_name": "Bystial Druiswurm",
+    "desc": "这个卡名的①②的效果1回合各能使用1次。\r\n①：以自己或对方的墓地1只光·暗属性怪兽为对象才能发动（对方场上有怪兽存在的场合，这个效果在对方回合也能发动）。那只怪兽除外，这张卡从手卡特殊召唤。\r\n②：这张卡从场上送去墓地的场合，以对方场上1只特殊召唤的怪兽为对象才能发动。那只怪兽送去墓地。",
+    "konami_id": 17764,
+    "card_url": "https://ygoprodeck.com/card/bystial-druiswurm-13360"
+  },
+  "8267140": {
+    "name": "宇宙旋风",
+    "type": 65538,
+    "english_name": "Cosmic Cyclone",
+    "desc": "①：支付1000基本分，以场上1张魔法·陷阱卡为对象才能发动。那张卡除外。",
+    "konami_id": 12464,
+    "card_url": "https://ygoprodeck.com/card/cosmic-cyclone-700"
+  },
+  "10000080": {
+    "name": "拉之翼神龙-球体形",
+    "type": 33,
+    "english_name": "The Winged Dragon of Ra - Sphere Mode",
+    "desc": "这张卡不能特殊召唤。这张卡通常召唤的场合，必须把自己场上3只怪兽解放在自己场上召唤或者把对方场上3只怪兽解放在对方场上召唤，召唤的这张卡的控制权在下个回合的结束阶段回归原本持有者。\r\n①：这张卡不能攻击，不会成为对方的攻击·效果的对象。\r\n②：把这张卡解放才能发动。从手卡·卡组把1只「拉之翼神龙」无视召唤条件并攻击力·守备力变成4000特殊召唤。",
+    "konami_id": 11927,
+    "card_url": "https://ygoprodeck.com/card/the-winged-dragon-of-ra-sphere-mode-862"
+  },
+  "10045474": {
+    "name": "无限泡影",
+    "type": 4,
+    "english_name": "Infinite Impermanence",
+    "desc": "自己场上没有卡存在的场合，这张卡的发动从手卡也能用。\r\n①：以对方场上1只表侧表示怪兽为对象才能发动。那只怪兽的效果直到回合结束时无效。盖放的这张卡发动的场合，再在这个回合中让和这张卡相同纵列的其他的魔法·陷阱卡的效果无效化。",
+    "konami_id": 13631,
+    "card_url": "https://ygoprodeck.com/card/infinite-impermanence-9220"
+  },
+  "12580477": {
+    "name": "雷击",
+    "type": 2,
+    "english_name": "Raigeki",
+    "desc": "①：对方场上的怪兽全部破坏。",
+    "konami_id": 4343,
+    "card_url": "https://ygoprodeck.com/card/raigeki-1087"
+  },
+  "14087893": {
+    "name": "月之书",
+    "type": 65538,
+    "english_name": "Book of Moon",
+    "desc": "①：以场上1只表侧表示怪兽为对象才能发动。那只怪兽变成里侧守备表示。",
+    "konami_id": 5432,
+    "card_url": "https://ygoprodeck.com/card/book-of-moon-1206"
+  },
+  "14532163": {
+    "name": "闪电风暴",
+    "type": 2,
+    "english_name": "Lightning Storm",
+    "desc": "这个卡名的卡在1回合只能发动1张。\r\n①：自己场上没有表侧表示卡存在的场合，可以从以下效果选择1个发动。\r\n●对方场上的攻击表示怪兽全部破坏。\r\n●对方场上的魔法·陷阱卡全部破坏。",
+    "konami_id": 14876,
+    "card_url": "https://ygoprodeck.com/card/lightning-storm-10639"
+  },
+  "14558127": {
+    "name": "灰流丽",
+    "type": 4129,
+    "english_name": "Ash Blossom & Joyous Spring",
+    "desc": "这个卡名的效果1回合只能使用1次。\r\n①：包含以下其中任意种效果的魔法·陷阱·怪兽的效果发动时，把这张卡从手卡丢弃才能发动。那个效果无效。\r\n●从卡组把卡加入手卡的效果\r\n●从卡组把怪兽特殊召唤的效果\r\n●从卡组把卡送去墓地的效果",
+    "konami_id": 12950,
+    "card_url": "https://ygoprodeck.com/card/ash-blossom-joyous-spring-8554"
+  },
+  "15693423": {
+    "name": "颉颃胜负",
+    "type": 4,
+    "english_name": "Evenly Matched",
+    "desc": "自己场上没有卡存在的场合，这张卡的发动从手卡也能用。\r\n①：自己·对方的战斗阶段结束时，对方场上的卡数量比自己场上的卡多的场合才能发动。直到变成和自己场上的卡数量相同为止，对方必须把自身场上的卡里侧除外。",
+    "konami_id": 13293,
+    "card_url": "https://ygoprodeck.com/card/evenly-matched-8591"
+  },
+  "18144506": {
+    "name": "鹰身女妖的羽毛扫",
+    "type": 2,
+    "english_name": "Harpie's Feather Duster",
+    "desc": "①：对方场上的魔法·陷阱卡全部破坏。",
+    "konami_id": 4678,
+    "card_url": "https://ygoprodeck.com/card/harpie-s-feather-duster-1573"
+  },
+  "23434538": {
+    "name": "增殖的G",
+    "type": 33,
+    "english_name": "Maxx \"C\"",
+    "desc": "这个卡名的效果1回合只能使用1次。\r\n①：自己·对方回合，把这张卡从手卡送去墓地才能发动。这个回合中，以下效果适用。\r\n●每次对方把怪兽特殊召唤，自己抽1张。",
+    "konami_id": 9455,
+    "card_url": "https://ygoprodeck.com/card/maxx-c-2021"
+  },
+  "24299458": {
+    "name": "禁忌的一滴",
+    "type": 65538,
+    "english_name": "Forbidden Droplet",
+    "desc": "这个卡名的卡在1回合只能发动1张，对方不能对应这张卡的发动把原本种类（怪兽·魔法·陷阱）和为这张卡发动而送去墓地的卡相同的卡的效果发动。\r\n①：从自己的手卡·场上把其他卡任意数量送去墓地才能发动。选那个数量的对方场上的效果怪兽。那些怪兽直到回合结束时攻击力变成一半，效果无效化。",
+    "konami_id": 15299,
+    "card_url": "https://ygoprodeck.com/card/forbidden-droplet-11026"
+  },
+  "24508238": {
+    "name": "D.D.乌鸦",
+    "type": 33,
+    "english_name": "D.D. Crow",
+    "desc": "①：自己·对方回合，把这张卡从手卡丢弃去墓地，以对方墓地1张卡为对象才能发动。那张卡除外。",
+    "konami_id": 6980,
+    "card_url": "https://ygoprodeck.com/card/d-d-crow-2116"
+  },
+  "25311006": {
+    "name": "三战之才",
+    "type": 2,
+    "english_name": "Triple Tactics Talent",
+    "desc": "这个卡名的卡在1回合只能发动1张。\r\n①：这个回合的自己主要阶段对方是已把怪兽的效果发动的场合，可以从以下效果选择1个发动。\r\n●自己抽2张。\r\n●对方场上1只怪兽的控制权直到结束阶段得到。\r\n●把对方手卡确认，选那之内的1张回到卡组。",
+    "konami_id": 15296,
+    "card_url": "https://ygoprodeck.com/card/triple-tactics-talent-11112"
+  },
+  "25789292": {
+    "name": "禁忌的圣杯",
+    "type": 65538,
+    "english_name": "Forbidden Chalice",
+    "desc": "①：以场上1只表侧表示怪兽为对象才能发动。那只怪兽直到回合结束时攻击力上升400，效果无效化。",
+    "konami_id": 8213,
+    "card_url": "https://ygoprodeck.com/card/forbidden-chalice-2219"
+  },
+  "27204311": {
+    "name": "原始生命态 尼比鲁",
+    "type": 33,
+    "english_name": "Nibiru, the Primal Being",
+    "desc": "这个卡名的效果1回合只能使用1次。\r\n①：对方把5只以上的怪兽召唤·特殊召唤的自己·对方回合的主要阶段才能发动。自己·对方场上的表侧表示怪兽尽可能解放，这张卡从手卡特殊召唤。那之后，在对方场上把1只「原始生命态衍生物」（岩石族·光·11星·攻/守?）特殊召唤。这衍生物的攻击力·守备力变成这个效果解放的怪兽的原本的攻击力·守备力各自合计数值。",
+    "konami_id": 14741,
+    "card_url": "https://ygoprodeck.com/card/nibiru-the-primal-being-10564"
+  },
+  "29301450": {
+    "name": "S：P小夜骑士",
+    "type": 67108897,
+    "english_name": "S:P Little Knight",
+    "desc": "效果怪兽2只\r\n这个卡名的①②的效果1回合各能使用1次。\r\n①：这张卡用融合·同调·超量·连接怪兽的其中任意种为素材作连接召唤的场合，以自己或对方的场上·墓地1张卡为对象才能发动。那张卡除外。这个回合，自己怪兽不能直接攻击。\r\n②：对方的效果发动时，以包含自己场上的怪兽的场上2只表侧表示怪兽为对象才能发动。那2只怪兽直到结束阶段除外。",
+    "konami_id": 19188,
+    "card_url": "https://ygoprodeck.com/card/s-p-little-knight-14075"
+  },
+  "29726552": {
+    "name": "黏丝坏兽 库莫古斯",
+    "type": 33,
+    "english_name": "Kumongous, the Sticky String Kaiju",
+    "desc": "①：这张卡可以把对方场上1只怪兽解放，从手卡往对方场上攻击表示特殊召唤。\r\n②：对方场上有「坏兽」怪兽存在的场合，这张卡可以从手卡攻击表示特殊召唤。\r\n③：「坏兽」怪兽在自己场上只能有1只表侧表示存在。\r\n④：对方对怪兽的召唤·特殊召唤成功时，把自己·对方场上2个坏兽指示物取除才能发动。直到下个回合的结束时，那些怪兽不能攻击，效果无效化。",
+    "konami_id": 12039,
+    "card_url": "https://ygoprodeck.com/card/kumongous-the-sticky-string-kaiju-2517"
+  },
+  "33854624": {
+    "name": "深渊之兽 玛格巨龙",
+    "type": 33,
+    "english_name": "Bystial Magnamhut",
+    "desc": "这个卡名的①②的效果1回合各能使用1次。\r\n①：以自己或对方的墓地1只光·暗属性怪兽为对象才能发动（对方场上有怪兽存在的场合，这个效果在对方回合也能发动）。那只怪兽除外，这张卡从手卡特殊召唤。\r\n②：这张卡特殊召唤的场合才能发动。这个回合的结束阶段，从自己的卡组·墓地把「深渊之兽 玛格巨龙」以外的1只龙族怪兽加入手卡。",
+    "konami_id": 17762,
+    "card_url": "https://ygoprodeck.com/card/bystial-magnamhut-13361"
+  },
+  "34267821": {
+    "name": "古遗物-圣枪",
+    "type": 33,
+    "english_name": "Artifact Lancea",
+    "desc": "①：这张卡可以当作魔法卡使用从手卡到魔法与陷阱区域盖放。\r\n②：魔法与陷阱区域盖放的这张卡在对方回合被破坏送去墓地的场合发动。这张卡特殊召唤。\r\n③：对方回合，把手卡·场上的这张卡解放才能发动。这个回合，双方不能把卡除外。",
+    "konami_id": 11243,
+    "card_url": "https://ygoprodeck.com/card/artifact-lancea-2911"
+  },
+  "35405755": {
+    "name": "俱利伽罗天童",
+    "type": 33554465,
+    "english_name": "Kurikara Divincarnate",
+    "desc": "这张卡不能通常召唤。把这个回合有在对方的怪兽区域把效果发动过的自己·对方场上的表侧表示怪兽全部解放的场合才能特殊召唤。这个卡名的②的效果1回合只能使用1次。\r\n①：这张卡的攻击力上升因为这张卡特殊召唤而解放的怪兽数量×1500。\r\n②：自己结束阶段，以对方墓地1只怪兽为对象才能发动。那只怪兽在自己场上特殊召唤。",
+    "konami_id": 17433,
+    "card_url": "https://ygoprodeck.com/card/kurikara-divincarnate-13190"
+  },
+  "35480699": {
+    "name": "日全食之书",
+    "type": 65538,
+    "english_name": "Book of Eclipse",
+    "desc": "①：场上的表侧表示怪兽全部变成里侧守备表示。这个回合的结束阶段，对方场上的里侧守备表示怪兽全部变成表侧守备表示，那之后，对方抽出这个效果变成表侧守备表示的怪兽的数量。",
+    "konami_id": 7752,
+    "card_url": "https://ygoprodeck.com/card/book-of-eclipse-3005"
+  },
+  "36956512": {
+    "name": "怪粉坏兽 加达拉",
+    "type": 33,
+    "english_name": "Gadarla, the Mystery Dust Kaiju",
+    "desc": "①：这张卡可以把对方场上1只怪兽解放，从手卡往对方场上攻击表示特殊召唤。\r\n②：对方场上有「坏兽」怪兽存在的场合，这张卡可以从手卡攻击表示特殊召唤。\r\n③：「坏兽」怪兽在自己场上只能有1只表侧表示存在。\r\n④：1回合1次，把自己·对方场上3个坏兽指示物取除才能发动。这张卡以外的场上的全部怪兽的攻击力·守备力变成一半。这个效果在对方回合也能发动。",
+    "konami_id": 12248,
+    "card_url": "https://ygoprodeck.com/card/gadarla-the-mystery-dust-kaiju-3126"
+  },
+  "37520316": {
+    "name": "精神操作",
+    "type": 2,
+    "english_name": "Mind Control",
+    "desc": "①：以对方场上1只怪兽为对象才能发动。那只怪兽的控制权直到结束阶段得到。这个效果得到控制权的怪兽不能攻击宣言，不能解放。",
+    "konami_id": 4817,
+    "card_url": "https://ygoprodeck.com/card/mind-control-3177"
+  },
+  "38342335": {
+    "name": "梦幻崩影·独角兽",
+    "type": 67108897,
+    "english_name": "Knightmare Unicorn",
+    "desc": "卡名不同的怪兽2只以上\r\n这个卡名的①的效果1回合只能使用1次。\r\n①：这张卡连接召唤的场合，丢弃1张手卡，以场上1张卡为对象才能发动。那张卡回到卡组。这个效果的发动时这张卡是互相连接状态的场合，再让自己可以抽1张。\r\n②：只要互相连接状态的「幻崩」怪兽存在，自己抽卡阶段的通常抽卡数量变成那些「幻崩」怪兽种类的数量。",
+    "konami_id": 13601,
+    "card_url": "https://ygoprodeck.com/card/knightmare-unicorn-9235"
+  },
+  "38814750": {
+    "name": "PSY骨架装备·γ",
+    "type": 33558561,
+    "english_name": "PSY-Framegear Gamma",
+    "desc": "这张卡不能通常召唤，用卡的效果才能特殊召唤。\r\n①：自己场上没有怪兽存在，对方把怪兽的效果发动时才能发动（同一连锁上最多1次）。手卡的这张卡和自己的手卡·卡组·墓地1只「PSY骨架驱动者」特殊召唤，那个发动无效并破坏。这个效果特殊召唤的怪兽全部在结束阶段除外。",
+    "konami_id": 12070,
+    "card_url": "https://ygoprodeck.com/card/psy-framegear-gamma-3289"
+  },
+  "40366667": {
+    "name": "灵王的波动",
+    "type": 4,
+    "english_name": "Dominus Impulse",
+    "desc": "这个卡名的卡在1回合只能发动1张。对方场上有卡存在的场合，这张卡的发动从手卡也能用。\r\n①：包含把怪兽特殊召唤效果的魔法·陷阱·怪兽的效果发动时才能发动。那个效果无效。自己墓地有陷阱卡存在的场合，再把那张无效的卡破坏。这张卡从手卡发动的场合，发动后，这次决斗中自己不能把光·地·风属性怪兽的效果发动。",
+    "konami_id": 20555,
+    "card_url": "https://ygoprodeck.com/card/dominus-impulse-14593"
+  },
+  "42091632": {
+    "name": "命王的螺旋",
+    "type": 4,
+    "english_name": "Dominus Spiral",
+    "desc": "这个卡名的卡在1回合只能发动1张。对方把手卡·墓地的怪兽的效果发动的回合，这张卡的发动从手卡也能用。\r\n①：以对方场上1只怪兽为对象才能发动。那只怪兽回到手卡·额外卡组。自己墓地没有陷阱卡存在的场合，再让对方可以从自身墓地把1只怪兽特殊召唤。这张卡从手卡发动的场合，发动后，这次决斗中自己不能把光·暗属性怪兽的效果发动。",
+    "konami_id": 21845,
+    "card_url": "https://ygoprodeck.com/card/dominus-spiral-15184"
+  },
+  "42141493": {
+    "name": "欢聚友伴·茸茸长尾山雀",
+    "type": 33,
+    "english_name": "Mulcharmy Fuwalos",
+    "desc": "这张卡的效果发动的回合，自己只能有1次把这张卡以外的「欢聚友伴」怪兽的效果发动。\r\n①：自己·对方回合，自己场上没有卡存在的场合，把这张卡从手卡丢弃才能发动。这个回合中，以下效果适用。\r\n●每次对方从卡组·额外卡组把怪兽特殊召唤，自己抽1张。\r\n●结束阶段，自己手卡比对方场上的卡数量＋6张要多的场合，那个相差数量的自己手卡随机回到卡组。",
+    "konami_id": 20500,
+    "card_url": "https://ygoprodeck.com/card/mulcharmy-fuwalos-14591"
+  },
+  "43898403": {
+    "name": "双龙卷",
+    "type": 65538,
+    "english_name": "Twin Twisters",
+    "desc": "①：丢弃1张手卡，以场上最多2张魔法·陷阱卡为对象才能发动。那些卡破坏。",
+    "konami_id": 12175,
+    "card_url": "https://ygoprodeck.com/card/twin-twisters-3747"
+  },
+  "46502744": {
+    "name": "应战的G",
+    "type": 33,
+    "english_name": "Retaliating \"C\"",
+    "desc": "①：包含把怪兽特殊召唤效果的魔法卡由对方发动时才能发动。这张卡从手卡特殊召唤。\r\n②：只要这张卡的①的效果特殊召唤的这张卡在怪兽区域存在，被送去墓地的卡不去墓地而除外。\r\n③：这张卡从场上送去墓地的场合才能发动。除「应战的G」外的1只攻击力1500以下的昆虫族·地属性怪兽从卡组加入手卡。",
+    "konami_id": 11829,
+    "card_url": "https://ygoprodeck.com/card/retaliating-c-3967"
+  },
+  "46565218": {
+    "name": "撒旦老人",
+    "type": 33,
+    "english_name": "Santa Claws",
+    "desc": "①：这张卡可以把对方场上1只怪兽解放，从手卡往对方场上守备表示特殊召唤。\r\n②：这张卡用这张卡的①的方法特殊召唤的回合的结束阶段才能发动。自己抽1张。",
+    "konami_id": 11002,
+    "card_url": "https://ygoprodeck.com/card/santa-claws-3970"
+  },
+  "48130397": {
+    "name": "超融合",
+    "type": 65538,
+    "english_name": "Super Polymerization",
+    "desc": "不能对应这张卡的发动让魔法·陷阱·怪兽的效果发动。\r\n①：丢弃1张手卡才能发动。自己·对方场上的怪兽作为融合素材，把1只融合怪兽融合召唤。",
+    "konami_id": 7445,
+    "card_url": "https://ygoprodeck.com/card/super-polymerization-4109"
+  },
+  "52038441": {
+    "name": "朔夜时雨",
+    "type": 4129,
+    "english_name": "Ghost Mourner & Moonlit Chill",
+    "desc": "这个卡名的效果1回合只能使用1次。\r\n①：对方把怪兽表侧表示特殊召唤的场合，把这张卡从手卡丢弃，以那些表侧表示怪兽之内的1只为对象才能发动。那只怪兽的效果直到回合结束时无效化，这个回合中作为对象的表侧表示怪兽从场上离开时那个控制者受到作为对象的怪兽的原本攻击力数值的伤害。",
+    "konami_id": 15022,
+    "card_url": "https://ygoprodeck.com/card/ghost-mourner-moonlit-chill-10808"
+  },
+  "53129443": {
+    "name": "黑洞",
+    "type": 2,
+    "english_name": "Dark Hole",
+    "desc": "①：场上的怪兽全部破坏。",
+    "konami_id": 4342,
+    "card_url": "https://ygoprodeck.com/card/dark-hole-4525"
+  },
+  "54693926": {
+    "name": "冥王结界波",
+    "type": 2,
+    "english_name": "Dark Ruler No More",
+    "desc": "不能对应这张卡的发动让怪兽的效果发动。\r\n①：对方场上的全部表侧表示怪兽的效果直到回合结束时无效化。这张卡的发动后，直到回合结束时对方受到的全部伤害变成0。",
+    "konami_id": 14742,
+    "card_url": "https://ygoprodeck.com/card/dark-ruler-no-more-10565"
+  },
+  "55063751": {
+    "name": "海龟坏兽 加美西耶勒",
+    "type": 33,
+    "english_name": "Gameciel, the Sea Turtle Kaiju",
+    "desc": "①：这张卡可以把对方场上1只怪兽解放，从手卡往对方场上攻击表示特殊召唤。\r\n②：对方场上有「坏兽」怪兽存在的场合，这张卡可以从手卡攻击表示特殊召唤。\r\n③：「坏兽」怪兽在自己场上只能有1只表侧表示存在。\r\n④：对方把「海龟坏兽 加美西耶勒」以外的魔法·陷阱·怪兽的效果发动时，把自己·对方场上2个坏兽指示物取除才能发动。那个发动无效并除外。",
+    "konami_id": 12106,
+    "card_url": "https://ygoprodeck.com/card/gameciel-the-sea-turtle-kaiju-4690"
+  },
+  "59438930": {
+    "name": "幽鬼兔",
+    "type": 4129,
+    "english_name": "Ghost Ogre & Snow Rabbit",
+    "desc": "这个卡名的效果1回合只能使用1次。\r\n①：场上的怪兽的效果发动时或者场上的已是表侧表示存在的魔法·陷阱卡的效果发动时，把手卡·场上的这张卡送去墓地才能发动。场上的那张卡破坏。",
+    "konami_id": 11708,
+    "card_url": "https://ygoprodeck.com/card/ghost-ogre-snow-rabbit-5052"
+  },
+  "60242223": {
+    "name": "深渊之兽 萨隆魔龙",
+    "type": 33,
+    "english_name": "Bystial Saronir",
+    "desc": "这个卡名的①②的效果1回合各能使用1次。\r\n①：以自己或对方的墓地1只光·暗属性怪兽为对象才能发动（对方场上有怪兽存在的场合，这个效果在对方回合也能发动）。那只怪兽除外，这张卡从手卡特殊召唤。\r\n②：这张卡被送去墓地的场合才能发动。「深渊之兽 萨隆魔龙」以外的1只「深渊之兽」怪兽或1张「烙印」魔法·陷阱卡从卡组送去墓地。",
+    "konami_id": 17763,
+    "card_url": "https://ygoprodeck.com/card/bystial-saronir-13362"
+  },
+  "62015408": {
+    "name": "浮幽樱",
+    "type": 4129,
+    "english_name": "Ghost Reaper & Winter Cherries",
+    "desc": "这个卡名的效果1回合只能使用1次。\r\n①：自己·对方回合，对方场上的怪兽数量比自己场上的怪兽多的场合，把这张卡从手卡丢弃才能发动。选自己的额外卡组1张卡给双方确认。那之后，把对方的额外卡组确认，有选的卡的同名卡的场合，那些对方的同名卡全部除外。",
+    "konami_id": 12312,
+    "card_url": "https://ygoprodeck.com/card/ghost-reaper-winter-cherries-5247"
+  },
+  "64697431": {
+    "name": "局部性飓风",
+    "type": 2,
+    "english_name": "Hey, Trunade!",
+    "desc": "①：场上盖放的魔法·陷阱卡全部回到持有者手卡。",
+    "konami_id": 13433,
+    "card_url": "https://ygoprodeck.com/card/hey-trunade-9016"
+  },
+  "67750322": {
+    "name": "骷髅大王",
+    "type": 33,
+    "english_name": "Skull Meister",
+    "desc": "①：对方墓地有魔法·陷阱·怪兽的效果发动时，把这张卡从手卡送去墓地才能发动。那个效果无效。",
+    "konami_id": 9278,
+    "card_url": "https://ygoprodeck.com/card/skull-meister-5691"
+  },
+  "72656408": {
+    "name": "深渊之兽 巴尔德鸟龙兽",
+    "type": 33,
+    "english_name": "Bystial Baldrake",
+    "desc": "这个卡名的①②的效果1回合各能使用1次。\r\n①：以自己或者对方的墓地1只光·暗属性怪兽为对象才能发动（对方场上有怪兽存在的场合，这个效果在对方回合也能发动）。那只怪兽除外，这张卡从手卡特殊召唤。\r\n②：对方把仪式·融合·同调·超量·连接怪兽特殊召唤的场合，把自己场上1只其他的光·暗属性怪兽解放，以那1只特殊召唤的怪兽为对象才能发动。那只怪兽除外。",
+    "konami_id": 18149,
+    "card_url": "https://ygoprodeck.com/card/bystial-baldrake-13519"
+  },
+  "73304257": {
+    "name": "兽王 阿尔法",
+    "type": 33554465,
+    "english_name": "Alpha, the Master of Beasts",
+    "desc": "这张卡不能通常召唤。对方场上的怪兽的攻击力合计比自己场上的怪兽的攻击力合计高的场合可以特殊召唤。这个卡名的效果1回合只能使用1次。\r\n①：以自己场上的兽族·兽战士族·鸟兽族怪兽任意数量为对象才能发动。那些怪兽回到手卡。那之后，选回到手卡的数量的对方场上的表侧表示怪兽回到手卡。这个效果的发动后，直到回合结束时自己的「兽王 阿尔法」不能直接攻击。",
+    "konami_id": 15502,
+    "card_url": "https://ygoprodeck.com/card/alpha-the-master-of-beasts-11398"
+  },
+  "73642296": {
+    "name": "屋敷童",
+    "type": 4129,
+    "english_name": "Ghost Belle & Haunted Mansion",
+    "desc": "这个卡名的效果1回合只能使用1次。\r\n①：包含以下其中任意种效果的魔法·陷阱·怪兽的效果发动时，把这张卡从手卡丢弃才能发动。那个发动无效。\r\n●从墓地把卡加入手卡·卡组·额外卡组的效果\r\n●从墓地把怪兽特殊召唤的效果\r\n●从墓地把卡除外的效果",
+    "konami_id": 13587,
+    "card_url": "https://ygoprodeck.com/card/ghost-belle-haunted-mansion-9263"
+  },
+  "82385847": {
+    "name": "恐龙摔跤手·潘克拉辛角龙",
+    "type": 33,
+    "english_name": "Dinowrestler Pankratops",
+    "desc": "这个卡名的①的方法的特殊召唤1回合只能有1次，②的效果1回合只能使用1次。\r\n①：对方场上的怪兽数量比自己场上的怪兽多的场合，这张卡可以从手卡特殊召唤。\r\n②：自己·对方回合，把自己场上1只「恐龙摔跤手」怪兽解放，以对方场上1张卡为对象才能发动。那张卡破坏。",
+    "konami_id": 13896,
+    "card_url": "https://ygoprodeck.com/card/dinowrestler-pankratops-9666"
+  },
+  "84192580": {
+    "name": "欢聚友伴·抖抖海月水母",
+    "type": 33,
+    "english_name": "Mulcharmy Purulia",
+    "desc": "这张卡的效果发动的回合，自己只能有1次把这张卡以外的「欢聚友伴」怪兽的效果发动。\r\n①：自己·对方回合，自己场上没有卡存在的场合，把这张卡从手卡丢弃才能发动。这个回合中，以下效果适用。\r\n●每次对方从手卡把怪兽召唤·特殊召唤，自己抽1张。\r\n●结束阶段，自己手卡比对方场上的卡数量＋6张要多的场合，那个相差数量的自己手卡随机回到卡组。",
+    "konami_id": 20206,
+    "card_url": "https://ygoprodeck.com/card/mulcharmy-purulia-14437"
+  },
+  "86066372": {
+    "name": "访问码语者",
+    "type": 67108897,
+    "english_name": "Accesscode Talker",
+    "desc": "效果怪兽2只以上\r\n对方不能对应这张卡的效果的发动把效果发动。\r\n①：这张卡连接召唤的场合，以那1只作为连接素材的连接怪兽为对象才能发动。这张卡的攻击力上升那只怪兽的连接标记数量×1000。\r\n②：从自己的场上·墓地把1只连接怪兽除外才能发动。对方场上1张卡破坏。这个回合，自己不能为让「访问码语者」的效果发动而把相同属性的怪兽除外。",
+    "konami_id": 15032,
+    "card_url": "https://ygoprodeck.com/card/accesscode-talker-10731"
+  },
+  "87126721": {
+    "name": "欢聚友伴·喵喵豹猫",
+    "type": 33,
+    "english_name": "Mulcharmy Meowls",
+    "desc": "这张卡的效果发动的回合，自己只能有1次把这张卡以外的「欢聚友伴」怪兽的效果发动。\r\n①：自己·对方回合，自己场上没有卡存在的场合，把这张卡从手卡丢弃才能发动。这个回合中，以下效果适用。\r\n●每次对方把墓地·除外状态的怪兽特殊召唤，自己抽1张。\r\n●结束阶段，自己手卡比对方场上的卡数量＋6张要多的场合，那个相差数量的自己手卡随机回到卡组。",
+    "konami_id": 20764,
+    "card_url": "https://ygoprodeck.com/card/mulcharmy-meowls-14797"
+  },
+  "87170768": {
+    "name": "接触的G",
+    "type": 33,
+    "english_name": "Contact \"C\"",
+    "desc": "①：对方对怪兽的召唤·特殊召唤成功时才能发动。这张卡从手卡往对方场上守备表示特殊召唤。\r\n②：只要这张卡在怪兽区域存在，这张卡的控制者进行融合·同调·超量·连接召唤的场合，不是以这张卡为素材的融合·同调·超量·连接召唤不能进行。",
+    "konami_id": 13407,
+    "card_url": "https://ygoprodeck.com/card/contact-c-9018"
+  },
+  "90448279": {
+    "name": "天霆号 阿宙斯",
+    "type": 8388641,
+    "english_name": "Divine Arsenal AA-ZEUS - Sky Thunder",
+    "desc": "12星怪兽×2\r\n「天霆号 阿宙斯」在超量怪兽进行过战斗的回合有1次也能在自己场上的超量怪兽上面重叠来超量召唤。\r\n①：自己·对方回合，把这张卡2个超量素材取除才能发动。场上的其他卡全部送去墓地。\r\n②：1回合1次，自己场上的其他卡被战斗或者对方的效果破坏的场合才能发动。从手卡·卡组·额外卡组把1张卡作为这张卡的超量素材。",
+    "konami_id": 15524,
+    "card_url": "https://ygoprodeck.com/card/divine-arsenal-aa-zeus-sky-thunder-11379"
+  },
+  "91800273": {
+    "name": "次元吸引者",
+    "type": 33,
+    "english_name": "Dimension Shifter",
+    "desc": "①：自己·对方回合，自己墓地没有卡存在的场合，把这张卡从手卡送去墓地才能发动。直到下个回合的结束时，被送去墓地的卡不去墓地而除外。",
+    "konami_id": 14740,
+    "card_url": "https://ygoprodeck.com/card/dimension-shifter-10563"
+  },
+  "93039339": {
+    "name": "灾厄之星 提·丰",
+    "type": 8388641,
+    "english_name": "Super Starslayer TY-PHON - Sky Crisis",
+    "desc": "12星怪兽×2\r\n这张卡在对方从额外卡组把2只以上的怪兽特殊召唤的回合以及那下个回合也能在自己场上的攻击力最高的怪兽上面重叠来超量召唤。这个方法特殊召唤过的回合，自己不能把怪兽召唤·特殊召唤。\r\n①：只要超量召唤的这张卡在怪兽区域存在，双方不能把攻击力3000以上的怪兽的效果发动。\r\n②：1回合1次，把这张卡1个超量素材取除才能发动。场上1只怪兽回到手卡。",
+    "konami_id": 19184,
+    "card_url": "https://ygoprodeck.com/card/super-starslayer-ty-phon-sky-crisis-14084"
+  },
+  "93332803": {
+    "name": "怒炎坏兽 多哥兰",
+    "type": 33,
+    "english_name": "Dogoran, the Mad Flame Kaiju",
+    "desc": "①：这张卡可以把对方场上1只怪兽解放，从手卡往对方场上攻击表示特殊召唤。\r\n②：对方场上有「坏兽」怪兽存在的场合，这张卡可以从手卡攻击表示特殊召唤。\r\n③：「坏兽」怪兽在自己场上只能有1只表侧表示存在。\r\n④：1回合1次，把自己·对方场上3个坏兽指示物取除才能发动（这个效果发动的回合，这张卡不能攻击）。对方场上的怪兽全部破坏。",
+    "konami_id": 12038,
+    "card_url": "https://ygoprodeck.com/card/dogoran-the-mad-flame-kaiju-7768"
+  },
+  "94145021": {
+    "name": "小丑与锁鸟",
+    "type": 33,
+    "english_name": "Droll & Lock Bird",
+    "desc": "①：自己·对方回合，对方在抽卡阶段以外从卡组把卡加入手卡的场合，把这张卡从手卡送去墓地才能发动。这个回合，双方不能从卡组把卡加入手卡。",
+    "konami_id": 9279,
+    "card_url": "https://ygoprodeck.com/card/droll-lock-bird-7832"
+  },
+  "97045737": {
+    "name": "圣王的粉碎",
+    "type": 4,
+    "english_name": "Dominus Purge",
+    "desc": "这个卡名的卡在1回合只能发动1张。对方场上有卡存在的场合，这张卡的发动从手卡也能用。\r\n①：包含从卡组把卡加入手卡效果的魔法·陷阱·怪兽的效果发动时才能发动。那个效果无效。自己墓地有陷阱卡存在的场合，再把那张无效的卡破坏。这张卡从手卡发动的场合，发动后，这次决斗中自己不能把暗·水·炎属性怪兽的效果发动。",
+    "konami_id": 20257,
+    "card_url": "https://ygoprodeck.com/card/dominus-purge-14469"
+  },
+  "97268402": {
+    "name": "效果遮蒙者",
+    "type": 4129,
+    "english_name": "Effect Veiler",
+    "desc": "①：对方主要阶段，把这张卡从手卡送去墓地，以对方场上1只效果怪兽为对象才能发动。那只对方怪兽的效果直到回合结束时无效。",
+    "konami_id": 8933,
+    "card_url": "https://ygoprodeck.com/card/effect-veiler-8093"
+  },
+  "98045062": {
+    "name": "敌人操纵器",
+    "type": 65538,
+    "english_name": "Enemy Controller",
+    "desc": "①：可以从以下效果选择1个发动。\r\n●以对方场上1只表侧表示怪兽为对象才能发动。那只对方的表侧表示怪兽的表示形式变更。\r\n●把自己场上1只怪兽解放，以对方场上1只表侧表示怪兽为对象才能发动。那只表侧表示怪兽的控制权直到结束阶段得到。",
+    "konami_id": 5505,
+    "card_url": "https://ygoprodeck.com/card/enemy-controller-8146"
+  },
+  "98127546": {
+    "name": "闭锁世界的冥神",
+    "type": 67108897,
+    "english_name": "Underworld Goddess of the Closed World",
+    "desc": "效果怪兽4只以上\r\n这张卡连接召唤的场合，对方场上1只怪兽也能作为连接素材。\r\n①：这张卡连接召唤的场合才能发动。对方场上的全部表侧表示怪兽的效果无效化。\r\n②：连接召唤的这张卡不受除以这张卡为对象的效果以外的对方发动的效果影响。\r\n③：1回合1次，包含从墓地把怪兽特殊召唤效果的魔法·陷阱·怪兽的效果由对方发动时才能发动。那个发动无效。",
+    "konami_id": 15741,
+    "card_url": "https://ygoprodeck.com/card/underworld-goddess-of-the-closed-world-11617"
+  },
+  "99330325": {
+    "name": "遭受妨碍的坏兽安眠",
+    "type": 2,
+    "english_name": "Interrupted Kaiju Slumber",
+    "desc": "这个卡名的卡在1回合只能发动1张。\r\n①：场上的怪兽全部破坏。那之后，从卡组把卡名不同的「坏兽」怪兽在自己·对方的场上各1只攻击表示特殊召唤。这个效果特殊召唤的怪兽不能把表示形式变更，可以攻击的场合必须作出攻击。\r\n②：把墓地的这张卡除外才能发动。从卡组把1只「坏兽」怪兽加入手卡。这个效果在这张卡送去墓地的回合不能发动。",
+    "konami_id": 12250,
+    "card_url": "https://ygoprodeck.com/card/interrupted-kaiju-slumber-8247"
+  }
+}

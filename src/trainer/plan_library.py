@@ -56,10 +56,11 @@ class PlanLibrary:
             if body.get('revision') != document['revision']: raise ValueError('标签库已更新，请重新打开后编辑；当前输入仍保留')
             vocabulary = tags.vocabulary(self.builtins, document)
             existing = vocabulary.get(body.get('id'), {})
-            if existing.get('purpose') == 'handtrap':
+            if existing.get('purpose') in ('handtrap', 'boardbreaker'):
                 if body.get('name') != existing['name'] or body.get('aliases', []) != existing.get('aliases', []):
-                    raise ValueError('手坑为专用用途 TAG，名称与别名固定；可编辑卡牌范围')
-                self.store.intelligence.sync_members(document, body.get('card_ids', tags.member_ids(existing, self.store.catalog.cards)))
+                    raise ValueError('专用用途 TAG 的名称与别名固定；可编辑卡牌范围')
+                kind = 'handtraps' if existing['purpose'] == 'handtrap' else 'breakers'
+                self.store.intelligence.sync_members(document, body.get('card_ids', tags.member_ids(existing, self.store.catalog.cards)), kind)
                 document['revision'] += 1
                 self.save_vocabulary(document)
                 return self.members(existing['id'])

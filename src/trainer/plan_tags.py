@@ -37,9 +37,9 @@ def builtin_tags(runtime):
 
 
 def vocabulary(builtins, document):
-    from intelligence import purpose_tag
-    purpose = purpose_tag(document)
-    return {**deepcopy(builtins), **deepcopy(document.get('entries', {})), purpose['id']: purpose}
+    from intelligence import CARD_LIBRARIES, purpose_tag
+    purposes = [purpose_tag(document, kind=kind) for kind in CARD_LIBRARIES]
+    return {**deepcopy(builtins), **deepcopy(document.get('entries', {})), **{tag['id']: tag for tag in purposes}}
 
 
 def edit_tag(body, tags):

@@ -14,8 +14,8 @@
 .intel-tabs small { font-size:11px; font-variant-numeric:tabular-nums; color:inherit; opacity:.75; }
 .intel-actions,.intel-group-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
 .intel-layout { flex:1; min-height:0; display:grid; grid-template-columns:310px minmax(0,1fr); gap:24px; padding-top:18px; }
-.intel-library { display:flex; flex-direction:column; min-height:0; min-width:0; overflow:auto; padding-right:18px; border-right:1px solid var(--border-subtle); scrollbar-gutter:stable; }
-#intel-controls { flex-shrink:0; }
+.intel-library { display:flex; flex-direction:column; min-height:0; min-width:0; overflow:hidden; padding-right:18px; border-right:1px solid var(--border-subtle); }
+#intel-controls { flex-shrink:0; max-height:60%; overflow:auto; }
 .intel-group { padding-bottom:14px; margin-bottom:14px; border-bottom:1px solid var(--border-subtle); }
 .intel-group>select { width:100%; font-size:12px; }
 .intel-group-actions { gap:6px; margin-top:8px; }
@@ -30,7 +30,7 @@
 .intel-filter-more summary span { color:var(--text-accent); font-size:11px; }
 .intel-filter-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; padding-top:10px; }
 .intel-filter-reset { grid-column:1/-1; justify-self:end; border-color:transparent; background:transparent; padding:2px 0; color:var(--text-muted); font-size:11px!important; }
-.intel-list { flex:1 0 auto; min-width:0; margin-top:12px; padding:0 3px 8px; }
+.intel-list { flex:1 1 auto; min-width:0; min-height:0; overflow:auto; scrollbar-gutter:stable; margin-top:12px; padding:0 3px 8px; }
 .intel-list-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; position:sticky; top:0; z-index:1; padding:10px 0; background:var(--surface-page); border-bottom:1px solid var(--border-subtle); }
 .intel-list-heading h2 { font-size:12px; font-weight:500; }
 .intel-list-heading small { font-size:11px; }
@@ -106,6 +106,9 @@
 .intel-pending-effects { border-top:1px solid var(--warning-line); margin-top:20px; padding-top:12px; }
 .intel-pending-effects select { max-width:100%; }
 .intel-shared-effect { margin:12px 0; }
+.intel-catalog-source { margin:20px 0; padding-top:12px; border-top:1px solid var(--border-subtle); }
+.intel-catalog-source :is(p,small,a) { overflow-wrap:anywhere; }
+.intel-catalog-source a { color:var(--text-accent); }
 .intel-step { position:relative; margin:22px 0 22px 6px; padding:0 0 0 20px; border-left:2px solid var(--border-selected); }
 .intel-step:before { content:''; position:absolute; width:8px; height:8px; border-radius:50%; top:7px; left:-5px; background:var(--text-accent); }
 .intel-step h3 { margin:0; font-size:14px; }
@@ -134,11 +137,12 @@
   .intel-page { height:auto; min-height:calc(100dvh - var(--app-bar-height) - 16px); padding-top:18px; }
   .intel-heading h1 { font-size:24px; }
   .intel-topbar { align-items:stretch; }
-  .intel-tabs { width:100%; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .intel-tabs { width:100%; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); }
   .intel-tabs button { padding:8px 4px; gap:5px; }
   .intel-actions { margin-left:auto; }
   .intel-layout { grid-template-columns:minmax(0,1fr); gap:20px; }
   .intel-library { overflow:visible; border-right:0; border-bottom:1px solid var(--border-subtle); padding:0 0 16px; }
+  #intel-controls { max-height:none; overflow:visible; }
   .intel-list { flex:none; max-height:300px; overflow:auto; }
   .intel-editor { min-height:300px; }
   .intel-editor-body { overflow:visible; padding-right:0; }
@@ -149,3 +153,4 @@
   .intel-card-identity h2 { font-size:17px; }
   .intel-card-heading { gap:12px; }
 }
+@media(max-width:500px) { .intel-tabs { grid-template-columns:repeat(2,minmax(0,1fr)); } }
