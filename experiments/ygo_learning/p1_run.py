@@ -16,9 +16,11 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--runtime', required=True)
     parser.add_argument('--url', required=True)
-    parser.add_argument('--suite', choices=['probe','mechanisms','demonstrations','development','throughput'], default='probe')
+    parser.add_argument('--suite', choices=['probe','mechanisms','demonstrations','development','throughput','teacher'], default='probe')
     parser.add_argument('--model')
     parser.add_argument('--count',type=int,choices=range(1,51),default=50)
+    parser.add_argument('--protocol', default=str(ROOT/'.local/ygo-learning/p2-p3/protocol.json'))
+    parser.add_argument('--first-family', type=int, choices=range(1,21), default=1)
     parser.add_argument('--groups', default='')
     parser.add_argument('--variants',type=int,choices=range(1,6),default=5)
     parser.add_argument('--first-variant',type=int,choices=range(1,6),default=1)
@@ -26,9 +28,16 @@ def main():
     if args.first_variant>args.variants:parser.error('--first-variant must not exceed --variants')
     session = NativeSession(args.runtime, args.url)
     suffix='-secondary' if 'secondary' in Path(args.runtime).parent.name else ''
-    output = BASE / (args.suite+suffix+'-' + datetime.now().strftime('%Y%m%d-%H%M%S'))
+    output_base = ROOT/'.local/ygo-learning/p2-p3' if args.suite=='teacher' else BASE
+    output = output_base / (args.suite+suffix+'-' + datetime.now().strftime('%Y%m%d-%H%M%S'))
     output.mkdir(parents=True, exist_ok=False)
     try:
+        if args.suite=='teacher':
+            from app import Catalog
+            from calibration_p3 import run
+            run(session, Catalog(Path(args.runtime)).cards, output, args.protocol,
+                args.first_family, min(args.count,20))
+            return
         if args.suite=='throughput':
             from app import Catalog
             from mechanisms import run

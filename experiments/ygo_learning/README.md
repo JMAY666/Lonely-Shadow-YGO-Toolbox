@@ -1,6 +1,6 @@
 # 游戏王学生训练与规则引擎闭环验证
 
-本目录包含独立训练环境、小样本验收和 P0B/P1 规则引擎实验，不参与正式桌面打包。游戏王决策网络在本机 AMD GPU 上训练，导出后由独立 CPU 进程返回动作。这里训练的是新建的小型动作排序学生，**没有继续训练或转换旧 `0546_26550M.tflite` 权重**。
+本目录包含独立训练环境、小样本验收、P0B/P1 规则引擎实验，以及 P2 分组冻结与 P3 教师标定，不参与正式桌面打包。游戏王决策网络在本机 AMD GPU 上训练，导出后由独立 CPU 进程返回动作。这里训练的是新建的小型动作排序学生，**没有继续训练或转换旧 `0546_26550M.tflite` 权重**。
 
 整体实验范围及后续教师/学生对照见[验证计划](../../docs/ai-learning-feasibility-plan.md)，新的字段定义与拒绝边界见[观察/动作契约 v2](../../docs/ai-learning-contract-v2.md)。下文先保留 P0A 的 78 样本原始结果，再介绍 P1 独立实现；二者不能合并为策略评测。
 
@@ -128,3 +128,40 @@ node experiments/ygo_learning/desktop_p1.cjs --suite=development --count=50 --mo
 新学生为 1,466,609 参数，本轮开发数据含 423 个多选决策。RX 9070 XT 完成 400 次全批更新约 6.76 秒，训练内已观察标签集合命中率约 98.35%；CPU/GPU 梯度、优化器恢复、导出动作一致性和新的 CPU 进程检查通过。训练样本来自受控机制和开发示范，标签不表示最优策略；实际连续执行和时间预算以[本轮验收记录](../../docs/ai-learning-p0b-p1-results.md)为准。
 
 模型包拒绝旧契约、变化的代码/规则文件和损坏的部署文件。类型计数器、溢出求和、无法唯一定位的实例或容量溢出等首轮边界明确停止。学生的循环停止不计为完成回合，结束回合请求也必须等到真实回合变更后才计为完成。当前没有 T0/T1 教师生成的正式数据、未见局面策略增益或自动更新/产品接入的验证结论。
+
+## P2/P3：冻结分组与无 LLM 教师标定
+
+2026-09-20 的 [20 家族标定报告](../../docs/ai-learning-p2-p3-results.md)：T0 达标 10/20，B1 达标 13/20；40 次完整重放和压缩恢复通过，教师收益与扩展预算未通过，暂不扩大采样。以下命令保留用于复现；重跑同样继续扣累计预算，不因重新启动而归零。
+
+[P2 小试协议](../../docs/ai-learning-p2-protocol.md)固定 200 个公开构筑起手家族和 120/40/40 划分。每个场景选 4 个训练家族，共 20 个，用于 T0/B1 成对运行；验证与留出家族不执行。原 POC、P1 开发及机制/示范起手按来源哈希排除。首次生成的随机条件登记到本地，后续运行沿原生 retry 链复用，包括失败重试。
+
+| 文件 | 职责 |
+| --- | --- |
+| `protocol_p2.py` | 划分、来源指纹、排他冻结及结构目标正反例判定 |
+| `teacher_p3.py` | 真实前缀的有限搜索；只评分玩家观察；抽牌/随机/私有结果边界停止 |
+| `calibration_p3.py` | B1/T0 配对执行、累计预算、原生首回合边界、失败和中断证据 |
+| `evidence_p3.py` | gzip 与按哈希引用的状态，完整恢复和篡改检查；保留原始证据 |
+| `report_p3.py` | 核对 20 个完整家族对、重审恢复记录，并外推耗时与实际存储预算 |
+
+复用已有环境，从仓库根目录执行：
+
+```powershell
+# 只读取固定公开构筑及过去的公开实验；已存在的协议只能验证复用。
+.local/ygo-agent-pilot/.venv/Scripts/python.exe -X utf8 -c "from pathlib import Path; from experiments.ygo_learning.protocol_p2 import create_protocol; p=create_protocol(Path('.local/ygo-learning/p2-p3/protocol.json')); print(p['fingerprint'])"
+
+# 每批 5 个训练家族；每批最多 30 分钟，P2/P3 累计最多 2 小时。
+node experiments/ygo_learning/desktop_p1.cjs --suite=teacher --first-family=1 --count=5
+node experiments/ygo_learning/desktop_p1.cjs --suite=teacher --first-family=6 --count=5
+node experiments/ygo_learning/desktop_p1.cjs --suite=teacher --first-family=11 --count=5
+node experiments/ygo_learning/desktop_p1.cjs --suite=teacher --first-family=16 --count=5
+
+# 显式指定上述四个成功完成的批次目录；重复、缺少或混用源码版本会拒绝汇总。
+.local/ygo-agent-pilot/.venv/Scripts/python.exe -X utf8 experiments/ygo_learning/report_p3.py "<批次1>" "<批次2>" "<批次3>" "<批次4>"
+.local/ygo-learning/.venv/Scripts/python.exe -X utf8 -m unittest discover -s experiments/ygo_learning -p 'test_*.py' -v
+```
+
+T0 每次最多 24 个探针、6 层原生决策、2 秒，束宽 2、每窗展开排序前 3 个候选；这不表示穷举所有合法动作。规则启发式和固定旧模型只提出候选，选定响应须由真实引擎确认。遇到对手决策窗口或未知随机结果，搜索停止该分支，在真实执行后重新规划；没有对隐藏真实牌序做收益排序，也没有实现抽样期望搜索或完整抗干扰搜索。
+
+B1 保留旧模型的循环状态，只在实际响应确认后提交历史。B2 仅核对冻结公共 P1 示范的精确起手匹配，由于排除规则，其覆盖为零；不能代表产品全部模块来源的能力。结构目标使用刚进入第 2 回合的原生状态，包含首回合真实抽牌计数，但不证明无效效果仍有费用、次数或互斥可用性。
+
+教师标定不训练学生、不调用本地 LLM、不打开独立留出结果。压缩记录每条恢复后再次对照原生日志；本轮仍保留原始 JSON/JSONL、未压缩收集记录和失败证据。是否采用压缩存储与扩大采样，须另看完整预算，不能仅用压缩文件的大小代替所有实验文件。
