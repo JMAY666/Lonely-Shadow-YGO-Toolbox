@@ -1,0 +1,5007 @@
+{
+  "version": "2026-09-20",
+  "reviewed_at": "2026-09-20",
+  "window": "2026年7—9月，赛事与榜单采样期分别标明",
+  "sources": [
+    {
+      "id": "ocg-july",
+      "title": "ROTK · OCG 2026.07 #1–2",
+      "url": "https://roadoftheking.com/ocg-2026-07-metagame-report-1-2/",
+      "kind": "metagame",
+      "note": "31场赛事、141份上位构筑，非全体玩家使用率。原文称7月4–17日，发布日期却为7月16日；按原文记录此日期差异，不推算日度趋势。",
+      "published_at": "2026-07-16",
+      "period": "原文：2026-07-04—2026-07-17"
+    },
+    {
+      "id": "ocg-august",
+      "title": "ROTK · OCG 2026.07 #6–7",
+      "url": "https://roadoftheking.com/ocg-2026-07-metagame-report-6-7/",
+      "kind": "metagame",
+      "note": "33场赛事、197份上位构筑。",
+      "published_at": "2026-08-18",
+      "period": "2026-08-08—2026-08-17"
+    },
+    {
+      "id": "ocg-late-august",
+      "title": "ROTK · OCG 2026.07 #8–9",
+      "url": "https://roadoftheking.com/ocg-2026-07-metagame-report-8-9/",
+      "kind": "metagame",
+      "note": "21场赛事、103份上位构筑；9月发表但样本截止8月30日，非9月全月排名。",
+      "published_at": "2026-09-15",
+      "period": "2026-08-22—2026-08-30"
+    },
+    {
+      "id": "ocg-september",
+      "title": "Duel Spirits 2026 OCG · 雅加达",
+      "url": "https://roadoftheking.com/duel-spirits-2026-ocg/",
+      "kind": "metagame",
+      "note": "9月6日124人、7轮瑞士轮；禁用Glorious Victors。前八含3耀圣、3卡通、1狱神、1磁石，后三种以原文具体外挂为准，只证明本赛事结果。",
+      "published_at": "2026-09-09",
+      "period": "2026-09-06"
+    },
+    {
+      "id": "ocg-ogre",
+      "title": "战报对策 · 幽鬼兔与尼比鲁",
+      "url": "https://roadoftheking.com/ocg-2026-07-metagame-report-8-9/",
+      "kind": "strategy",
+      "note": "作者推荐幽鬼兔对耀圣与卡通的特定节点，并指出尼比鲁对卡通价值较低。能否破坏仍须核对场上保护。",
+      "published_at": "2026-09-15",
+      "period": ""
+    },
+    {
+      "id": "ocg-aug-lines",
+      "title": "战报路线 · 耀圣、卡通、杀手级调整曲",
+      "url": "https://roadoftheking.com/ocg-2026-07-metagame-report-6-7/",
+      "kind": "strategy",
+      "note": "图示节选文中路线；阻抗分支是按卡文作出的条件推演，未逐局引擎验证。",
+      "published_at": "2026-08-18",
+      "period": ""
+    },
+    {
+      "id": "ocg-jul-lines",
+      "title": "战报路线 · 兔子循环与卢西娜起手",
+      "url": "https://roadoftheking.com/ocg-2026-07-metagame-report-1-2/",
+      "kind": "strategy",
+      "note": "图示节选公开展开；不把原文终场视为本例保证结果。",
+      "published_at": "2026-07-16",
+      "period": ""
+    },
+    {
+      "id": "card-14558127",
+      "title": "官方卡文 · 灰流丽",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=12950&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-10045474",
+      "title": "官方卡文 · 无限泡影",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=13631&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-13597785",
+      "title": "官方卡文 · 耀圣之花诗 卢西娜",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=22116&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-59438930",
+      "title": "官方卡文 · 幽鬼兔",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=11708&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-64491754",
+      "title": "官方卡文 · 耀圣之诗～回乡之平行体～",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=22159&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-5559570",
+      "title": "官方卡文 · 高傲自豪之耀圣诗-耀圣之诗",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=22984&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-12375297",
+      "title": "官方卡文 · 耀圣诗之狱神精",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=22119&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-42302563",
+      "title": "官方卡文 · 狱花之大耀圣 鹤望兰",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=22143&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-59581480",
+      "title": "官方卡文 · 耀圣之波诗 狄娜",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=22117&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-56651978",
+      "title": "官方卡文 · 耀圣之风诗 蕾吉娜",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=22523&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-45536531",
+      "title": "官方卡文 · 滑稽暗黑兔",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=23156&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-7293697",
+      "title": "官方卡文 · 完美世界 卡通世界",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=23161&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-91500017",
+      "title": "官方卡文 · 卡通书签",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=15472&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-34298391",
+      "title": "官方卡文 · 看透心灵之眼",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=23162&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-34314989",
+      "title": "官方卡文 · 暗眼幻想师·无脸幻想师",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=23159&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-89392810",
+      "title": "官方卡文 · 杀手级调整曲·唱片师",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=21955&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-42781164",
+      "title": "官方卡文 · 杀手级调整曲·音轨制作人",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=21957&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-17209452",
+      "title": "官方卡文 · 杀手级调整曲·旋钮手",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=22531&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-16387555",
+      "title": "官方卡文 · 杀手级调整曲·提示员",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=21956&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-14442329",
+      "title": "官方卡文 · 点唱机酒吧“杀手级调整曲”",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=21962&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-94145021",
+      "title": "官方卡文 · 小丑与锁鸟",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=9279&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-63166095",
+      "title": "官方卡文 · 闪刀起动-交闪",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=13671&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-24508238",
+      "title": "官方卡文 · D.D.乌鸦",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=6980&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-73642296",
+      "title": "官方卡文 · 屋敷童",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=13587&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-63288573",
+      "title": "官方卡文 · 闪刀姬-燎里",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=13668&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-24749710",
+      "title": "官方卡文 · 两颗心灵",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=23014&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-44001993",
+      "title": "官方卡文 · 黑色混沌之魔术师 黑混沌",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=22976&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-24088928",
+      "title": "官方卡文 · 混沌之魔王-骸骨恶魔",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=22951&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-33599853",
+      "title": "官方卡文 · 光与暗的仪式",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=22993&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-98684220",
+      "title": "官方卡文 · 超魔剑士 黑混沌",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=22950&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-36270527",
+      "title": "官方卡文 · 无限与有限之无垢大艺术",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=23340&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-37279096",
+      "title": "官方卡文 · 无垢大艺术-「黄昏之变幻」",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=23383&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-62368221",
+      "title": "官方卡文 · 净化与腐败之无垢大艺术",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=23341&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-99753860",
+      "title": "官方卡文 · 结合与乖离之无垢大艺术",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=23342&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-24269961",
+      "title": "官方卡文 · 破械神王 阎摩",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=18836&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-53417695",
+      "title": "官方卡文 · 破械唱导",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=14696&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-41165831",
+      "title": "官方卡文 · 破械神 萨巴拉",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=18806&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "mdm-tier-20260920",
+      "title": "MDM · 9月20日社区赛事榜",
+      "url": "https://www.masterduelmeta.com/tier-list",
+      "kind": "metagame",
+      "note": "页面明确按最新100份社区赛事上位牌表计算power；引擎与整副牌组并列展示，本文件只采用整副牌组条目，避免把引擎相加。",
+      "published_at": "",
+      "period": "2026-09-20页面快照"
+    },
+    {
+      "id": "rotk-md55",
+      "title": "ROTK · Master Duel 7月Rating Duel前十",
+      "url": "https://roadoftheking.com/master-duel-rating-duel-season-55/",
+      "kind": "metagame",
+      "note": "1 Grass Branded；2 Kewl Tune；3 未披露；4 Branded Dracotail；5 Zoodiac Radiant Typhoon；6 Ryzeal Mitsurugi；7 Grass Branded；8 Sky Striker；9 Branded Dracotail；10 Sky Striker。",
+      "published_at": "2026-08-01",
+      "period": "2026-07"
+    },
+    {
+      "id": "rotk-md56",
+      "title": "ROTK · Master Duel 8月Rating Duel前十",
+      "url": "https://roadoftheking.com/master-duel-rating-duel-season-56/",
+      "kind": "metagame",
+      "note": "1/3/10 Branded Dracotail；9 K9 Vanquish Soul；2/4/5/6/7/8没有披露牌型。不能将未披露当作非星辰或当作0份额。",
+      "published_at": "2026-09-01",
+      "period": "2026-08"
+    },
+    {
+      "id": "mdm-counters",
+      "title": "MDM · 卡组对策汇总",
+      "url": "https://www.masterduelmeta.com/combos-and-counters#counters",
+      "kind": "strategy",
+      "note": "覆盖当前榜单多数卡组，含被推荐目标与效果适用提醒；不等于官方裁定或引擎验证。",
+      "published_at": "",
+      "period": "2026-09-20页面快照"
+    },
+    {
+      "id": "mdm-banlist-20260903",
+      "title": "Master Duel · 9月3日禁限汇总",
+      "url": "https://www.masterduelmeta.com/forbidden-limited-list/",
+      "kind": "metagame",
+      "note": "当前可见Forbidden区包含Called by the Grave；Maxx C限1、Droll限2，见banlist_snapshot。",
+      "published_at": "",
+      "period": "2026-09-03生效的当前页面"
+    },
+    {
+      "id": "md-dracotail-combo",
+      "title": "MDM · 星辰／烙印星辰（Dracotail）典型路线",
+      "url": "https://www.masterduelmeta.com/combo/6a0ca26e18d847feba7ef544",
+      "kind": "strategy",
+      "note": "来源月份 2026-05；截取原文典型路线的前段，用于解释断点；不是完整终场承诺。按9月20日卡文核对，打断后的分支由本资料手工推演。",
+      "published_at": "2026-05",
+      "period": ""
+    },
+    {
+      "id": "card-73819701",
+      "title": "官方卡文 · 白龙之落胤",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=22127&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-32548318",
+      "title": "官方卡文 · 罗睺星辰",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=21362&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-97268402",
+      "title": "官方卡文 · 效果遮蒙者",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=8933&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-33760966",
+      "title": "官方卡文 · 星辰爪龙 巨蟹摩羯龙魔",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=21359&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-55273560",
+      "title": "官方卡文 · 白之圣女 艾克莉西娅",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=16493&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-78397661",
+      "title": "官方卡文 · 黑龙之艾克莉西娅",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=22144&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-95515789",
+      "title": "官方卡文 · 赫之圣女 卡尔特西娅",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=17767&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "md-branded-combo",
+      "title": "MDM · 烙印（Branded）典型路线",
+      "url": "https://www.masterduelmeta.com/combo/6a1c1468b39696da94caab22",
+      "kind": "strategy",
+      "note": "来源月份 2026-05；截取原文典型路线的前段，用于解释断点；不是完整终场承诺。按9月20日卡文核对，打断后的分支由本资料手工推演。",
+      "published_at": "2026-05",
+      "period": ""
+    },
+    {
+      "id": "card-1984618",
+      "title": "官方卡文 · 天底的使徒",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=15286&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-41373230",
+      "title": "官方卡文 · 灰烬龙 落胤龙",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=15272&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-76666602",
+      "title": "官方卡文 · 吞食圣痕之龙",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=22090&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-60303688",
+      "title": "官方卡文 · 教导的圣女 艾克莉西娅",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=15239&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-30271097",
+      "title": "官方卡文 · 落胤与圣女",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=22089&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-45883110",
+      "title": "官方卡文 · 引导的圣女 奎姆",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=18474&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "md-kewl-tune-combo",
+      "title": "MDM · 杀手级调整曲（Kewl Tune）典型路线",
+      "url": "https://www.masterduelmeta.com/combo/6a093b8cf8f9ce717697ca1a",
+      "kind": "strategy",
+      "note": "来源月份 2026-05；截取原文典型路线的前段，用于解释断点；不是完整终场承诺。按9月20日卡文核对，打断后的分支由本资料手工推演。",
+      "published_at": "2026-05",
+      "period": ""
+    },
+    {
+      "id": "card-78058681",
+      "title": "官方卡文 · 杀手级调整曲同调",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=21961&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-16509007",
+      "title": "官方卡文 · 杀手级调整曲·混音手",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=21953&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "md-clown-crew-combo",
+      "title": "MDM · 道化一座（Clown Crew）典型路线",
+      "url": "https://www.masterduelmeta.com/combo/6a6b639f974569e9f162570d",
+      "kind": "strategy",
+      "note": "来源月份 2026-07；截取原文典型路线的前段，用于解释断点；不是完整终场承诺。按9月20日卡文核对，打断后的分支由本资料手工推演。",
+      "published_at": "2026-07",
+      "period": ""
+    },
+    {
+      "id": "card-42759961",
+      "title": "官方卡文 · 道化一座 调酒火小丑",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=22538&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-20448151",
+      "title": "官方卡文 · 道化一座『排练』",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=22568&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-40366667",
+      "title": "官方卡文 · 灵王的波动",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=20555&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-83232904",
+      "title": "官方卡文 · 道化一座『极艺』",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=22570&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-82159583",
+      "title": "官方卡文 · 道化一座 白脸小丑",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=22524&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-91237821",
+      "title": "官方卡文 · 道化一座 双魔棍小丑",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=22555&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-93172951",
+      "title": "官方卡文 · 道化一座 舞流星小丑",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=22549&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "md-sky-striker-combo",
+      "title": "MDM · 闪刀（Sky Striker）典型路线",
+      "url": "https://www.masterduelmeta.com/combo/6a08e98b71d1dae95bbed943",
+      "kind": "strategy",
+      "note": "来源月份 2026-05；截取原文典型路线的前段，用于解释断点；不是完整终场承诺。按9月20日卡文核对，打断后的分支由本资料手工推演。",
+      "published_at": "2026-05",
+      "period": ""
+    },
+    {
+      "id": "card-76072561",
+      "title": "官方卡文 · 闪刀姬=零露",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=21460&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-52340444",
+      "title": "官方卡文 · 闪刀机-大黄蜂浮游单元",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=13674&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-9726840",
+      "title": "官方卡文 · 闪刀起动-连刀",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=17034&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "md-elfnote-kewl-tune-combo",
+      "title": "MDM · 耀圣杀手调（Elfnote Kewl Tune）典型路线",
+      "url": "https://www.masterduelmeta.com/combo/6a379c6d0cf08140a8b7e4ef",
+      "kind": "strategy",
+      "note": "来源月份 2026-06；截取原文典型路线的前段，用于解释断点；不是完整终场承诺。按9月20日卡文核对，打断后的分支由本资料手工推演。",
+      "published_at": "2026-06",
+      "period": ""
+    },
+    {
+      "id": "card-84815190",
+      "title": "官方卡文 · 鲜花女男爵",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=16386&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-85976588",
+      "title": "官方卡文 · 耀圣之月诗 福尔图娜",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=22118&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "md-elfnote-combo",
+      "title": "MDM · 耀圣（Elfnote）典型路线",
+      "url": "https://www.masterduelmeta.com/combo/6a21fa3a2092c3dfff9665ed",
+      "kind": "strategy",
+      "note": "来源月份 2026-06；截取原文典型路线的前段，用于解释断点；不是完整终场承诺。按9月20日卡文核对，打断后的分支由本资料手工推演。",
+      "published_at": "2026-06",
+      "period": ""
+    },
+    {
+      "id": "md-blue-eyes-combo",
+      "title": "MDM · 青眼（Blue-Eyes）典型路线",
+      "url": "https://www.masterduelmeta.com/combo/6a2578be75a726c2bfe3e68e",
+      "kind": "strategy",
+      "note": "来源月份 2026-06；截取原文典型路线的前段，用于解释断点；不是完整终场承诺。按9月20日卡文核对，打断后的分支由本资料手工推演。",
+      "published_at": "2026-06",
+      "period": ""
+    },
+    {
+      "id": "card-8240199",
+      "title": "官方卡文 · 青色眼睛的贤士",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=12292&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-62089826",
+      "title": "官方卡文 · 真正之光",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=16653&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-17947697",
+      "title": "官方卡文 · 白色少女",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=20602&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-80326401",
+      "title": "官方卡文 · 青色眼睛的祈祷",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=20604&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-17725109",
+      "title": "官方卡文 · 青眼龙轰临",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=20605&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-42097666",
+      "title": "官方卡文 · 青色眼睛的精灵",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=20609&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-24382602",
+      "title": "官方卡文 · 光之灵堂",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=12331&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "md-yummy-combo",
+      "title": "MDM · 味美喵（Yummy）典型路线",
+      "url": "https://www.masterduelmeta.com/combo/6a094726b41540107cdcb84e",
+      "kind": "strategy",
+      "note": "来源月份 2026-05；截取原文典型路线的前段，用于解释断点；不是完整终场承诺。按9月20日卡文核对，打断后的分支由本资料手工推演。",
+      "published_at": "2026-05",
+      "period": ""
+    },
+    {
+      "id": "card-30581601",
+      "title": "官方卡文 · 味美喵★点心抓取猫",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=21371&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-66975205",
+      "title": "官方卡文 · 味美喵娱乐☆小巧可爱箱庭",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=21372&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-31603289",
+      "title": "官方卡文 · 奶油蛋糕杯猫★味美喵奖品",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=21368&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-31425736",
+      "title": "官方卡文 · 奶油蛋糕杯猫☆味美喵",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=21365&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-29369059",
+      "title": "官方卡文 · 味美喵☆惊喜奖品",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=21374&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-10966439",
+      "title": "官方卡文 · 棉花糖猫☆味美喵",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=21790&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-68810435",
+      "title": "官方卡文 · 曲奇饼猫☆味美喵",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=21366&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "md-maliss-combo",
+      "title": "MDM · 码丽丝（Maliss）典型路线",
+      "url": "https://www.masterduelmeta.com/combo/6a49f4f0cf6031f35a7e08af?combosDeckType=68673af2bfbfc89dbf53ed83",
+      "kind": "strategy",
+      "note": "来源月份 2026-07；截取原文典型路线的前段，用于解释断点；不是完整终场承诺。按9月20日卡文核对，打断后的分支由本资料手工推演。",
+      "published_at": "2026-07",
+      "period": ""
+    },
+    {
+      "id": "card-34267821",
+      "title": "官方卡文 · 古遗物-圣枪",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=11243&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-32061192",
+      "title": "官方卡文 · 码丽丝<兵卒>睡鼠",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=20584&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-57111661",
+      "title": "官方卡文 · 码丽丝<代码>TB-11",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=20591&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-69272449",
+      "title": "官方卡文 · 码丽丝<兵卒>白兔",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=20582&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-96676583",
+      "title": "官方卡文 · 码丽丝<兵卒>柴郡猫",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=20583&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "md-vs-k9-combo",
+      "title": "MDM · VS K9：赌魂遭灰后的接续",
+      "url": "https://www.masterduelmeta.com/combo/6a095a6dde7df15f642ddf02",
+      "kind": "strategy",
+      "note": "作者 kagetane 的路线明确从赌魂遭灰开始；本图节选K9部分，前提是对手手中确实有饭纲。分支比较是卡文条件推演。",
+      "published_at": "2026-05-17",
+      "period": ""
+    },
+    {
+      "id": "md-resonator-combo",
+      "title": "MDM · 共鸣者：白骨恶魔起手",
+      "url": "https://www.masterduelmeta.com/combo/6a9a703214113051c395b93d",
+      "kind": "strategy",
+      "note": "作者 OzTheDecapitator 的9月路线。这里只摘录到第一次红莲升龙，不承诺原文完整终场。",
+      "published_at": "2026-09-04",
+      "period": ""
+    },
+    {
+      "id": "card-54562327",
+      "title": "官方卡文 · 赌上你的灵魂！",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=18734&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-92248362",
+      "title": "官方卡文 · K9-17号 饭纲",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=21376&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-91025875",
+      "title": "官方卡文 · K9-ØØ号 野狼",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=21379&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-29302858",
+      "title": "官方卡文 · 征服斗魂 螺禅",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=18727&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-92895501",
+      "title": "官方卡文 · 征服斗魂 重型电子人",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=18729&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-27420823",
+      "title": "官方卡文 · K9-17号 “撕裂者”",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=21380&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-25784595",
+      "title": "官方卡文 · 白骨恶魔",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=19016&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-98173209",
+      "title": "官方卡文 · 深红狱大地",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=19018&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-62991792",
+      "title": "官方卡文 · 灵魂共鸣者",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=19014&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-66141736",
+      "title": "官方卡文 · 红莲升龙",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=12695&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-77360173",
+      "title": "官方卡文 · 同调克隆共鸣者",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=12062&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-98396890",
+      "title": "官方卡文 · 视界共鸣者",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=19015&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-83445539",
+      "title": "官方卡文 · 暗冥共鸣者",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=22510&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-67809530",
+      "title": "官方卡文 · 红莲王者",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=22545&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    },
+    {
+      "id": "card-19434243",
+      "title": "官方卡文 · 强力恶龙",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=22511&request_locale=ja",
+      "kind": "card_text",
+      "note": "2026-09-20读取官方卡文；卡号和中英文名称交叉核对。卡文是效果依据，不证明策略在所有构筑中最优。",
+      "published_at": "",
+      "period": ""
+    }
+  ],
+  "guides": [
+    {
+      "id": "ocg-elfnote",
+      "topic": "OCG · 耀圣／无垢大艺术耀圣（Elfnote）",
+      "title": "耀圣／无垢大艺术耀圣（Elfnote）｜识别、断点与条件推演",
+      "format": "OCG",
+      "period": "2026年7—9月；实际采样期按来源分别标明",
+      "summary": "抓检索和卡组拉人的资源转换，先看中央区域与永续魔法保护，再选灰流丽或幽鬼兔。",
+      "recognition": "卢西娜向中央区域特召、狱神精同调后检索、狄娜放置永续魔法。无垢大艺术是常见外挂，不能见一张通用卡就确定整副构筑。",
+      "priorities": "灰流丽可打卢西娜检索，或留给回乡／蕾吉娜从卡组特召。\n幽鬼兔可考虑已表侧的回乡发动效果；打中央同调怪兽前先查破坏保护。\n各断点按所见局面选择，不是同一局依次交完。",
+      "warnings": "狄娜单纯从卡组表侧放置魔法不在灰流丽的范围。回乡保护中央怪兽，幽鬼兔不是无效。尼比鲁须累计召唤5只；无垢者可能处理中央衍生物，狄斯·帕忒耳也可能已能无效，不能保证一颗停牌。",
+      "metagame": "7月14/141；8月8–17日60/197；8月22–30日27/103。9月6日赛事前八3套无垢大艺术耀圣。分母是各报告上位样本，非整体使用率。",
+      "steps": [
+        {
+          "opponent": 13597785,
+          "action": "②从卡组检索其他耀圣",
+          "timing": "检索发动时直接连锁",
+          "condition": "本次检索对补齐调整有价值。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "连锁卢西娜②",
+              "condition": "须直接连锁该检索。",
+              "expected": "本次不能补入狱神精等；卢西娜仍在场。",
+              "note": "若已有调整或狄娜，仍可另走。"
+            },
+            {
+              "cards": [
+                10045474
+              ],
+              "mode": "alternative",
+              "method": "无效卢西娜",
+              "condition": "手发须自己场上无卡；盖放发动须满足陷阱规则。目标仍须是对方场上表侧怪兽。",
+              "expected": "目标留场时压住本次检索。",
+              "note": ""
+            }
+          ],
+          "note": ""
+        },
+        {
+          "opponent": 64491754,
+          "action": "②送墓怪兽作费用，再从卡组特召不同原本属性的耀圣",
+          "timing": "费用支付后、效果处理前",
+          "condition": "已表侧魔法的效果发动，不是单纯放置。",
+          "responses": [
+            {
+              "cards": [
+                59438930
+              ],
+              "mode": "alternative",
+              "method": "连锁破坏回乡",
+              "condition": "该魔法已表侧且确实能被破坏。",
+              "expected": "永续魔法离场后本次不能正常适用；送墓费用不退回。",
+              "note": "幽鬼兔是破坏；有保护时结论不同。"
+            },
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "无效卡组特召",
+              "condition": "直接连锁②。",
+              "expected": "阻止本次拉人，但永续魔法及其中央保护仍在。",
+              "note": ""
+            }
+          ],
+          "note": ""
+        },
+        {
+          "opponent": 5559570,
+          "action": "②回额外，再从手牌／卡组／墓地分别特召耀圣",
+          "timing": "中央区域的它发动②时",
+          "condition": "回额外在效果处理时进行；先查回乡保护。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "连锁无效这次展开",
+              "condition": "效果包含从卡组特召。",
+              "expected": "这次返回额外并展开的处理被无效。",
+              "note": ""
+            },
+            {
+              "cards": [
+                59438930
+              ],
+              "mode": "alternative",
+              "method": "连锁破坏同调怪兽",
+              "condition": "只有它能被效果破坏时；回乡通常会保护中央怪兽。",
+              "expected": "成功破坏后无法完成返回额外，后续特召不能依此继续。",
+              "note": "有回乡保护时不要照搬。"
+            }
+          ],
+          "note": ""
+        }
+      ],
+      "source_ids": [
+        "ocg-july",
+        "ocg-august",
+        "ocg-late-august",
+        "ocg-september",
+        "ocg-ogre",
+        "ocg-jul-lines",
+        "card-5559570",
+        "card-10045474",
+        "card-12375297",
+        "card-13597785",
+        "card-14558127",
+        "card-42302563",
+        "card-56651978",
+        "card-59438930",
+        "card-59581480",
+        "card-64491754"
+      ],
+      "step_sources": [
+        [
+          "card-10045474",
+          "card-13597785",
+          "card-14558127",
+          "ocg-ogre",
+          "ocg-jul-lines"
+        ],
+        [
+          "card-14558127",
+          "card-59438930",
+          "card-64491754",
+          "ocg-ogre",
+          "ocg-jul-lines"
+        ],
+        [
+          "card-5559570",
+          "card-14558127",
+          "card-59438930",
+          "card-64491754",
+          "ocg-ogre",
+          "ocg-jul-lines"
+        ]
+      ],
+      "walkthrough": {
+        "premise": "七月战报卢西娜起手前段：中央空、通常召唤未用，所列关键卡可用；不预设未知补点。",
+        "sequence": [
+          {
+            "card": 13597785,
+            "action": "中央特召，②检索",
+            "result": "取得调整狱神精。",
+            "step_index": 0
+          },
+          {
+            "card": 12375297,
+            "action": "通常召唤狱神精",
+            "result": "与卢西娜成为同调素材。",
+            "step_index": null
+          },
+          {
+            "card": 42302563,
+            "action": "鹤望兰同调到侧边区域",
+            "result": "狱神精送墓检索狄娜，中央腾空。",
+            "step_index": null
+          },
+          {
+            "card": 59581480,
+            "action": "中央特召，②放置回乡",
+            "result": "这是表侧放置，不是检索。",
+            "step_index": null
+          },
+          {
+            "card": 64491754,
+            "action": "送墓狄娜发动②",
+            "result": "计划从卡组特召蕾吉娜。",
+            "step_index": 1
+          },
+          {
+            "card": 56651978,
+            "action": "回乡通过后在中央出场",
+            "result": "②再从卡组拉耀圣；也是卡组特召点。",
+            "step_index": null
+          }
+        ],
+        "branches": [
+          {
+            "label": "放行",
+            "body": "检索补调整→同调取资源→回乡把一只怪兽转成后续铺场。"
+          },
+          {
+            "label": "图第5步交幽鬼兔",
+            "body": "若破坏成功，狄娜已付费送墓而蕾吉娜没有由此出场，削弱的是这次转换。"
+          },
+          {
+            "label": "仍有补点",
+            "body": "手中蕾吉娜、独立起手、无垢大艺术外挂仍可能继续；已有鹤望兰也须单独判断。"
+          }
+        ],
+        "conclusion": "图只比较列明条件下的资源；晚期回额外节点另见断点3。 本图为公开路线节选或卡文机制例，分支是人工条件推演，尚未逐局通过规则引擎验证。",
+        "source_ids": [
+          "ocg-july",
+          "ocg-august",
+          "ocg-late-august",
+          "ocg-september",
+          "ocg-ogre",
+          "ocg-jul-lines",
+          "card-5559570",
+          "card-10045474",
+          "card-12375297",
+          "card-13597785",
+          "card-14558127",
+          "card-42302563",
+          "card-56651978",
+          "card-59438930",
+          "card-59581480",
+          "card-64491754"
+        ]
+      }
+    },
+    {
+      "id": "ocg-toon",
+      "topic": "OCG · 卡通／雷火卡通（Toon）",
+      "title": "卡通／雷火卡通（Toon）｜识别、断点与条件推演",
+      "format": "OCG",
+      "period": "2026年7—9月；实际采样期按来源分别标明",
+      "summary": "场地让卡通怪兽暂时离场再回来，能躲针对性效果并重复起手。优先辨认场地与心眼的功能。",
+      "recognition": "滑稽暗黑兔、完美世界、暗眼幻想师·无脸幻想师、看透心灵之眼；混雷火还会转双重驱动者。",
+      "priorities": "场地未建立时考虑无效兔子。\n场地已表侧时观察检索发动，幽鬼兔可拆场地。\n心眼宣言时处理永续魔法，防其宣言无效持续适用。",
+      "warnings": "兔子③包含加入手牌或放置，灰流丽有响应依据；不能和仅放置的狄娜混淆。场地可使卡通怪兽暂离躲泡影。墓地卡通书签可代替卡通世界被效果破坏，交幽鬼兔前先查。",
+      "metagame": "7月39/141；8月8–17日32/197；8月22–30日20/103；9月6日前八3套。纯卡通与雷火外挂补点不同。",
+      "steps": [
+        {
+          "opponent": 45536531,
+          "action": "③从卡组选卡通场地／永续魔法加手或放置",
+          "timing": "兔子发动③时",
+          "condition": "首次无场地时通常较易处理。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "连锁兔子③",
+              "condition": "这项效果包含卡组加手，即使结算选择放置。",
+              "expected": "阻止本次找场地；兔子和额外通常召唤机会不自动消失。",
+              "note": ""
+            },
+            {
+              "cards": [
+                10045474
+              ],
+              "mode": "alternative",
+              "method": "循环建立前无效兔子",
+              "condition": "手发须自己场上无卡；盖放发动须满足陷阱规则。目标仍须是对方场上表侧怪兽。；确认没有卡通世界使它暂离躲避。",
+              "expected": "压住这一入口。",
+              "note": ""
+            }
+          ],
+          "note": ""
+        },
+        {
+          "opponent": 7293697,
+          "action": "②场地检索",
+          "timing": "已表侧场地发动②时",
+          "condition": "先核对书签代破与其他保护。",
+          "responses": [
+            {
+              "cards": [
+                59438930
+              ],
+              "mode": "alternative",
+              "method": "连锁破坏场地",
+              "condition": "场地此前表侧且破坏真正成功。",
+              "expected": "切断这次场地效果及场地的暂离功能。",
+              "note": "若书签代破，场地仍可能生效。"
+            },
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "无效一次场地检索",
+              "condition": "直接连锁②。",
+              "expected": "少一次检索；场地仍在，回场兔子还可能找新场地。",
+              "note": ""
+            }
+          ],
+          "note": ""
+        },
+        {
+          "opponent": 34298391,
+          "action": "②宣言卡名，让同名卡的发动效果无效",
+          "timing": "已表侧心眼发动②时",
+          "condition": "手坑仍能合法发动、心眼可被破坏。",
+          "responses": [
+            {
+              "cards": [
+                59438930
+              ],
+              "mode": "alternative",
+              "method": "破坏看透心灵之眼",
+              "condition": "对已表侧魔法效果响应；不能对①持续公开手牌凭空发动。",
+              "expected": "成功离场后“此卡表侧存在期间”不成立，②的宣言无效不再依此适用。",
+              "note": "已经公开的手牌信息不会被撤销，其他终场仍在。"
+            }
+          ],
+          "note": ""
+        }
+      ],
+      "source_ids": [
+        "ocg-july",
+        "ocg-august",
+        "ocg-late-august",
+        "ocg-september",
+        "ocg-ogre",
+        "ocg-jul-lines",
+        "card-7293697",
+        "card-10045474",
+        "card-14558127",
+        "card-34298391",
+        "card-34314989",
+        "card-45536531",
+        "card-59438930",
+        "card-91500017"
+      ],
+      "step_sources": [
+        [
+          "card-10045474",
+          "card-14558127",
+          "card-45536531",
+          "ocg-ogre",
+          "ocg-jul-lines"
+        ],
+        [
+          "card-7293697",
+          "card-14558127",
+          "card-59438930",
+          "card-91500017",
+          "ocg-ogre",
+          "ocg-jul-lines"
+        ],
+        [
+          "card-34298391",
+          "card-59438930",
+          "ocg-ogre",
+          "ocg-jul-lines"
+        ]
+      ],
+      "walkthrough": {
+        "premise": "战报兔子起手前段：通常召唤未用、无先行场地、墓地无书签；其余手牌未知。",
+        "sequence": [
+          {
+            "card": 45536531,
+            "action": "通常召唤兔子，③放置场地",
+            "result": "建立完美世界。",
+            "step_index": 0
+          },
+          {
+            "card": 7293697,
+            "action": "②检索",
+            "result": "取得暗眼幻想师·无脸幻想师。",
+            "step_index": 1
+          },
+          {
+            "card": 34314989,
+            "action": "丢弃自身放置心眼",
+            "result": "这一项是纯放置，不能灰流丽。",
+            "step_index": null
+          },
+          {
+            "card": 34298391,
+            "action": "②宣言",
+            "result": "处理时场地可让兔子暂离再回来。",
+            "step_index": 2
+          },
+          {
+            "card": 45536531,
+            "action": "回场后再发动③",
+            "result": "换场地继续取资源。",
+            "step_index": 0
+          }
+        ],
+        "branches": [
+          {
+            "label": "放行",
+            "body": "场地补心眼，心眼处理让兔子暂离回场，再取新场地。"
+          },
+          {
+            "label": "图第2步交幽鬼兔",
+            "body": "若没有代破并成功拆场地，这次检索与暂离功能被切断，本例不能按图取得心眼。"
+          },
+          {
+            "label": "仍有补点",
+            "body": "手里已有场地、书签、另一只兔子或雷火起手可另开入口。"
+          }
+        ],
+        "conclusion": "幽鬼兔是破坏；场地离场令本效果无法正常适用，不代表它能无效所有检索。 本图为公开路线节选或卡文机制例，分支是人工条件推演，尚未逐局通过规则引擎验证。",
+        "source_ids": [
+          "ocg-july",
+          "ocg-august",
+          "ocg-late-august",
+          "ocg-september",
+          "ocg-ogre",
+          "ocg-jul-lines",
+          "card-7293697",
+          "card-10045474",
+          "card-14558127",
+          "card-34298391",
+          "card-34314989",
+          "card-45536531",
+          "card-59438930",
+          "card-91500017"
+        ]
+      }
+    },
+    {
+      "id": "ocg-kewl",
+      "topic": "OCG · 杀手级调整曲（Kewl Tune）",
+      "title": "杀手级调整曲（Kewl Tune）｜识别、断点与条件推演",
+      "format": "OCG",
+      "period": "2026年7—9月；实际采样期按来源分别标明",
+      "summary": "同调素材可来自手牌，不能只数场上怪兽。重点看补手牌、双触发和通常召唤拉人。",
+      "recognition": "唱片师、旋钮手、提示员、音轨制作人和追加通常召唤的场地；也称酷音／杀手调。",
+      "priorities": "早期唱片师可用灰流丽或泡影。\n同调出场与素材触发同链时，先看连锁顺序。\n提示员①只有通常召唤触发。",
+      "warnings": "锁鸟须抽卡阶段以外真的从卡组加手，墓地回收不算。灰流丽不能越过较高连锁响应下方检索。手里已有调整时，一次场上无效未必切断同调。",
+      "metagame": "7月14/141；8月8–17日23/197（含3耀圣调整曲）；8月22–30日7/103。OCG禁限投入量不能直接套MD。",
+      "steps": [
+        {
+          "opponent": 89392810,
+          "action": "①召唤／特召检索或回收",
+          "timing": "①发动时",
+          "condition": "看本次是否补齐手牌同调素材。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "连锁唱片师①",
+              "condition": "含卡组加手。",
+              "expected": "阻止本次补牌，怪兽仍能与手中已有调整同调。",
+              "note": ""
+            },
+            {
+              "cards": [
+                10045474
+              ],
+              "mode": "alternative",
+              "method": "无效唱片师",
+              "condition": "手发须自己场上无卡；盖放发动须满足陷阱规则。目标仍须是对方场上表侧怪兽。",
+              "expected": "目标留场时压住本次补牌。",
+              "note": ""
+            }
+          ],
+          "note": ""
+        },
+        {
+          "opponent": 42781164,
+          "action": "①出场检索与旋钮手②可能同链",
+          "timing": "触发连锁排列完后",
+          "condition": "先看实际连锁位置。",
+          "responses": [
+            {
+              "cards": [
+                10045474
+              ],
+              "mode": "alternative",
+              "method": "取场上制作人为对象",
+              "condition": "手发须自己场上无卡；盖放发动须满足陷阱规则。目标仍须是对方场上表侧怪兽。",
+              "expected": "压住制作人，不同时无效墓地旋钮手。",
+              "note": ""
+            },
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "响应紧邻的可响应检索",
+              "condition": "旋钮手在高连锁时不能越过它灰低连锁制作人。",
+              "expected": "只无效直接连锁的一项，另一项仍可能成功。",
+              "note": ""
+            }
+          ],
+          "note": ""
+        },
+        {
+          "opponent": 16387555,
+          "action": "①通常召唤后从手牌／卡组／墓地拉调整",
+          "timing": "通常召唤触发①时",
+          "condition": "特召提示员不会触发此项。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "无效这次拉人",
+              "condition": "效果包含卡组特召。",
+              "expected": "少一只新调整，但提示员仍可用手牌调整同调。",
+              "note": ""
+            }
+          ],
+          "note": ""
+        }
+      ],
+      "source_ids": [
+        "ocg-july",
+        "ocg-august",
+        "ocg-late-august",
+        "ocg-aug-lines",
+        "card-10045474",
+        "card-14442329",
+        "card-14558127",
+        "card-16387555",
+        "card-17209452",
+        "card-42781164",
+        "card-89392810"
+      ],
+      "step_sources": [
+        [
+          "card-10045474",
+          "card-14558127",
+          "card-89392810",
+          "ocg-aug-lines"
+        ],
+        [
+          "card-10045474",
+          "card-14558127",
+          "card-17209452",
+          "card-42781164",
+          "ocg-aug-lines"
+        ],
+        [
+          "card-14558127",
+          "card-16387555",
+          "ocg-aug-lines"
+        ]
+      ],
+      "walkthrough": {
+        "premise": "八月战报唱片师起手前段：通常召唤未用，关键检索目标与额外同调可用。",
+        "sequence": [
+          {
+            "card": 89392810,
+            "action": "通常召唤并检索旋钮手",
+            "result": "取得手牌调整。",
+            "step_index": 0
+          },
+          {
+            "card": 42781164,
+            "action": "唱片师＋手牌旋钮手同调",
+            "result": "制作人和素材都触发。",
+            "step_index": 1
+          },
+          {
+            "card": 17209452,
+            "action": "本例旋钮手CL2、制作人CL1",
+            "result": "分别拿场地与提示员；灰流丽不能任意选CL1。",
+            "step_index": 1
+          },
+          {
+            "card": 14442329,
+            "action": "发动场地取得额外通常召唤",
+            "result": "通常召唤提示员。",
+            "step_index": null
+          },
+          {
+            "card": 16387555,
+            "action": "①特召调整",
+            "result": "再补同调素材或外挂。",
+            "step_index": 2
+          }
+        ],
+        "branches": [
+          {
+            "label": "放行",
+            "body": "通常召唤变成同调怪兽、场地与提示员，提示员再补身体。"
+          },
+          {
+            "label": "图第1步交灰流丽",
+            "body": "若没有其他手牌调整，本图不能照常进行第二步。"
+          },
+          {
+            "label": "仍有补点",
+            "body": "手中已有调整、旋钮手或同调超车时仍可继续；后续双触发需要重新判断。"
+          }
+        ],
+        "conclusion": "不把两个检索算作一张灰流丽能全部拦下。 本图为公开路线节选或卡文机制例，分支是人工条件推演，尚未逐局通过规则引擎验证。",
+        "source_ids": [
+          "ocg-july",
+          "ocg-august",
+          "ocg-late-august",
+          "ocg-aug-lines",
+          "card-10045474",
+          "card-14442329",
+          "card-14558127",
+          "card-16387555",
+          "card-17209452",
+          "card-42781164",
+          "card-89392810"
+        ]
+      }
+    },
+    {
+      "id": "ocg-sky",
+      "topic": "OCG · 闪刀／光风闪刀（Sky Striker）",
+      "title": "闪刀／光风闪刀（Sky Striker）｜识别、断点与条件推演",
+      "format": "OCG",
+      "period": "2026年7—9月；实际采样期按来源分别标明",
+      "summary": "闪刀依赖魔法换资源和燎里回收；分清这次要挡检索还是切回收。",
+      "recognition": "交闪、零衣／露世、燎里；光风外挂可能先堆魔法再转闪刀。",
+      "priorities": "灰流丽直接响应交闪，可挡本次检索及附带抽牌。\n锁鸟等实际卡组加手后再交。\n燎里选墓地交闪时，乌鸦移目标或屋敷童无效发动。",
+      "warnings": "锁鸟不追回已得到的第一份资源。燎里是墓地回收，不能仅因“加入手牌”就灰流丽。去除零衣可能产生续航。",
+      "metagame": "7月14/141；8月8–17日8/197；8月22–30日9/103，包含纯闪刀和光风闪刀。",
+      "steps": [
+        {
+          "opponent": 63166095,
+          "action": "检索；墓地魔法满足3张还可抽1",
+          "timing": "发动时，或成功处理后的新连锁",
+          "condition": "发动时主怪兽区域须无怪兽；额外抽牌看处理时墓地魔法。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "直接连锁交闪",
+              "condition": "包含卡组加手。",
+              "expected": "无效整项效果，这次检索和附带抽牌都不取得。",
+              "note": ""
+            },
+            {
+              "cards": [
+                94145021
+              ],
+              "mode": "alternative",
+              "method": "处理完实际加手后发动",
+              "condition": "抽卡阶段以外确实从卡组加手。",
+              "expected": "不追回已得资源，只限制本回合后续双方卡组加手。",
+              "note": ""
+            }
+          ],
+          "note": ""
+        },
+        {
+          "opponent": 63288573,
+          "action": "①指定墓地闪刀魔法回收",
+          "timing": "选定目标后、处理前",
+          "condition": "确认它选的是哪张卡。",
+          "responses": [
+            {
+              "cards": [
+                24508238
+              ],
+              "mode": "alternative",
+              "method": "除外被选的交闪",
+              "condition": "该目标仍在对方墓地。",
+              "expected": "目标离开墓地，本次无法回收那张交闪。",
+              "note": "不是无效燎里；其他资源仍在。"
+            },
+            {
+              "cards": [
+                73642296
+              ],
+              "mode": "alternative",
+              "method": "连锁回收",
+              "condition": "含墓地卡回手。",
+              "expected": "无效发动，但交闪仍留墓地。",
+              "note": ""
+            }
+          ],
+          "note": ""
+        }
+      ],
+      "source_ids": [
+        "ocg-july",
+        "ocg-august",
+        "ocg-late-august",
+        "card-14558127",
+        "card-24508238",
+        "card-63166095",
+        "card-63288573",
+        "card-73642296",
+        "card-94145021"
+      ],
+      "step_sources": [
+        [
+          "card-14558127",
+          "card-63166095",
+          "card-94145021"
+        ],
+        [
+          "card-24508238",
+          "card-63288573",
+          "card-73642296"
+        ]
+      ],
+      "walkthrough": {
+        "premise": "卡文机制例：对方主怪兽区空、场上已有非炎属性闪刀姬、墓地已有3张魔法、手里有交闪。",
+        "sequence": [
+          {
+            "card": 63166095,
+            "action": "发动并成功检索／抽牌",
+            "result": "交闪之后进入墓地。",
+            "step_index": 0
+          },
+          {
+            "card": 63288573,
+            "action": "用非炎闪刀姬连接燎里",
+            "result": "指定墓地交闪。",
+            "step_index": 1
+          },
+          {
+            "card": 63166095,
+            "action": "回收成功后再发动",
+            "result": "未受锁鸟等限制时继续赚资源。",
+            "step_index": 0
+          }
+        ],
+        "branches": [
+          {
+            "label": "放行",
+            "body": "墓地魔法条件满足时，交闪循环扩大资源。"
+          },
+          {
+            "label": "图第2步交乌鸦",
+            "body": "交闪被除外，图第3步不能使用这张回收卡。"
+          },
+          {
+            "label": "仍有补点",
+            "body": "另一张交闪或其他回收、已有速攻魔法仍可继续。"
+          }
+        ],
+        "conclusion": "本图解释回收循环，不把资源差换算成胜率。 本图为公开路线节选或卡文机制例，分支是人工条件推演，尚未逐局通过规则引擎验证。",
+        "source_ids": [
+          "ocg-july",
+          "ocg-august",
+          "ocg-late-august",
+          "card-14558127",
+          "card-24508238",
+          "card-63166095",
+          "card-63288573",
+          "card-73642296",
+          "card-94145021"
+        ]
+      }
+    },
+    {
+      "id": "ocg-light-dark",
+      "topic": "OCG · 光与暗的仪式（Light and Darkness Ritual）",
+      "title": "光与暗的仪式（Light and Darkness Ritual）｜识别、断点与条件推演",
+      "format": "OCG",
+      "period": "2026年7—9月；实际采样期按来源分别标明",
+      "summary": "重点不只仪式召唤：永续检索、送墓触发、墓地双回收都是资源节点。",
+      "recognition": "超魔剑士 黑混沌放两颗心灵、骸骨恶魔送仪式魔法、仪式在墓地回收；教导等外挂另看。",
+      "priorities": "两颗心灵①可灰流丽；已表侧且无保护时也可幽鬼兔。\n骸骨恶魔送墓后检索仪式怪兽可灰流丽。\n仪式②墓地回收可屋敷童。",
+      "warnings": "超魔剑士纯放置陷阱不能灰流丽；仪式①从手牌仪式召唤也不因此属于灰流丽范围。黑色混沌之魔术师在场时，自己的魔陷不被对方效果破坏／除外，拆后场前先查。",
+      "metagame": "7月3/141；8月8–17日7/197；8月22–30日8/103。教导、烙印、小丑等外挂不同，本条讲共享核心。",
+      "steps": [
+        {
+          "opponent": 24749710,
+          "action": "①检索提及仪式的怪兽，再丢手牌",
+          "timing": "已表侧陷阱发动①时",
+          "condition": "①②不能同链发动。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "连锁检索",
+              "condition": "含卡组加手。",
+              "expected": "阻止本次补牌及之后丢弃，永续陷阱仍在。",
+              "note": ""
+            },
+            {
+              "cards": [
+                59438930
+              ],
+              "mode": "alternative",
+              "method": "破坏两颗心灵",
+              "condition": "已表侧且可被破坏；没有黑色混沌之魔术师的魔陷保护。",
+              "expected": "永续陷阱离场，本次效果不能正常适用。",
+              "note": ""
+            }
+          ],
+          "note": ""
+        },
+        {
+          "opponent": 24088928,
+          "action": "送墓触发：送仪式魔法作费用，检索仪式怪兽",
+          "timing": "费用已支付后直接连锁",
+          "condition": "检查它是否被其他触发排在较低连锁。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "无效仪式怪兽检索",
+              "condition": "直接响应卡组加手。",
+              "expected": "少拿怪兽；作费用送墓的仪式魔法仍在。",
+              "note": "对方仍可能发动仪式②回收。"
+            }
+          ],
+          "note": ""
+        },
+        {
+          "opponent": 33599853,
+          "action": "②墓地记述卡与自身回手",
+          "timing": "墓地②发动时",
+          "condition": "区分墓地回收和手牌仪式召唤。",
+          "responses": [
+            {
+              "cards": [
+                73642296
+              ],
+              "mode": "alternative",
+              "method": "连锁墓地回收",
+              "condition": "含墓地回手。",
+              "expected": "无效发动，阻止本次两份资源回手。",
+              "note": ""
+            }
+          ],
+          "note": ""
+        }
+      ],
+      "source_ids": [
+        "ocg-july",
+        "ocg-august",
+        "ocg-late-august",
+        "card-14558127",
+        "card-24088928",
+        "card-24749710",
+        "card-33599853",
+        "card-44001993",
+        "card-59438930",
+        "card-73642296",
+        "card-98684220"
+      ],
+      "step_sources": [
+        [
+          "card-14558127",
+          "card-24749710",
+          "card-44001993",
+          "card-59438930"
+        ],
+        [
+          "card-14558127",
+          "card-24088928"
+        ],
+        [
+          "card-33599853",
+          "card-73642296"
+        ]
+      ],
+      "walkthrough": {
+        "premise": "卡文机制例：手中有超魔剑士，卡组中有两颗心灵、骸骨恶魔与仪式；不预设其他发动。",
+        "sequence": [
+          {
+            "card": 98684220,
+            "action": "丢弃自身，放两颗心灵",
+            "result": "纯放置，不是灰流丽点。",
+            "step_index": null
+          },
+          {
+            "card": 24749710,
+            "action": "检索骸骨恶魔再丢弃它",
+            "result": "把检索转成墓地触发。",
+            "step_index": 0
+          },
+          {
+            "card": 24088928,
+            "action": "送仪式作费用再检索",
+            "result": "准备取得仪式怪兽。",
+            "step_index": 1
+          },
+          {
+            "card": 33599853,
+            "action": "发动墓地②",
+            "result": "回收记述卡与仪式本身。",
+            "step_index": 2
+          }
+        ],
+        "branches": [
+          {
+            "label": "放行",
+            "body": "入口接入检索、墓地触发、回收；之后能否仪式仍看可用素材。"
+          },
+          {
+            "label": "图第3步交灰流丽",
+            "body": "少拿仪式怪兽，但仪式已付费入墓，第4步仍可能发动。"
+          },
+          {
+            "label": "改在图第4步交屋敷童",
+            "body": "阻止双回收；第3步已成功取得的怪兽不会被追回。"
+          }
+        ],
+        "conclusion": "两种阻抗分别切断新检索与续航，不应混作一换多保证。 本图为公开路线节选或卡文机制例，分支是人工条件推演，尚未逐局通过规则引擎验证。",
+        "source_ids": [
+          "ocg-july",
+          "ocg-august",
+          "ocg-late-august",
+          "card-14558127",
+          "card-24088928",
+          "card-24749710",
+          "card-33599853",
+          "card-44001993",
+          "card-59438930",
+          "card-73642296",
+          "card-98684220"
+        ]
+      }
+    },
+    {
+      "id": "ocg-ars",
+      "topic": "OCG · 无垢大艺术／狱神外挂（Ars Magna）",
+      "title": "无垢大艺术／狱神外挂（Ars Magna）｜识别、断点与条件推演",
+      "format": "OCG",
+      "period": "2026年7—9月；实际采样期按来源分别标明",
+      "summary": "手牌除外接连续检索，再把除外资源变成素材；锁检索与拆场地处理的是不同能力。",
+      "recognition": "无限与有限、净化与腐败、黄昏之变幻；常与耀圣、狱神、磁石组合，单列外挂节点。",
+      "priorities": "灰流丽可打关键检索。\n第一次成功卡组加手后可锁鸟。\n已表侧黄昏发动②时，可幽鬼兔拆场地。",
+      "warnings": "除外是费用，不会因无效回手；除外怪兽还有在特定额外召唤后特召的效果。灰流丽／锁鸟不等于全面封锁特召。",
+      "metagame": "8月8–17日60耀圣中至少36套名字明确含无垢大艺术；9月6日前八有3耀圣、1狱神、1磁石含该外挂。外挂与主牌型重叠，不能相加为独立占比。",
+      "steps": [
+        {
+          "opponent": 36270527,
+          "action": "①手牌除外自己，检索无垢大艺术",
+          "timing": "发动时，或成功处理后的新连锁",
+          "condition": "实际是否从卡组加手。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "连锁检索",
+              "condition": "含卡组加手。",
+              "expected": "拿不到接力卡，但已除外的自身仍在。",
+              "note": ""
+            },
+            {
+              "cards": [
+                94145021
+              ],
+              "mode": "alternative",
+              "method": "成功检索后另开连锁",
+              "condition": "抽卡阶段以外确实卡组加手。",
+              "expected": "第一张已拿到，后续卡组加手受限。",
+              "note": "不限制墓地／除外特召，也限制自己加手。"
+            }
+          ],
+          "note": ""
+        },
+        {
+          "opponent": 37279096,
+          "action": "②场地检索米底乌斯或无垢大艺术",
+          "timing": "已表侧场地发动②时",
+          "condition": "确认破坏保护。",
+          "responses": [
+            {
+              "cards": [
+                59438930
+              ],
+              "mode": "alternative",
+              "method": "连锁破坏场地",
+              "condition": "已经表侧且破坏真正成功。",
+              "expected": "切断这次场地检索；有狱神连接怪兽时，场地原本给予场上原名含无垢大艺术怪兽的对方回合发动能力也随之失去。",
+              "note": ""
+            },
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "只无效检索",
+              "condition": "直接连锁②。",
+              "expected": "少拿卡，但场地持续效果仍在。",
+              "note": ""
+            }
+          ],
+          "note": ""
+        }
+      ],
+      "source_ids": [
+        "ocg-august",
+        "ocg-late-august",
+        "ocg-september",
+        "ocg-ogre",
+        "card-14558127",
+        "card-36270527",
+        "card-37279096",
+        "card-59438930",
+        "card-62368221",
+        "card-94145021",
+        "card-99753860"
+      ],
+      "step_sources": [
+        [
+          "card-14558127",
+          "card-36270527",
+          "card-94145021",
+          "ocg-ogre"
+        ],
+        [
+          "card-14558127",
+          "card-37279096",
+          "card-59438930",
+          "ocg-ogre"
+        ]
+      ],
+      "walkthrough": {
+        "premise": "卡文机制例：手里有无限与有限、后续目标在卡组；不计耀圣或其他独立起手。",
+        "sequence": [
+          {
+            "card": 36270527,
+            "action": "除外自身，检索净化与腐败",
+            "result": "取得接力检索。",
+            "step_index": 0
+          },
+          {
+            "card": 62368221,
+            "action": "除外自身，检索黄昏场地",
+            "result": "取得场地。",
+            "step_index": null
+          },
+          {
+            "card": 37279096,
+            "action": "发动场地，②检索结合与乖离",
+            "result": "取得特召入口。",
+            "step_index": 1
+          },
+          {
+            "card": 99753860,
+            "action": "除外自身，特召非魔法师族无垢大艺术",
+            "result": "可把已除外的无限与有限变成身体。",
+            "step_index": null
+          }
+        ],
+        "branches": [
+          {
+            "label": "放行",
+            "body": "一张手牌转成场地、除外资源、场上身体。"
+          },
+          {
+            "label": "第1步成功检索后交锁鸟",
+            "body": "净化与腐败已上手，但后续卡组加手受限，第2步不能照常取得场地。"
+          },
+          {
+            "label": "仍有补点",
+            "body": "原本握有场地／特召卡，或其他入口触发除外怪兽时，仍可能铺场。"
+          }
+        ],
+        "conclusion": "只推演外挂的列明资源，不预言整副卡组所有路线。 本图为公开路线节选或卡文机制例，分支是人工条件推演，尚未逐局通过规则引擎验证。",
+        "source_ids": [
+          "ocg-august",
+          "ocg-late-august",
+          "ocg-september",
+          "ocg-ogre",
+          "card-14558127",
+          "card-36270527",
+          "card-37279096",
+          "card-59438930",
+          "card-62368221",
+          "card-94145021",
+          "card-99753860"
+        ]
+      }
+    },
+    {
+      "id": "ocg-unchained",
+      "topic": "OCG · 刻魔破械（Fiendsmith Unchained）",
+      "title": "刻魔破械（Fiendsmith Unchained）｜识别、断点与条件推演",
+      "format": "OCG",
+      "period": "2026年7—9月；实际采样期按来源分别标明",
+      "summary": "破械能把破坏变资源，优先无效关键检索，避免替它破坏有遗言的盖卡。",
+      "recognition": "刻魔锻冶师、阎摩、萨巴拉与破械盖卡；两只恶魔可以进入阎摩。",
+      "priorities": "阎摩检索是身体换后续的节点。\n盖卡被效果破坏后的卡组特召可灰流丽。\n阎摩墓地续航须在它支付除外费用前处理。",
+      "warnings": "不能泡影墓地陷阱。幽鬼兔破坏破械怪兽未必减少资源。阎摩②已发动时自身已除外，乌鸦不能再选它。",
+      "metagame": "7月13/141破械，其中12刻魔破械；8月8–17日3/197。属于近月次主流，不标成9月顶级。",
+      "steps": [
+        {
+          "opponent": 24269961,
+          "action": "①出场检索／回收破械",
+          "timing": "出场触发①时",
+          "condition": "观察是否尚缺萨巴拉等资源。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "连锁阎摩①",
+              "condition": "含卡组加手。",
+              "expected": "阻止补怪；阎摩还在，之后入墓仍可续航。",
+              "note": ""
+            },
+            {
+              "cards": [
+                10045474
+              ],
+              "mode": "alternative",
+              "method": "无效场上阎摩",
+              "condition": "手发须自己场上无卡；盖放发动须满足陷阱规则。目标仍须是对方场上表侧怪兽。",
+              "expected": "压住本次场上效果，不连带无效未来墓地效果。",
+              "note": ""
+            }
+          ],
+          "note": ""
+        },
+        {
+          "opponent": 53417695,
+          "action": "盖放时被效果破坏，触发卡组特召",
+          "timing": "送墓后遗言进入连锁时",
+          "condition": "确实是盖放状态被效果破坏。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "连锁卡组特召",
+              "condition": "直接响应这一项。",
+              "expected": "少一个新身体；先前出场的萨巴拉仍在。",
+              "note": ""
+            }
+          ],
+          "note": ""
+        },
+        {
+          "opponent": 24269961,
+          "action": "墓地等待破坏后发动②续航",
+          "timing": "已有合法快速效果窗口且②尚未发动前",
+          "condition": "不能任意抢在已满足的触发效果之前插手坑；要在此前窗口。",
+          "responses": [
+            {
+              "cards": [
+                24508238
+              ],
+              "mode": "alternative",
+              "method": "提前除外墓地阎摩",
+              "condition": "它仍在墓地、未支付②除外费用。",
+              "expected": "移除这张的墓地续航入口。",
+              "note": "等它②发动再交就来不及选它。"
+            }
+          ],
+          "note": ""
+        }
+      ],
+      "source_ids": [
+        "ocg-july",
+        "ocg-august",
+        "card-10045474",
+        "card-14558127",
+        "card-24269961",
+        "card-24508238",
+        "card-41165831",
+        "card-53417695"
+      ],
+      "step_sources": [
+        [
+          "card-10045474",
+          "card-14558127",
+          "card-24269961"
+        ],
+        [
+          "card-14558127",
+          "card-53417695"
+        ],
+        [
+          "card-24269961",
+          "card-24508238"
+        ]
+      ],
+      "walkthrough": {
+        "premise": "卡文机制例：已有两只可用恶魔与盖放破械唱导，手中未预设萨巴拉；不冒充刻魔一卡完整展开。",
+        "sequence": [
+          {
+            "card": 24269961,
+            "action": "两恶魔连接阎摩，①检索",
+            "result": "取得萨巴拉。",
+            "step_index": 0
+          },
+          {
+            "card": 41165831,
+            "action": "手牌效果破坏己方盖卡",
+            "result": "唱导被破坏，萨巴拉特召。",
+            "step_index": null
+          },
+          {
+            "card": 53417695,
+            "action": "盖卡被效果破坏触发",
+            "result": "从卡组再补破械身体。",
+            "step_index": 1
+          }
+        ],
+        "branches": [
+          {
+            "label": "放行",
+            "body": "盖卡转成身体，加萨巴拉继续连接。"
+          },
+          {
+            "label": "图第1步交灰流丽",
+            "body": "若原本无萨巴拉，第2步不能照图进行。"
+          },
+          {
+            "label": "等第3步再交灰流丽",
+            "body": "拦住遗言拉人，但萨巴拉已出场；留下的场面不同。"
+          }
+        ],
+        "conclusion": "刻魔本体和其他破械手牌是此例以外的补点。 本图为公开路线节选或卡文机制例，分支是人工条件推演，尚未逐局通过规则引擎验证。",
+        "source_ids": [
+          "ocg-july",
+          "ocg-august",
+          "card-10045474",
+          "card-14558127",
+          "card-24269961",
+          "card-24508238",
+          "card-41165831",
+          "card-53417695"
+        ]
+      }
+    },
+    {
+      "id": "md-dracotail",
+      "topic": "Master Duel · 星辰／烙印星辰（Dracotail）",
+      "title": "星辰／烙印星辰（Dracotail）｜识别、断点与条件推演",
+      "format": "Master Duel",
+      "period": "2026年7—8月月报＋2026-09-20社区榜；路线原文月份另列",
+      "summary": "白龙之落胤入口和星辰本体融合要分开打；挡住一只融合体，不会同时无效融合素材的独立盖牌。",
+      "recognition": "例图识别卡：白龙之落胤、黑龙之艾克莉西娅、赫之圣女 卡尔特西娅、星辰爪龙 巨蟹摩羯龙魔。单张通用卡不足以确定整副构筑。",
+      "priorities": "第1步无效白落胤的登场拉人，或已放行后在第5步压住 星辰爪龙 巨蟹摩羯龙魔 的资源回收。",
+      "warnings": "这是采用白落胤起手的分支；星辰炮手 宝瓶魔、罗睺星辰 等独立融合起动仍可继续。\n若它是从手牌自跳，额外卡送墓已作为费用支付，不会因登场效果被无效而退回。\n不是“等怪兽已经融合出来再灰”；星辰炮手 宝瓶魔 的融合只从手/场取素材，不能套用同一个灰流理由。\n若先有其他融合或烙印资源，阻止这一张不等于整回合结束。\n星辰融合素材可以另排连锁：无效 星辰爪龙 巨蟹摩羯龙魔 不会无效那些素材的盖牌效果。\n若另有快速融合能把目标移走，取对象的场上无效可能落空；不能把连锁中较早的效果当成能被灰流直接连锁。",
+      "metagame": "2026-09-20社区赛事榜：Tier 1，Power 16.5。基于最新100份社区赛事上位牌表，Power不是胜率或天梯使用率。\n2026-07：Rating Duel 前十中第4、第9公开为 Branded Dracotail。\n2026-08：Rating Duel 第1、第3、第10公开为 Branded Dracotail；其他未披露名次不能当成其他卡组。",
+      "steps": [
+        {
+          "opponent": 73819701,
+          "action": "召唤/特殊召唤成功后的 艾克莉西娅 特殊召唤效果",
+          "timing": "直接连锁它的登场效果；泡影须能合法选场上表侧目标。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "直接连锁它的登场效果；泡影须能合法选场上表侧目标。",
+              "condition": "须直接响应当前可连锁且符合该手坑范围的效果，费用和其他场上限制均须满足。",
+              "expected": "截断白落胤→4星调整→8星同调 艾克莉西娅 的入口，避免马上获得 赫之圣女 卡尔特西娅 融合起动。",
+              "note": "这是采用白落胤起手的分支；星辰炮手 宝瓶魔、罗睺星辰 等独立融合起动仍可继续。\n若它是从手牌自跳，额外卡送墓已作为费用支付，不会因登场效果被无效而退回。"
+            },
+            {
+              "cards": [
+                73642296
+              ],
+              "mode": "alternative",
+              "method": "直接连锁它的登场效果；泡影须能合法选场上表侧目标。",
+              "condition": "须直接响应当前可连锁且符合该手坑范围的效果，费用和其他场上限制均须满足。",
+              "expected": "截断白落胤→4星调整→8星同调 艾克莉西娅 的入口，避免马上获得 赫之圣女 卡尔特西娅 融合起动。",
+              "note": "这是采用白落胤起手的分支；星辰炮手 宝瓶魔、罗睺星辰 等独立融合起动仍可继续。\n若它是从手牌自跳，额外卡送墓已作为费用支付，不会因登场效果被无效而退回。"
+            },
+            {
+              "cards": [
+                10045474
+              ],
+              "mode": "alternative",
+              "method": "取仍在对方场上表侧的白龙之落胤为对象无效。",
+              "condition": "手发须自己场上无卡；盖放发动须满足陷阱规则。目标仍须是对方场上表侧怪兽。",
+              "expected": "截断白落胤→4星调整→8星同调 艾克莉西娅 的入口，避免马上获得 赫之圣女 卡尔特西娅 融合起动。",
+              "note": "这是采用白落胤起手的分支；星辰炮手 宝瓶魔、罗睺星辰 等独立融合起动仍可继续。\n若它是从手牌自跳，额外卡送墓已作为费用支付，不会因登场效果被无效而退回。"
+            }
+          ],
+          "note": "这是采用白落胤起手的分支；星辰炮手 宝瓶魔、罗睺星辰 等独立融合起动仍可继续。\n若它是从手牌自跳，额外卡送墓已作为费用支付，不会因登场效果被无效而退回。"
+        },
+        {
+          "opponent": 32548318,
+          "action": "从手牌/牌组/场上取素材融合",
+          "timing": "直接连锁 罗睺星辰 的发动。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "直接连锁 罗睺星辰 的发动。",
+              "condition": "须直接响应当前可连锁且符合该手坑范围的效果，费用和其他场上限制均须满足。",
+              "expected": "同时阻止本次融合和本次素材送墓，从而减少后续星辰素材盖放魔陷。",
+              "note": "不是“等怪兽已经融合出来再灰”；星辰炮手 宝瓶魔 的融合只从手/场取素材，不能套用同一个灰流理由。\n若先有其他融合或烙印资源，阻止这一张不等于整回合结束。"
+            }
+          ],
+          "note": "不是“等怪兽已经融合出来再灰”；星辰炮手 宝瓶魔 的融合只从手/场取素材，不能套用同一个灰流理由。\n若先有其他融合或烙印资源，阻止这一张不等于整回合结束。"
+        },
+        {
+          "opponent": 33760966,
+          "action": "融合召唤成功时回收/弹回场上或墓地怪兽",
+          "timing": "该触发链建立后，选场上 星辰爪龙 巨蟹摩羯龙魔 无效；效遮只在对方主要阶段。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                10045474
+              ],
+              "mode": "alternative",
+              "method": "取仍在对方场上表侧的星辰爪龙 巨蟹摩羯龙魔为对象无效。",
+              "condition": "手发须自己场上无卡；盖放发动须满足陷阱规则。目标仍须是对方场上表侧怪兽。",
+              "expected": "压低本次回收素材和弹回资源的收益。",
+              "note": "星辰融合素材可以另排连锁：无效 星辰爪龙 巨蟹摩羯龙魔 不会无效那些素材的盖牌效果。\n若另有快速融合能把目标移走，取对象的场上无效可能落空；不能把连锁中较早的效果当成能被灰流直接连锁。"
+            },
+            {
+              "cards": [
+                97268402
+              ],
+              "mode": "alternative",
+              "method": "取仍在对方场上表侧的星辰爪龙 巨蟹摩羯龙魔为对象无效。",
+              "condition": "只在对方主要阶段；取对方场上表侧效果怪兽为对象。",
+              "expected": "压低本次回收素材和弹回资源的收益。",
+              "note": "星辰融合素材可以另排连锁：无效 星辰爪龙 巨蟹摩羯龙魔 不会无效那些素材的盖牌效果。\n若另有快速融合能把目标移走，取对象的场上无效可能落空；不能把连锁中较早的效果当成能被灰流直接连锁。"
+            }
+          ],
+          "note": "星辰融合素材可以另排连锁：无效 星辰爪龙 巨蟹摩羯龙魔 不会无效那些素材的盖牌效果。\n若另有快速融合能把目标移走，取对象的场上无效可能落空；不能把连锁中较早的效果当成能被灰流直接连锁。"
+        }
+      ],
+      "source_ids": [
+        "mdm-tier-20260920",
+        "mdm-banlist-20260903",
+        "mdm-counters",
+        "md-dracotail-combo",
+        "rotk-md55",
+        "rotk-md56",
+        "card-10045474",
+        "card-14558127",
+        "card-32548318",
+        "card-33760966",
+        "card-73642296",
+        "card-73819701",
+        "card-78397661",
+        "card-95515789",
+        "card-97268402",
+        "card-55273560"
+      ],
+      "step_sources": [
+        [
+          "card-10045474",
+          "card-14558127",
+          "card-73642296",
+          "card-73819701",
+          "mdm-counters",
+          "md-dracotail-combo"
+        ],
+        [
+          "card-14558127",
+          "card-32548318",
+          "mdm-counters",
+          "md-dracotail-combo"
+        ],
+        [
+          "card-10045474",
+          "card-33760966",
+          "card-97268402",
+          "mdm-counters",
+          "md-dracotail-combo"
+        ]
+      ],
+      "walkthrough": {
+        "premise": "手牌有 白龙之落胤、1只星辰怪兽和1只其他可作融合素材的怪兽；通常召唤尚未使用。\n牌组保留 白之圣女 艾克莉西娅 与 Blazing 赫之圣女 卡尔特西娅，额外有 黑龙之艾克莉西娅 与 星辰爪龙 巨蟹摩羯龙魔。",
+        "sequence": [
+          {
+            "card": 73819701,
+            "action": "通常召唤白落胤，发动登场效果从牌组特殊召唤 白之圣女 艾克莉西娅。",
+            "result": "取得4星调整，为同调准备两个身体。",
+            "step_index": 0
+          },
+          {
+            "card": 73819701,
+            "action": "两只4星怪兽作素材，同调召唤 黑龙之艾克莉西娅。",
+            "result": "得到黑龙之艾克莉西娅的快速效果入口。",
+            "step_index": null
+          },
+          {
+            "card": 78397661,
+            "action": "同调 艾克莉西娅 发动主要阶段二速效果，效果处理时暂时除外自身并从牌组叫出 赫之圣女 卡尔特西娅。",
+            "result": "得到可从手牌／场上进行融合的卡尔特西娅。",
+            "step_index": null
+          },
+          {
+            "card": 95515789,
+            "action": "赫之圣女 卡尔特西娅 融合手牌的星辰怪兽与另一只怪兽，召唤 星辰爪龙 巨蟹摩羯龙魔。",
+            "result": "出现融合体，融合素材也进入墓地。",
+            "step_index": null
+          },
+          {
+            "card": 33760966,
+            "action": "星辰爪龙 巨蟹摩羯龙魔 与送墓的星辰素材分别发动触发效果；原文选择 星辰爪龙 巨蟹摩羯龙魔 为连锁1、星辰素材为连锁2，素材盖放 罗睺星辰。",
+            "result": "融合体回收与素材盖牌是不同效果，不会因只无效一个就全部消失。",
+            "step_index": 2
+          }
+        ],
+        "branches": [
+          {
+            "label": "放行",
+            "body": "白落胤转成同调入口，赫之圣女 卡尔特西娅 开出融合怪兽，星辰素材再准备下一张融合魔法。"
+          },
+          {
+            "label": "此处阻抗",
+            "body": "若第1步无效且没有其他起动，场上仅剩白落胤，未得到调整、赫之圣女 卡尔特西娅 与本次融合素材盖牌；第5步才无效则已有融合体与独立的盖牌触发。"
+          },
+          {
+            "label": "仍有补点",
+            "body": "星辰炮手 宝瓶魔 可作为独立快速融合起动；原文作者明确认为通常召唤白落胤是高风险高收益路线，有更稳起动时不一定选择它。"
+          }
+        ],
+        "conclusion": "后续原文还经过连接与 罗睺星辰/烙印融合；此处只展示前5步，不把后续终场作为必达。 本图为公开路线节选或卡文机制例，分支是人工条件推演，尚未逐局通过规则引擎验证。",
+        "source_ids": [
+          "mdm-tier-20260920",
+          "mdm-banlist-20260903",
+          "mdm-counters",
+          "md-dracotail-combo",
+          "rotk-md55",
+          "rotk-md56",
+          "card-10045474",
+          "card-14558127",
+          "card-32548318",
+          "card-33760966",
+          "card-73642296",
+          "card-73819701",
+          "card-78397661",
+          "card-95515789",
+          "card-97268402",
+          "card-55273560"
+        ]
+      }
+    },
+    {
+      "id": "md-branded",
+      "topic": "Master Duel · 烙印（Branded）",
+      "title": "烙印（Branded）｜识别、断点与条件推演",
+      "format": "Master Duel",
+      "period": "2026年7—8月月报＋2026-09-20社区榜；路线原文月份另列",
+      "summary": "不只等待烙印融合：天底、白龙之落胤、墓地结束阶段资源也是当前路线的关键。",
+      "recognition": "例图识别卡：天底的使徒、白龙之落胤、教导的圣女 艾克莉西娅、灰烬龙 落胤龙。单张通用卡不足以确定整副构筑。",
+      "priorities": "第1步 天底的使徒 是资源集中进入墓地前的窗口；第3步只挡白落胤已经无法撤回 吞食圣痕之龙 的送墓。",
+      "warnings": "其他已送墓的融合怪兽不受影响；手里直接有白落胤、烙印融合等仍有另一起动。\n锁鸟只能在真实从主卡组加入手牌后发动，不能提前连锁 天底的使徒 当检索无效。\n它手牌自跳时送额外是费用，已经入墓的 吞食圣痕之龙 仍可能在结束阶段检索。\n天底的使徒 路线当回合受额外特殊召唤限制，不要把此处分支写成马上同调 艾克莉西娅。\n这用于其他能做出同调 艾克莉西娅 的起手分支，不是已经结算 天底的使徒 的本回合额外召唤。\n破坏不是效果无效；艾克莉西娅 入墓后的另一个回收效果仍需后续评估。",
+      "metagame": "2026-09-20社区赛事榜：Tier 2，Power 8.5。基于最新100份社区赛事上位牌表，Power不是胜率或天梯使用率。\n2026-07：Rating Duel 第1、第7公开为 Grass Branded；不能把两份Top10记录写成全环境20%使用率。",
+      "steps": [
+        {
+          "opponent": 1984618,
+          "action": "送额外怪兽入墓，再从牌组/墓地加入教导怪兽或阿不思",
+          "timing": "直接连锁 天底的使徒；它的送额外不是费用。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "直接连锁 天底的使徒；它的送额外不是费用。",
+              "condition": "须直接响应当前可连锁且符合该手坑范围的效果，费用和其他场上限制均须满足。",
+              "expected": "无效这一整段可同时阻止本次额外送墓与后续检索，减少结束阶段的额外资源。",
+              "note": "其他已送墓的融合怪兽不受影响；手里直接有白落胤、烙印融合等仍有另一起动。\n锁鸟只能在真实从主卡组加入手牌后发动，不能提前连锁 天底的使徒 当检索无效。"
+            },
+            {
+              "cards": [
+                73642296
+              ],
+              "mode": "alternative",
+              "method": "直接连锁 天底的使徒；它的送额外不是费用。",
+              "condition": "须直接响应当前可连锁且符合该手坑范围的效果，费用和其他场上限制均须满足。",
+              "expected": "无效这一整段可同时阻止本次额外送墓与后续检索，减少结束阶段的额外资源。",
+              "note": "其他已送墓的融合怪兽不受影响；手里直接有白落胤、烙印融合等仍有另一起动。\n锁鸟只能在真实从主卡组加入手牌后发动，不能提前连锁 天底的使徒 当检索无效。"
+            }
+          ],
+          "note": "其他已送墓的融合怪兽不受影响；手里直接有白落胤、烙印融合等仍有另一起动。\n锁鸟只能在真实从主卡组加入手牌后发动，不能提前连锁 天底的使徒 当检索无效。"
+        },
+        {
+          "opponent": 73819701,
+          "action": "登场后的 艾克莉西娅 特殊召唤效果",
+          "timing": "直接连锁登场效果；灰流/屋敷童合法是因为同一个效果包含牌组/墓地特殊召唤。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "直接连锁登场效果；灰流/屋敷童合法是因为同一个效果包含牌组/墓地特殊召唤。",
+              "condition": "须直接响应当前可连锁且符合该手坑范围的效果，费用和其他场上限制均须满足。",
+              "expected": "切断拉 艾克莉西娅 的场上与检索收益。",
+              "note": "它手牌自跳时送额外是费用，已经入墓的 吞食圣痕之龙 仍可能在结束阶段检索。\n天底的使徒 路线当回合受额外特殊召唤限制，不要把此处分支写成马上同调 艾克莉西娅。"
+            },
+            {
+              "cards": [
+                73642296
+              ],
+              "mode": "alternative",
+              "method": "直接连锁登场效果；灰流/屋敷童合法是因为同一个效果包含牌组/墓地特殊召唤。",
+              "condition": "须直接响应当前可连锁且符合该手坑范围的效果，费用和其他场上限制均须满足。",
+              "expected": "切断拉 艾克莉西娅 的场上与检索收益。",
+              "note": "它手牌自跳时送额外是费用，已经入墓的 吞食圣痕之龙 仍可能在结束阶段检索。\n天底的使徒 路线当回合受额外特殊召唤限制，不要把此处分支写成马上同调 艾克莉西娅。"
+            },
+            {
+              "cards": [
+                10045474
+              ],
+              "mode": "alternative",
+              "method": "取仍在对方场上表侧的白龙之落胤为对象无效。",
+              "condition": "手发须自己场上无卡；盖放发动须满足陷阱规则。目标仍须是对方场上表侧怪兽。",
+              "expected": "切断拉 艾克莉西娅 的场上与检索收益。",
+              "note": "它手牌自跳时送额外是费用，已经入墓的 吞食圣痕之龙 仍可能在结束阶段检索。\n天底的使徒 路线当回合受额外特殊召唤限制，不要把此处分支写成马上同调 艾克莉西娅。"
+            }
+          ],
+          "note": "它手牌自跳时送额外是费用，已经入墓的 吞食圣痕之龙 仍可能在结束阶段检索。\n天底的使徒 路线当回合受额外特殊召唤限制，不要把此处分支写成马上同调 艾克莉西娅。"
+        },
+        {
+          "opponent": 78397661,
+          "action": "主要阶段暂时除外自己，再从牌组/墓地拉怪",
+          "timing": "在场上同调 艾克莉西娅 发动此效果时直接连锁幽鬼兔。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                59438930
+              ],
+              "mode": "alternative",
+              "method": "在场上同调 艾克莉西娅 发动此效果时直接连锁幽鬼兔。",
+              "condition": "须响应场上怪兽效果，或已经表侧的魔陷效果；破坏必须成功，不能把破坏当无效。",
+              "expected": "自身除外发生在效果处理；先被幽鬼兔破坏则不能完成“除外自身，且若如此特殊召唤”。",
+              "note": "这用于其他能做出同调 艾克莉西娅 的起手分支，不是已经结算 天底的使徒 的本回合额外召唤。\n破坏不是效果无效；艾克莉西娅 入墓后的另一个回收效果仍需后续评估。"
+            }
+          ],
+          "note": "这用于其他能做出同调 艾克莉西娅 的起手分支，不是已经结算 天底的使徒 的本回合额外召唤。\n破坏不是效果无效；艾克莉西娅 入墓后的另一个回收效果仍需后续评估。"
+        }
+      ],
+      "source_ids": [
+        "mdm-tier-20260920",
+        "mdm-banlist-20260903",
+        "mdm-counters",
+        "md-branded-combo",
+        "rotk-md55",
+        "card-1984618",
+        "card-10045474",
+        "card-14558127",
+        "card-41373230",
+        "card-59438930",
+        "card-60303688",
+        "card-73642296",
+        "card-73819701",
+        "card-78397661",
+        "card-76666602",
+        "card-30271097",
+        "card-45883110"
+      ],
+      "step_sources": [
+        [
+          "card-1984618",
+          "card-14558127",
+          "card-73642296",
+          "mdm-counters",
+          "md-branded-combo"
+        ],
+        [
+          "card-10045474",
+          "card-14558127",
+          "card-73642296",
+          "card-73819701",
+          "mdm-counters",
+          "md-branded-combo"
+        ],
+        [
+          "card-59438930",
+          "card-78397661",
+          "mdm-counters",
+          "md-branded-combo"
+        ]
+      ],
+      "walkthrough": {
+        "premise": "手牌有 天底的使徒，牌组与额外保留以下卡；本例只截取主线到第一个结束阶段触发。",
+        "sequence": [
+          {
+            "card": 1984618,
+            "action": "天底的使徒 结算送 灰烬龙 落胤龙 从额外入墓，加入白落胤；白落胤永续视作 阿不思的落胤。",
+            "result": "灰烬龙在墓地，白龙之落胤进手；本回合额外特召受限。",
+            "step_index": 0
+          },
+          {
+            "card": 73819701,
+            "action": "白落胤从手牌发动，送 吞食圣痕之龙 从额外入墓作费用，自身特殊召唤。",
+            "result": "噬教神龙的送墓费用已支付，留下结束阶段资源。",
+            "step_index": null
+          },
+          {
+            "card": 73819701,
+            "action": "白落胤登场效果拉教导 艾克莉西娅；也可按原文另一分支拉 白之圣女 艾克莉西娅。",
+            "result": "取得另一只怪兽及其后续效果；还不能当回合同调。",
+            "step_index": 1
+          },
+          {
+            "card": 60303688,
+            "action": "选教导 艾克莉西娅 分支时，发动登场检索取得 落胤与圣女；这张魔法的规则文本永续视作 Branded 和 吞食圣痕之龙tika 卡。",
+            "result": "得到烙印／教导魔法资源。",
+            "step_index": null
+          },
+          {
+            "card": 41373230,
+            "action": "进入结束阶段，灰烬龙 落胤龙 发动墓地效果，特殊召唤 引导的圣女 奎姆；原文后面继续堆 赫之圣女 卡尔特西娅 和用 吞食圣痕之龙 取得资源。",
+            "result": "结束阶段的墓地资源转成场上圣女，后续仍要逐项处理。",
+            "step_index": null
+          }
+        ],
+        "branches": [
+          {
+            "label": "放行",
+            "body": "至少形成白落胤/教导 艾克莉西娅 与额外融合怪兽的结束阶段资源。"
+          },
+          {
+            "label": "此处阻抗",
+            "body": "挡住第1步不会产生这次 灰烬龙 落胤龙 送墓与白落胤检索；挡第3步则白落胤仍在、吞食圣痕之龙 已入墓，结束阶段可能继续获得牌。"
+          },
+          {
+            "label": "仍有补点",
+            "body": "已有白落胤、其他教导/烙印起动可作为补点。"
+          }
+        ],
+        "conclusion": "落胤与圣女 的官方卡文明确永续视作教导卡，因此可以由教导 艾克莉西娅 检索。\n天底的使徒 处理后本回合不能从额外特殊召唤；本例不会接当回合同调。 本图为公开路线节选或卡文机制例，分支是人工条件推演，尚未逐局通过规则引擎验证。",
+        "source_ids": [
+          "mdm-tier-20260920",
+          "mdm-banlist-20260903",
+          "mdm-counters",
+          "md-branded-combo",
+          "rotk-md55",
+          "card-1984618",
+          "card-10045474",
+          "card-14558127",
+          "card-41373230",
+          "card-59438930",
+          "card-60303688",
+          "card-73642296",
+          "card-73819701",
+          "card-78397661",
+          "card-76666602",
+          "card-30271097",
+          "card-45883110"
+        ]
+      }
+    },
+    {
+      "id": "md-kewl-tune",
+      "topic": "Master Duel · 杀手级调整曲（Kewl Tune）",
+      "title": "杀手级调整曲（Kewl Tune）｜识别、断点与条件推演",
+      "format": "Master Duel",
+      "period": "2026年7—8月月报＋2026-09-20社区榜；路线原文月份另列",
+      "summary": "在双触发与快速同调建立前判断拉人点；手牌调整可能成为场上看不到的补点。",
+      "recognition": "例图识别卡：杀手级调整曲·提示员、杀手级调整曲同调、点唱机酒吧“杀手级调整曲”。单张通用卡不足以确定整副构筑。",
+      "priorities": "最早可在第1步压住拉人；放到第3步以后要看最后一环是什么效果，不能越过后面的连锁去灰较早的检索。",
+      "warnings": "手里已持有另一只调整时，酷音可直接使用手牌调整作同调素材；单张无效不保证停牌。\n杀手级调整曲·提示员 的特殊召唤不会触发这个只在通常召唤时发动的效果。\n幽鬼兔针对已经表侧场地的效果发动，不是无条件炸新发动的场地卡。\n其他手牌调整/魔法仍可能提供同调素材或补充通常召唤。\n杀手级调整曲·唱片师/杀手级调整曲·混音手 从墓地回收不触发锁鸟。\n原文 杀手级调整曲·提示员 单卡路线有在锁鸟连锁上发动 杀手级调整曲同调、再从墓地回收的分支；不能写成锁鸟必停。",
+      "metagame": "2026-09-20社区赛事榜：Tier 2，Power 8。基于最新100份社区赛事上位牌表，Power不是胜率或天梯使用率。\n2026-07：Rating Duel 第2公开为 Kewl Tune。",
+      "steps": [
+        {
+          "opponent": 16387555,
+          "action": "通常召唤成功拉调整的效果",
+          "timing": "直接连锁 杀手级调整曲·提示员 通召效果，在 杀手级调整曲·音轨制作人 与多重素材触发出现以前。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "直接连锁 杀手级调整曲·提示员 通召效果，在 杀手级调整曲·音轨制作人 与多重素材触发出现以前。",
+              "condition": "须直接响应当前可连锁且符合该手坑范围的效果，费用和其他场上限制均须满足。",
+              "expected": "断掉单卡线路最早的第二只调整，避免进入多条检索的同调触发链。",
+              "note": "手里已持有另一只调整时，酷音可直接使用手牌调整作同调素材；单张无效不保证停牌。\n杀手级调整曲·提示员 的特殊召唤不会触发这个只在通常召唤时发动的效果。"
+            },
+            {
+              "cards": [
+                10045474
+              ],
+              "mode": "alternative",
+              "method": "取仍在对方场上表侧的杀手级调整曲·提示员为对象无效。",
+              "condition": "手发须自己场上无卡；盖放发动须满足陷阱规则。目标仍须是对方场上表侧怪兽。",
+              "expected": "断掉单卡线路最早的第二只调整，避免进入多条检索的同调触发链。",
+              "note": "手里已持有另一只调整时，酷音可直接使用手牌调整作同调素材；单张无效不保证停牌。\n杀手级调整曲·提示员 的特殊召唤不会触发这个只在通常召唤时发动的效果。"
+            },
+            {
+              "cards": [
+                97268402
+              ],
+              "mode": "alternative",
+              "method": "取仍在对方场上表侧的杀手级调整曲·提示员为对象无效。",
+              "condition": "只在对方主要阶段；取对方场上表侧效果怪兽为对象。",
+              "expected": "断掉单卡线路最早的第二只调整，避免进入多条检索的同调触发链。",
+              "note": "手里已持有另一只调整时，酷音可直接使用手牌调整作同调素材；单张无效不保证停牌。\n杀手级调整曲·提示员 的特殊召唤不会触发这个只在通常召唤时发动的效果。"
+            }
+          ],
+          "note": "手里已持有另一只调整时，酷音可直接使用手牌调整作同调素材；单张无效不保证停牌。\n杀手级调整曲·提示员 的特殊召唤不会触发这个只在通常召唤时发动的效果。"
+        },
+        {
+          "opponent": 14442329,
+          "action": "解放调整，从牌组加入手牌或特殊召唤酷音",
+          "timing": "JJ 已表侧在场，发动其解放调整的效果后直接连锁。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "JJ 已表侧在场，发动其解放调整的效果后直接连锁。",
+              "condition": "须直接响应当前可连锁且符合该手坑范围的效果，费用和其他场上限制均须满足。",
+              "expected": "费用解放已支付；灰流挡牌组供给，幽鬼兔破坏场地使其场上效果不能正常处理。",
+              "note": "幽鬼兔针对已经表侧场地的效果发动，不是无条件炸新发动的场地卡。\n其他手牌调整/魔法仍可能提供同调素材或补充通常召唤。"
+            },
+            {
+              "cards": [
+                59438930
+              ],
+              "mode": "alternative",
+              "method": "JJ 已表侧在场，发动其解放调整的效果后直接连锁。",
+              "condition": "须响应场上怪兽效果，或已经表侧的魔陷效果；破坏必须成功，不能把破坏当无效。",
+              "expected": "费用解放已支付；灰流挡牌组供给，幽鬼兔破坏场地使其场上效果不能正常处理。",
+              "note": "幽鬼兔针对已经表侧场地的效果发动，不是无条件炸新发动的场地卡。\n其他手牌调整/魔法仍可能提供同调素材或补充通常召唤。"
+            }
+          ],
+          "note": "幽鬼兔针对已经表侧场地的效果发动，不是无条件炸新发动的场地卡。\n其他手牌调整/魔法仍可能提供同调素材或补充通常召唤。"
+        },
+        {
+          "opponent": 42781164,
+          "action": "首次实际从主卡组加入手牌后的整回合检索限制（杀手级调整曲·混音手/杀手级调整曲·音轨制作人/杀手级调整曲·旋钮手 同理）",
+          "timing": "检索所在连锁全部结算后，在满足锁鸟触发窗口时发动。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                94145021
+              ],
+              "mode": "alternative",
+              "method": "原连锁处理完、实际卡组加手后，发动小丑与锁鸟。",
+              "condition": "抽卡阶段以外实际从主卡组加入手牌，原连锁处理完后的合法窗口；墓地回手不算。",
+              "expected": "压低同一回合多次检索与后续手牌供给。",
+              "note": "杀手级调整曲·唱片师/杀手级调整曲·混音手 从墓地回收不触发锁鸟。\n原文 杀手级调整曲·提示员 单卡路线有在锁鸟连锁上发动 杀手级调整曲同调、再从墓地回收的分支；不能写成锁鸟必停。"
+            }
+          ],
+          "note": "杀手级调整曲·唱片师/杀手级调整曲·混音手 从墓地回收不触发锁鸟。\n原文 杀手级调整曲·提示员 单卡路线有在锁鸟连锁上发动 杀手级调整曲同调、再从墓地回收的分支；不能写成锁鸟必停。"
+        }
+      ],
+      "source_ids": [
+        "mdm-tier-20260920",
+        "mdm-banlist-20260903",
+        "mdm-counters",
+        "md-kewl-tune-combo",
+        "rotk-md55",
+        "card-10045474",
+        "card-14442329",
+        "card-14558127",
+        "card-16387555",
+        "card-42781164",
+        "card-59438930",
+        "card-78058681",
+        "card-94145021",
+        "card-97268402",
+        "card-17209452",
+        "card-89392810",
+        "card-16509007"
+      ],
+      "step_sources": [
+        [
+          "card-10045474",
+          "card-14558127",
+          "card-16387555",
+          "card-97268402",
+          "mdm-counters",
+          "md-kewl-tune-combo"
+        ],
+        [
+          "card-14442329",
+          "card-14558127",
+          "card-59438930",
+          "mdm-counters",
+          "md-kewl-tune-combo"
+        ],
+        [
+          "card-42781164",
+          "card-94145021",
+          "mdm-counters",
+          "md-kewl-tune-combo"
+        ]
+      ],
+      "walkthrough": {
+        "premise": "手里只有 杀手级调整曲·提示员 这一张起动也可做此开局；牌组有 杀手级调整曲·旋钮手、杀手级调整曲·唱片师、杀手级调整曲·混音手 与 JJ，额外有 杀手级调整曲·音轨制作人。",
+        "sequence": [
+          {
+            "card": 16387555,
+            "action": "通常召唤 杀手级调整曲·提示员，发动效果从牌组特殊召唤 杀手级调整曲·旋钮手。",
+            "result": "得到第二只调整，为同调准备。",
+            "step_index": 0
+          },
+          {
+            "card": 16387555,
+            "action": "两只调整同调出 杀手级调整曲·音轨制作人。",
+            "result": "素材入墓与同调出场分别触发。",
+            "step_index": null
+          },
+          {
+            "card": 16387555,
+            "action": "杀手级调整曲·提示员、杀手级调整曲·旋钮手 的素材触发与 杀手级调整曲·音轨制作人 登场触发分别排连锁；原文按需要保护 杀手级调整曲·旋钮手 或 杀手级调整曲·提示员 选择顺序。",
+            "result": "先排列连锁，再倒序处理；手坑不能任意跨过高连锁响应。",
+            "step_index": 2
+          },
+          {
+            "card": 78058681,
+            "action": "原文用 杀手级调整曲·旋钮手 取得 杀手级调整曲同调、杀手级调整曲·音轨制作人 取得 JJ；检索后发动 JJ。",
+            "result": "拿到快速同调和场地；不是把所有触发当成同一个效果。",
+            "step_index": null
+          },
+          {
+            "card": 14442329,
+            "action": "按无额外补点分支，JJ 解放 杀手级调整曲·音轨制作人 拉 杀手级调整曲·唱片师，杀手级调整曲·唱片师 再取得 杀手级调整曲·混音手。",
+            "result": "祭品已解放；拉人成功才有唱片师及其检索。",
+            "step_index": 1
+          }
+        ],
+        "branches": [
+          {
+            "label": "放行",
+            "body": "得到同调体、场地与快速同调资源，后续可转对手回合同调。"
+          },
+          {
+            "label": "此处阻抗",
+            "body": "若第1步无效且没有其他调整/魔法补点，留下一只 杀手级调整曲·提示员；若第5步无效，已检索的其他卡不消失，但被解放的 杀手级调整曲·音轨制作人 不退回。"
+          },
+          {
+            "label": "仍有补点",
+            "body": "另一只手牌调整可直接作同调素材；杀手级调整曲同调 可连锁锁鸟先完成检索/同调，之后仍可用墓地回收。"
+          }
+        ],
+        "conclusion": "这里的连锁顺序为原文策略选择，不用“所有检索都被连锁保护”概括。 本图为公开路线节选或卡文机制例，分支是人工条件推演，尚未逐局通过规则引擎验证。",
+        "source_ids": [
+          "mdm-tier-20260920",
+          "mdm-banlist-20260903",
+          "mdm-counters",
+          "md-kewl-tune-combo",
+          "rotk-md55",
+          "card-10045474",
+          "card-14442329",
+          "card-14558127",
+          "card-16387555",
+          "card-42781164",
+          "card-59438930",
+          "card-78058681",
+          "card-94145021",
+          "card-97268402",
+          "card-17209452",
+          "card-89392810",
+          "card-16509007"
+        ]
+      }
+    },
+    {
+      "id": "md-clown-crew",
+      "topic": "Master Duel · 道化一座（Clown Crew）",
+      "title": "道化一座（Clown Crew）｜识别、断点与条件推演",
+      "format": "Master Duel",
+      "period": "2026年7—8月月报＋2026-09-20社区榜；路线原文月份另列",
+      "summary": "检索、一次特召两只祭品和抽牌前后，留下的资源不同。每张手坑要说明自己切掉哪段。",
+      "recognition": "例图识别卡：道化一座 调酒火小丑、道化一座『排练』、道化一座『极艺』、道化一座 白脸小丑。单张通用卡不足以确定整副构筑。",
+      "priorities": "先有锁鸟则第1步成功检索后施压；只有灰流时，公开攻略更强调第3步 道化一座『极艺』 的集中收益。",
+      "warnings": "已经在手里的 道化一座『极艺』 或其他起动仍能发动；牌组直接特殊召唤/盖放不等同加入手牌。\n若对方本来已持有 道化一座『极艺』 等补点，仍可继续；送墓的 道化一座『排练』 后续仪式效果也不等同消失。\n即使对方计划只从额外叫怪，此效果文本仍包含牌组特召，灰流可以应对。\n手发 灵王的波动 后本局不能再发动光/地/风怪兽效果，必须核对自身牌组。\nFuwalos 在两只同时特召时只抽一次，抽牌压力不等于无效铺场。",
+      "metagame": "2026-09-20社区赛事榜：Tier 2，Power 7.5。基于最新100份社区赛事上位牌表，Power不是胜率或天梯使用率。\n2026-09：卡片页确认 2026-09-03 Kaiser on the Stage 收录；9/20实时榜为 Tier 2 / power 7.5。",
+      "steps": [
+        {
+          "opponent": 42759961,
+          "action": "道化一座 调酒火小丑 检索成功后的锁鸟窗口",
+          "timing": "道化一座 调酒火小丑 所在连锁结算且实际从牌组加入后发动，不是直接连锁检索。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                94145021
+              ],
+              "mode": "alternative",
+              "method": "原连锁处理完、实际卡组加手后，发动小丑与锁鸟。",
+              "condition": "抽卡阶段以外实际从主卡组加入手牌，原连锁处理完后的合法窗口；墓地回手不算。",
+              "expected": "在继续 道化一座『排练』 的双检索与后续抽牌以前限制整回合主卡组加入手牌。",
+              "note": "已经在手里的 道化一座『极艺』 或其他起动仍能发动；牌组直接特殊召唤/盖放不等同加入手牌。"
+            }
+          ],
+          "note": "已经在手里的 道化一座『极艺』 或其他起动仍能发动；牌组直接特殊召唤/盖放不等同加入手牌。"
+        },
+        {
+          "opponent": 20448151,
+          "action": "解放一只怪兽后加入 道化一座 白脸小丑 与一张本家魔陷",
+          "timing": "直接连锁 道化一座『排练』；手牌/场上怪兽的解放已作为费用支付。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "直接连锁 道化一座『排练』；手牌/场上怪兽的解放已作为费用支付。",
+              "condition": "须直接响应当前可连锁且符合该手坑范围的效果，费用和其他场上限制均须满足。",
+              "expected": "一次卡片处理提供两张关键牌，阻断此处能切开上级召唤本体与铺垫魔法。",
+              "note": "若对方本来已持有 道化一座『极艺』 等补点，仍可继续；送墓的 道化一座『排练』 后续仪式效果也不等同消失。"
+            }
+          ],
+          "note": "若对方本来已持有 道化一座『极艺』 等补点，仍可继续；送墓的 道化一座『排练』 后续仪式效果也不等同消失。"
+        },
+        {
+          "opponent": 83232904,
+          "action": "从牌组和/或额外最多特殊召唤两只道化怪兽",
+          "timing": "直接连锁特殊召唤效果。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "直接连锁特殊召唤效果。",
+              "condition": "须直接响应当前可连锁且符合该手坑范围的效果，费用和其他场上限制均须满足。",
+              "expected": "这是公开 counter 特别指出的集中断点：同时控制上级召唤祭品、额外怪兽被解放时的资源和后续魔陷。",
+              "note": "即使对方计划只从额外叫怪，此效果文本仍包含牌组特召，灰流可以应对。\n手发 灵王的波动 后本局不能再发动光/地/风怪兽效果，必须核对自身牌组。\nFuwalos 在两只同时特召时只抽一次，抽牌压力不等于无效铺场。"
+            },
+            {
+              "cards": [
+                40366667
+              ],
+              "mode": "alternative",
+              "method": "直接连锁特殊召唤效果。",
+              "condition": "从手牌发动须对方场上有卡；手发后本局不能发动光／地／风怪兽效果。",
+              "expected": "这是公开 counter 特别指出的集中断点：同时控制上级召唤祭品、额外怪兽被解放时的资源和后续魔陷。",
+              "note": "即使对方计划只从额外叫怪，此效果文本仍包含牌组特召，灰流可以应对。\n手发 灵王的波动 后本局不能再发动光/地/风怪兽效果，必须核对自身牌组。\nFuwalos 在两只同时特召时只抽一次，抽牌压力不等于无效铺场。"
+            }
+          ],
+          "note": "即使对方计划只从额外叫怪，此效果文本仍包含牌组特召，灰流可以应对。\n手发 灵王的波动 后本局不能再发动光/地/风怪兽效果，必须核对自身牌组。\nFuwalos 在两只同时特召时只抽一次，抽牌压力不等于无效铺场。"
+        }
+      ],
+      "source_ids": [
+        "mdm-tier-20260920",
+        "mdm-banlist-20260903",
+        "mdm-counters",
+        "md-clown-crew-combo",
+        "card-14558127",
+        "card-20448151",
+        "card-40366667",
+        "card-42759961",
+        "card-82159583",
+        "card-83232904",
+        "card-94145021",
+        "card-91237821",
+        "card-93172951"
+      ],
+      "step_sources": [
+        [
+          "card-42759961",
+          "card-94145021",
+          "mdm-counters",
+          "md-clown-crew-combo"
+        ],
+        [
+          "card-14558127",
+          "card-20448151",
+          "mdm-counters",
+          "md-clown-crew-combo"
+        ],
+        [
+          "card-14558127",
+          "card-40366667",
+          "card-83232904",
+          "mdm-counters",
+          "md-clown-crew-combo"
+        ]
+      ],
+      "walkthrough": {
+        "premise": "手牌有 道化一座 调酒火小丑 与1张可弃牌；通常召唤未使用；牌组/额外保留 道化一座 白脸小丑、道化一座『极艺』、道化一座 双魔棍小丑、道化一座 舞流星小丑。",
+        "sequence": [
+          {
+            "card": 42759961,
+            "action": "展示手牌 道化一座 调酒火小丑，检索 道化一座『排练』 后弃1张牌。",
+            "result": "第一份卡组加手已完成，这是锁鸟的窗口。",
+            "step_index": 0
+          },
+          {
+            "card": 20448151,
+            "action": "发动 道化一座『排练』，解放 道化一座 调酒火小丑 作费用，检索 道化一座 白脸小丑 与 道化一座『极艺』。",
+            "result": "支付解放后获得本体及铺场魔法。",
+            "step_index": 1
+          },
+          {
+            "card": 83232904,
+            "action": "道化一座『极艺』 从额外特殊召唤 道化一座 双魔棍小丑 与 道化一座 舞流星小丑。",
+            "result": "两个额外怪兽同时出场，不等于抽牌威慑必抽两次。",
+            "step_index": 2
+          },
+          {
+            "card": 82159583,
+            "action": "解放这两只怪兽，上级召唤 道化一座 白脸小丑。",
+            "result": "两个祭品入墓，本体完成上级召唤。",
+            "step_index": null
+          },
+          {
+            "card": 82159583,
+            "action": "分别发动 道化一座 白脸小丑 抽2、道化一座 舞流星小丑 回收 道化一座 调酒火小丑、道化一座 双魔棍小丑 从牌组盖放魔法的触发效果。",
+            "result": "本体与祭品分别产资源；链的顺序影响直接响应。",
+            "step_index": null
+          }
+        ],
+        "branches": [
+          {
+            "label": "放行",
+            "body": "两个额外怪兽同时成为祭品并在被解放后产资源，道化一座 白脸小丑 自身又抽牌。"
+          },
+          {
+            "label": "此处阻抗",
+            "body": "挡住 道化一座『极艺』 后，本例没有这两只祭品，也就没有本次上级召唤与这三条触发收益；但 道化一座 白脸小丑 仍在手。"
+          },
+          {
+            "label": "仍有补点",
+            "body": "另有可供解放的仪式/额外怪兽、额外起动或已上手本家魔法时仍可能改线。"
+          }
+        ],
+        "conclusion": "原文更后面写到总抽6张；此处只承诺前5步的抽2与回收/盖放，不借标题把所有后续收益视作必达。 本图为公开路线节选或卡文机制例，分支是人工条件推演，尚未逐局通过规则引擎验证。",
+        "source_ids": [
+          "mdm-tier-20260920",
+          "mdm-banlist-20260903",
+          "mdm-counters",
+          "md-clown-crew-combo",
+          "card-14558127",
+          "card-20448151",
+          "card-40366667",
+          "card-42759961",
+          "card-82159583",
+          "card-83232904",
+          "card-94145021",
+          "card-91237821",
+          "card-93172951"
+        ]
+      }
+    },
+    {
+      "id": "md-sky-striker",
+      "topic": "Master Duel · 闪刀（Sky Striker）",
+      "title": "闪刀（Sky Striker）｜识别、断点与条件推演",
+      "format": "Master Duel",
+      "period": "2026年7—8月月报＋2026-09-20社区榜；路线原文月份另列",
+      "summary": "交闪是卡组资源，燎里是墓地回收；手坑的适用范围不同。",
+      "recognition": "例图识别卡：闪刀起动-交闪、闪刀机-大黄蜂浮游单元、闪刀姬-燎里、闪刀起动-连刀。单张通用卡不足以确定整副构筑。",
+      "priorities": "第3步的 闪刀姬-燎里 是墓地回收窗口；若使用灰流，应放在 闪刀起动-交闪 或 闪刀姬=零露 的牌组取牌效果。",
+      "warnings": "锁鸟不会倒回第一张已到手牌的资源；闪刀机-大黄蜂浮游单元 仍可出衍生物。\n不要只等“墓地3魔法”才承认 闪刀起动-交闪 是合法灰流目标。\n墓地回收本身不能吃灰流。\n对方有 闪刀起动-连刀 或保护魔法时，取对象无效可能被躲；屋敷童应对的是回收效果的发动。\n闪刀姬=零露 一回合只能使用两个效果中的一个；已经选择登场取牌后不能再靠自己的解放效果躲无效，但外部 闪刀起动-连刀 仍需考虑。\n连锁上能否用灰流仍取决于取牌效果是否为可直接响应的最后一环。",
+      "metagame": "2026-09-20社区赛事榜：Tier 2，Power 7。基于最新100份社区赛事上位牌表，Power不是胜率或天梯使用率。\n2026-07：Rating Duel 第8、第10公开为 Sky Striker。",
+      "steps": [
+        {
+          "opponent": 63166095,
+          "action": "检索，且墓地魔法达到3张时追加抽牌",
+          "timing": "灰流直接连锁 闪刀起动-交闪；锁鸟只能在成功加入手牌并结算完连锁后发动。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "灰流直接连锁 闪刀起动-交闪；锁鸟只能在成功加入手牌并结算完连锁后发动。",
+              "condition": "须直接响应当前可连锁且符合该手坑范围的效果，费用和其他场上限制均须满足。",
+              "expected": "既可阻入口，也可限制同一回合多次 闪刀起动-交闪 的滚动资源。",
+              "note": "锁鸟不会倒回第一张已到手牌的资源；闪刀机-大黄蜂浮游单元 仍可出衍生物。\n不要只等“墓地3魔法”才承认 闪刀起动-交闪 是合法灰流目标。"
+            },
+            {
+              "cards": [
+                94145021
+              ],
+              "mode": "alternative",
+              "method": "原连锁处理完、实际卡组加手后，发动小丑与锁鸟。",
+              "condition": "抽卡阶段以外实际从主卡组加入手牌，原连锁处理完后的合法窗口；墓地回手不算。",
+              "expected": "既可阻入口，也可限制同一回合多次 闪刀起动-交闪 的滚动资源。",
+              "note": "锁鸟不会倒回第一张已到手牌的资源；闪刀机-大黄蜂浮游单元 仍可出衍生物。\n不要只等“墓地3魔法”才承认 闪刀起动-交闪 是合法灰流目标。"
+            }
+          ],
+          "note": "锁鸟不会倒回第一张已到手牌的资源；闪刀机-大黄蜂浮游单元 仍可出衍生物。\n不要只等“墓地3魔法”才承认 闪刀起动-交闪 是合法灰流目标。"
+        },
+        {
+          "opponent": 63288573,
+          "action": "登场从墓地回收闪刀魔法",
+          "timing": "直接连锁 闪刀姬-燎里 的墓地回收效果；无效系须选场上表侧目标。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                73642296
+              ],
+              "mode": "alternative",
+              "method": "直接连锁 闪刀姬-燎里 的墓地回收效果；无效系须选场上表侧目标。",
+              "condition": "须直接响应当前可连锁且符合该手坑范围的效果，费用和其他场上限制均须满足。",
+              "expected": "在第一张 闪刀起动-交闪 用过后，挡住重新使用同一张魔法的路线。",
+              "note": "墓地回收本身不能吃灰流。\n对方有 闪刀起动-连刀 或保护魔法时，取对象无效可能被躲；屋敷童应对的是回收效果的发动。"
+            },
+            {
+              "cards": [
+                10045474
+              ],
+              "mode": "alternative",
+              "method": "取仍在对方场上表侧的闪刀姬-燎里为对象无效。",
+              "condition": "手发须自己场上无卡；盖放发动须满足陷阱规则。目标仍须是对方场上表侧怪兽。",
+              "expected": "在第一张 闪刀起动-交闪 用过后，挡住重新使用同一张魔法的路线。",
+              "note": "墓地回收本身不能吃灰流。\n对方有 闪刀起动-连刀 或保护魔法时，取对象无效可能被躲；屋敷童应对的是回收效果的发动。"
+            },
+            {
+              "cards": [
+                97268402
+              ],
+              "mode": "alternative",
+              "method": "取仍在对方场上表侧的闪刀姬-燎里为对象无效。",
+              "condition": "只在对方主要阶段；取对方场上表侧效果怪兽为对象。",
+              "expected": "在第一张 闪刀起动-交闪 用过后，挡住重新使用同一张魔法的路线。",
+              "note": "墓地回收本身不能吃灰流。\n对方有 闪刀起动-连刀 或保护魔法时，取对象无效可能被躲；屋敷童应对的是回收效果的发动。"
+            }
+          ],
+          "note": "墓地回收本身不能吃灰流。\n对方有 闪刀起动-连刀 或保护魔法时，取对象无效可能被躲；屋敷童应对的是回收效果的发动。"
+        },
+        {
+          "opponent": 76072561,
+          "action": "登场从牌组或墓地取得闪刀魔法",
+          "timing": "直接连锁 闪刀姬=零露 的登场取牌效果。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "直接连锁 闪刀姬=零露 的登场取牌效果。",
+              "condition": "须直接响应当前可连锁且符合该手坑范围的效果，费用和其他场上限制均须满足。",
+              "expected": "拦住从连接特召转入新一轮 闪刀起动-交闪/控制魔法的资源。",
+              "note": "闪刀姬=零露 一回合只能使用两个效果中的一个；已经选择登场取牌后不能再靠自己的解放效果躲无效，但外部 闪刀起动-连刀 仍需考虑。\n连锁上能否用灰流仍取决于取牌效果是否为可直接响应的最后一环。"
+            },
+            {
+              "cards": [
+                10045474
+              ],
+              "mode": "alternative",
+              "method": "取仍在对方场上表侧的闪刀姬=零露为对象无效。",
+              "condition": "手发须自己场上无卡；盖放发动须满足陷阱规则。目标仍须是对方场上表侧怪兽。",
+              "expected": "拦住从连接特召转入新一轮 闪刀起动-交闪/控制魔法的资源。",
+              "note": "闪刀姬=零露 一回合只能使用两个效果中的一个；已经选择登场取牌后不能再靠自己的解放效果躲无效，但外部 闪刀起动-连刀 仍需考虑。\n连锁上能否用灰流仍取决于取牌效果是否为可直接响应的最后一环。"
+            },
+            {
+              "cards": [
+                97268402
+              ],
+              "mode": "alternative",
+              "method": "取仍在对方场上表侧的闪刀姬=零露为对象无效。",
+              "condition": "只在对方主要阶段；取对方场上表侧效果怪兽为对象。",
+              "expected": "拦住从连接特召转入新一轮 闪刀起动-交闪/控制魔法的资源。",
+              "note": "闪刀姬=零露 一回合只能使用两个效果中的一个；已经选择登场取牌后不能再靠自己的解放效果躲无效，但外部 闪刀起动-连刀 仍需考虑。\n连锁上能否用灰流仍取决于取牌效果是否为可直接响应的最后一环。"
+            }
+          ],
+          "note": "闪刀姬=零露 一回合只能使用两个效果中的一个；已经选择登场取牌后不能再靠自己的解放效果躲无效，但外部 闪刀起动-连刀 仍需考虑。\n连锁上能否用灰流仍取决于取牌效果是否为可直接响应的最后一环。"
+        }
+      ],
+      "source_ids": [
+        "mdm-tier-20260920",
+        "mdm-banlist-20260903",
+        "mdm-counters",
+        "md-sky-striker-combo",
+        "rotk-md55",
+        "card-9726840",
+        "card-10045474",
+        "card-14558127",
+        "card-52340444",
+        "card-63166095",
+        "card-63288573",
+        "card-73642296",
+        "card-76072561",
+        "card-94145021",
+        "card-97268402"
+      ],
+      "step_sources": [
+        [
+          "card-14558127",
+          "card-63166095",
+          "card-94145021",
+          "mdm-counters",
+          "md-sky-striker-combo"
+        ],
+        [
+          "card-10045474",
+          "card-63288573",
+          "card-73642296",
+          "card-97268402",
+          "mdm-counters",
+          "md-sky-striker-combo"
+        ],
+        [
+          "card-10045474",
+          "card-14558127",
+          "card-76072561",
+          "card-97268402",
+          "mdm-counters",
+          "md-sky-striker-combo"
+        ]
+      ],
+      "walkthrough": {
+        "premise": "主怪兽区为空，手牌有 闪刀起动-交闪；牌组有 闪刀机-大黄蜂浮游单元、闪刀起动-连刀 与后续闪刀魔法，额外有 闪刀姬-燎里/闪刀姬=零露。",
+        "sequence": [
+          {
+            "card": 63166095,
+            "action": "闪刀起动-交闪 检索 闪刀机-大黄蜂浮游单元。",
+            "result": "获得能生衍生物的魔法，交闪进入墓地。",
+            "step_index": 0
+          },
+          {
+            "card": 52340444,
+            "action": "发动 闪刀机-大黄蜂浮游单元 生成闪刀衍生物。",
+            "result": "得到非炎属性闪刀衍生物。",
+            "step_index": null
+          },
+          {
+            "card": 63288573,
+            "action": "衍生物连接成 闪刀姬-燎里，发动登场回收墓地 闪刀起动-交闪。",
+            "result": "首张交闪可回手再使用。",
+            "step_index": 1
+          },
+          {
+            "card": 63166095,
+            "action": "再次发动 闪刀起动-交闪，取得 闪刀起动-连刀。",
+            "result": "获得连接转换魔法。",
+            "step_index": 0
+          },
+          {
+            "card": 9726840,
+            "action": "闪刀起动-连刀 结算送 闪刀姬-燎里 入墓并从额外特召 闪刀姬=零露；闪刀姬=零露 再发动登场取牌。",
+            "result": "将连接怪转换成另一张取资源的闪刀姬。",
+            "step_index": 2
+          }
+        ],
+        "branches": [
+          {
+            "label": "放行",
+            "body": "第一张 闪刀起动-交闪 通过 闪刀姬-燎里 回收又用一次，再借 闪刀起动-连刀/闪刀姬=零露 取得新的检索。"
+          },
+          {
+            "label": "此处阻抗",
+            "body": "挡 闪刀姬-燎里 后本例不能重用首张 闪刀起动-交闪；挡 闪刀姬=零露 则已经发生两次 闪刀起动-交闪 与 闪刀起动-连刀，但少一张后续资源。"
+          },
+          {
+            "label": "仍有补点",
+            "body": "手牌已有 闪刀姬-零衣、闪刀起动-连刀、其他 闪刀起动-交闪 或保护魔法会改变可接续动作。"
+          }
+        ],
+        "conclusion": "只展示已列明的路线前段，不保证完整终场。 本图为公开路线节选或卡文机制例，分支是人工条件推演，尚未逐局通过规则引擎验证。",
+        "source_ids": [
+          "mdm-tier-20260920",
+          "mdm-banlist-20260903",
+          "mdm-counters",
+          "md-sky-striker-combo",
+          "rotk-md55",
+          "card-9726840",
+          "card-10045474",
+          "card-14558127",
+          "card-52340444",
+          "card-63166095",
+          "card-63288573",
+          "card-73642296",
+          "card-76072561",
+          "card-94145021",
+          "card-97268402"
+        ]
+      }
+    },
+    {
+      "id": "md-elfnote-kewl-tune",
+      "topic": "Master Duel · 耀圣杀手调（Elfnote Kewl Tune）",
+      "title": "耀圣杀手调（Elfnote Kewl Tune）｜识别、断点与条件推演",
+      "format": "Master Duel",
+      "period": "2026年7—8月月报＋2026-09-20社区榜；路线原文月份另列",
+      "summary": "两套引擎能互补：先核对耀圣部分是否已经做出鲜花女男爵，再看杀手调节点。",
+      "recognition": "例图识别卡：耀圣之波诗 狄娜、耀圣之诗～回乡之平行体～、耀圣之风诗 蕾吉娜、耀圣诗之狱神精。单张通用卡不足以确定整副构筑。",
+      "priorities": "前三个窗口都在 鲜花女男爵 出场以前；若一直保留手坑等到后半段 杀手级调整曲·提示员，可能先面对 鲜花女男爵 的保护。",
+      "warnings": "这是直接放置魔法，灰流不合法；不是从牌组加手、特召或送墓。\n如果已持有 耀圣之诗～回乡之平行体～/耀圣之风诗 蕾吉娜 等补点，仍可继续。\n如果已经有 鲜花女男爵 的无效保护，单手坑可能先被挡；本例是尚未做出 鲜花女男爵 的早期窗口。\n幽鬼兔要针对已表侧魔法的效果发动。\n耀圣之风诗 蕾吉娜 不在中间主怪兽区登场则无此触发；不能把所有 耀圣之风诗 蕾吉娜 登场都视作牌组特召。\n手牌已有 耀圣诗之狱神精 或独立 Kewl Tune 起动可构成补点。",
+      "metagame": "2026-09-20社区赛事榜：Tier 3，Power 5.5。基于最新100份社区赛事上位牌表，Power不是胜率或天梯使用率。\n",
+      "steps": [
+        {
+          "opponent": 59581480,
+          "action": "从牌组把永续魔法表侧放置到场上",
+          "timing": "在 耀圣之波诗 狄娜 发动放置永续魔法的场上效果时无效。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                10045474
+              ],
+              "mode": "alternative",
+              "method": "取仍在对方场上表侧的耀圣之波诗 狄娜为对象无效。",
+              "condition": "手发须自己场上无卡；盖放发动须满足陷阱规则。目标仍须是对方场上表侧怪兽。",
+              "expected": "在 耀圣之诗～回乡之平行体～ 开始供给另一种属性怪兽之前阻入口。",
+              "note": "这是直接放置魔法，灰流不合法；不是从牌组加手、特召或送墓。\n如果已持有 耀圣之诗～回乡之平行体～/耀圣之风诗 蕾吉娜 等补点，仍可继续。"
+            },
+            {
+              "cards": [
+                97268402
+              ],
+              "mode": "alternative",
+              "method": "取仍在对方场上表侧的耀圣之波诗 狄娜为对象无效。",
+              "condition": "只在对方主要阶段；取对方场上表侧效果怪兽为对象。",
+              "expected": "在 耀圣之诗～回乡之平行体～ 开始供给另一种属性怪兽之前阻入口。",
+              "note": "这是直接放置魔法，灰流不合法；不是从牌组加手、特召或送墓。\n如果已持有 耀圣之诗～回乡之平行体～/耀圣之风诗 蕾吉娜 等补点，仍可继续。"
+            }
+          ],
+          "note": "这是直接放置魔法，灰流不合法；不是从牌组加手、特召或送墓。\n如果已持有 耀圣之诗～回乡之平行体～/耀圣之风诗 蕾吉娜 等补点，仍可继续。"
+        },
+        {
+          "opponent": 64491754,
+          "action": "送手/场怪兽入墓后，从牌组特召不同原本属性的耀圣",
+          "timing": "它已表侧在场，送墓费用支付后直接连锁效果。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "它已表侧在场，送墓费用支付后直接连锁效果。",
+              "condition": "须直接响应当前可连锁且符合该手坑范围的效果，费用和其他场上限制均须满足。",
+              "expected": "本例 耀圣之波诗 狄娜 已送墓；挡住此处可让 耀圣之风诗 蕾吉娜 与后面的1星调整都不能由这一张魔法产生。",
+              "note": "如果已经有 鲜花女男爵 的无效保护，单手坑可能先被挡；本例是尚未做出 鲜花女男爵 的早期窗口。\n幽鬼兔要针对已表侧魔法的效果发动。"
+            },
+            {
+              "cards": [
+                59438930
+              ],
+              "mode": "alternative",
+              "method": "它已表侧在场，送墓费用支付后直接连锁效果。",
+              "condition": "须响应场上怪兽效果，或已经表侧的魔陷效果；破坏必须成功，不能把破坏当无效。",
+              "expected": "本例 耀圣之波诗 狄娜 已送墓；挡住此处可让 耀圣之风诗 蕾吉娜 与后面的1星调整都不能由这一张魔法产生。",
+              "note": "如果已经有 鲜花女男爵 的无效保护，单手坑可能先被挡；本例是尚未做出 鲜花女男爵 的早期窗口。\n幽鬼兔要针对已表侧魔法的效果发动。"
+            }
+          ],
+          "note": "如果已经有 鲜花女男爵 的无效保护，单手坑可能先被挡；本例是尚未做出 鲜花女男爵 的早期窗口。\n幽鬼兔要针对已表侧魔法的效果发动。"
+        },
+        {
+          "opponent": 56651978,
+          "action": "在中间主怪兽区召唤成功，从牌组特召耀圣",
+          "timing": "直接连锁中间区登场触发。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "直接连锁中间区登场触发。",
+              "condition": "须直接响应当前可连锁且符合该手坑范围的效果，费用和其他场上限制均须满足。",
+              "expected": "延后1星调整入场，防止直接调等级后做10星同调保护。",
+              "note": "耀圣之风诗 蕾吉娜 不在中间主怪兽区登场则无此触发；不能把所有 耀圣之风诗 蕾吉娜 登场都视作牌组特召。\n手牌已有 耀圣诗之狱神精 或独立 Kewl Tune 起动可构成补点。"
+            },
+            {
+              "cards": [
+                10045474
+              ],
+              "mode": "alternative",
+              "method": "取仍在对方场上表侧的耀圣之风诗 蕾吉娜为对象无效。",
+              "condition": "手发须自己场上无卡；盖放发动须满足陷阱规则。目标仍须是对方场上表侧怪兽。",
+              "expected": "延后1星调整入场，防止直接调等级后做10星同调保护。",
+              "note": "耀圣之风诗 蕾吉娜 不在中间主怪兽区登场则无此触发；不能把所有 耀圣之风诗 蕾吉娜 登场都视作牌组特召。\n手牌已有 耀圣诗之狱神精 或独立 Kewl Tune 起动可构成补点。"
+            },
+            {
+              "cards": [
+                97268402
+              ],
+              "mode": "alternative",
+              "method": "取仍在对方场上表侧的耀圣之风诗 蕾吉娜为对象无效。",
+              "condition": "只在对方主要阶段；取对方场上表侧效果怪兽为对象。",
+              "expected": "延后1星调整入场，防止直接调等级后做10星同调保护。",
+              "note": "耀圣之风诗 蕾吉娜 不在中间主怪兽区登场则无此触发；不能把所有 耀圣之风诗 蕾吉娜 登场都视作牌组特召。\n手牌已有 耀圣诗之狱神精 或独立 Kewl Tune 起动可构成补点。"
+            }
+          ],
+          "note": "耀圣之风诗 蕾吉娜 不在中间主怪兽区登场则无此触发；不能把所有 耀圣之风诗 蕾吉娜 登场都视作牌组特召。\n手牌已有 耀圣诗之狱神精 或独立 Kewl Tune 起动可构成补点。"
+        }
+      ],
+      "source_ids": [
+        "mdm-tier-20260920",
+        "mdm-banlist-20260903",
+        "mdm-counters",
+        "md-elfnote-kewl-tune-combo",
+        "card-10045474",
+        "card-12375297",
+        "card-14558127",
+        "card-56651978",
+        "card-59438930",
+        "card-59581480",
+        "card-64491754",
+        "card-97268402",
+        "card-84815190",
+        "card-85976588"
+      ],
+      "step_sources": [
+        [
+          "card-10045474",
+          "card-59581480",
+          "card-97268402",
+          "mdm-counters",
+          "md-elfnote-kewl-tune-combo"
+        ],
+        [
+          "card-14558127",
+          "card-59438930",
+          "card-64491754",
+          "mdm-counters",
+          "md-elfnote-kewl-tune-combo"
+        ],
+        [
+          "card-10045474",
+          "card-14558127",
+          "card-56651978",
+          "card-97268402",
+          "mdm-counters",
+          "md-elfnote-kewl-tune-combo"
+        ]
+      ],
+      "walkthrough": {
+        "premise": "手牌有 耀圣之波诗 狄娜，中间主怪兽区为空；牌组有 耀圣之诗～回乡之平行体～、耀圣之风诗 蕾吉娜、耀圣诗之狱神精、耀圣之月诗 福尔图娜；正常召唤尚未使用。",
+        "sequence": [
+          {
+            "card": 59581480,
+            "action": "耀圣之波诗 狄娜 以自身方式特殊召唤到中间区，发动场上效果放置 耀圣之诗～回乡之平行体～。",
+            "result": "先建立永续魔法；纯放置不吃灰流丽。",
+            "step_index": 0
+          },
+          {
+            "card": 64491754,
+            "action": "耀圣之诗～回乡之平行体～ 送 耀圣之波诗 狄娜 入墓作费用，从牌组特殊召唤不同原本属性的 耀圣之风诗 蕾吉娜 到中间区。",
+            "result": "狄娜已作为费用送墓；特召成功才有蕾吉娜。",
+            "step_index": 1
+          },
+          {
+            "card": 56651978,
+            "action": "耀圣之风诗 蕾吉娜 在中间区登场，发动效果从牌组特殊召唤1星调整 耀圣诗之狱神精。",
+            "result": "得到1星调整，才可继续升星同调。",
+            "step_index": 2
+          },
+          {
+            "card": 12375297,
+            "action": "耀圣诗之狱神精 令中间区 耀圣之风诗 蕾吉娜 升3星至9星；不进行该效果附带的限定同调，效果结算后另作通常的同调召唤，以1+9做 鲜花女男爵。",
+            "result": "先结算升星，再另行正规同调；不能用限定同调直接叫鲜花。",
+            "step_index": null
+          },
+          {
+            "card": 12375297,
+            "action": "两只素材送墓，原文以 耀圣诗之狱神精 检索 耀圣之月诗 福尔图娜、耀圣之风诗 蕾吉娜 回手续航；完整原文更后面经 幻龙星-嘲风 找 杀手级调整曲·提示员。",
+            "result": "保留通常召唤并补回手牌，完整后续仍要依条件继续。",
+            "step_index": null
+          }
+        ],
+        "branches": [
+          {
+            "label": "放行",
+            "body": "保留通常召唤，先建立10星同调保护与耀圣续航，再接入酷音组件。"
+          },
+          {
+            "label": "此处阻抗",
+            "body": "第2步被挡时 耀圣之波诗 狄娜 已付费入墓，只剩 耀圣之诗～回乡之平行体～ 等已知资源，没有本次 耀圣之风诗 蕾吉娜 与调整；第3步被挡则 耀圣之风诗 蕾吉娜 留场但没有从牌组产生调整。"
+          },
+          {
+            "label": "仍有补点",
+            "body": "手里已有另一张耀圣、耀圣诗之狱神精、杀手级调整曲·提示员、杀手级调整曲·旋钮手 或 JJ 可让两套引擎交叉补点。"
+          }
+        ],
+        "conclusion": "耀圣诗之狱神精 的效果内同调仅限耀圣或 调狱神 朱诺拉；不能把 鲜花女男爵 写成这个效果直接同调出的怪兽。本例在升星效果处理后另行正规同调。 本图为公开路线节选或卡文机制例，分支是人工条件推演，尚未逐局通过规则引擎验证。",
+        "source_ids": [
+          "mdm-tier-20260920",
+          "mdm-banlist-20260903",
+          "mdm-counters",
+          "md-elfnote-kewl-tune-combo",
+          "card-10045474",
+          "card-12375297",
+          "card-14558127",
+          "card-56651978",
+          "card-59438930",
+          "card-59581480",
+          "card-64491754",
+          "card-97268402",
+          "card-84815190",
+          "card-85976588"
+        ]
+      }
+    },
+    {
+      "id": "md-elfnote",
+      "topic": "Master Duel · 耀圣（Elfnote）",
+      "title": "耀圣（Elfnote）｜识别、断点与条件推演",
+      "format": "Master Duel",
+      "period": "2026年7—8月月报＋2026-09-20社区榜；路线原文月份另列",
+      "summary": "较早无效卢西娜与等到鲜花女男爵出现后再动手，风险不同。",
+      "recognition": "例图识别卡：耀圣之花诗 卢西娜、耀圣诗之狱神精、耀圣之波诗 狄娜、耀圣之诗～回乡之平行体～。单张通用卡不足以确定整副构筑。",
+      "priorities": "最容易解释的早期窗口是第1步：后面看似还有检索和特召可打，但 鲜花女男爵 已先出场。",
+      "warnings": "已有 耀圣诗之狱神精、耀圣之波诗 狄娜、耀圣之风诗 蕾吉娜、无垢者 米底乌斯 等其他起动时并非必停。\n耀圣之花诗 卢西娜 从手牌特殊召唤的方式本身不开连锁；灰流针对检索效果。\n本例 鲜花女男爵 已在场且无效未用时可保护检索；若 耀圣之风诗 蕾吉娜 等触发排在后面，灰流不能越过它直接应对较早的检索。\n这不是场上升星效果，不能把同一个灰流建议套用升星。\n本例前面已建立 鲜花女男爵，使用前要确认其无效已被消耗或同时有其他交互。\n锁鸟不阻止从牌组直接放置魔陷或直接特召；它只限制继续从主卡组加入手牌。",
+      "metagame": "2026-09-20社区赛事榜：Tier 3，Power 4。基于最新100份社区赛事上位牌表，Power不是胜率或天梯使用率。\n",
+      "steps": [
+        {
+          "opponent": 13597785,
+          "action": "主要阶段检索耀圣怪兽",
+          "timing": "耀圣之花诗 卢西娜 场上发动检索时直接响应，优先在同调保护建立以前。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "耀圣之花诗 卢西娜 场上发动检索时直接响应，优先在同调保护建立以前。",
+              "condition": "须直接响应当前可连锁且符合该手坑范围的效果，费用和其他场上限制均须满足。",
+              "expected": "单卡例依赖它取得1星调整 耀圣诗之狱神精，阻止最早的同调入口。",
+              "note": "已有 耀圣诗之狱神精、耀圣之波诗 狄娜、耀圣之风诗 蕾吉娜、无垢者 米底乌斯 等其他起动时并非必停。\n耀圣之花诗 卢西娜 从手牌特殊召唤的方式本身不开连锁；灰流针对检索效果。"
+            },
+            {
+              "cards": [
+                10045474
+              ],
+              "mode": "alternative",
+              "method": "取仍在对方场上表侧的耀圣之花诗 卢西娜为对象无效。",
+              "condition": "手发须自己场上无卡；盖放发动须满足陷阱规则。目标仍须是对方场上表侧怪兽。",
+              "expected": "单卡例依赖它取得1星调整 耀圣诗之狱神精，阻止最早的同调入口。",
+              "note": "已有 耀圣诗之狱神精、耀圣之波诗 狄娜、耀圣之风诗 蕾吉娜、无垢者 米底乌斯 等其他起动时并非必停。\n耀圣之花诗 卢西娜 从手牌特殊召唤的方式本身不开连锁；灰流针对检索效果。"
+            },
+            {
+              "cards": [
+                97268402
+              ],
+              "mode": "alternative",
+              "method": "取仍在对方场上表侧的耀圣之花诗 卢西娜为对象无效。",
+              "condition": "只在对方主要阶段；取对方场上表侧效果怪兽为对象。",
+              "expected": "单卡例依赖它取得1星调整 耀圣诗之狱神精，阻止最早的同调入口。",
+              "note": "已有 耀圣诗之狱神精、耀圣之波诗 狄娜、耀圣之风诗 蕾吉娜、无垢者 米底乌斯 等其他起动时并非必停。\n耀圣之花诗 卢西娜 从手牌特殊召唤的方式本身不开连锁；灰流针对检索效果。"
+            }
+          ],
+          "note": "已有 耀圣诗之狱神精、耀圣之波诗 狄娜、耀圣之风诗 蕾吉娜、无垢者 米底乌斯 等其他起动时并非必停。\n耀圣之花诗 卢西娜 从手牌特殊召唤的方式本身不开连锁；灰流针对检索效果。"
+        },
+        {
+          "opponent": 12375297,
+          "action": "作为同调素材送墓后的检索",
+          "timing": "直接连锁可响应的送墓检索触发。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "直接连锁可响应的送墓检索触发。",
+              "condition": "须直接响应当前可连锁且符合该手坑范围的效果，费用和其他场上限制均须满足。",
+              "expected": "拦住素材离场后的 耀圣之波诗 狄娜/其他耀圣续航。",
+              "note": "本例 鲜花女男爵 已在场且无效未用时可保护检索；若 耀圣之风诗 蕾吉娜 等触发排在后面，灰流不能越过它直接应对较早的检索。\n这不是场上升星效果，不能把同一个灰流建议套用升星。"
+            }
+          ],
+          "note": "本例 鲜花女男爵 已在场且无效未用时可保护检索；若 耀圣之风诗 蕾吉娜 等触发排在后面，灰流不能越过它直接应对较早的检索。\n这不是场上升星效果，不能把同一个灰流建议套用升星。"
+        },
+        {
+          "opponent": 64491754,
+          "action": "送怪兽换牌组中特定属性的耀圣",
+          "timing": "送墓费用支付后，直接连锁场上已表侧永续魔法的效果。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "送墓费用支付后，直接连锁场上已表侧永续魔法的效果。",
+              "condition": "须直接响应当前可连锁且符合该手坑范围的效果，费用和其他场上限制均须满足。",
+              "expected": "切断另一段从牌组铺场与后续耀圣陷阱准备。",
+              "note": "本例前面已建立 鲜花女男爵，使用前要确认其无效已被消耗或同时有其他交互。\n锁鸟不阻止从牌组直接放置魔陷或直接特召；它只限制继续从主卡组加入手牌。"
+            },
+            {
+              "cards": [
+                59438930
+              ],
+              "mode": "alternative",
+              "method": "送墓费用支付后，直接连锁场上已表侧永续魔法的效果。",
+              "condition": "须响应场上怪兽效果，或已经表侧的魔陷效果；破坏必须成功，不能把破坏当无效。",
+              "expected": "切断另一段从牌组铺场与后续耀圣陷阱准备。",
+              "note": "本例前面已建立 鲜花女男爵，使用前要确认其无效已被消耗或同时有其他交互。\n锁鸟不阻止从牌组直接放置魔陷或直接特召；它只限制继续从主卡组加入手牌。"
+            }
+          ],
+          "note": "本例前面已建立 鲜花女男爵，使用前要确认其无效已被消耗或同时有其他交互。\n锁鸟不阻止从牌组直接放置魔陷或直接特召；它只限制继续从主卡组加入手牌。"
+        }
+      ],
+      "source_ids": [
+        "mdm-tier-20260920",
+        "mdm-banlist-20260903",
+        "mdm-counters",
+        "md-elfnote-combo",
+        "card-10045474",
+        "card-12375297",
+        "card-13597785",
+        "card-14558127",
+        "card-59438930",
+        "card-59581480",
+        "card-64491754",
+        "card-97268402",
+        "card-84815190",
+        "card-56651978"
+      ],
+      "step_sources": [
+        [
+          "card-10045474",
+          "card-13597785",
+          "card-14558127",
+          "card-97268402",
+          "mdm-counters",
+          "md-elfnote-combo"
+        ],
+        [
+          "card-12375297",
+          "card-14558127",
+          "mdm-counters",
+          "md-elfnote-combo"
+        ],
+        [
+          "card-14558127",
+          "card-59438930",
+          "card-64491754",
+          "mdm-counters",
+          "md-elfnote-combo"
+        ]
+      ],
+      "walkthrough": {
+        "premise": "手牌有 耀圣之花诗 卢西娜，中间主怪兽区为空；通常召唤未使用；牌组有 耀圣诗之狱神精、耀圣之波诗 狄娜、耀圣之诗～回乡之平行体～、耀圣之风诗 蕾吉娜。",
+        "sequence": [
+          {
+            "card": 13597785,
+            "action": "特殊召唤 耀圣之花诗 卢西娜 到中间区，发动检索拿 耀圣诗之狱神精。",
+            "result": "取得1星调整；这里还没有鲜花女男爵保护。",
+            "step_index": 0
+          },
+          {
+            "card": 12375297,
+            "action": "通常召唤 耀圣诗之狱神精，效果令 耀圣之花诗 卢西娜 升3星至9星；选择不进行效果内限定同调。",
+            "result": "中央卢西娜变9星，仍需另做正规同调。",
+            "step_index": null
+          },
+          {
+            "card": 12375297,
+            "action": "另作正规同调以1+9召唤 鲜花女男爵；耀圣诗之狱神精 送墓触发检索 耀圣之波诗 狄娜。",
+            "result": "鲜花已经在场，能否交手坑须先看其无效是否可用。",
+            "step_index": 1
+          },
+          {
+            "card": 59581480,
+            "action": "耀圣之波诗 狄娜 特殊召唤到空出的中间区，发动效果从牌组放置 耀圣之诗～回乡之平行体～。",
+            "result": "中央空出并建立永续魔法。",
+            "step_index": null
+          },
+          {
+            "card": 64491754,
+            "action": "耀圣之诗～回乡之平行体～ 送 耀圣之波诗 狄娜 入墓作费用，从牌组把 耀圣之风诗 蕾吉娜 特殊召唤到中间区；后续才展开另一轮资源。",
+            "result": "送墓费用已付；本次特召被断也不会撤销费用。",
+            "step_index": 2
+          }
+        ],
+        "branches": [
+          {
+            "label": "放行",
+            "body": "先建立 鲜花女男爵，再从素材检索取得另一套耀圣起动。"
+          },
+          {
+            "label": "此处阻抗",
+            "body": "第1步无效且无补点，耀圣之花诗 卢西娜 自身留场但缺少检索来的调整；第3/5步才投入单张手坑可能先被 鲜花女男爵 无效。"
+          },
+          {
+            "label": "仍有补点",
+            "body": "已有调整或其他耀圣可以补开；能否继续需查看真实手牌。"
+          }
+        ],
+        "conclusion": "耀圣之波诗 狄娜 放置魔法不是灰流窗口；耀圣诗之狱神精 升星后的 鲜花女男爵 是另行通常同调。 本图为公开路线节选或卡文机制例，分支是人工条件推演，尚未逐局通过规则引擎验证。",
+        "source_ids": [
+          "mdm-tier-20260920",
+          "mdm-banlist-20260903",
+          "mdm-counters",
+          "md-elfnote-combo",
+          "card-10045474",
+          "card-12375297",
+          "card-13597785",
+          "card-14558127",
+          "card-59438930",
+          "card-59581480",
+          "card-64491754",
+          "card-97268402",
+          "card-84815190",
+          "card-56651978"
+        ]
+      }
+    },
+    {
+      "id": "md-blue-eyes",
+      "topic": "Master Duel · 青眼（Blue-Eyes）",
+      "title": "青眼（Blue-Eyes）｜识别、断点与条件推演",
+      "format": "Master Duel",
+      "period": "2026年7—8月月报＋2026-09-20社区榜；路线原文月份另列",
+      "summary": "检索、直接放置和盖放须分清；已表侧真之光的效果是幽鬼兔的重要窗口。",
+      "recognition": "例图识别卡：青色眼睛的贤士、白色少女、真正之光、青色眼睛的祈祷。单张通用卡不足以确定整副构筑。",
+      "priorities": "第1步可卡 白色少女 的取得；若已放行，在第3步真之光的场上效果是幽鬼兔窗口。",
+      "warnings": "本来持有 白色少女/青色眼睛的祈祷 等可绕开；青色眼睛的贤士 的手牌弃卡效果是另一种效果与代价。\n白色少女 从牌组直接放置 真正之光、真正之光 直接盖牌仍不被锁鸟阻止；不可说整套立刻停止。\n不能在任意新陷阱卡发动时无条件用幽鬼兔；要求已经表侧的魔陷发动效果。\n白色少女 的放置真之光效果不能因“从牌组放置”被灰流；墓地/场上其他资源仍可能续航。",
+      "metagame": "2026-09-20社区赛事榜：Tier 3，Power 4。基于最新100份社区赛事上位牌表，Power不是胜率或天梯使用率。\n",
+      "steps": [
+        {
+          "opponent": 8240199,
+          "action": "通常召唤时检索1星光属性调整",
+          "timing": "直接连锁 青色眼睛的贤士 通常召唤后的检索触发。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "直接连锁 青色眼睛的贤士 通常召唤后的检索触发。",
+              "condition": "须直接响应当前可连锁且符合该手坑范围的效果，费用和其他场上限制均须满足。",
+              "expected": "压住 白色少女 入口，避免真之光与祈愿继续获得资源。",
+              "note": "本来持有 白色少女/青色眼睛的祈祷 等可绕开；青色眼睛的贤士 的手牌弃卡效果是另一种效果与代价。"
+            },
+            {
+              "cards": [
+                10045474
+              ],
+              "mode": "alternative",
+              "method": "取仍在对方场上表侧的青色眼睛的贤士为对象无效。",
+              "condition": "手发须自己场上无卡；盖放发动须满足陷阱规则。目标仍须是对方场上表侧怪兽。",
+              "expected": "压住 白色少女 入口，避免真之光与祈愿继续获得资源。",
+              "note": "本来持有 白色少女/青色眼睛的祈祷 等可绕开；青色眼睛的贤士 的手牌弃卡效果是另一种效果与代价。"
+            },
+            {
+              "cards": [
+                97268402
+              ],
+              "mode": "alternative",
+              "method": "取仍在对方场上表侧的青色眼睛的贤士为对象无效。",
+              "condition": "只在对方主要阶段；取对方场上表侧效果怪兽为对象。",
+              "expected": "压住 白色少女 入口，避免真之光与祈愿继续获得资源。",
+              "note": "本来持有 白色少女/青色眼睛的祈祷 等可绕开；青色眼睛的贤士 的手牌弃卡效果是另一种效果与代价。"
+            }
+          ],
+          "note": "本来持有 白色少女/青色眼睛的祈祷 等可绕开；青色眼睛的贤士 的手牌弃卡效果是另一种效果与代价。"
+        },
+        {
+          "opponent": 8240199,
+          "action": "第一次检索成功后的锁鸟窗口",
+          "timing": "实际从主卡组加入手牌且连锁结算后发动。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                94145021
+              ],
+              "mode": "alternative",
+              "method": "原连锁处理完、实际卡组加手后，发动小丑与锁鸟。",
+              "condition": "抽卡阶段以外实际从主卡组加入手牌，原连锁处理完后的合法窗口；墓地回手不算。",
+              "expected": "在 青色眼睛的祈祷、青色眼睛的精灵、后续 青色眼睛的贤士 等反复检索前限制当回合加手。",
+              "note": "白色少女 从牌组直接放置 真正之光、真正之光 直接盖牌仍不被锁鸟阻止；不可说整套立刻停止。"
+            }
+          ],
+          "note": "白色少女 从牌组直接放置 真正之光、真正之光 直接盖牌仍不被锁鸟阻止；不可说整套立刻停止。"
+        },
+        {
+          "opponent": 62089826,
+          "action": "已经表侧的真之光发动特殊召唤/盖牌效果",
+          "timing": "真之光已由 白色少女 放到场上，再发动其场上效果时直接连锁幽鬼兔。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                59438930
+              ],
+              "mode": "alternative",
+              "method": "真之光已由 白色少女 放到场上，再发动其场上效果时直接连锁幽鬼兔。",
+              "condition": "须响应场上怪兽效果，或已经表侧的魔陷效果；破坏必须成功，不能把破坏当无效。",
+              "expected": "持续陷阱离场后该效果不能正常处理；表侧真之光从魔陷区送墓还会触发破坏其控制者全部怪兽。",
+              "note": "不能在任意新陷阱卡发动时无条件用幽鬼兔；要求已经表侧的魔陷发动效果。\n白色少女 的放置真之光效果不能因“从牌组放置”被灰流；墓地/场上其他资源仍可能续航。"
+            }
+          ],
+          "note": "不能在任意新陷阱卡发动时无条件用幽鬼兔；要求已经表侧的魔陷发动效果。\n白色少女 的放置真之光效果不能因“从牌组放置”被灰流；墓地/场上其他资源仍可能续航。"
+        }
+      ],
+      "source_ids": [
+        "mdm-tier-20260920",
+        "mdm-banlist-20260903",
+        "mdm-counters",
+        "md-blue-eyes-combo",
+        "card-8240199",
+        "card-10045474",
+        "card-14558127",
+        "card-17947697",
+        "card-59438930",
+        "card-62089826",
+        "card-80326401",
+        "card-94145021",
+        "card-97268402",
+        "card-17725109",
+        "card-42097666",
+        "card-24382602"
+      ],
+      "step_sources": [
+        [
+          "card-8240199",
+          "card-10045474",
+          "card-14558127",
+          "card-97268402",
+          "mdm-counters",
+          "md-blue-eyes-combo"
+        ],
+        [
+          "card-8240199",
+          "card-94145021",
+          "mdm-counters",
+          "md-blue-eyes-combo"
+        ],
+        [
+          "card-59438930",
+          "card-62089826",
+          "mdm-counters",
+          "md-blue-eyes-combo"
+        ]
+      ],
+      "walkthrough": {
+        "premise": "青色眼睛的贤士 与至少1张可供 青色眼睛的祈祷 丢弃的手牌；通常召唤未用；牌组有 白色少女、真正之光、青色眼睛的祈祷。",
+        "sequence": [
+          {
+            "card": 8240199,
+            "action": "通常召唤 青色眼睛的贤士，检索 白色少女。",
+            "result": "拿到白色少女，第一份检索完成。",
+            "step_index": 0
+          },
+          {
+            "card": 17947697,
+            "action": "白色少女 从手牌送墓作费用，把 真正之光 从牌组表侧放到魔陷区。",
+            "result": "墓地已有少女，场上建立真正之光。",
+            "step_index": null
+          },
+          {
+            "card": 62089826,
+            "action": "已经表侧的 真正之光 发动场上效果，从牌组盖放 青色眼睛的祈祷。",
+            "result": "取得可以在此回合发动的通常魔法。",
+            "step_index": 2
+          },
+          {
+            "card": 80326401,
+            "action": "发动 青色眼睛的祈祷，弃1张牌，取得1星光调整 青色眼睛的贤士 与提及青眼白龙的 青眼龙轰临。",
+            "result": "弃牌费用已付，成功才获得两个检索资源。",
+            "step_index": null
+          },
+          {
+            "card": 8240199,
+            "action": "场上第一只 青色眼睛的贤士 连接成 青色眼睛的精灵，登场检索 白色灵堂，准备额外通常召唤与后续龙族展开。",
+            "result": "转换为场地与额外通常召唤入口。",
+            "step_index": null
+          }
+        ],
+        "branches": [
+          {
+            "label": "放行",
+            "body": "单个 青色眼睛的贤士 通过 白色少女 建立持续陷阱、一次双检索和场地入口。"
+          },
+          {
+            "label": "此处阻抗",
+            "body": "若第3步幽鬼兔成功，真之光离场，本次盖放失败，并另起其破坏自身场上怪兽的触发；墓地 白色少女 依然存在。"
+          },
+          {
+            "label": "仍有补点",
+            "body": "手里已有青眼起动可继续；完整原文有应对深渊兽/陨石的分支，不能把本例当成固定终场。"
+          }
+        ],
+        "conclusion": "原文标题称1卡，但中途 青色眼睛的祈祷 需要弃牌；此处把这项真实资源要求写进起手前提。\n未采用公开counter把 白色灵堂 送通常怪兽写成费用的表述：官方卡文中送墓属于效果处理。 本图为公开路线节选或卡文机制例，分支是人工条件推演，尚未逐局通过规则引擎验证。",
+        "source_ids": [
+          "mdm-tier-20260920",
+          "mdm-banlist-20260903",
+          "mdm-counters",
+          "md-blue-eyes-combo",
+          "card-8240199",
+          "card-10045474",
+          "card-14558127",
+          "card-17947697",
+          "card-59438930",
+          "card-62089826",
+          "card-80326401",
+          "card-94145021",
+          "card-97268402",
+          "card-17725109",
+          "card-42097666",
+          "card-24382602"
+        ]
+      }
+    },
+    {
+      "id": "md-yummy",
+      "topic": "Master Duel · 味美喵（Yummy）",
+      "title": "味美喵（Yummy）｜识别、断点与条件推演",
+      "format": "Master Duel",
+      "period": "2026年7—8月月报＋2026-09-20社区榜；路线原文月份另列",
+      "summary": "场地复活被断后，已检索的惊喜仍是明确补点，不能把这条线写成一张手坑必停。",
+      "recognition": "例图识别卡：奶油蛋糕杯猫☆味美喵、味美喵娱乐☆小巧可爱箱庭、味美喵★点心抓取猫、奶油蛋糕杯猫★味美喵奖品。单张通用卡不足以确定整副构筑。",
+      "priorities": "第2/3步是把一只连接怪扩成两素材的入口；但第1步已经得到 味美喵☆惊喜奖品，所以必须同时显示这张明确补点。",
+      "warnings": "放置场地不属于灰流三种范围，不能用灰流。\n对方已有第二只素材，可连锁 味美喵★点心抓取猫 二速同调离场躲取对象无效；即使没有，已检索的 味美喵☆惊喜奖品 也可复活补点。\n必须读清被选择的目标；除外其他墓地卡不能阻止这次复活。\n已有 味美喵☆惊喜奖品 或另一只可自跳小怪仍可提供同调素材。\n用泡影/效遮指同调怪兽时，对方有合法墓地目标可连锁该效果离场；不能把场上取对象无效写成稳定阻止。\n屋敷童需要直接应对此次含墓地特召的效果，不能等该连锁处理完再补。",
+      "metagame": "2026-09-20社区赛事榜：Trending，Power 2。基于最新100份社区赛事上位牌表，Power不是胜率或天梯使用率。\n",
+      "steps": [
+        {
+          "opponent": 30581601,
+          "action": "登场从手牌/牌组把场地表侧放置",
+          "timing": "味美喵★点心抓取猫 登场发动放场地效果时无效；最好在缺少其他同调素材时。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                10045474
+              ],
+              "mode": "alternative",
+              "method": "取仍在对方场上表侧的味美喵★点心抓取猫为对象无效。",
+              "condition": "手发须自己场上无卡；盖放发动须满足陷阱规则。目标仍须是对方场上表侧怪兽。",
+              "expected": "卡住 味美喵娱乐☆小巧可爱箱庭 墓地复活入口，减少第一只2星同调的素材。",
+              "note": "放置场地不属于灰流三种范围，不能用灰流。\n对方已有第二只素材，可连锁 味美喵★点心抓取猫 二速同调离场躲取对象无效；即使没有，已检索的 味美喵☆惊喜奖品 也可复活补点。"
+            },
+            {
+              "cards": [
+                97268402
+              ],
+              "mode": "alternative",
+              "method": "取仍在对方场上表侧的味美喵★点心抓取猫为对象无效。",
+              "condition": "只在对方主要阶段；取对方场上表侧效果怪兽为对象。",
+              "expected": "卡住 味美喵娱乐☆小巧可爱箱庭 墓地复活入口，减少第一只2星同调的素材。",
+              "note": "放置场地不属于灰流三种范围，不能用灰流。\n对方已有第二只素材，可连锁 味美喵★点心抓取猫 二速同调离场躲取对象无效；即使没有，已检索的 味美喵☆惊喜奖品 也可复活补点。"
+            }
+          ],
+          "note": "放置场地不属于灰流三种范围，不能用灰流。\n对方已有第二只素材，可连锁 味美喵★点心抓取猫 二速同调离场躲取对象无效；即使没有，已检索的 味美喵☆惊喜奖品 也可复活补点。"
+        },
+        {
+          "opponent": 66975205,
+          "action": "有Link-1时以墓地1星味美喵为对象复活",
+          "timing": "味美喵娱乐☆小巧可爱箱庭 指定墓地目标并发动效果后直接连锁；乌鸦除外被选中的那一只。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                73642296
+              ],
+              "mode": "alternative",
+              "method": "味美喵娱乐☆小巧可爱箱庭 指定墓地目标并发动效果后直接连锁；乌鸦除外被选中的那一只。",
+              "condition": "须直接响应当前可连锁且符合该手坑范围的效果，费用和其他场上限制均须满足。",
+              "expected": "让这次指定复活失败或使场地离场，减少通往2星同调的第二个身体。",
+              "note": "必须读清被选择的目标；除外其他墓地卡不能阻止这次复活。\n已有 味美喵☆惊喜奖品 或另一只可自跳小怪仍可提供同调素材。"
+            },
+            {
+              "cards": [
+                24508238
+              ],
+              "mode": "alternative",
+              "method": "味美喵娱乐☆小巧可爱箱庭 指定墓地目标并发动效果后直接连锁；乌鸦除外被选中的那一只。",
+              "condition": "把自身从手牌丢弃去墓地，并选择对方墓地中确实要被处理的那张卡；它必须仍是合法目标。",
+              "expected": "让这次指定复活失败或使场地离场，减少通往2星同调的第二个身体。",
+              "note": "必须读清被选择的目标；除外其他墓地卡不能阻止这次复活。\n已有 味美喵☆惊喜奖品 或另一只可自跳小怪仍可提供同调素材。"
+            },
+            {
+              "cards": [
+                59438930
+              ],
+              "mode": "alternative",
+              "method": "味美喵娱乐☆小巧可爱箱庭 指定墓地目标并发动效果后直接连锁；乌鸦除外被选中的那一只。",
+              "condition": "须响应场上怪兽效果，或已经表侧的魔陷效果；破坏必须成功，不能把破坏当无效。",
+              "expected": "让这次指定复活失败或使场地离场，减少通往2星同调的第二个身体。",
+              "note": "必须读清被选择的目标；除外其他墓地卡不能阻止这次复活。\n已有 味美喵☆惊喜奖品 或另一只可自跳小怪仍可提供同调素材。"
+            }
+          ],
+          "note": "必须读清被选择的目标；除外其他墓地卡不能阻止这次复活。\n已有 味美喵☆惊喜奖品 或另一只可自跳小怪仍可提供同调素材。"
+        },
+        {
+          "opponent": 31603289,
+          "action": "对方发动卡/效果时，回额外作费用后从墓地特召最多2只味美喵",
+          "timing": "对方发动该二速复活效果后直接连锁屋敷童。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                73642296
+              ],
+              "mode": "alternative",
+              "method": "对方发动该二速复活效果后直接连锁屋敷童。",
+              "condition": "须直接响应当前可连锁且符合该手坑范围的效果，费用和其他场上限制均须满足。",
+              "expected": "它已为费用回到额外，屋敷童再无效这次复活，令暂离的同调体不能在此链换回两只小怪。",
+              "note": "用泡影/效遮指同调怪兽时，对方有合法墓地目标可连锁该效果离场；不能把场上取对象无效写成稳定阻止。\n屋敷童需要直接应对此次含墓地特召的效果，不能等该连锁处理完再补。"
+            }
+          ],
+          "note": "用泡影/效遮指同调怪兽时，对方有合法墓地目标可连锁该效果离场；不能把场上取对象无效写成稳定阻止。\n屋敷童需要直接应对此次含墓地特召的效果，不能等该连锁处理完再补。"
+        }
+      ],
+      "source_ids": [
+        "mdm-tier-20260920",
+        "mdm-banlist-20260903",
+        "mdm-counters",
+        "md-yummy-combo",
+        "card-10045474",
+        "card-24508238",
+        "card-30581601",
+        "card-31425736",
+        "card-31603289",
+        "card-59438930",
+        "card-66975205",
+        "card-73642296",
+        "card-97268402",
+        "card-29369059",
+        "card-10966439",
+        "card-68810435"
+      ],
+      "step_sources": [
+        [
+          "card-10045474",
+          "card-30581601",
+          "card-97268402",
+          "mdm-counters",
+          "md-yummy-combo"
+        ],
+        [
+          "card-24508238",
+          "card-59438930",
+          "card-66975205",
+          "card-73642296",
+          "mdm-counters",
+          "md-yummy-combo"
+        ],
+        [
+          "card-31603289",
+          "card-73642296",
+          "mdm-counters",
+          "md-yummy-combo"
+        ]
+      ],
+      "walkthrough": {
+        "premise": "手牌有 奶油蛋糕杯猫☆味美喵，通常召唤未使用；牌组有 味美喵☆惊喜奖品/味美喵娱乐☆小巧可爱箱庭，额外有 味美喵★点心抓取猫/奶油蛋糕杯猫★味美喵奖品。",
+        "sequence": [
+          {
+            "card": 31425736,
+            "action": "通常召唤 奶油蛋糕杯猫☆味美喵，发动登场检索取得 味美喵☆惊喜奖品。",
+            "result": "惊喜已经在手，是之后明确的补点。",
+            "step_index": null
+          },
+          {
+            "card": 31425736,
+            "action": "奶油蛋糕杯猫☆味美喵 连接成 味美喵★点心抓取猫；味美喵★点心抓取猫 发动登场效果把 味美喵娱乐☆小巧可爱箱庭 从牌组表侧放到场上。",
+            "result": "小怪入墓、连接怪在场，场地建立。",
+            "step_index": 0
+          },
+          {
+            "card": 66975205,
+            "action": "因场上有Link-1，味美喵娱乐☆小巧可爱箱庭 以墓地 奶油蛋糕杯猫☆味美喵 为对象发动复活。",
+            "result": "复活通过才有第二个身体。",
+            "step_index": 1
+          },
+          {
+            "card": 30581601,
+            "action": "以Link-1在这次同调中视作1星调整，加1星奶油蛋糕杯猫☆味美喵，同调出 奶油蛋糕杯猫★味美喵奖品。",
+            "result": "利用味美喵同调的素材处理方式召唤同调体。",
+            "step_index": null
+          },
+          {
+            "card": 31603289,
+            "action": "同调体发动检索两只本家怪兽后弃1张，原文取得 棉花糖猫☆味美喵 与 曲奇饼猫☆味美喵/棒棒糖猫☆味美喵 作为后续分支。",
+            "result": "检索后仍需弃牌，取得的怪兽决定之后分支。",
+            "step_index": null
+          }
+        ],
+        "branches": [
+          {
+            "label": "放行",
+            "body": "首只小怪经连接入墓，又由场地复活，形成2星同调并取得两只后续怪兽。"
+          },
+          {
+            "label": "此处阻抗",
+            "body": "若 味美喵娱乐☆小巧可爱箱庭 复活被阻止，味美喵★点心抓取猫 通常留场、奶油蛋糕杯猫☆味美喵未被它复活；没有其他资源才缺第二素材。"
+          },
+          {
+            "label": "仍有补点",
+            "body": "本例手里已明确有 味美喵☆惊喜奖品，可从墓地再叫 奶油蛋糕杯猫☆味美喵 继续正规同调；因此任何单一无效都不能直接标“一灰停”。"
+          }
+        ],
+        "conclusion": "当前仅为9/20 Trending，不能因为过去表现强把它继续写成当月Tier1。 本图为公开路线节选或卡文机制例，分支是人工条件推演，尚未逐局通过规则引擎验证。",
+        "source_ids": [
+          "mdm-tier-20260920",
+          "mdm-banlist-20260903",
+          "mdm-counters",
+          "md-yummy-combo",
+          "card-10045474",
+          "card-24508238",
+          "card-30581601",
+          "card-31425736",
+          "card-31603289",
+          "card-59438930",
+          "card-66975205",
+          "card-73642296",
+          "card-97268402",
+          "card-29369059",
+          "card-10966439",
+          "card-68810435"
+        ]
+      }
+    },
+    {
+      "id": "md-maliss",
+      "topic": "Master Duel · 码丽丝（Maliss）",
+      "title": "码丽丝（Maliss）｜识别、断点与条件推演",
+      "format": "Master Duel",
+      "period": "2026年7—8月月报＋2026-09-20社区榜；路线原文月份另列",
+      "summary": "睡鼠除外与白兔盖陷阱都不是灰流丽点；留意真正包含卡组特召的陷阱。",
+      "recognition": "例图识别卡：码丽丝<兵卒>睡鼠、码丽丝<兵卒>白兔、码丽丝<代码>TB-11。单张通用卡不足以确定整副构筑。",
+      "priorities": "最早的牌组除外本身不吃灰流；灰流要留给真正包含牌组特召的 TB-11 等效果。",
+      "warnings": "圣枪只在对方回合发动且影响双方；不能当自己回合的万能牌。\n常规电子界补点/不依赖除外的额外路线仍需按真实手牌评估。\n直接从牌组除外不属于灰流范围；白兔从牌组盖陷阱也不是灰流范围。\n已持有 码丽丝梦游地下界、码丽丝〈兵〉三月兔 或其他电子界补点，仍可能继续；取对象无效也要防被另一个本家效果提前移走目标。\n当回合盖放后发动所除外的本家怪兽已先处理，灰流不会把它退回场上。\n若为开卡除外了睡鼠，睡鼠仍可在后续连锁触发回场；所以挡TB-11不等于场上清空。",
+      "metagame": "2026-09-20社区赛事榜：Trending，Power 1。基于最新100份社区赛事上位牌表，Power不是胜率或天梯使用率。\n",
+      "steps": [
+        {
+          "opponent": 32061192,
+          "action": "从牌组除外本家怪兽的起动效果",
+          "timing": "对方回合，睡鼠通常召唤后或直接连锁它的除外效果，在其结算前发动古遗物-圣枪。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                34267821
+              ],
+              "mode": "alternative",
+              "method": "对方回合，睡鼠通常召唤后或直接连锁它的除外效果，在其结算前发动古遗物-圣枪。",
+              "condition": "只在对方回合发动，解放手牌／场上的自身，本回合双方均不能除外。",
+              "expected": "本回合阻止双方除外，切断睡鼠的牌组除外与被除外小怪的特殊召唤入口，并限制当回合新盖陷阱的除外开卡方式。",
+              "note": "圣枪只在对方回合发动且影响双方；不能当自己回合的万能牌。\n常规电子界补点/不依赖除外的额外路线仍需按真实手牌评估。"
+            }
+          ],
+          "note": "圣枪只在对方回合发动且影响双方；不能当自己回合的万能牌。\n常规电子界补点/不依赖除外的额外路线仍需按真实手牌评估。"
+        },
+        {
+          "opponent": 32061192,
+          "action": "场上从牌组除外怪兽的效果",
+          "timing": "在睡鼠启动牌组除外效果时场上无效，或其通常召唤后的窗口。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                10045474
+              ],
+              "mode": "alternative",
+              "method": "取仍在对方场上表侧的码丽丝<兵卒>睡鼠为对象无效。",
+              "condition": "手发须自己场上无卡；盖放发动须满足陷阱规则。目标仍须是对方场上表侧怪兽。",
+              "expected": "阻止白兔经除外再跳出与盖TB-11，降低单卡衍生资源。",
+              "note": "直接从牌组除外不属于灰流范围；白兔从牌组盖陷阱也不是灰流范围。\n已持有 码丽丝梦游地下界、码丽丝〈兵〉三月兔 或其他电子界补点，仍可能继续；取对象无效也要防被另一个本家效果提前移走目标。"
+            },
+            {
+              "cards": [
+                97268402
+              ],
+              "mode": "alternative",
+              "method": "取仍在对方场上表侧的码丽丝<兵卒>睡鼠为对象无效。",
+              "condition": "只在对方主要阶段；取对方场上表侧效果怪兽为对象。",
+              "expected": "阻止白兔经除外再跳出与盖TB-11，降低单卡衍生资源。",
+              "note": "直接从牌组除外不属于灰流范围；白兔从牌组盖陷阱也不是灰流范围。\n已持有 码丽丝梦游地下界、码丽丝〈兵〉三月兔 或其他电子界补点，仍可能继续；取对象无效也要防被另一个本家效果提前移走目标。"
+            }
+          ],
+          "note": "直接从牌组除外不属于灰流范围；白兔从牌组盖陷阱也不是灰流范围。\n已持有 码丽丝梦游地下界、码丽丝〈兵〉三月兔 或其他电子界补点，仍可能继续；取对象无效也要防被另一个本家效果提前移走目标。"
+        },
+        {
+          "opponent": 57111661,
+          "action": "从牌组特召本家怪兽，或满足条件时从额外特召",
+          "timing": "直接连锁 TB-11 的卡片发动。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "直接连锁 TB-11 的卡片发动。",
+              "condition": "须直接响应当前可连锁且符合该手坑范围的效果，费用和其他场上限制均须满足。",
+              "expected": "截断本次额外身体供给；其文本包含从牌组特殊召唤。",
+              "note": "当回合盖放后发动所除外的本家怪兽已先处理，灰流不会把它退回场上。\n若为开卡除外了睡鼠，睡鼠仍可在后续连锁触发回场；所以挡TB-11不等于场上清空。"
+            }
+          ],
+          "note": "当回合盖放后发动所除外的本家怪兽已先处理，灰流不会把它退回场上。\n若为开卡除外了睡鼠，睡鼠仍可在后续连锁触发回场；所以挡TB-11不等于场上清空。"
+        }
+      ],
+      "source_ids": [
+        "mdm-tier-20260920",
+        "mdm-banlist-20260903",
+        "mdm-counters",
+        "md-maliss-combo",
+        "card-10045474",
+        "card-14558127",
+        "card-32061192",
+        "card-34267821",
+        "card-57111661",
+        "card-69272449",
+        "card-97268402",
+        "card-96676583"
+      ],
+      "step_sources": [
+        [
+          "card-32061192",
+          "card-34267821",
+          "mdm-counters",
+          "md-maliss-combo"
+        ],
+        [
+          "card-10045474",
+          "card-32061192",
+          "card-97268402",
+          "mdm-counters",
+          "md-maliss-combo"
+        ],
+        [
+          "card-14558127",
+          "card-57111661",
+          "mdm-counters",
+          "md-maliss-combo"
+        ]
+      ],
+      "walkthrough": {
+        "premise": "手牌有 码丽丝〈兵〉睡鼠，通常召唤未使用；牌组有 码丽丝〈兵〉白兔、TB-11、码丽丝〈兵〉柴郡猫；完整后续路线还需要1张可弃牌。",
+        "sequence": [
+          {
+            "card": 32061192,
+            "action": "通常召唤睡鼠，发动其起动效果从牌组除外白兔。",
+            "result": "白兔被除外，才有后续回场触发。",
+            "step_index": 0
+          },
+          {
+            "card": 69272449,
+            "action": "白兔在除外状态发动效果，支付300LP特殊召唤自身。",
+            "result": "支付300LP，产生第二个身体。",
+            "step_index": null
+          },
+          {
+            "card": 69272449,
+            "action": "白兔登场发动效果，从牌组盖放 TB-11。",
+            "result": "陷阱被盖好，但当回合发动仍需满足其特殊手续。",
+            "step_index": null
+          },
+          {
+            "card": 57111661,
+            "action": "通过除外场上睡鼠使新盖TB-11能在本回合发动；TB-11从牌组特殊召唤 码丽丝〈兵〉柴郡猫。",
+            "result": "为发动新盖陷阱除外睡鼠；特召效果才是灰流丽范围。",
+            "step_index": 2
+          },
+          {
+            "card": 32061192,
+            "action": "睡鼠在除外状态另起连锁发动回场效果，支付300LP回场；后续进入电子界连接线。",
+            "result": "除外睡鼠可独立回场，灰掉陷阱不自动清空场面。",
+            "step_index": null
+          }
+        ],
+        "branches": [
+          {
+            "label": "放行",
+            "body": "睡鼠除外白兔换来第二只怪兽与陷阱，TB-11又增加一只身体，除外的睡鼠还能回来。"
+          },
+          {
+            "label": "此处阻抗",
+            "body": "第1步无效时白兔未被除外、不会由此自跳或盖陷阱；第4步才灰流时，白兔仍在且已除外睡鼠还能回场，主要少的是 码丽丝〈兵〉柴郡猫 这个身体。"
+          },
+          {
+            "label": "仍有补点",
+            "body": "码丽丝梦游地下界、码丽丝〈兵〉三月兔、备份员@火灵天星 等独立起动；原文完整路线明确标为能绕过灰流/锁鸟，不能宣传单一卡就必停。"
+          }
+        ],
+        "conclusion": "截图/卡图需用实际卡号对应官方名；MDM展示省略尖括号，但正式名称是 Maliss <P>/<C>。 本图为公开路线节选或卡文机制例，分支是人工条件推演，尚未逐局通过规则引擎验证。",
+        "source_ids": [
+          "mdm-tier-20260920",
+          "mdm-banlist-20260903",
+          "mdm-counters",
+          "md-maliss-combo",
+          "card-10045474",
+          "card-14558127",
+          "card-32061192",
+          "card-34267821",
+          "card-57111661",
+          "card-69272449",
+          "card-97268402",
+          "card-96676583"
+        ]
+      }
+    },
+    {
+      "id": "ocg-branded",
+      "topic": "OCG · 烙印（Branded）",
+      "title": "烙印（Branded）｜识别、断点与条件推演",
+      "format": "OCG",
+      "period": "2026年7—8月OCG样本；2026-09-20卡文复核",
+      "summary": "不只等待烙印融合：天底、白龙之落胤、墓地结束阶段资源也是当前路线的关键。",
+      "recognition": "例图识别卡：天底的使徒、白龙之落胤、教导的圣女 艾克莉西娅、灰烬龙 落胤龙。单张通用卡不足以确定整副构筑。",
+      "priorities": "第1步 天底的使徒 是资源集中进入墓地前的窗口；第3步只挡白落胤已经无法撤回 吞食圣痕之龙 的送墓。",
+      "warnings": "图例来自MD公开攻略，用于解释两环境共有卡片的效果机制；OCG上位证据独立列出，不照搬MD卡池、禁限或投入量。\n其他已送墓的融合怪兽不受影响；手里直接有白落胤、烙印融合等仍有另一起动。\n锁鸟只能在真实从主卡组加入手牌后发动，不能提前连锁 天底的使徒 当检索无效。\n它手牌自跳时送额外是费用，已经入墓的 吞食圣痕之龙 仍可能在结束阶段检索。\n天底的使徒 路线当回合受额外特殊召唤限制，不要把此处分支写成马上同调 艾克莉西娅。\n这用于其他能做出同调 艾克莉西娅 的起手分支，不是已经结算 天底的使徒 的本回合额外召唤。\n破坏不是效果无效；艾克莉西娅 入墓后的另一个回收效果仍需后续评估。",
+      "metagame": "OCG：7月6/141；8月8–17日6/197；8月22–30日6/103。均为上位样本数，不是全体使用率。",
+      "steps": [
+        {
+          "opponent": 1984618,
+          "action": "送额外怪兽入墓，再从牌组/墓地加入教导怪兽或阿不思",
+          "timing": "直接连锁 天底的使徒；它的送额外不是费用。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "直接连锁 天底的使徒；它的送额外不是费用。",
+              "condition": "须直接响应当前可连锁且符合该手坑范围的效果，费用和其他场上限制均须满足。",
+              "expected": "无效这一整段可同时阻止本次额外送墓与后续检索，减少结束阶段的额外资源。",
+              "note": "其他已送墓的融合怪兽不受影响；手里直接有白落胤、烙印融合等仍有另一起动。\n锁鸟只能在真实从主卡组加入手牌后发动，不能提前连锁 天底的使徒 当检索无效。"
+            },
+            {
+              "cards": [
+                73642296
+              ],
+              "mode": "alternative",
+              "method": "直接连锁 天底的使徒；它的送额外不是费用。",
+              "condition": "须直接响应当前可连锁且符合该手坑范围的效果，费用和其他场上限制均须满足。",
+              "expected": "无效这一整段可同时阻止本次额外送墓与后续检索，减少结束阶段的额外资源。",
+              "note": "其他已送墓的融合怪兽不受影响；手里直接有白落胤、烙印融合等仍有另一起动。\n锁鸟只能在真实从主卡组加入手牌后发动，不能提前连锁 天底的使徒 当检索无效。"
+            }
+          ],
+          "note": "其他已送墓的融合怪兽不受影响；手里直接有白落胤、烙印融合等仍有另一起动。\n锁鸟只能在真实从主卡组加入手牌后发动，不能提前连锁 天底的使徒 当检索无效。"
+        },
+        {
+          "opponent": 73819701,
+          "action": "登场后的 艾克莉西娅 特殊召唤效果",
+          "timing": "直接连锁登场效果；灰流/屋敷童合法是因为同一个效果包含牌组/墓地特殊召唤。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "直接连锁登场效果；灰流/屋敷童合法是因为同一个效果包含牌组/墓地特殊召唤。",
+              "condition": "须直接响应当前可连锁且符合该手坑范围的效果，费用和其他场上限制均须满足。",
+              "expected": "切断拉 艾克莉西娅 的场上与检索收益。",
+              "note": "它手牌自跳时送额外是费用，已经入墓的 吞食圣痕之龙 仍可能在结束阶段检索。\n天底的使徒 路线当回合受额外特殊召唤限制，不要把此处分支写成马上同调 艾克莉西娅。"
+            },
+            {
+              "cards": [
+                73642296
+              ],
+              "mode": "alternative",
+              "method": "直接连锁登场效果；灰流/屋敷童合法是因为同一个效果包含牌组/墓地特殊召唤。",
+              "condition": "须直接响应当前可连锁且符合该手坑范围的效果，费用和其他场上限制均须满足。",
+              "expected": "切断拉 艾克莉西娅 的场上与检索收益。",
+              "note": "它手牌自跳时送额外是费用，已经入墓的 吞食圣痕之龙 仍可能在结束阶段检索。\n天底的使徒 路线当回合受额外特殊召唤限制，不要把此处分支写成马上同调 艾克莉西娅。"
+            },
+            {
+              "cards": [
+                10045474
+              ],
+              "mode": "alternative",
+              "method": "取仍在对方场上表侧的白龙之落胤为对象无效。",
+              "condition": "手发须自己场上无卡；盖放发动须满足陷阱规则。目标仍须是对方场上表侧怪兽。",
+              "expected": "切断拉 艾克莉西娅 的场上与检索收益。",
+              "note": "它手牌自跳时送额外是费用，已经入墓的 吞食圣痕之龙 仍可能在结束阶段检索。\n天底的使徒 路线当回合受额外特殊召唤限制，不要把此处分支写成马上同调 艾克莉西娅。"
+            }
+          ],
+          "note": "它手牌自跳时送额外是费用，已经入墓的 吞食圣痕之龙 仍可能在结束阶段检索。\n天底的使徒 路线当回合受额外特殊召唤限制，不要把此处分支写成马上同调 艾克莉西娅。"
+        },
+        {
+          "opponent": 78397661,
+          "action": "主要阶段暂时除外自己，再从牌组/墓地拉怪",
+          "timing": "在场上同调 艾克莉西娅 发动此效果时直接连锁幽鬼兔。",
+          "condition": "以实际出现的这一效果为准；图中的起手前提及补点见下方推演。",
+          "responses": [
+            {
+              "cards": [
+                59438930
+              ],
+              "mode": "alternative",
+              "method": "在场上同调 艾克莉西娅 发动此效果时直接连锁幽鬼兔。",
+              "condition": "须响应场上怪兽效果，或已经表侧的魔陷效果；破坏必须成功，不能把破坏当无效。",
+              "expected": "自身除外发生在效果处理；先被幽鬼兔破坏则不能完成“除外自身，且若如此特殊召唤”。",
+              "note": "这用于其他能做出同调 艾克莉西娅 的起手分支，不是已经结算 天底的使徒 的本回合额外召唤。\n破坏不是效果无效；艾克莉西娅 入墓后的另一个回收效果仍需后续评估。"
+            }
+          ],
+          "note": "这用于其他能做出同调 艾克莉西娅 的起手分支，不是已经结算 天底的使徒 的本回合额外召唤。\n破坏不是效果无效；艾克莉西娅 入墓后的另一个回收效果仍需后续评估。"
+        }
+      ],
+      "source_ids": [
+        "mdm-counters",
+        "md-branded-combo",
+        "card-1984618",
+        "card-10045474",
+        "card-14558127",
+        "card-41373230",
+        "card-59438930",
+        "card-60303688",
+        "card-73642296",
+        "card-73819701",
+        "card-78397661",
+        "card-76666602",
+        "card-30271097",
+        "card-45883110",
+        "ocg-july",
+        "ocg-august",
+        "ocg-late-august"
+      ],
+      "step_sources": [
+        [
+          "card-1984618",
+          "card-14558127",
+          "card-73642296",
+          "mdm-counters",
+          "md-branded-combo"
+        ],
+        [
+          "card-10045474",
+          "card-14558127",
+          "card-73642296",
+          "card-73819701",
+          "mdm-counters",
+          "md-branded-combo"
+        ],
+        [
+          "card-59438930",
+          "card-78397661",
+          "mdm-counters",
+          "md-branded-combo"
+        ]
+      ],
+      "walkthrough": {
+        "premise": "手牌有 天底的使徒，牌组与额外保留以下卡；本例只截取主线到第一个结束阶段触发。",
+        "sequence": [
+          {
+            "card": 1984618,
+            "action": "天底的使徒 结算送 灰烬龙 落胤龙 从额外入墓，加入白落胤；白落胤永续视作 阿不思的落胤。",
+            "result": "灰烬龙在墓地，白龙之落胤进手；本回合额外特召受限。",
+            "step_index": 0
+          },
+          {
+            "card": 73819701,
+            "action": "白落胤从手牌发动，送 吞食圣痕之龙 从额外入墓作费用，自身特殊召唤。",
+            "result": "噬教神龙的送墓费用已支付，留下结束阶段资源。",
+            "step_index": null
+          },
+          {
+            "card": 73819701,
+            "action": "白落胤登场效果拉教导 艾克莉西娅；也可按原文另一分支拉 白之圣女 艾克莉西娅。",
+            "result": "取得另一只怪兽及其后续效果；还不能当回合同调。",
+            "step_index": 1
+          },
+          {
+            "card": 60303688,
+            "action": "选教导 艾克莉西娅 分支时，发动登场检索取得 落胤与圣女；这张魔法的规则文本永续视作 Branded 和 吞食圣痕之龙tika 卡。",
+            "result": "得到烙印／教导魔法资源。",
+            "step_index": null
+          },
+          {
+            "card": 41373230,
+            "action": "进入结束阶段，灰烬龙 落胤龙 发动墓地效果，特殊召唤 引导的圣女 奎姆；原文后面继续堆 赫之圣女 卡尔特西娅 和用 吞食圣痕之龙 取得资源。",
+            "result": "结束阶段的墓地资源转成场上圣女，后续仍要逐项处理。",
+            "step_index": null
+          }
+        ],
+        "branches": [
+          {
+            "label": "放行",
+            "body": "至少形成白落胤/教导 艾克莉西娅 与额外融合怪兽的结束阶段资源。"
+          },
+          {
+            "label": "此处阻抗",
+            "body": "挡住第1步不会产生这次 灰烬龙 落胤龙 送墓与白落胤检索；挡第3步则白落胤仍在、吞食圣痕之龙 已入墓，结束阶段可能继续获得牌。"
+          },
+          {
+            "label": "仍有补点",
+            "body": "已有白落胤、其他教导/烙印起动可作为补点。"
+          }
+        ],
+        "conclusion": "落胤与圣女 的官方卡文明确永续视作教导卡，因此可以由教导 艾克莉西娅 检索。\n天底的使徒 处理后本回合不能从额外特殊召唤；本例不会接当回合同调。 本图为公开路线节选或卡文机制例，分支是人工条件推演，尚未逐局通过规则引擎验证。",
+        "source_ids": [
+          "mdm-counters",
+          "md-branded-combo",
+          "card-1984618",
+          "card-10045474",
+          "card-14558127",
+          "card-41373230",
+          "card-59438930",
+          "card-60303688",
+          "card-73642296",
+          "card-73819701",
+          "card-78397661",
+          "card-76666602",
+          "card-30271097",
+          "card-45883110",
+          "ocg-july",
+          "ocg-august",
+          "ocg-late-august"
+        ]
+      }
+    },
+    {
+      "id": "md-vs-k9",
+      "topic": "Master Duel · VS K9（Vanquish Soul K9）",
+      "title": "VS K9（Vanquish Soul K9）｜识别、断点与条件推演",
+      "format": "Master Duel",
+      "period": "2026年8月Rating Duel＋2026-09-20社区榜",
+      "summary": "自己的手牌／墓地怪兽效果可能开启K9特召条件；打断VS入口时，要同时考虑对方是否能转进K9。",
+      "recognition": "赌上你的灵魂！、VS 龙帝 拉赞与K9饭纲／野狼。两套引擎可互补；单见一张K9不能断定完整构筑。",
+      "priorities": "灰流丽能挡赌魂，但也可能让饭纲／野狼满足特召条件。\n饭纲登场堆墓时，泡影不属于手牌怪兽效果，但仍须能合法选对象。\n野狼从墓地特召时，屋敷童或乌鸦可处理这一身体。",
+      "warnings": "野狼作为超量素材会给予不能被对方效果取对象的保护，不能等撕裂者带着它后再直接泡影。撕裂者还可能无效手牌／墓地怪兽效果。VS重型电子人等换人补点可躲针对场上怪兽的无效；不只看当前一个怪兽。",
+      "metagame": "9月20日MDM整副牌组榜Tier 3、Power 3（最新100份社区赛事上位，非胜率）。8月Rating Duel第9名公开为K9 VS，其余未披露名次不能当作0份额。",
+      "steps": [
+        {
+          "opponent": 54562327,
+          "action": "展示手牌属性，从卡组特召同属性异名VS怪兽",
+          "timing": "魔法发动时直接连锁",
+          "condition": "把“挡VS入口”与“是否开启K9条件”一并考虑。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "连锁赌上你的灵魂！",
+              "condition": "该效果从卡组特召。",
+              "expected": "本次不能拉VS；但你的灰流丽属于从手牌发动的怪兽效果，可能开启对方K9特召。",
+              "note": "只有对方实际持有相应K9或已有墓地资源时才有该补点，不能猜其隐藏手牌。"
+            }
+          ],
+          "note": ""
+        },
+        {
+          "opponent": 92248362,
+          "action": "登场后从卡组送墓另一张K9",
+          "timing": "登场堆墓效果发动时",
+          "condition": "饭纲仍在对方场上，且可被取对象。",
+          "responses": [
+            {
+              "cards": [
+                10045474
+              ],
+              "mode": "alternative",
+              "method": "取饭纲为对象无效",
+              "condition": "手发须自己场上无卡；盖放发动须满足陷阱规则。目标仍须是对方场上表侧怪兽。",
+              "expected": "阻止本次把野狼等资源送墓；饭纲自己仍在场。",
+              "note": "若对方本来已有野狼／其他5星，仍可能超量；不保证停牌。"
+            }
+          ],
+          "note": ""
+        },
+        {
+          "opponent": 91025875,
+          "action": "因本回合你已发动手牌／墓地怪兽效果，从墓地特召",
+          "timing": "野狼在墓地发动快速效果后、处理前",
+          "condition": "先确认野狼的发动位置确实为墓地。",
+          "responses": [
+            {
+              "cards": [
+                73642296
+              ],
+              "mode": "alternative",
+              "method": "直接连锁野狼特召",
+              "condition": "该效果含墓地特召且当前可直接响应。",
+              "expected": "无效这次发动，减少一个5星身体。",
+              "note": ""
+            },
+            {
+              "cards": [
+                24508238
+              ],
+              "mode": "alternative",
+              "method": "连锁除外墓地野狼",
+              "condition": "准确选中仍在墓地的野狼。",
+              "expected": "野狼离开该次特召的来源区域，不能由这个效果从墓地出场。",
+              "note": "不是无效它；其他身体仍可继续。"
+            }
+          ],
+          "note": ""
+        }
+      ],
+      "source_ids": [
+        "mdm-tier-20260920",
+        "rotk-md56",
+        "mdm-banlist-20260903",
+        "md-vs-k9-combo",
+        "card-10045474",
+        "card-14558127",
+        "card-24508238",
+        "card-27420823",
+        "card-29302858",
+        "card-54562327",
+        "card-73642296",
+        "card-91025875",
+        "card-92248362",
+        "card-92895501"
+      ],
+      "step_sources": [
+        [
+          "card-14558127",
+          "card-29302858",
+          "card-54562327",
+          "card-91025875",
+          "card-92248362",
+          "card-92895501",
+          "md-vs-k9-combo"
+        ],
+        [
+          "card-10045474",
+          "card-92248362",
+          "md-vs-k9-combo"
+        ],
+        [
+          "card-24508238",
+          "card-27420823",
+          "card-73642296",
+          "card-91025875",
+          "md-vs-k9-combo"
+        ]
+      ],
+      "walkthrough": {
+        "premise": "公开路线的条件分支：对方手中有赌魂、饭纲和可展示的炎属性怪兽；你已用灰流丽打赌魂，且没有其他阻止K9发动的限制。不是劝你必须先交灰流丽。",
+        "sequence": [
+          {
+            "card": 54562327,
+            "action": "对方发动赌魂，你连锁灰流丽",
+            "result": "赌魂被无效；本回合你发动过手牌怪兽效果。",
+            "step_index": 0
+          },
+          {
+            "card": 92248362,
+            "action": "饭纲从手牌特召并发动堆墓",
+            "result": "准备把野狼从卡组送墓。",
+            "step_index": 1
+          },
+          {
+            "card": 91025875,
+            "action": "野狼从墓地发动特召",
+            "result": "同一“你用过手牌怪效”的条件继续被利用。",
+            "step_index": 2
+          },
+          {
+            "card": 27420823,
+            "action": "两只5星超量撕裂者",
+            "result": "野狼素材给予不能被对方取对象的保护。",
+            "step_index": null
+          },
+          {
+            "card": 27420823,
+            "action": "去除饭纲素材发动检索",
+            "result": "野狼还在素材中；撕裂者仍可能用另一素材无效手牌／墓地怪效。",
+            "step_index": null
+          }
+        ],
+        "branches": [
+          {
+            "label": "只挡赌魂后放行",
+            "body": "VS卡组特召被拦，却可能换出K9超量体；不能把首张灰流丽当成整回合已停。"
+          },
+          {
+            "label": "图第2步再用泡影",
+            "body": "若饭纲堆墓被压住且没有其他5星补点，本图没有由它送墓的野狼，第三步不能照做。"
+          },
+          {
+            "label": "仍有补点",
+            "body": "其他手牌K9、VS起手或已有墓地野狼会改变后续。读到对方公开信息后再判断。"
+          }
+        ],
+        "conclusion": "本例的目的在于说明手坑本身如何改变对方的发动条件。 本图为公开路线节选或卡文机制例，分支是人工条件推演，尚未逐局通过规则引擎验证。",
+        "source_ids": [
+          "mdm-tier-20260920",
+          "rotk-md56",
+          "mdm-banlist-20260903",
+          "md-vs-k9-combo",
+          "card-10045474",
+          "card-14558127",
+          "card-24508238",
+          "card-27420823",
+          "card-29302858",
+          "card-54562327",
+          "card-73642296",
+          "card-91025875",
+          "card-92248362",
+          "card-92895501"
+        ]
+      }
+    },
+    {
+      "id": "md-resonators",
+      "topic": "Master Duel · 共鸣者／红莲魔（Resonators）",
+      "title": "共鸣者／红莲魔（Resonators）｜识别、断点与条件推演",
+      "format": "Master Duel",
+      "period": "2026-09-20社区榜；2026-09-04公开路线",
+      "summary": "先看堆墓与升星是否通过，再看永续检索；同调体和素材同链时，必须分清真正能响应的效果。",
+      "recognition": "白骨恶魔、视界共鸣者、深红狱大地、暗冥共鸣者与红莲王者。9月新路线不能只按旧红莲升龙单点记忆。",
+      "priorities": "白骨恶魔的卡组送墓属于效果处理，可用灰流丽一起切断送墓和升星。\n已表侧深红狱大地发动检索时可幽鬼兔，先查破坏保护。\n红莲升龙复活时，可针对实际墓地目标用乌鸦；屋敷童须能直接响应。",
+      "warnings": "白骨恶魔的自身特召送墓是费用，但其升降等级效果的送调整去墓地是效果处理，两项不要混淆。灵魂共鸣者在墓地且场上有对应同调时可代替破坏。素材同调克隆共鸣者在CL2回收时，屋敷童不能跨过它只无效CL1升龙复活。",
+      "metagame": "9月20日MDM整副牌组榜Tier 3、Power 3；这是最新100份社区赛事上位表现分，不是天梯占比。例图来源发表于9月4日。",
+      "steps": [
+        {
+          "opponent": 25784595,
+          "action": "选择有等级怪兽，从手牌／卡组送恶魔族调整去墓地并升降1星",
+          "timing": "升降等级效果发动时",
+          "condition": "确认发动的是送调整并改等级这一项，不是自身特召。",
+          "responses": [
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "直接连锁白骨恶魔的改等级效果",
+              "condition": "效果包含从主卡组送墓。",
+              "expected": "阻止本次调整送墓及升降星，视界不会由这次处理触发检索。",
+              "note": ""
+            },
+            {
+              "cards": [
+                10045474
+              ],
+              "mode": "alternative",
+              "method": "无效场上白骨恶魔",
+              "condition": "手发须自己场上无卡；盖放发动须满足陷阱规则。目标仍须是对方场上表侧怪兽。",
+              "expected": "目标留场时压住本次送墓与改等级。",
+              "note": ""
+            }
+          ],
+          "note": ""
+        },
+        {
+          "opponent": 98173209,
+          "action": "从卡组／墓地取得红莲魔相关卡",
+          "timing": "已经表侧的永续魔法发动检索时",
+          "condition": "确认没有灵魂共鸣者等代替破坏。",
+          "responses": [
+            {
+              "cards": [
+                59438930
+              ],
+              "mode": "alternative",
+              "method": "连锁破坏深红狱大地",
+              "condition": "已表侧魔法效果发动，且破坏真正成功。",
+              "expected": "永续魔法离场，本次检索不能正常适用，持续资源入口也被移除。",
+              "note": ""
+            },
+            {
+              "cards": [
+                14558127
+              ],
+              "mode": "alternative",
+              "method": "只无效这次检索",
+              "condition": "含卡组加手且当前能直接连锁。",
+              "expected": "本次少拿暗冥等卡，但永续魔法仍在。",
+              "note": ""
+            }
+          ],
+          "note": ""
+        },
+        {
+          "opponent": 66141736,
+          "action": "同调出场后以墓地共鸣者为对象复活",
+          "timing": "复活目标已选定，处理前",
+          "condition": "先读连锁：素材回收可能排在较高连锁。",
+          "responses": [
+            {
+              "cards": [
+                24508238
+              ],
+              "mode": "alternative",
+              "method": "除外被升龙选中的共鸣者",
+              "condition": "目标仍在对方墓地；可在整个触发链建立后响应。",
+              "expected": "升龙失去原复活目标；素材另一项回收效果并不会因此被一并无效。",
+              "note": ""
+            },
+            {
+              "cards": [
+                73642296
+              ],
+              "mode": "alternative",
+              "method": "直接响应升龙复活",
+              "condition": "只有升龙是当前能直接响应的效果；不能越过CL2去无效CL1。",
+              "expected": "无效升龙的这次发动；若直接链到素材回收，处理的是另一项效果。",
+              "note": ""
+            }
+          ],
+          "note": ""
+        }
+      ],
+      "source_ids": [
+        "mdm-tier-20260920",
+        "mdm-banlist-20260903",
+        "md-resonator-combo",
+        "card-10045474",
+        "card-14558127",
+        "card-19434243",
+        "card-24508238",
+        "card-25784595",
+        "card-59438930",
+        "card-62991792",
+        "card-66141736",
+        "card-67809530",
+        "card-73642296",
+        "card-77360173",
+        "card-83445539",
+        "card-98173209",
+        "card-98396890"
+      ],
+      "step_sources": [
+        [
+          "card-10045474",
+          "card-14558127",
+          "card-25784595",
+          "md-resonator-combo"
+        ],
+        [
+          "card-14558127",
+          "card-59438930",
+          "card-62991792",
+          "card-98173209",
+          "md-resonator-combo"
+        ],
+        [
+          "card-24508238",
+          "card-66141736",
+          "card-73642296",
+          "card-77360173",
+          "md-resonator-combo"
+        ]
+      ],
+      "walkthrough": {
+        "premise": "9月公开路线前段：手中有白骨恶魔，通常召唤未用，卡组保留所列调整及检索卡，额外可用；本图只到第一次升龙。",
+        "sequence": [
+          {
+            "card": 25784595,
+            "action": "通常召唤；选自己，送视界并升到5星",
+            "result": "视界送墓才会另行触发检索。",
+            "step_index": 0
+          },
+          {
+            "card": 98396890,
+            "action": "墓地触发取得深红狱大地",
+            "result": "得到永续检索入口。",
+            "step_index": null
+          },
+          {
+            "card": 98173209,
+            "action": "发动后使用检索效果取得暗冥",
+            "result": "得到3星调整。",
+            "step_index": 1
+          },
+          {
+            "card": 83445539,
+            "action": "展示额外红莲魔后特召",
+            "result": "获得额外一次共鸣者通常召唤。",
+            "step_index": null
+          },
+          {
+            "card": 67809530,
+            "action": "5＋3同调红莲王者，出场检索强力恶龙",
+            "result": "暗属性同调在场，使强力恶龙可特召。",
+            "step_index": null
+          },
+          {
+            "card": 19434243,
+            "action": "特召强力恶龙，检索灵魂并额外通常召唤它",
+            "result": "灵魂再检索同调克隆；同调克隆可因同调怪兽在场而特召。",
+            "step_index": null
+          },
+          {
+            "card": 66141736,
+            "action": "强力恶龙5＋同调克隆1同调升龙",
+            "result": "升龙复活CL1与素材回收CL2分别处理，乌鸦应选升龙真正的复活目标。",
+            "step_index": 2
+          }
+        ],
+        "branches": [
+          {
+            "label": "放行",
+            "body": "一只白骨恶魔将送墓、升星、检索、额外通常召唤接成多段同调资源。"
+          },
+          {
+            "label": "图第1步交灰流丽",
+            "body": "若无别的调整／检索起手，本次视界不会送墓，白骨不升星，后续不能照这张图进行。"
+          },
+          {
+            "label": "较晚才拦升龙",
+            "body": "红莲王者和灵魂等资源已经形成，且素材回收可同链发生，不能把拦一次复活写成清空对方终场。"
+          }
+        ],
+        "conclusion": "明确区分早断入口与晚断一次续航的收益。 本图为公开路线节选或卡文机制例，分支是人工条件推演，尚未逐局通过规则引擎验证。",
+        "source_ids": [
+          "mdm-tier-20260920",
+          "mdm-banlist-20260903",
+          "md-resonator-combo",
+          "card-10045474",
+          "card-14558127",
+          "card-19434243",
+          "card-24508238",
+          "card-25784595",
+          "card-59438930",
+          "card-62991792",
+          "card-66141736",
+          "card-67809530",
+          "card-73642296",
+          "card-77360173",
+          "card-83445539",
+          "card-98173209",
+          "card-98396890"
+        ]
+      }
+    }
+  ]
+}

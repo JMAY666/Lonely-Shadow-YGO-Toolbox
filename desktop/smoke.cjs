@@ -204,6 +204,13 @@ async function activatePot(sid) {
 (async () => {
   await launch(true);
   if(onlyIntelligence){
+    if(process.argv.includes('--matchups-only')){
+      await require('./intelligence-matchups-smoke.cjs')({page,application,evidence,pass});
+      const before=await page.evaluate(()=>api('/api/intelligence'));
+      await close();await launch();assert.deepEqual(await page.evaluate(()=>api('/api/intelligence')),before);
+      pass('Illustrated matchup records, sources and personal edits survive a full application restart');
+      await close();assert.deepEqual(errors,[]);fs.writeFileSync(path.join(evidence,'matchups-result.json'),JSON.stringify({checks,errors,globalInput:false},null,2));return;
+    }
     if(process.argv.includes('--staples-only')){
       await require('./intelligence-staples-smoke.cjs')({page,application,evidence,pass});
       const before=await page.evaluate(()=>api('/api/intelligence'));

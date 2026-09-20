@@ -1162,6 +1162,7 @@ class Handler(BaseHTTPRequestHandler):
                 files.update({'/deck-tags.js': 'deck-tags.js', '/deck-tags.css': 'deck-tags.css', '/theme.css': 'theme.css'})
                 files['/scrollbars.css'] = 'scrollbars.css'
                 files.update({'/intelligence.js': 'intelligence.js', '/intelligence.css': 'intelligence.css'})
+                files.update({f'/{name}': name for name in ('intelligence-matchups.js', 'intelligence-matchups.css')})
                 for art in ('first', 'second', 'bo1', 'bo3', 'manual', 'automatic', 'ygopro', 'ygopro2', 'mdpro3', 'masterduel'):
                     files[f'/brand/duel-{art}.svg'] = f'brand/duel-{art}.svg'
                 for name in ('duel.js', 'duel-smart.js', 'duel-automatic.js', 'duel-order.js', 'duel-opening.js', 'duel-automatic.css', 'duel-forecast.js', 'duel-model.js', 'tutorial-bindings.js', 'duel.css', 'deck-tag-view.js', 'deck-appearance.js', 'superpre.js', 'superpre.css'):

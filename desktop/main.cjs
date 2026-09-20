@@ -213,6 +213,10 @@ if (!app.requestSingleInstanceLock()) {
       if (!ready || shuttingDown || event.sender !== mainWindow?.webContents || event.senderFrame !== mainWindow.webContents.mainFrame || new URL(event.senderFrame.url).origin !== ready.url) throw new Error('无效的教程快捷键请求');
     };
     ipcMain.handle('trainer:tutorial-settings', event => {shortcutSender(event);return readTutorialSettings();});
+    ipcMain.handle('trainer:open-reference-link', (event, url) => {
+      shortcutSender(event);
+      return require('./reference-links.cjs').openReference(shell,url);
+    });
     ipcMain.handle('trainer:open-patch-link', (event, url) => {
       shortcutSender(event);
       if(typeof url!=='string'||!(url==='https://mycard.world/ygopro/arena/#/superpre'||/^https:\/\/(?:cdntx|cdncf)\.moecube\.com\/ygopro-super-pre\/archive\/ygopro-super-pre(?:-[\w.-]+)?\.ypk$/.test(url)))throw new Error('补丁链接无效');

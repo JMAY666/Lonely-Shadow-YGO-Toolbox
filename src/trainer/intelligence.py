@@ -103,9 +103,12 @@ class Intelligence:
 
     @staticmethod
     def record_codes(record):
-        return {code for step in record.get('steps', [])
+        codes = {code for step in record.get('steps', [])
                 for code in [step.get('opponent'), *(c for response in step.get('responses', []) for c in response.get('cards', []))]
                 if code is not None}
+        walkthrough = record.get('research', {}).get('walkthrough', {})
+        codes.update(step['card'] for step in walkthrough.get('sequence', []) if step.get('card') is not None)
+        return codes
 
     def check_code(self, code, retained=()):
         if type(code) is not int or not 0 < code < 2**32: raise ValueError('卡牌编号无效')
@@ -188,7 +191,7 @@ class Intelligence:
         if type(value.get('candidate', True)) is not bool: raise ValueError('终场候选标记无效')
         return {**self.annotation(value, previous, trusted), 'candidate': value.get('candidate', True)}
 
-    def validate_record(self, value, knowledge, previous):
+    def validate_record(self, value, knowledge, previous, trusted=False):
         title = text(value.get('title', ''), 120, True)
         topic = value.get('topic_id')
         if topic not in knowledge['topics']: raise ValueError('请选择适用主题')
@@ -199,7 +202,7 @@ class Intelligence:
         for step in steps:
             if not isinstance(step, dict): raise ValueError('断点步骤格式无效')
             opponent = step.get('opponent')
-            if opponent is not None: self.check_code(opponent, retained)
+            if opponent is not None: self.check_code(opponent, [opponent] if trusted else retained)
             responses = step.get('responses', [])
             if not isinstance(responses, list) or len(responses) > 30: raise ValueError('每步最多 30 个应对选项')
             options = []
@@ -207,7 +210,7 @@ class Intelligence:
                 if not isinstance(response, dict): raise ValueError('应对选项格式无效')
                 cards = response.get('cards', [])
                 if not isinstance(cards, list) or len(cards) > 20: raise ValueError('应对卡牌数量无效')
-                for code in cards: self.check_code(code, retained)
+                for code in cards: self.check_code(code, [code] if trusted else retained)
                 mode = response.get('mode', 'alternative')
                 if mode not in ('alternative', 'combination'): raise ValueError('应对方式无效')
                 if len(cards) > 1 and mode != 'combination': raise ValueError('多个不同应对请分别添加选项；多卡配合须选择组合')
@@ -216,7 +219,10 @@ class Intelligence:
             result.append({'opponent': opponent, **{k: text(step.get(k, '')) for k in ('action', 'timing', 'condition', 'note')}, 'responses': options})
         status = '待核对' if all(s['opponent'] and s['action'] and s['timing'] and s['condition'] and s['responses'] and
             all((r['cards'] or r['method']) and r['condition'] and r['expected'] for r in s['responses']) for s in result) else '待补充'
-        return {'title': title, 'topic_id': topic, 'steps': result, 'note': text(value.get('note', '')), 'status': status}
+        record = {'title': title, 'topic_id': topic, 'steps': result, 'note': text(value.get('note', '')), 'status': status}
+        if 'reference_copy' in value or 'reference_copy' in (previous or {}):
+            record['reference_copy'] = text(value.get('reference_copy', (previous or {}).get('reference_copy', '')), 100000)
+        return record
 
     def command(self, body):
         with self.store.lock:
@@ -231,6 +237,11 @@ class Intelligence:
             if op == 'staples.import':
                 from intelligence_staples import import_staples
                 import_result = import_staples(self, document, knowledge)
+                if not import_result['changed']:
+                    return {**self.snapshot(), 'import_result': import_result}
+            elif op == 'matchups.import':
+                from intelligence_matchups import import_matchups
+                import_result = import_matchups(self, document, knowledge)
                 if not import_result['changed']:
                     return {**self.snapshot(), 'import_result': import_result}
             elif op in ('endboard.import', 'endboard.merge-sources'):
@@ -305,15 +316,19 @@ class Intelligence:
                 knowledge['topics'].pop(identifier, None)
             elif op == 'record.save':
                 if identifier is not None and identifier not in knowledge['records']: raise ValueError('断点记录不存在')
-                record = self.validate_record(value, knowledge, knowledge['records'].get(identifier))
+                previous = knowledge['records'].get(identifier)
+                record = self.validate_record(value, knowledge, previous)
+                from intelligence_matchups import save_research
+                save_research(record, value, previous)
                 identifier = identifier or uuid.uuid4().hex
                 knowledge['records'][identifier] = {**record, 'id': identifier}
             elif op == 'record.remove': knowledge['records'].pop(identifier, None)
             else: raise ValueError('未知的情报站操作')
             document['intelligence'] = knowledge
-            for kind in CARD_LIBRARIES:
-                tag = purpose_tag(document, kind=kind)
-                document['entries'][tag['id']] = tag
+            if op != 'matchups.import':
+                for kind in CARD_LIBRARIES:
+                    tag = purpose_tag(document, kind=kind)
+                    document['entries'][tag['id']] = tag
             document['revision'] += 1
             self.library.save_vocabulary(document)
             return {**self.snapshot(), 'saved_id': identifier, 'merged_count': merged_count, 'import_result': import_result}
