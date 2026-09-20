@@ -95,3 +95,30 @@ test('a deleted researched draft becomes personal while preserving every researc
   assert.equal(r.research,undefined);
   for(const text of ['先识别检索方向','原始核对说明','https://example.org/card','原路线前提','原动作','原结果','分支结果','条件推演'])assert(r.reference_copy.includes(text),text);
 });
+
+test('topic hierarchy uses record formats, retains identities and groups the two environments',()=>{
+  const {context:c,data}=setup();
+  data.topics={ocg:{id:'ocg',name:'OCG · 闪刀',tag_ids:[]},md:{id:'md',name:'Master Duel · 闪刀',tag_ids:[]},personal:{id:'personal',name:'我的 <笔记>',tag_ids:[]}};
+  data.records={a:{...record(),topic_id:'ocg'},b:{...record(),topic_id:'md',research:{...record().research,format:'Master Duel'}}};
+  const before=JSON.stringify(data);
+  assert.equal(typeof c.intelTopicOptionsHtml,'function');
+  const all=c.intelTopicOptionsHtml(data,'md','');
+  assert.match(all,/<optgroup label="OCG">/);assert.match(all,/<optgroup label="Master Duel">/);
+  assert.match(all,/<option value="md" selected>闪刀<\/option>/);
+  assert.match(all,/我的 &lt;笔记&gt;/);assert(!all.includes('OCG · 闪刀'));
+  const ocg=c.intelTopicOptionsHtml(data,'','OCG');
+  assert.match(ocg,/value="ocg"/);assert(!ocg.includes('value="md"'));assert(!ocg.includes('value="personal"'));
+  assert.equal(JSON.stringify(data),before);
+});
+
+test('shared and empty personal topics remain reachable without guessing format from their names',()=>{
+  const {context:c,data}=setup();
+  data.topics={mixed:{name:'共用主题'},empty:{name:'OCG · 我的空主题'}};
+  data.records={a:{...record(),topic_id:'mixed'},b:{...record(),topic_id:'mixed',research:{...record().research,format:'Master Duel'}}};
+  assert.equal(typeof c.intelTopicOptionsHtml,'function');
+  for(const format of ['OCG','Master Duel'])assert.match(c.intelTopicOptionsHtml(data,'mixed',format),/value="mixed" selected/);
+  const all=c.intelTopicOptionsHtml(data,'','');
+  assert.equal((all.match(/value="mixed"/g)||[]).length,1);
+  assert.match(c.intelTopicOptionsHtml(data,'','personal'),/OCG · 我的空主题/);
+  assert(!c.intelTopicOptionsHtml(data,'','OCG').includes('value="empty"'));
+});

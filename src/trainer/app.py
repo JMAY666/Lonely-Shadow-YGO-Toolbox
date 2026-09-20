@@ -1005,6 +1005,7 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/modular/auto': return self.send(store.modular.automatic(body))
                 if path == '/api/tags/save': return self.send(store.library.edit_tag(body))
                 if path == '/api/intelligence': return self.send(store.intelligence.command(body))
+                if path == '/api/intelligence/opponents': raise ValueError('对手卡组仅供预览，不支持修改')
                 if path == '/api/tags/related': return self.send(store.library.related(body))
                 if path == '/api/plans/classify': return self.send(store.library.save_selection(body))
                 if path == '/api/plans/import-preview': return self.send(store.library.import_document(body, preview=True))
@@ -1077,6 +1078,9 @@ class Handler(BaseHTTPRequestHandler):
                 if path.startswith('/api/modular/state/'): return self.send(store.modular.status(path.rsplit('/', 1)[1]))
                 if path == '/api/bootstrap': return self.send({'token': self.server.token, 'cards': len(store.catalog.cards), 'sources': store.catalog.sources, 'runtime': str(store.runtime), 'embedded': bool(store.host)})
                 if path == '/api/intelligence': return self.send(store.intelligence.snapshot())
+                if path == '/api/intelligence/opponents':
+                    from intelligence_opponents import snapshot
+                    return self.send(snapshot(store))
                 if path == '/api/intelligence/sources': return self.send(store.intelligence.sources())
                 if path.startswith('/api/intelligence/endboard/'):
                     snapshot = store.intelligence.snapshot()
@@ -1163,6 +1167,7 @@ class Handler(BaseHTTPRequestHandler):
                 files['/scrollbars.css'] = 'scrollbars.css'
                 files.update({'/intelligence.js': 'intelligence.js', '/intelligence.css': 'intelligence.css'})
                 files.update({f'/{name}': name for name in ('intelligence-matchups.js', 'intelligence-matchups.css')})
+                files.update({f'/{name}': name for name in ('intelligence-opponents.js', 'intelligence-opponents.css')})
                 for art in ('first', 'second', 'bo1', 'bo3', 'manual', 'automatic', 'ygopro', 'ygopro2', 'mdpro3', 'masterduel'):
                     files[f'/brand/duel-{art}.svg'] = f'brand/duel-{art}.svg'
                 for name in ('duel.js', 'duel-smart.js', 'duel-automatic.js', 'duel-order.js', 'duel-opening.js', 'duel-automatic.css', 'duel-forecast.js', 'duel-model.js', 'tutorial-bindings.js', 'duel.css', 'deck-tag-view.js', 'deck-appearance.js', 'superpre.js', 'superpre.css'):

@@ -204,6 +204,14 @@ async function activatePot(sid) {
 (async () => {
   await launch(true);
   if(onlyIntelligence){
+    if(process.argv.includes('--opponents-only')){
+      await require('./intelligence-matchups-smoke.cjs')({page,application,evidence,pass});
+      await require('./intelligence-opponents-smoke.cjs')({page,application,root,evidence,pass});
+      const before=await page.evaluate(async()=>({personal:await api('/api/intelligence'),public:await api('/api/intelligence/opponents')}));
+      await close();await launch();assert.deepEqual(await page.evaluate(async()=>({personal:await api('/api/intelligence'),public:await api('/api/intelligence/opponents')})),before);
+      pass('Personal knowledge and the read-only opponent catalog remain consistent after restart');
+      await close();assert.deepEqual(errors,[]);fs.writeFileSync(path.join(evidence,'opponents-result.json'),JSON.stringify({checks,errors,globalInput:false},null,2));return;
+    }
     if(process.argv.includes('--matchups-only')){
       await require('./intelligence-matchups-smoke.cjs')({page,application,evidence,pass});
       const before=await page.evaluate(()=>api('/api/intelligence'));

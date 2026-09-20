@@ -1,0 +1,43 @@
+.opponent-heading { display:block; padding-bottom:18px; border-bottom:1px solid var(--border-subtle); }
+.opponent-heading h2 { margin:6px 0 12px; font-size:22px; line-height:1.5; overflow-wrap:anywhere; }
+.opponent-sample { display:grid; grid-template-columns:minmax(180px,1fr) 2fr; gap:20px; padding:18px; margin:18px 0; border:1px solid var(--border-selected); background:var(--surface-selected); border-radius:6px; }
+.opponent-sample>div { min-width:0; }
+.opponent-sample span,.opponent-sample small { display:block; font-size:11px; line-height:1.8; color:var(--text-muted); }
+.opponent-sample strong { display:block; margin:6px 0; font-size:30px; color:var(--text-accent); }
+.opponent-sample p { margin:0 0 6px; }
+.opponent-source-links { display:flex; flex-direction:column; align-items:flex-start; gap:7px; margin:12px 0 18px; }
+.opponent-source-links a { font-size:11px; color:var(--text-accent); overflow-wrap:anywhere; line-height:1.6; }
+.opponent-deck-zone { margin:24px 0; }
+.opponent-deck-zone h3 { font-size:14px; margin:0 0 12px; }
+.opponent-deck-zone h3 span { font-size:11px; font-weight:400; color:var(--text-muted); margin-left:8px; }
+.opponent-deck-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(78px,1fr)); gap:10px; }
+.opponent-card { position:relative; min-width:0; width:80px; max-width:100%; }
+.opponent-card .review-card { display:flex; flex-direction:column; width:100%; margin:0; }
+.opponent-card .review-art { width:100%; height:auto; aspect-ratio:177/254; }
+.opponent-card .review-card img { width:100%; height:100%; }
+.opponent-card .review-card>small { font-size:10px; line-height:1.5; overflow-wrap:anywhere; }
+.opponent-card-quantity { position:absolute; top:4px; right:4px; padding:1px 5px; border-radius:4px; background:var(--surface-page); border:1px solid var(--border-selected); color:var(--text-accent); font-size:12px; font-weight:700; pointer-events:none; }
+.opponent-period-group>h3 { margin:18px 0 6px; color:var(--text-muted); font-size:11px; line-height:1.7; }
+.opponent-list-item { display:flex; flex-direction:column; gap:8px; width:100%; min-width:0; padding:12px 10px; margin-top:6px; text-align:left; border-color:transparent; background:transparent; }
+.opponent-list-item>strong { font-size:12px; line-height:1.7; overflow-wrap:anywhere; }
+.opponent-list-item>small { font-size:11px; color:var(--text-muted); }
+.opponent-list-item>small b { color:var(--text-accent); }
+.opponent-list-item[aria-pressed=true] { border-color:var(--border-selected); background:var(--surface-selected); }
+.opponent-routes-heading { margin:26px 0 18px; border-top:1px solid var(--border-subtle); padding-top:24px; }
+.opponent-routes-heading h2 { font-size:19px; }
+.opponent-route-shortcuts { display:flex; flex-wrap:wrap; gap:8px; }
+.opponent-route-shortcuts button { max-width:100%; text-align:left; white-space:normal; }
+.opponent-route { padding:20px 0; border-bottom:1px solid var(--border-subtle); scroll-margin-top:12px; }
+.opponent-route>header { display:block; }
+.opponent-route h3 { margin:6px 0 18px; font-size:17px; }
+.opponent-opening,.opponent-endboard { padding:14px; border:1px solid var(--border-subtle); border-radius:5px; background:var(--surface-input); }
+.opponent-opening h4,.opponent-endboard h4 { margin:0 0 12px; font-size:12px; color:var(--text-accent); }
+.opponent-opening-cards,.opponent-endboard-cards,.opponent-step-cards { display:flex; flex-wrap:wrap; gap:10px; align-items:flex-start; }
+.opponent-endboard-cards>div { max-width:150px; }
+.opponent-step-cards { margin:10px 0; }
+.opponent-step-cards .opponent-card { width:58px; }
+.opponent-route-steps { grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr)); }
+.opponent-route-sources { margin-top:14px; font-size:12px; }
+.intel-opponent-reader p { white-space:pre-wrap; overflow-wrap:anywhere; }
+@media(max-width:1000px) { .opponent-sample { grid-template-columns:minmax(0,1fr); gap:12px; } }
+@media(max-width:500px) { .opponent-deck-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }.opponent-route-steps { grid-template-columns:minmax(0,1fr); } }

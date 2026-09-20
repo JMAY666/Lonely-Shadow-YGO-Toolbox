@@ -1,4 +1,41 @@
 'use strict';
+function intelTopicRows(data){
+  const rows=Object.entries(data.topics).map(([id,topic])=>({id,name:topic.name,formats:[]})),byId=new Map(rows.map(row=>[row.id,row]));
+  for(const record of Object.values(data.records||{})){
+    const row=byId.get(record.topic_id),format=['OCG','Master Duel'].includes(record.research?.format)?record.research.format:'personal';
+    if(row&&!row.formats.includes(format))row.formats.push(format);
+  }
+  for(const row of rows)if(!row.formats.length)row.formats.push('personal');
+  return rows;
+}
+function intelTopicOptionsHtml(data,selected='',format=''){
+  const rows=intelTopicRows(data),option=(row,group)=>{
+    const prefix=group==='OCG'?'OCG · ':group==='Master Duel'?'Master Duel · ':'';
+    const label=prefix&&row.name.startsWith(prefix)?row.name.slice(prefix.length):row.name;
+    return `<option value="${escape(row.id)}" ${selected===row.id?'selected':''}>${escape(label)}</option>`;
+  };
+  if(format)return rows.filter(row=>row.formats.includes(format)).map(row=>option(row,format)).join('');
+  return [['OCG','OCG'],['Master Duel','Master Duel'],['personal','个人与跨环境主题']].map(([key,label])=>{
+    const members=rows.filter(row=>(row.formats.length===1?row.formats[0]:'personal')===key);
+    return members.length?`<optgroup label="${label}">${members.map(row=>option(row,key)).join('')}</optgroup>`:'';
+  }).join('');
+}
+function intelTopicNavigation(){
+  const rows=intelTopicRows(intelUI.data),count=format=>rows.filter(row=>row.formats.includes(format)).length;
+  const button=(format,label,main=false)=>`<button type="button" data-intel-topic-format="${format}" aria-pressed="${intelUI.topicFormat===format}" ${main&&!count(format)?'disabled':''}>${main?`<strong>${label}</strong><small>${count(format)} 个卡组主题</small>`:label}</button>`;
+  return `<div class="intel-group intel-topic-navigation"><div class="intel-topic-navigation-heading"><span>大主题</span>${button('','全部')}${count('personal')?button('personal','个人主题'):''}</div><div class="intel-primary-topics" role="group" aria-label="大主题">${button('OCG','OCG',true)}${button('Master Duel','Master Duel',true)}</div><label class="intel-filter intel-subtopic-label">卡组主题<select id="intel-topic" aria-label="断点主题"></select></label><div class="intel-group-actions"><button data-intel-action="topic-new">新建主题</button><button data-intel-action="topic-edit">编辑主题</button></div></div>`;
+}
+function intelTopicScope(){
+  const select=$('#intel-topic');if(!select)return;
+  select.innerHTML=`<option value="">${intelUI.topicFormat==='personal'?'全部个人主题':'全部卡组主题'}</option>${intelTopicOptionsHtml(intelUI.data,'',intelUI.topicFormat)}`;
+  document.querySelectorAll('#intel-controls [data-intel-topic-format]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.intelTopicFormat===intelUI.topicFormat)));
+}
+function intelBrowseTopics(){
+  intelList();
+  if(intelUI.dirty){intelStatus('主题筛选已更新，右侧未保存的内容仍保留。');return;}
+  const visible=[...document.querySelectorAll('#intel-list [data-intel-edit]')];
+  if(visible.length&&!visible.some(button=>button.dataset.intelEdit===intelUI.draft?.id))return intelSelect(visible[0].dataset.intelEdit);
+}
 // Reading and filtering share the same persisted record/step/response structure.
 function intelMatchupMatches(record,filters,data,cardForCode=intelCard){
   const research=record.research,format=filters.format||'',topic=data.topics[record.topic_id];

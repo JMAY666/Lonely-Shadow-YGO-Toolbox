@@ -29,13 +29,28 @@ module.exports=async({page,application,evidence,pass})=>{
   assert.equal(await page.evaluate(()=>Object.values(intelUI.data.records).filter(record=>!record.research).length),1);
   pass('Matchup import adds both OCG and Master Duel research without replacing personal records and opens a readable strategy page');
 
+  const topicsBefore=await page.evaluate(()=>JSON.stringify(intelUI.data.topics));
+  assert.equal(await page.locator('#intel-filter-format').count(),0,'The duplicate environment filter is replaced by primary themes');
   for(const format of ['OCG','Master Duel','personal']){
-    await page.locator('#intel-filter-format').selectOption(format);
+    await page.locator(`[data-intel-topic-format="${format}"]`).click();
+    assert.equal(await page.locator(`[data-intel-topic-format="${format}"]`).getAttribute('aria-pressed'),'true');
+    assert.equal(await page.locator('#intel-topic').inputValue(),'','Changing the primary theme clears its previous child selection');
     const visible=await page.locator('#intel-list [data-intel-edit]').evaluateAll(elements=>elements.map(el=>el.dataset.intelEdit));
     const formats=await page.evaluate(ids=>ids.map(id=>intelUI.data.records[id].research?.format||'personal'),visible);
     assert(visible.length>0);assert(formats.every(value=>value===format));
+    const topicIds=await page.locator('#intel-topic option').evaluateAll(options=>options.map(option=>option.value).filter(Boolean));
+    assert(topicIds.length>0);
+    assert(await page.evaluate(({ids,format})=>ids.every(id=>Object.values(intelUI.data.records).some(record=>record.topic_id===id&&(record.research?.format||'personal')===format)),{ids:topicIds,format}));
+    const optionLabels=await page.locator('#intel-topic option').allTextContents();
+    if(format!=='personal')assert(optionLabels.every(label=>!label.startsWith(format+' · ')),'Child theme labels omit repeated environment prefixes');
+    await page.locator('#intel-topic').selectOption(topicIds[0]);
+    const selectedTopics=await page.locator('#intel-list [data-intel-edit]').evaluateAll(elements=>elements.map(el=>intelUI.data.records[el.dataset.intelEdit].topic_id));
+    assert(selectedTopics.every(id=>id===topicIds[0]));
   }
   await page.locator('[data-intel-clear="intel-filter"]').click();
+  assert.equal(await page.locator('[data-intel-topic-format=""]').getAttribute('aria-pressed'),'true');
+  assert.deepEqual(await page.locator('#intel-topic optgroup').evaluateAll(groups=>groups.map(group=>group.label)),['OCG','Master Duel','个人与跨环境主题']);
+  assert.equal(await page.evaluate(()=>JSON.stringify(intelUI.data.topics)),topicsBefore,'Theme navigation never renames or migrates stored topics');
   const chosen=imported.find(record=>record.research.format==='OCG'),searchTerm=chosen.research.summary.slice(0,10);
   assert(searchTerm);await page.locator('#intel-filter-q').fill(searchTerm);
   assert.equal(await page.locator(`[data-intel-edit="${chosen.id}"]`).count(),1,'Search includes the short strategy summary');
@@ -70,6 +85,10 @@ module.exports=async({page,application,evidence,pass})=>{
   await action('record-edit');assert(await field('title').isVisible());
   assert.equal(await field('research.format').count(),0);assert.equal(await field('research.reviewed_at').count(),0);
   await field('research.summary').fill('验收保留的个人概要');
+  await page.locator('[data-intel-topic-format="Master Duel"]').click();
+  assert.equal(await field('research.summary').inputValue(),'验收保留的个人概要','Changing primary themes retains a dirty draft');
+  assert.equal(await page.evaluate(()=>intelUI.draft.id),chosen.id);
+  await page.locator('[data-intel-topic-format="OCG"]').click();
   await action('record-read');assert(await page.locator('.intel-matchup-reader').isVisible());
   assert.match(await page.locator('.intel-matchup-summary').textContent(),/验收保留的个人概要/);assert(await page.evaluate(()=>intelUI.dirty));
   await action('record-edit');assert.equal(await field('research.summary').inputValue(),'验收保留的个人概要');

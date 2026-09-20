@@ -6,6 +6,8 @@ test('desktop reference links dispatch approved public sources and reject non-re
   const {openReference}=require(file),calls=[],shell={openExternal:async url=>{calls.push(url);}};
   const url='https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=12950&request_locale=ja';
   await openReference(shell,url);assert.deepEqual(calls,[url]);
+  const legacy='https://ygoprodeck.com/card/lava-golem-8';
+  await openReference(shell,legacy);assert.deepEqual(calls,[url,legacy]);
   for(const bad of ['file:///C:/test','javascript:alert(1)','https://masterduelmeta.com.evil.example/','https://name:password@roadoftheking.com/','http://localhost/','not a URL'])assert.throws(()=>openReference(shell,bad));
-  assert.equal(calls.length,1);
+  assert.equal(calls.length,2);
 });

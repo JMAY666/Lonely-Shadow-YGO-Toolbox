@@ -1,4 +1,14 @@
-.intel-filter-format { grid-column:1/-1; }
+.intel-topic-navigation-heading { display:flex; align-items:center; gap:8px; margin-bottom:10px; font-size:11px; color:var(--text-muted); }
+.intel-topic-navigation-heading>span { margin-right:auto; }
+.intel-topic-navigation-heading button { padding:3px 7px; background:transparent; border-color:transparent; font-size:11px; }
+.intel-topic-navigation-heading button[aria-pressed=true] { color:var(--text-accent); background:var(--surface-selected); }
+.intel-primary-topics { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.intel-primary-topics button { display:flex; flex-direction:column; align-items:flex-start; gap:7px; min-width:0; padding:12px 10px; text-align:left; background:var(--surface-input); }
+.intel-primary-topics strong { font-size:13px; white-space:nowrap; }
+.intel-primary-topics small { font-size:11px; color:var(--text-muted); }
+.intel-primary-topics button[aria-pressed=true] { border-color:var(--border-selected); background:var(--surface-selected); color:var(--text-accent); }
+.intel-subtopic-label { margin-top:12px; }
+.intel-subtopic-label select { width:100%; min-width:0; height:36px; padding:6px 8px; font-size:12px; }
 .intel-matchup-meta { display:flex; flex-wrap:wrap; align-items:center; gap:6px 12px; margin-bottom:14px; font-size:11px; color:var(--text-muted); line-height:1.7; }
 .intel-matchup-meta .intel-badge { margin:0; }
 .intel-matchup-heading { display:block; border-bottom:1px solid var(--border-subtle); padding-bottom:18px; }
