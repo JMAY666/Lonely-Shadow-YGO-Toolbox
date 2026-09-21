@@ -214,6 +214,24 @@ node experiments/ygo_learning/desktop_p1.cjs --suite=teacher-validation --first-
 
 汇总必须覆盖全部 40 对，拒绝混用源码、模式或登记版本。输出配对差值、固定种子的 10,000 次 bootstrap 区间、共同支持范围、成本门槛和是否允许进入 P4。失败或证据不足时保留完整分母与记录，不用验证轨迹训练学生。
 
-本轮实际在 24/40 对完成后因原生焦点事件的锁顺序冲突中止，详见[验证中止与死锁修复](../../docs/ai-learning-p3-validation-results.md)。修复后仅复测两个已知失败家族，各三轮、共 12 次执行均通过；没有拼接成 40 对结论。当前 worker 剩余约 32.82 分钟，小于原保守完整验证预测 45.10 分钟，且旧登记绑定旧原生版本，因此继续停止扩展。
+旧版验证在 24/40 对完成后因原生焦点事件的锁顺序冲突中止，详见[验证中止与死锁修复](../../docs/ai-learning-p3-validation-results.md)。修复后先复测两个已知失败家族，各三轮、共 12 次执行均通过；随后又用修复后二进制完成同一批 20 个训练家族的完整 B1/T0 标定，但没有把这批标定拼成旧版 40 家族验证结论。当前 worker 剩余约 22.90 分钟，小于修复后完整验证预测 53.51 分钟，且 200 家族保守成本 4.46 小时超过原 4 小时门槛，因此继续停止扩展。
 
 限定恢复诊断命令是 `node experiments/ygo_learning/desktop_p1.cjs --suite=teacher-recovery --first-family=1 --count=2 --fast`，只允许这两个已保存原条件的验证失败家族，不能选择新验证或 holdout。新原生版本、诊断与旧版本部分验证分别保存；下一次完整验证须先登记新的版本/预算方案，不能覆盖原登记或重置累计预算。
+
+### 修复后完整标定与预算复核
+
+2026-09-21 的后续执行已完成修复后同一批 20 个训练家族、40 次 B1/T0 标定，T0 仍为 15/20，B1 仍为 13/20，全部完整重放及归档恢复通过。详见[复验报告](../../docs/ai-learning-p3-revalidation-results.md)。此次一个批次运行 20 家族，实际 worker 约 9.91 分钟，未超过每批 30 分钟和累计 2 小时的限制；验证批次仍限五个家族。
+
+```powershell
+node experiments/ygo_learning/desktop_p1.cjs --suite=teacher --first-family=1 --count=20 --fast
+.local/ygo-agent-pilot/.venv/Scripts/python.exe -X utf8 experiments/ygo_learning/report_p3.py .local/ygo-learning/p2-p3/teacher-20260921-130306
+
+# 只读取两版已封存的训练证据，独立恢复审计后比较；不执行新的引擎家族。
+.local/ygo-agent-pilot/.venv/Scripts/python.exe -X utf8 experiments/ygo_learning/revalidation_p3.py --reference-report .local/ygo-learning/p2-p3/report-20260921-113043/summary.json --candidate-report .local/ygo-learning/p2-p3/report-20260921-131525/summary.json
+```
+
+`revalidation_p3.py` 要求完整 20 家族配对，核对二进制、卡库/脚本、固定教师、随机条件和全部实际选择。首回合结束后的最后一次异步观察以原生日志首次进入第 2 回合的完整状态比较，原始后继快照差异另列；其余选择前后状态、动态属性、效果和最终稳定窗口继续严格比较。缺少结束边界、实际提交了下一回合动作或终场状态改变均不能通过。
+
+审计结果保存为新的本地 `revalidation-*/summary.json` 和审计器源码副本，保留旧登记与原始差异报告。预算分别检查 200 家族的 4 小时、20 GiB 目录空间、P2/P3 累计 2 小时，失败原因不能互相抵扣；它只生成复核报告，不创建新的验证授权。
+
+当前实测保守成本为 4.46 小时/200 家族，存储约 4.35 GiB；累计 worker 约 97.10 分钟、余 22.90 分钟，完整验证预测 53.51 分钟。原时间门槛未通过，验证与 P4 继续停止。计划中的 3/5 小时预算方案尚待确认，原有上限继续有效；旧版部分验证不能拼接到新版本。
