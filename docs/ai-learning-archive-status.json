@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "status": "stopped_and_archived_by_user",
+  "stopped_on": "2026-09-21",
+  "plan": "docs/ai-learning-feasibility-plan.md",
+  "archive_report": "docs/ai-learning-archive.md",
+  "last_experiment_commit": "ae8ee353827be47412c2f907a8144b6a3a14fa68",
+  "continuation_authorized": false,
+  "resume_requires_explicit_user_request": true,
+  "history_action": "audit_only_no_revert_or_rewrite",
+  "local_archive": ".local/archives/ai-learning-stopped-20260921",
+  "direct_plan_commits": 10,
+  "precursor_commits": 1,
+  "interleaved_unrelated_commits": 9,
+  "direct_unique_paths": 77,
+  "direct_file_changes": 136,
+  "source_snapshot_files": 440,
+  "evidence_snapshot_files": 133458,
+  "evidence_source_bytes": 16245257222,
+  "evidence_archive_bytes": 16484904960,
+  "sha256": {
+    "history.bundle": "a383a85677833e71be99b84f14ff7dba377568ef051622b8d11830e2d09030d5",
+    "workspace-objects-ae8ee35.zip": "72950743c8be953c993dfc73e8503a0d22ab92a1181ea03e10fcd4f68b8e9da5",
+    "evidence.tar": "e6a29b5a82308311df5fffc00d4965862e64b080f1603116ba93b4c591d425c0",
+    "evidence-files.jsonl": "c517123b936736bcc0473d37ef8867c222b46000f2880800ff5dcb12b6720ab3",
+    "git-history.json": "dde8d87d24f9ddc91fff323ef7f270fd1dc72745c37361f0ee160e8d6738f918"
+  },
+  "original_sources_preserved": true,
+  "experiment_executed_during_archive": false,
+  "historical_result": "partially_feasible_pilot_quality_direction_passed_cost_gate_failed"
+}
