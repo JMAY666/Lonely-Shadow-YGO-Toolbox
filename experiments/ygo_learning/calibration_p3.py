@@ -15,7 +15,9 @@ from protocol import packets
 from provenance import runtime_identity, sha256
 from budget import Budget, folder_bytes
 from evidence_p3 import write_archive, read_archive, json_value, canonical
-from teacher_p3 import choose
+from teacher_p3 import choose, decision_key, microchoice, CONFIG
+from module_proposals import PublicModules
+from session_archive import pack_session, restored_session
 from journal_audit import audit
 from experiments.ygo_agent.adapter import NativeInput
 from experiments.ygo_agent.policy import Policy
@@ -143,7 +145,7 @@ def latest_condition_session(folder, original, expansion_hash):
         current = meta['retry_id']
 
 
-def run_policy(session, state, catalog, family, mode, policy, budget, evaluate_goal):
+def run_policy(session, state, catalog, family, mode, policy, budget, evaluate_goal, modules=None):
     record = {'family_id': family['id'], 'scenario': family['scenario'], 'mode': mode,
               'status': 'running', 'steps': [], 'replayed': False, 'model_calls': 0,
               'model_proposal_failures': [], 'nodes': 0, 'multi_choice_windows': 0,
@@ -151,6 +153,7 @@ def run_policy(session, state, catalog, family, mode, policy, budget, evaluate_g
     began = time.perf_counter()
     observer = TurnObserver()
     visits = Counter()
+    tried = {}
     try:
         for _ in range(120):
             observer.update(session.folder / 'native.jsonl')
@@ -162,9 +165,9 @@ def run_policy(session, state, catalog, family, mode, policy, budget, evaluate_g
                 break
             budget.check()
             bundle = build(state, catalog)
-            decision_key = bundle['state_key'] + digest([c['public'] for c in bundle['candidates']])
-            visits[decision_key] += 1
-            if visits[decision_key] > 3:
+            key = decision_key(bundle)
+            visits[key] += 1
+            if visits[key] > 3:
                 record['status'] = 'strategy_cycle_stopped'
                 break
             count = len(bundle['candidates'])
@@ -199,30 +202,46 @@ def run_policy(session, state, catalog, family, mode, policy, budget, evaluate_g
                     if reached and stops:
                         choice = {'index': stops[0], 'nodes': 0, 'uncertain_branches': 0,
                                   'source': 'frozen_goal_satisfied_stop'}
+                    elif microchoice(bundle) is not None:
+                        choice = microchoice(bundle)
                     else:
-                        choice = choose(session, state, catalog, preferred, budget_check=budget.check)
+                        choice = choose(session, state, catalog, preferred, budget_check=budget.check,
+                                        scenario='one_ash' if family['scenario'] == 'one_ash' else 'no_extra_response',
+                                        goal=family['goal'], actual_draw_count=observer.draws,
+                                        blocked_responses=tried.get(key, ()), avoid_state_keys=tried,
+                                        proposal_library=modules)
                     if choice.get('stopped'):
                         record['aborted_searches'].append(choice)
                         record['nodes'] += choice['nodes']
                         record['uncertain_branches'] += choice['uncertain_branches']
-                        record.update(status='budget_stopped' if 'budget' in choice['stopped'] else 'execution_error',
+                        record.update(status='budget_stopped' if 'budget' in choice['stopped'] else
+                                      'unsupported' if choice['stopped'] == 'no_evaluable_search_branch' else 'execution_error',
                                       error=choice['stopped'])
                         break
                     response = bundle['candidates'][choice['index']]['response']
                     policy.pending = None
             # Legality/replay validation never supplies a future-state score.
-            proof = session.probe(state, [state['raw'] + ':' + response])
+            # Reuse only an exact root-response probe from this decision. It is
+            # still followed by native acknowledgement and final full replay.
+            exact = [state['raw'] + ':' + response]
+            proof = next((p['result'] for p in choice.get('probes', [])
+                          if p['guards'] == exact and p['result'].get('status') == 'ok'), None)
+            reused_proof = proof is not None
+            if proof is None:
+                proof = session.probe(state, exact)
             if proof['status'] != 'ok':
                 raise ValueError('selected_response_probe_failed: ' + str(proof))
             before = state
             state = session.answer(before, response)
+            tried.setdefault(key, []).append(response)
             if mode == 'B1' and advice is not None:
                 policy.commit(before['version'], before['raw'], response)
             record['nodes'] += choice['nodes']
             record['uncertain_branches'] += choice['uncertain_branches']
             record['steps'].append({'before': before, 'after': state, 'response': response,
                                     'candidate_index': choice['index'], 'decision': choice,
-                                    'selected_replay': proof, 'acknowledgement': deepcopy(session.samples[-1])})
+                                    'selected_replay': proof, 'selected_replay_reused': reused_proof,
+                                    'acknowledgement': deepcopy(session.samples[-1])})
         else:
             record['status'] = 'decision_budget_stopped'
     except Unsupported as error:
@@ -266,6 +285,7 @@ def run(session, catalog, output, protocol_path, first=1, count=20):
         raise ValueError('Calibration may access only the frozen 20 training families')
     selected = families[first - 1:first - 1 + count]
     sources = source_registry()
+    modules = PublicModules(sources)
     runtime = runtime_identity(session.runtime)
     previous_compute = 0
     for directory in CALIBRATION.glob('teacher-*'):
@@ -281,7 +301,7 @@ def run(session, catalog, output, protocol_path, first=1, count=20):
                 'protocol_fingerprint': protocol['fingerprint'], 'family_ids': [f['id'] for f in selected],
                 'runtime': runtime, 'sources': sources, 'code': code, 'paid_calls': 0,
                 'B2_scope': 'exact_opening_match_to_frozen_public_P1_recipes_not_all_product_modules',
-                'search': {'nodes': 24, 'depth': 6, 'seconds': 2.0, 'width': 2, 'branching': 3},
+                'search': CONFIG, 'public_module_edges': modules.edges,
                 'initial_directory_bytes': folder_bytes(ROOT / '.local/ygo-learning')}
     (output / 'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding='utf-8')
     frozen = output / 'source'
@@ -340,21 +360,30 @@ def run(session, catalog, output, protocol_path, first=1, count=20):
                     state = restart(session, previous, expansion_hash)
                     if build(state, catalog)['observation'] != initial_observation:
                         raise ValueError('Paired initial observations differ')
-                record = run_policy(session, state, catalog, family, mode, policy, budget, evaluate_goal)
+                record = run_policy(session, state, catalog, family, mode, policy, budget, evaluate_goal, modules)
                 previous = record['session']['id']
                 record.update(expansion_sha256=expansion_hash, B2='no_matching_public_source')
                 record = json_value(record)
-                # Keep this calibration's uncompressed collector record as well
-                # as native evidence until compressed storage is adopted later.
-                (output / f'{family["id"]}-{mode}.json').write_bytes(canonical(record))
+                raw_path = output / f'{family["id"]}-{mode}.json'
+                raw_path.write_bytes(canonical(record))
+                # Only the new session from this run is compacted. Every native
+                # byte is restored and checked before its duplicate is removed.
+                native_archive = pack_session(Path(record['session']['folder']),
+                    output / 'native' / (record['session']['id'] + '.zip'), record['session']['id'], compact=True)
+                record['native_archive'] = native_archive
+                raw_path.write_bytes(canonical(record))
                 path = output / f'{family["id"]}-{mode}.json.gz'
                 stats = write_archive(path, record)
-                # Explicitly audit the restored record against the untouched native journal.
-                audit(read_archive(path))
+                with restored_session(native_archive['path'], native_archive['sha256']) as restored:
+                    audit(read_archive(path), folder=restored)
+                if json.loads(raw_path.read_text(encoding='utf-8')) != read_archive(path):
+                    raise ValueError('Collector changed before compaction')
+                raw_path.unlink()  # Newly written duplicate; full record remains in verified gzip.
                 summary = {k: record[k] for k in ('family_id', 'scenario', 'mode', 'status', 'replayed',
                           'model_calls', 'nodes', 'multi_choice_windows', 'single_choice_windows',
                           'uncertain_branches', 'seconds', 'goal', 'native_evidence_bytes')}
-                summary.update(archive=path.name, storage=stats,
+                summary.update(archive=path.name, storage={**stats, 'raw_collector_retained': False},
+                               native_archive=native_archive,
                                proposal_failures=len(record['model_proposal_failures']),
                                execution_error=record.get('error'), B2=record['B2'])
                 summaries.append(summary)

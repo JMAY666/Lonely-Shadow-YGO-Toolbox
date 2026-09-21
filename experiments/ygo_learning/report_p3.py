@@ -6,13 +6,11 @@ import json
 from pathlib import Path
 import statistics
 
-from calibration_p3 import CALIBRATION, ROOT, TurnObserver, goal_view
-from protocol_p2 import load_protocol, calibration_families, evaluate_goal
-from evidence_p3 import read_archive, hash_value
+from calibration_p3 import CALIBRATION, ROOT
+from protocol_p2 import load_protocol, calibration_families
+from evidence_p3 import read_archive
 from budget import folder_bytes
-from journal_audit import audit
 from provenance import sha256
-from contract_v2 import digest, build
 
 
 def percentile(values, fraction=.95):
@@ -70,43 +68,11 @@ def summarize(batches, protocol):
             family = families[key[0]]
             if restored['scenario'] != family['scenario']:
                 raise ValueError('Archive scenario differs from frozen family')
-            raw_path = archive.with_suffix('')
-            if (sha256(archive) != row['storage']['archive_sha256'] or
-                    hash_value(restored) != row['storage']['record_sha256'] or
-                    json.loads(raw_path.read_text(encoding='utf-8')) != restored):
-                raise ValueError('Archive, summary hash and original collector record differ')
-            audit(restored)
-            if not restored['replayed'] or restored['status'] in ('execution_error', 'journal_mismatch'):
-                raise ValueError('Unresolved reliability failure cannot pass the calibration gate')
-            folder = Path(restored['session']['folder'])  # audit() already checks the isolated root.
-            meta = json.loads((folder / 'session.json').read_text(encoding='utf-8'))
-            expansion_hash = digest(meta['expansion'])
-            if (expansion_hash != restored['expansion_sha256'] or
-                    sorted(meta['expansion']['actual_opening']) != family['hand'] or
-                    meta['deck'] != protocol['deck'] or
-                    meta['expansion']['engine_seed'] != family['engine_seed'] or
-                    meta['expansion']['opponent_responses'] != (family['scenario'] == 'one_ash')):
-                raise ValueError('Native experiment condition differs from frozen family')
-            conditions[key] = expansion_hash
-            observer = TurnObserver()
-            observer.update(folder / 'native.jsonl')
-            actual_goal = evaluate_goal(goal_view(observer.terminal or {'cards': []}), family['goal'],
-                                        completed=observer.terminal is not None, actual_draw_count=observer.draws)
-            if (actual_goal != restored['goal'] or observer.draws != restored['actual_draw_count'] or
-                    observer.terminal_seq != restored['goal_native_seq']):
-                raise ValueError('Goal/count/boundary differs from original native journal')
-            runtime = folder.parents[2]
-            if runtime not in catalogs:
-                from app import Catalog
-                catalogs[runtime] = Catalog(runtime).cards
-            executed_multiple = sum(len(build(s['before'], catalogs[runtime])['candidates']) > 1
-                                    for s in restored['steps'])
+            from report_p3_evidence import verify
+            checked = verify(restored, row, archive, family, protocol, catalogs)
+            conditions[key] = checked.pop('expansion_hash')
             record = {key: restored[key] for key in row if key in restored}
-            record['storage'] = {**row['storage'], 'compressed_bytes': archive.stat().st_size,
-                                 'original_json_bytes': raw_path.stat().st_size}
-            record['native_evidence_bytes'] = folder_bytes(folder)
-            record['executed_windows'] = len(restored['steps'])
-            record['executed_multi_choice_windows'] = executed_multiple
+            record.update(checked)
             records[key] = record
     if set(records) != {(f, mode) for f in expected for mode in ('B1', 'T0')}:
         raise ValueError('All frozen 20 family pairs, including failures, are required')
@@ -134,17 +100,21 @@ def summarize(batches, protocol):
             'multi_choice_window_fraction': sum(r['multi_choice_windows'] for r in rows) / windows if windows else 0,
             'conditional_random_branches': sum(r['uncertain_branches'] for r in rows),
             'all_full_replays_verified': all(r['replayed'] for r in rows),
+            'native_archives_verified': sum(r['native_archive_verified'] for r in rows),
+            'reused_selected_probes': sum(r['reused_selected_probes'] for r in rows),
+            'module_proposed_windows': sum(r['module_proposed_windows'] for r in rows),
+            'opponent_search_decisions': sum(r['opponent_search_decisions'] for r in rows),
         }
     pairs = [records[f, 'B1']['seconds'] + records[f, 'T0']['seconds'] for f in sorted(expected)]
     overhead = max(0, worker_seconds - sum(pairs)) / 20
     pair_bytes = []
     for family in sorted(expected):
         pair_bytes.append(sum(records[family, mode]['native_evidence_bytes'] +
-                              records[family, mode]['storage']['original_json_bytes'] +
+                              records[family, mode]['storage']['retained_raw_collector_bytes'] +
                               records[family, mode]['storage']['compressed_bytes'] for mode in ('B1', 'T0')))
     current_bytes = folder_bytes(ROOT / '.local/ygo-learning')
     estimate = {
-        'scope': 'B1_plus_T0_same_family_pairs_with_native_raw_and_compressed_records_retained',
+        'scope': 'B1_plus_T0_same_family_pairs_with_actual_retained_evidence_storage',
         'retry_planning_factor': 2, 'overhead_seconds_per_family': overhead,
         '200_family_mean_hours': (statistics.mean(pairs) + overhead) * 200 / 3600,
         '200_family_p95_two_attempt_hours': (percentile(pairs) + overhead) * 2 * 200 / 3600,
@@ -153,7 +123,7 @@ def summarize(batches, protocol):
         'current_directory_GiB': current_bytes / 1024**3,
         'remaining_directory_GiB': (20 * 1024**3 - current_bytes) / 1024**3,
         'compressed_collector_GiB_for_200_mean': sum(r['storage']['compressed_bytes'] for r in records.values()) * 10 / 1024**3,
-        'compression_limit': 'collector archives do not yet replace native JSONL, raw records, or runtime resources',
+        'compression_limit': 'uses actual native archives plus retained application caches; old evidence and runtimes remain',
     }
     estimate['time_gate_passed'] = estimate['200_family_p95_two_attempt_hours'] <= 4
     estimate['disk_gate_passed'] = estimate['200_family_p95_two_attempt_additional_GiB'] <= estimate['remaining_directory_GiB']

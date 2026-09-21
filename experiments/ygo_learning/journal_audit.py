@@ -9,8 +9,8 @@ from module_graph import decision_boundaries
 from modular_decisions import model
 
 
-def audit(record):
-    folder=Path(record['session']['folder']).resolve()
+def audit(record, folder=None):
+    folder=Path(folder or record['session']['folder']).resolve()
     if not folder.is_relative_to(BASE.resolve()):raise ValueError('journal outside isolated experiment')
     rows=[json.loads(line) for line in (folder/'native.jsonl').read_text(encoding='utf-8').splitlines()]
     if rows[0].get('test_control') is not True:raise ValueError('journal is not test-controlled')
