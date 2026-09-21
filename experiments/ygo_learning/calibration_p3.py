@@ -15,6 +15,7 @@ from modular_decisions import canonical_state, model, semantic_response
 from protocol import packets
 from provenance import runtime_identity, sha256
 from budget import Budget, folder_bytes
+from budget_policy import WORKER_LIMIT_SECONDS
 from evidence_p3 import write_archive, read_archive, json_value, canonical
 from teacher_p3 import choose, decision_key, microchoice, CONFIG
 from module_proposals import PublicModules
@@ -43,8 +44,8 @@ class CalibrationBudget(Budget):
             temporary.write_text(json.dumps({'worker_seconds': elapsed}), encoding='utf-8')
             temporary.replace(self.progress_path)
             self.last_saved = elapsed
-        if self.previous_compute + elapsed >= 7200:
-            raise ValueError('P2/P3 cumulative two-hour compute budget exhausted')
+        if self.previous_compute + elapsed >= WORKER_LIMIT_SECONDS:
+            raise ValueError('P2/P3 cumulative three-hour compute budget exhausted')
         return super().check(disk=disk)
 
 class TurnObserver:
@@ -365,8 +366,8 @@ def run(session, catalog, output, protocol_path, first=1, count=20, *, validatio
         times = [json.loads(p.read_text(encoding='utf-8')).get('worker_seconds', 0)
                  for p in (directory / 'summary.json', directory / 'compute-progress.json') if p.is_file()]
         previous_compute += max(times, default=0)
-    if previous_compute >= 7200:
-        raise ValueError('P2/P3 cumulative two-hour compute budget exhausted')
+    if previous_compute >= WORKER_LIMIT_SECONDS:
+        raise ValueError('P2/P3 cumulative three-hour compute budget exhausted')
     budget = CalibrationBudget(session, output, previous_compute)
     source_paths = [*Path(__file__).parent.glob('*.py'), Path(__file__).with_name('desktop_p1.cjs')]
     code = {p.name: sha256(p) for p in source_paths}
@@ -401,8 +402,8 @@ def run(session, catalog, output, protocol_path, first=1, count=20, *, validatio
     try:
         for ordinal, family in enumerate(selected, first):
             budget.check(disk=True)
-            if previous_compute + time.perf_counter() - began >= 7200:
-                raise ValueError('P2/P3 cumulative two-hour compute budget exhausted')
+            if previous_compute + time.perf_counter() - began >= WORKER_LIMIT_SECONDS:
+                raise ValueError('P2/P3 cumulative three-hour compute budget exhausted')
             matches = [s for s in sources if s['hand'] == sorted(family['hand'])]
             if matches:
                 raise ValueError('A calibration family overlaps the excluded source recipes')

@@ -37,10 +37,10 @@ class TurnBoundaryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             budget = CalibrationBudget.__new__(CalibrationBudget)
             budget.progress_path = Path(folder) / 'compute-progress.json'
-            budget.previous_compute = 7199
+            budget.previous_compute = 10799
             budget.compute_started = time.monotonic() - 2
             budget.last_saved = 0
-            with self.assertRaisesRegex(ValueError, 'two-hour'):
+            with self.assertRaisesRegex(ValueError, 'three-hour'):
                 budget.check()
             self.assertGreaterEqual(json.loads(budget.progress_path.read_text())['worker_seconds'], 2)
 

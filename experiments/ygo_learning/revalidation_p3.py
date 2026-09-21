@@ -18,6 +18,7 @@ from protocol_p2 import load_protocol
 from provenance import runtime_identity, sha256
 from report_p3 import summarize
 from validation_p3 import cumulative_seconds
+from budget_policy import (FAMILY_TIME_LIMIT_HOURS, WORKER_LIMIT_SECONDS, manifest as budget_manifest)
 
 
 def semantic_checkpoint(state):
@@ -70,18 +71,18 @@ def budget_preflight(budget, used_seconds):
     if min(projected_hours, additional_gib) <= 0 or used_seconds < 0:
         raise ValueError('Recovery budget requires positive estimates and nonnegative usage')
     projection = projected_hours * 3600 * 40 / 200
-    remaining = max(0, 7200 - used_seconds)
-    gates = {'pilot_four_hour_cost': projected_hours <= 4,
+    remaining = max(0, WORKER_LIMIT_SECONDS - used_seconds)
+    gates = {'pilot_family_time_cost': projected_hours <= FAMILY_TIME_LIMIT_HOURS,
              'pilot_twenty_GiB_storage': additional_gib <= remaining_gib,
-             'remaining_two_hour_worker_budget': projection <= remaining}
-    return {'worker_limit_seconds': 7200, 'used_worker_seconds': used_seconds,
+             'remaining_worker_budget': projection <= remaining}
+    return {'worker_limit_seconds': WORKER_LIMIT_SECONDS, 'used_worker_seconds': used_seconds,
             'remaining_worker_seconds': remaining, 'full_validation_projected_seconds': projection,
             'additional_worker_allowance_required_seconds': max(0, projection - remaining),
             'minimum_total_worker_limit_seconds': used_seconds + projection,
             'projected_200_family_hours': projected_hours,
-            'required_cost_reduction_fraction': max(0, 1 - 4 / projected_hours),
+            'required_cost_reduction_fraction': max(0, 1 - FAMILY_TIME_LIMIT_HOURS / projected_hours),
             'gates': gates, 'budget_gates_passed': all(gates.values()),
-            'budget_limits_changed': False}
+            'budget_policy': budget_manifest(), 'budget_limits_changed': False}
 
 
 def audited_report(path, protocol):

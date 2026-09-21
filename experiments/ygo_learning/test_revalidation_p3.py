@@ -87,15 +87,15 @@ class RevalidationTests(unittest.TestCase):
             compare_record(source, deepcopy(source))
 
     def budget(self):
-        return {'200_family_p95_two_attempt_hours': 4.5,
+        return {'200_family_p95_two_attempt_hours': 5.5,
                 '200_family_conservative_peak_additional_GiB': 4.4, 'remaining_directory_GiB': 7.2}
 
     def test_more_worker_time_does_not_waive_pilot_cost_gate(self):
         preflight = budget_preflight(self.budget(), 5800)
-        self.assertEqual(1400, preflight['remaining_worker_seconds'])
-        self.assertEqual(3240, preflight['full_validation_projected_seconds'])
-        self.assertEqual(1840, preflight['additional_worker_allowance_required_seconds'])
-        self.assertEqual(9040, preflight['minimum_total_worker_limit_seconds'])
+        self.assertEqual(5000, preflight['remaining_worker_seconds'])
+        self.assertEqual(3960, preflight['full_validation_projected_seconds'])
+        self.assertEqual(0, preflight['additional_worker_allowance_required_seconds'])
+        self.assertEqual(9760, preflight['minimum_total_worker_limit_seconds'])
         self.assertFalse(preflight['budget_gates_passed'])
         self.assertFalse(budget_preflight(self.budget(), 0)['budget_gates_passed'])
         self.assertFalse(preflight['budget_limits_changed'])
@@ -104,7 +104,8 @@ class RevalidationTests(unittest.TestCase):
         budget = self.budget()
         budget['200_family_p95_two_attempt_hours'] = 3.0
         self.assertTrue(budget_preflight(budget, 0)['budget_gates_passed'])
-        self.assertEqual(0, budget_preflight(budget, 7300)['remaining_worker_seconds'])
+        self.assertEqual(3500, budget_preflight(budget, 7300)['remaining_worker_seconds'])
+        self.assertEqual(0, budget_preflight(budget, 10900)['remaining_worker_seconds'])
         budget['remaining_directory_GiB'] = 2.0
         self.assertFalse(budget_preflight(budget, 0)['budget_gates_passed'])
         for invalid in (float('nan'), float('inf'), 0, -1, True):

@@ -10,9 +10,11 @@ from provenance import sha256
 from contract_v2 import digest
 from teacher_p3 import CONFIG
 from budget import folder_bytes
+from budget_policy import (finite_positive, legacy_manifest, manifest as budget_manifest)
 
 BASE = ROOT / '.local/ygo-learning/p2-p3'
 ADDENDUM = ROOT / 'docs/ai-learning-p3-validation-protocol.md'
+LEGACY_ADDENDUM = ROOT / 'docs/ai-learning-p3-validation-protocol-v1.md'
 
 
 def families(protocol):
@@ -38,18 +40,32 @@ def authorize(protocol, report_path, runtime, *, reporting=False):
         raise ValueError('Validation requires a local audited calibration report')
     report = json.loads(report_path.read_text('utf-8'))
     if (report.get('scope') != 'training_calibration_only_no_independent_quality_claim' or
-            report.get('protocol_fingerprint') != protocol['fingerprint'] or report.get('families') != 20):
+            report.get('protocol_fingerprint') != protocol['fingerprint'] or report.get('families') != 20 or
+            report.get('executed_pairs') != 20):
         raise ValueError('Validation calibration report scope mismatch')
+    # Legacy evidence can only be read under its original limits/registration.
+    # It can never start a new run under the enlarged budget.
+    legacy = reporting and 'budget_policy' not in report
+    policy = legacy_manifest() if legacy else budget_manifest()
+    if not legacy and report.get('budget_policy') != policy:
+        raise ValueError('Calibration report uses a different approved budget policy')
     budget = report['budget']
+    if any(not finite_positive(budget.get(key)) for key in
+           ('200_family_p95_two_attempt_hours', '200_family_conservative_peak_additional_GiB')):
+        raise ValueError('Conservative calibration budget requires positive finite estimates')
     if (not budget['time_gate_passed'] or not budget['disk_gate_passed'] or
-            budget['200_family_p95_two_attempt_hours'] > 4 or (not reporting and
+            budget['200_family_p95_two_attempt_hours'] > policy['family_time_limit_hours'] or (not reporting and
             budget['200_family_conservative_peak_additional_GiB'] >
-            20 - folder_bytes(ROOT / '.local/ygo-learning') / 1024**3)):
+            policy['family_disk_limit_GiB'] - folder_bytes(ROOT / '.local/ygo-learning') / 1024**3)):
         raise ValueError('Conservative calibration budget gate has not passed')
     teacher = sha256(Path(__file__).with_name('teacher_p3.py'))
-    if (len(report.get('sources', [])) != 4 or any(s['code']['teacher_p3.py'] != teacher or
-            s['runtime'] != runtime or s.get('fast_animation_requested') is not True for s in report['sources'])):
+    sources = report.get('sources', [])
+    if (not sources or any(s['code']['teacher_p3.py'] != teacher or
+            s['runtime'] != runtime or s.get('fast_animation_requested') is not True for s in sources)):
         raise ValueError('Validation teacher/runtime differs from calibrated version')
+    if any(any(s.get(k) != sources[0].get(k) for k in ('code', 'runtime', 'implementation',
+                                                     'fast_animation_requested')) for s in sources):
+        raise ValueError('Calibration source batches have mixed identities')
     for mode in ('B1', 'T0'):
         result = report['modes'][mode]
         if not result['all_full_replays_verified'] or result['native_archives_verified'] != 20:
@@ -57,12 +73,15 @@ def authorize(protocol, report_path, runtime, *, reporting=False):
     expected = {'schema': 1, 'protocol_fingerprint': protocol['fingerprint'],
         'teacher_sha256': teacher, 'search': CONFIG, 'runtime': runtime,
         'calibration_report': str(report_path), 'calibration_report_sha256': sha256(report_path),
-        'addendum_sha256': sha256(ADDENDUM), 'family_ids': [f['id'] for f in families(protocol)],
+        'addendum_sha256': sha256(LEGACY_ADDENDUM if legacy else ADDENDUM),
+        'family_ids': [f['id'] for f in families(protocol)],
         'criteria': {'minimum_net_successes': 2, 'common_support_nonnegative': True,
                      'bootstrap_samples': 10000, 'bootstrap_seed': 20260921,
                      'formal_significance_required_for_pilot_selection': False},
         'holdout_opened': False, 'paid_calls': 0}
-    path = BASE / 'validation-registration.json'
+    if not legacy:
+        expected['budget_policy'] = policy
+    path = BASE / policy['registration_filename']
     if path.exists():
         saved = json.loads(path.read_text('utf-8'))
         if saved.get('fingerprint') != digest({k: v for k, v in saved.items() if k != 'fingerprint'}):
@@ -74,7 +93,7 @@ def authorize(protocol, report_path, runtime, *, reporting=False):
             raise ValueError('Validation evidence has no prior registration')
         previous = cumulative_seconds()
         projected = budget['200_family_p95_two_attempt_hours'] * 3600 * 40 / 200
-        if previous + projected > 7200:
+        if previous + projected > policy['worker_limit_seconds']:
             raise ValueError('Conservative validation work exceeds remaining P2/P3 budget')
         saved = {**expected, 'registered_at_utc': datetime.now(timezone.utc).isoformat(),
                  'previous_compute_seconds': previous, 'validation_projected_seconds': projected}

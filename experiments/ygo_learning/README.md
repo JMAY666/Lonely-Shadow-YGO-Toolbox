@@ -151,7 +151,7 @@ node experiments/ygo_learning/desktop_p1.cjs --suite=development --count=50 --mo
 # 只读取固定公开构筑及过去的公开实验；已存在的协议只能验证复用。
 .local/ygo-agent-pilot/.venv/Scripts/python.exe -X utf8 -c "from pathlib import Path; from experiments.ygo_learning.protocol_p2 import create_protocol; p=create_protocol(Path('.local/ygo-learning/p2-p3/protocol.json')); print(p['fingerprint'])"
 
-# 每批 5 个训练家族；每批最多 30 分钟，P2/P3 累计最多 2 小时。
+# 每批 5 个训练家族；每批最多 30 分钟，P2/P3 当前批准累计最多 3 小时。
 node experiments/ygo_learning/desktop_p1.cjs --suite=teacher --first-family=1 --count=5
 node experiments/ygo_learning/desktop_p1.cjs --suite=teacher --first-family=6 --count=5
 node experiments/ygo_learning/desktop_p1.cjs --suite=teacher --first-family=11 --count=5
@@ -204,19 +204,21 @@ Windows 短暂占用已验证的重复文件时，进行有限次数重试；仍
 
 ### 40 家族验证集
 
-[选择标准](../../docs/ai-learning-p3-validation-protocol.md)在任何验证执行前登记。`validation_p3.py` 检查已审计标定报告、当前空间、剩余累计预算及教师/规则哈希，排他创建 `validation-registration.json`；已有登记只能原样核对复用。运行器只接受 P2 的 40 个 validation 家族，每批最多 5 个，holdout 不可作为参数选择。所有开发、失败重试及验证累计到同一 2 小时账本。
+[v8 选择标准](../../docs/ai-learning-p3-validation-protocol.md)在本次修复后完整验证前登记。用户已批准 P2/P3 worker 累计 3 小时、200 家族保守成本 5 小时，其余资源和质量门槛不变。`budget_policy.py` 提供带版本的预算声明；`validation_p3.py` 核对标定报告、当前空间、累计用量和教师/规则身份，排他创建 `validation-registration-v8.json`。已有登记只能原样核对复用，原始 `validation-registration.json` 与其[原协议正文](../../docs/ai-learning-p3-validation-protocol-v1.md)保留；旧登记只允许按原预算读取报告，不允许据此启动新的执行。
+
+运行器只接受 P2 的 40 个 validation 家族，每批最多 5 个，holdout 不可作为参数选择。所有开发、失败重试与新旧验证仍累计到同一账本，升级预算不清零。修复后标定报告可来自一个完整 20 家族批次或多个一致批次，不再要求恰好四个批次；仍须覆盖完整 20 对，所有来源身份一致且完整重放和原生恢复全部通过。
 
 ```powershell
-node experiments/ygo_learning/desktop_p1.cjs --suite=teacher-validation --first-family=1 --count=5 --fast --calibration-report=.local/ygo-learning/p2-p3/report-20260921-113043/summary.json
+node experiments/ygo_learning/desktop_p1.cjs --suite=teacher-validation --first-family=1 --count=5 --fast --calibration-report=.local/ygo-learning/p2-p3/report-20260921-140525/summary.json
 # 后续 first-family=6,11,16,21,26,31,36；可靠性失败先修复并保留原尝试。
 .local/ygo-agent-pilot/.venv/Scripts/python.exe -X utf8 experiments/ygo_learning/report_p3.py --validation "<最终批次1>" "<最终批次2>" "<最终批次3>" "<最终批次4>" "<最终批次5>" "<最终批次6>" "<最终批次7>" "<最终批次8>"
 ```
 
 汇总必须覆盖全部 40 对，拒绝混用源码、模式或登记版本。输出配对差值、固定种子的 10,000 次 bootstrap 区间、共同支持范围、成本门槛和是否允许进入 P4。失败或证据不足时保留完整分母与记录，不用验证轨迹训练学生。
 
-旧版验证在 24/40 对完成后因原生焦点事件的锁顺序冲突中止，详见[验证中止与死锁修复](../../docs/ai-learning-p3-validation-results.md)。修复后先复测两个已知失败家族，各三轮、共 12 次执行均通过；随后又用修复后二进制完成同一批 20 个训练家族的完整 B1/T0 标定，但没有把这批标定拼成旧版 40 家族验证结论。当前 worker 剩余约 22.90 分钟，小于修复后完整验证预测 53.51 分钟，且 200 家族保守成本 4.46 小时超过原 4 小时门槛，因此继续停止扩展。
+旧版验证曾在 24/40 对后因原生焦点事件锁冲突中止，详见[历史修复报告](../../docs/ai-learning-p3-validation-results.md)。修复后两家族三轮回归、同一批 20 家族完整训练标定与本次全部 40 家族验证分别保存，未拼接旧结果。当前完整验证为 T0 29/40、B1 26/40，质量方向通过；保守成本 5.112 小时超过已批准的 5 小时，因此 P4 仍暂缓。
 
-限定恢复诊断命令是 `node experiments/ygo_learning/desktop_p1.cjs --suite=teacher-recovery --first-family=1 --count=2 --fast`，只允许这两个已保存原条件的验证失败家族，不能选择新验证或 holdout。新原生版本、诊断与旧版本部分验证分别保存；下一次完整验证须先登记新的版本/预算方案，不能覆盖原登记或重置累计预算。
+限定恢复诊断命令是 `node experiments/ygo_learning/desktop_p1.cjs --suite=teacher-recovery --first-family=1 --count=2 --fast`，只允许这两个已保存原条件的验证失败家族，不能选择新验证或 holdout。新原生版本、诊断与旧版本部分验证分别保存；v8 新登记及完整结果见[完整验证报告](../../docs/ai-learning-p3-validation-v8-results.md)，原登记与累计账本保留。
 
 ### 修复后完整标定与预算复核
 
@@ -232,6 +234,12 @@ node experiments/ygo_learning/desktop_p1.cjs --suite=teacher --first-family=1 --
 
 `revalidation_p3.py` 要求完整 20 家族配对，核对二进制、卡库/脚本、固定教师、随机条件和全部实际选择。首回合结束后的最后一次异步观察以原生日志首次进入第 2 回合的完整状态比较，原始后继快照差异另列；其余选择前后状态、动态属性、效果和最终稳定窗口继续严格比较。缺少结束边界、实际提交了下一回合动作或终场状态改变均不能通过。
 
-审计结果保存为新的本地 `revalidation-*/summary.json` 和审计器源码副本，保留旧登记与原始差异报告。预算分别检查 200 家族的 4 小时、20 GiB 目录空间、P2/P3 累计 2 小时，失败原因不能互相抵扣；它只生成复核报告，不创建新的验证授权。
+审计结果保存为新的本地 `revalidation-*/summary.json` 和审计器源码副本，保留旧登记与原始差异报告。当前复核读取已批准的 5 小时成本、20 GiB 目录空间、3 小时累计 worker 策略，并在报告中附带策略身份，失败原因不能互相抵扣；历史报告保持当时的 4/2 小时判断。它只生成复核报告，不创建新的验证授权。
 
-当前实测保守成本为 4.46 小时/200 家族，存储约 4.35 GiB；累计 worker 约 97.10 分钟、余 22.90 分钟，完整验证预测 53.51 分钟。原时间门槛未通过，验证与 P4 继续停止。计划中的 3/5 小时预算方案尚待确认，原有上限继续有效；旧版部分验证不能拼接到新版本。
+上述训练标定当时给出 4.46 小时/200 家族，用户随后批准 3/5 小时预算；重新审计相同证据生成 `report-20260921-140525`，没有重跑或替换标定轨迹。本次完整验证另测为 5.112 小时/200 家族，因此训练标定的成本通过不能替代验证后的成本门槛。
+
+### v8 完整验证结果与停止边界
+
+全部 40 个验证家族、80 次 B1/T0 执行均完成首回合，并通过独立完整重放、原生日志审计、配对条件和 ZIP/gzip 恢复检查。T0 达标 29/40，B1 26/40，共同支持为全部 40 家族；净增 3 个达标家族，满足预登记的至少净增 2 个及共同支持不退化。按家族进行 10,000 次配对 bootstrap 的 95% 区间为 −5 至 +20 个百分点，正式教师收益仍未验证。331 个搜索窗口的隐藏信息替换通过，414 个未知随机后继被挡在评分之外。
+
+验证实测保守成本为 5.112 小时/200 家族，存储约 3.90 GiB。累计 worker 为 7,080.55 秒，约 118.01 分钟，3 小时额度内余约 61.99 分钟；该口径包含全部旧失败和新执行，离线审计与桌面检查另计。`pilot_quality_gate_passed=true`，`time_gate_passed=false`，`disk_gate_passed=true`，`next_sampling_authorized_by_gate=false`。P4、holdout、学生训练、LLM 与产品接入均未启动。下一步先用冻结训练家族优化成本并另登记复核，不能挑更快的重试覆盖本次超限记录。

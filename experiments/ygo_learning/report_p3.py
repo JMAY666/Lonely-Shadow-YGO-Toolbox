@@ -11,6 +11,7 @@ from protocol_p2 import load_protocol, calibration_families
 from evidence_p3 import read_archive
 from budget import folder_bytes
 from provenance import sha256
+from budget_policy import legacy_manifest, manifest as budget_manifest
 
 
 def percentile(values, fraction=.95):
@@ -47,6 +48,7 @@ def summarize(batches, protocol, *, validation=False):
     catalogs = {}
     worker_seconds = 0
     source_versions = []
+    registered_versions = []
     for batch in batches:
         batch = Path(batch).resolve()
         if not batch.is_relative_to(CALIBRATION.resolve()):
@@ -63,6 +65,7 @@ def summarize(batches, protocol, *, validation=False):
             registered = authorize(protocol, saved.get('calibration_report', ''), manifest['runtime'], reporting=True)
             if saved != registered:
                 raise ValueError('Validation batch registration changed')
+            registered_versions.append(registered)
         if summary['protocol_fingerprint'] != protocol['fingerprint']:
             raise ValueError('Batch used another protocol')
         worker_seconds += summary['worker_seconds']
@@ -103,6 +106,11 @@ def summarize(batches, protocol, *, validation=False):
     if any(any(s[key] != source_versions[0][key] for key in ('code', 'runtime', 'implementation',
                                                             'fast_animation_requested')) for s in source_versions):
         raise ValueError('Final calibration batches must use one frozen source/rule identity')
+    policy = budget_manifest()
+    if validation:
+        if any(r != registered_versions[0] for r in registered_versions):
+            raise ValueError('Validation batches must use one frozen registration')
+        policy = registered_versions[0].get('budget_policy', legacy_manifest())
     modes = {}
     for mode in ('B1', 'T0'):
         rows = [records[f, mode] for f in sorted(expected)]
@@ -145,11 +153,11 @@ def summarize(batches, protocol, *, validation=False):
         '200_family_mean_additional_GiB': statistics.mean(pair_bytes) * 200 / 1024**3,
         '200_family_p95_two_attempt_additional_GiB': percentile(pair_bytes) * 2 * 200 / 1024**3,
         'current_directory_GiB': current_bytes / 1024**3,
-        'remaining_directory_GiB': (20 * 1024**3 - current_bytes) / 1024**3,
+        'remaining_directory_GiB': (policy['family_disk_limit_GiB'] * 1024**3 - current_bytes) / 1024**3,
         'compressed_collector_GiB_for_200_mean': sum(r['storage']['compressed_bytes'] for r in records.values()) * 200 / count / 1024**3,
         'compression_limit': 'uses actual native archives plus retained application caches; old evidence and runtimes remain',
     }
-    estimate['time_gate_passed'] = estimate['200_family_p95_two_attempt_hours'] <= 4
+    estimate['time_gate_passed'] = estimate['200_family_p95_two_attempt_hours'] <= policy['family_time_limit_hours']
     reserve = max(2 * r['native_original_bytes'] + r['storage']['original_json_bytes'] for r in records.values())
     estimate['temporary_restore_reserve_GiB'] = reserve / 1024**3
     estimate['200_family_conservative_peak_additional_GiB'] = (
@@ -158,6 +166,7 @@ def summarize(batches, protocol, *, validation=False):
     result = {'scope': 'validation_teacher_selection_no_holdout' if validation else 'training_calibration_only_no_independent_quality_claim',
             'protocol_fingerprint': protocol['fingerprint'], 'families': count, 'executed_pairs': count,
             'worker_seconds': worker_seconds, 'modes': modes,
+            'budget_policy': policy,
             'B2': {'coverage': 0, 'denominator': count, 'scope': 'exact_public_P1_opening_sources_only'},
             'paired_outcomes': dict(Counter(
                 'both' if records[f, 'T0']['goal']['success'] and records[f, 'B1']['goal']['success'] else

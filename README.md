@@ -226,7 +226,7 @@ npm run build
 | 日志、快照与资源统计依据 | [记录说明](docs/recording.md) |
 | 已执行检查及尚未验证事项 | [验收记录](docs/verification.md) |
 | 现成模型在真实引擎中的逐步指导试验（未接入正式界面） | [ygo-agent 本机试验](experiments/ygo_agent/README.md) |
-| 学生训练、修复后教师标定与预算复核（开发实验，完整选型待验证，未接入正式界面） | [学生训练与执行试验](experiments/ygo_learning/README.md) |
+| 学生训练与完整教师验证（小试质量方向通过，成本未通过，未接入正式界面） | [学生训练与执行试验](experiments/ygo_learning/README.md) |
 | 上游组件与许可证 | [第三方来源](docs/third-party.md) |
 
 ---

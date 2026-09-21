@@ -4,7 +4,7 @@
 
 ## 预登记与分母
 
-本轮依据[资源与时间优化](ai-learning-p3-resource-results.md)中 20 个训练家族的预算结果，进入[预登记验证](ai-learning-p3-validation-protocol.md)。登记创建于 UTC `2026-09-21T03:45:22.937985+00:00`，指纹为 `e571e00f6e258a3390dcfab9c987e157e1dc7b41ab9815631c36f8f62fce26a2`。教师固定为 `T0-resource-v7`，期间没有按验证结果调分数、改搜索预算、修改目标或删除失败家族。
+本轮依据[资源与时间优化](ai-learning-p3-resource-results.md)中 20 个训练家族的预算结果，进入[原版预登记验证](ai-learning-p3-validation-protocol-v1.md)。登记创建于 UTC `2026-09-21T03:45:22.937985+00:00`，指纹为 `e571e00f6e258a3390dcfab9c987e157e1dc7b41ab9815631c36f8f62fce26a2`。教师固定为 `T0-resource-v7`，期间没有按验证结果调分数、改搜索预算、修改目标或删除失败家族。
 
 | 场景 | 预登记家族 | 完成配对 | 已完成中的 B1 达标数 | 已完成中的 T0 达标数 |
 | --- | ---: | ---: | ---: | ---: |
