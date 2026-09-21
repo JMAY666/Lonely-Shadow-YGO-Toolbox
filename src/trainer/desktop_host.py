@@ -219,7 +219,7 @@ class NativeHost:
         from app import atomic_bytes
         if not self.test_control: raise ValueError('此运行未启用内部验收接口')
         sid, kind = body['id'], body['kind']
-        if kind not in ('click', 'capture'): raise ValueError('不支持的内部测试动作')
+        if kind not in ('click', 'capture', 'focus-lock'): raise ValueError('不支持的内部测试动作')
         status = self.status(store, sid)
         if not status['ready']: raise ValueError('训练场地尚未就绪')
         x, y = body.get('x', 0), body.get('y', 0)
@@ -236,6 +236,7 @@ class NativeHost:
                     time.sleep(0.05)
                     continue
                 if answer.get('error'): raise ValueError(answer['error'])
+                if kind == 'focus-lock': return answer
                 return {**answer, 'frame': f'/api/native/frame/{sid}/{token}.png'}
             time.sleep(0.05)
         raise ValueError('内部测试动作等待超时，已保留原始记录')

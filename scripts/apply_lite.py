@@ -138,7 +138,7 @@ def main():
 
     t = read("gframe/drawing.cpp")
     t = replace(t, '#include "game.h"', '#include "game.h"\n#include "training_support.h"')
-    t = replace(t, 'void Game::WaitFrameSignal(int frame) {', 'void Game::WaitFrameSignal(int frame) {\n    if(TrainingEmbedded() && (TrainingOpening() || dInfo.curMsg == MSG_NEW_TURN || dInfo.curMsg == MSG_NEW_PHASE)) return; // Presentation only; core events are still processed and recorded.')
+    t = replace(t, 'void Game::WaitFrameSignal(int frame) {', 'void Game::WaitFrameSignal(int frame) {\n    if(TrainingLearningFast()) return; // Explicit isolated learning tests only; no core message or choice is skipped.\n    if(TrainingEmbedded() && (TrainingOpening() || dInfo.curMsg == MSG_NEW_TURN || dInfo.curMsg == MSG_NEW_PHASE)) return; // Presentation only; core events are still processed and recorded.')
     t = replace(t, '\tdriver->drawVertexPrimitiveList(matManager.vField, 4, matManager.iRectangle, 2);', '''    if(TrainingEmbedded() && !TrainingOpponentAI()) {
         irr::video::S3DVertex ownField[4];
         std::copy(std::begin(matManager.vField), std::end(matManager.vField), ownField);
@@ -285,7 +285,15 @@ def main():
     t=read("gframe/event_handler.cpp")
     t=replace(t, '#include "client_field.h"', '#include "client_field.h"\n#include "training_support.h"')
     t=replace(t, 'bool ClientField::OnEvent(const irr::SEvent& event) {',
-        'bool ClientField::OnEvent(const irr::SEvent& event) {\n    std::lock_guard<std::recursive_mutex> inputLock(TrainingInputMutex());\n    if(TrainingRestoring()) return true;')
+        '''bool ClientField::OnEvent(const irr::SEvent& event) {
+    // DrawGUI sends focus notifications while holding gMutex. They do not
+    // handle duel input below; taking historyMutex here would invert the
+    // checkpoint lock order (historyMutex -> gMutex) and deadlock both threads.
+    if(event.EventType == irr::EET_GUI_EVENT &&
+       (event.GUIEvent.EventType == irr::gui::EGET_ELEMENT_FOCUSED ||
+        event.GUIEvent.EventType == irr::gui::EGET_ELEMENT_FOCUS_LOST)) return false;
+    std::lock_guard<std::recursive_mutex> inputLock(TrainingInputMutex());
+    if(TrainingRestoring()) return true;''')
     save("gframe/event_handler.cpp", t)
 
     t=read("gframe/single_mode.cpp")

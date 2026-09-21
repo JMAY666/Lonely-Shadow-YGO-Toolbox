@@ -12,6 +12,7 @@ import os
 import sys
 from pathlib import Path
 import tempfile
+import time
 import uuid
 import zipfile
 
@@ -90,7 +91,7 @@ def restored_session(archive, expected_hash):
         yield folder
 
 
-def pack_session(folder, archive, session_id, *, compact=False):
+def pack_session(folder, archive, session_id, *, compact=False, audit_restored=None):
     from app import process_identity
     folder, archive = Path(folder), Path(archive)
     allowed = {(BASE / name / 'runtime/_trainer/sessions').resolve() for name in
@@ -116,9 +117,12 @@ def pack_session(folder, archive, session_id, *, compact=False):
     with restored_session(archive, fingerprint) as restored:
         if files(restored) != original:
             raise ValueError('Native archive restoration failed')
+        if audit_restored is not None:
+            audit_restored(restored)
     if files(folder) != original:
         raise ValueError('Native session changed while archiving; originals retained')
     retained = set(original)
+    retained_duplicates = []
     if compact:
         # Preserve metadata/reports for the app's closed-session list and retry.
         # The full native log, replay calls, and checkpoints remain in the zip.
@@ -135,9 +139,21 @@ def pack_session(folder, archive, session_id, *, compact=False):
             path = folder / name
             if path.is_symlink() or sha256(path) != original[name]['sha256']:
                 raise ValueError('Session file changed before compaction')
-            path.unlink()
+            # The hidden renderer/service can still be finishing a read of a
+            # closed session. Sharing violations must retain the verified
+            # duplicate, not destroy an otherwise valid evidence batch.
+            for attempt in range(4):
+                try:
+                    path.unlink()
+                    break
+                except PermissionError:
+                    if attempt == 3:
+                        retained_duplicates.append(name)
+                    else:
+                        time.sleep(.025)
     return {'schema': SCHEMA, 'path': str(archive.resolve()), 'sha256': fingerprint,
             'original_bytes': sum(item['size'] for item in original.values()),
             'compressed_bytes': archive.stat().st_size,
             'retained_bytes': sum(path.stat().st_size for path in folder.iterdir()),
-            'files': len(original), 'restoration_verified': True, 'compact': compact}
+            'files': len(original), 'restoration_verified': True, 'compact': compact,
+            'retained_duplicate_files': retained_duplicates}

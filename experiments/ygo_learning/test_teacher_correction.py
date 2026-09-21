@@ -12,6 +12,43 @@ def bundle(message=11, choices=2):
 
 
 class CorrectionTests(unittest.TestCase):
+    def test_stop_alternative_does_not_displace_promising_third_branch(self):
+        root = bundle(11, 4)
+        visited = []
+        def expand(path):
+            visited.append(path[0])
+            return {'bundle': {'observation': {'value': 10 if path[0] == 2 else 0}, 'candidates': []}}
+        result = bounded_search(root, expand, lambda b: list(range(len(b['candidates']))),
+                                lambda b: b['observation'].get('value', 0), max_depth=1,
+                                max_nodes=4, branching=3, extra_candidate=lambda b: 3)
+        self.assertEqual([0, 1, 2, 3], visited)
+        self.assertEqual(2, result['index'])
+        self.assertEqual(4, result['nodes'])
+
+    def test_pending_starter_cost_and_chain_do_not_erase_its_potential(self):
+        state = bundle(15, 1)
+        state['observation']['cards'] = [{'controller': 0, 'location': 4,
+            'position': 1, 'code': 20001443, 'disabled': False}]
+        state['observation']['normal_used'] = 1
+        empty = board_score(state)
+        state['candidates'][0]['public']['context'] = {'handler_code': 20001443}
+        self.assertGreater(board_score(state), empty)
+        state['candidates'][0]['public'].pop('context')
+        state['observation']['chains'] = [{'link': 1, 'effect': {'handler_code': 20001443}}]
+        self.assertGreater(board_score(state), empty)
+        state['observation']['chains'][0]['effect'] = {'identity_known': False}
+        self.assertEqual(board_score(state), empty)
+
+    def test_irrelevant_normal_summon_is_not_better_than_retaining_resources(self):
+        from copy import deepcopy
+        before = {'observation': {'cards': [{'controller': 0, 'location': 2,
+                   'code': 14558127}] * 3, 'normal_used': 0}, 'candidates': []}
+        after = deepcopy(before)
+        after['observation']['cards'][0] = {'controller': 0, 'location': 4, 'code': 14558127,
+                                           'position': 1, 'disabled': False}
+        after['observation']['normal_used'] = 1
+        self.assertLess(board_score(after), board_score(before))
+
     def test_spending_normal_summon_preserves_value_of_legal_starter_effect(self):
         hand = [{'controller': 0, 'location': 2, 'code': 55273560},
                 {'controller': 0, 'location': 2, 'code': 14558127}]

@@ -16,11 +16,12 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--runtime', required=True)
     parser.add_argument('--url', required=True)
-    parser.add_argument('--suite', choices=['probe','mechanisms','demonstrations','development','throughput','teacher'], default='probe')
+    parser.add_argument('--suite', choices=['probe','mechanisms','demonstrations','development','throughput','teacher','teacher-validation','teacher-recovery'], default='probe')
     parser.add_argument('--model')
     parser.add_argument('--count',type=int,choices=range(1,51),default=50)
     parser.add_argument('--protocol', default=str(ROOT/'.local/ygo-learning/p2-p3/protocol.json'))
-    parser.add_argument('--first-family', type=int, choices=range(1,21), default=1)
+    parser.add_argument('--first-family', type=int, choices=range(1,41), default=1)
+    parser.add_argument('--calibration-report', type=Path)
     parser.add_argument('--groups', default='')
     parser.add_argument('--variants',type=int,choices=range(1,6),default=5)
     parser.add_argument('--first-variant',type=int,choices=range(1,6),default=1)
@@ -28,15 +29,20 @@ def main():
     if args.first_variant>args.variants:parser.error('--first-variant must not exceed --variants')
     session = NativeSession(args.runtime, args.url)
     suffix='-secondary' if 'secondary' in Path(args.runtime).parent.name else ''
-    output_base = ROOT/'.local/ygo-learning/p2-p3' if args.suite=='teacher' else BASE
+    output_base = ROOT/'.local/ygo-learning/p2-p3' if args.suite.startswith('teacher') else BASE
     output = output_base / (args.suite+suffix+'-' + datetime.now().strftime('%Y%m%d-%H%M%S'))
     output.mkdir(parents=True, exist_ok=False)
     try:
-        if args.suite=='teacher':
+        if args.suite.startswith('teacher'):
             from app import Catalog
             from calibration_p3 import run
+            validating = args.suite == 'teacher-validation'
+            if validating and not args.calibration_report:
+                raise ValueError('Validation requires an explicit audited calibration report')
             run(session, Catalog(Path(args.runtime)).cards, output, args.protocol,
-                args.first_family, min(args.count,20))
+                args.first_family, args.count if validating else min(args.count,20),
+                validation_report=args.calibration_report if validating else None,
+                recovery=args.suite == 'teacher-recovery')
             return
         if args.suite=='throughput':
             from app import Catalog
@@ -82,13 +88,22 @@ def main():
         print('PASS dynamic snapshot, zero-step complete engine replay and exact action acknowledgement')
     except Exception as error:
         harness=getattr(session,'active_harness',None)
+        active_record = getattr(session, 'active_record', None)
+        if active_record is not None:
+            from evidence_p3 import canonical, json_value
+            (output / 'failure-trajectory.json').write_bytes(canonical(json_value(active_record)))
         (output/'failure.json').write_text(json.dumps({'error':str(error),'traceback':traceback.format_exc(),
             'case':harness.case if harness else None,'steps':harness.steps if harness else [],
             'passed_cases':harness.results if harness else []},ensure_ascii=False,indent=2),encoding='utf-8')
         raise
     finally:
-        finished = session.finish()
-        if finished:(output/'session.json').write_text(json.dumps(finished,ensure_ascii=False),encoding='utf-8')
+        try:
+            finished = session.finish()
+            if finished:(output/'session.json').write_text(json.dumps(finished,ensure_ascii=False),encoding='utf-8')
+        except Exception as error:
+            (output / 'finish-failure.json').write_text(json.dumps({'error': str(error), 'session': session.sid}), encoding='utf-8')
+            if not (output / 'failure.json').exists():
+                raise
         print('Evidence:', output)
 
 

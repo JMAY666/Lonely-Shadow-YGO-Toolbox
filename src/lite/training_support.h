@@ -10,6 +10,7 @@ bool TrainingActive();
 bool TrainingEmbedded();
 bool TrainingOpening();
 bool TrainingTestControlled();
+bool TrainingLearningFast();
 bool TrainingLearningControlled();
 bool TrainingOpponentAI();
 void TrainingCaptureFrame();

@@ -4,10 +4,35 @@ from pathlib import Path
 import tempfile
 import time
 import unittest
-from calibration_p3 import TurnObserver, goal_view, latest_condition_session, CalibrationBudget
+from unittest.mock import Mock, patch
+from calibration_p3 import TurnObserver, goal_view, latest_condition_session, CalibrationBudget, recover_unfinished_condition
 
 
 class TurnBoundaryTests(unittest.TestCase):
+    def test_recovery_imports_original_expansion_and_resets_session_counters(self):
+        from contract_v2 import digest
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / '_trainer/sessions/old'
+            source.mkdir(parents=True)
+            (source / 'session.json').write_text(json.dumps({'engine_sha256': 'fixed'}), encoding='utf-8')
+            target = root / '_trainer/sessions/new'
+            target.mkdir()
+            (target / 'native.jsonl').write_text('{"test_control": true}\n', encoding='utf-8')
+            expansion = {'engine_seed': 42, 'draw_order': [3, 1, 2]}
+            condition = {'session': 'old', 'expansion_sha256': digest(expansion)}
+            path = root / 'condition.json'
+            session = Mock(runtime=root, sid=None, folder=target, samples=['previous'], start_seconds=999)
+            session.api.return_value = {'id': 'new'}
+            session.current.return_value = {'raw': 'current'}
+            session.read.return_value = {'expansion': expansion}
+            with patch('calibration_p3.time.perf_counter', side_effect=[10, 12]):
+                self.assertEqual({'raw': 'current'}, recover_unfinished_condition(session, path, condition, 'old'))
+            session.api.assert_called_once_with('/api/native/learning-fixture', {'id': 'old', 'source_engine_sha256': 'fixed'})
+            self.assertEqual([], session.samples)
+            self.assertEqual(2, session.start_seconds)
+            self.assertEqual(['old'], json.loads(path.read_text('utf-8'))['recovery_sessions'])
+
     def test_cumulative_deadline_stops_before_next_engine_node(self):
         with tempfile.TemporaryDirectory() as folder:
             budget = CalibrationBudget.__new__(CalibrationBudget)

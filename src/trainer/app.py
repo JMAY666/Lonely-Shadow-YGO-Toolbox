@@ -1052,6 +1052,9 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/opponent/control': return self.send(store.compromise.control(body))
                 if path == '/api/stop': return self.send(store.stop(body['id']))
                 if path == '/api/restart': return self.send(store.restart(body['id']))
+                if path == '/api/native/learning-fixture':
+                    from learning_fixture import start as start_learning_fixture
+                    return self.send(start_learning_fixture(store, body))
                 if path == '/api/rewind': return self.send(store.rewind(body))
                 if path == '/api/return-to-design': return self.send(store.return_to_design(body['id']))
                 if path == '/api/drafts/discard': return self.send(store.discard_draft(body))

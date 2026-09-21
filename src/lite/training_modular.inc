@@ -140,6 +140,10 @@ static bool modularTick(intptr_t engine) {
         if(command != "probe" && (command != "forecast" || !GetEnvironmentVariableA("YGO_TRAIN_PLANNING", nullptr, 0)))
             throw std::runtime_error("invalid_request");
         restoring = true; replayError = false;
+        const auto profileStart = std::chrono::steady_clock::now();
+        const auto elapsedMicros = [](const auto& start) {
+            return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start).count();
+        };
         std::vector<unsigned char> buffer(SIZE_QUERY_BUFFER + SIZE_MESSAGE_BUFFER);
         const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(4);
         const bool cached = modularCache.engine && modularCache.version == expected && modularCache.scenario == scenario
@@ -190,6 +194,8 @@ static bool modularTick(intptr_t engine) {
             }
         }
         }
+        const auto prefixMicros = elapsedMicros(profileStart);
+        const auto branchStart = std::chrono::steady_clock::now();
         auto& probeCore = reinterpret_cast<duel*>(candidate)->game_field->core;
         probeCore.modular_probe = true;
         if(!cached) probeCore.modular_private_cards.clear();
@@ -253,6 +259,7 @@ static bool modularTick(intptr_t engine) {
             }
             if(!ended && !waiting) throw std::runtime_error("search_limit");
         }
+        const auto branchMicros = elapsedMicros(branchStart);
         std::ostringstream out;
         out << "{\"token\":\"" << token << "\",\"status\":\"ok\",\"version\":" << expected
             << ",\"ended\":" << (ended ? "true" : "false") << ",\"effects\":" << TrainingDecisionEffects(candidate)
@@ -265,8 +272,17 @@ static bool modularTick(intptr_t engine) {
         if(learningEnabled()) {
             auto text = out.str(); text.pop_back();
             out.str(""); out.clear();
-            out << text << ",\"learning\":" << learningSnapshot(candidate)
-                << ",\"boundary_raw\":\"" << encode(boundaryBytes) << "\"}";
+            const auto snapshotStart = std::chrono::steady_clock::now();
+            const auto snapshot = learningSnapshot(candidate);
+            const auto snapshotMicros = elapsedMicros(snapshotStart);
+            out << text << ",\"learning\":" << snapshot
+                << ",\"boundary_raw\":\"" << encode(boundaryBytes) << "\""
+                << ",\"learning_profile\":{\"prefix_rebuild_us\":" << prefixMicros
+                << ",\"branch_execute_us\":" << branchMicros
+                << ",\"snapshot_us\":" << snapshotMicros
+                << ",\"native_prepare_us\":" << elapsedMicros(profileStart)
+                << ",\"cached_prefix\":" << (cached ? "true" : "false")
+                << ",\"fast_animation\":" << (TrainingLearningFast() ? "true" : "false") << "}}";
         }
         modularCache = {candidate, expected, scenario, path, batches, boundaryBytes, ended, observationKey.str()};
         candidate = 0; restoring = false;

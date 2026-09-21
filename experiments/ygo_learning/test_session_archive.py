@@ -10,6 +10,36 @@ import session_archive as archive
 
 
 class SessionArchiveTests(unittest.TestCase):
+    def test_locked_duplicate_is_retained_and_counted_after_verified_restore(self):
+        with tempfile.TemporaryDirectory() as root:
+            base, sid, folder, target = self.fixture(root)
+            locked = folder / 'native.jsonl'
+            real_unlink = Path.unlink
+            def unlink(path, *args, **kwargs):
+                if path == locked:
+                    raise PermissionError('shared renderer read')
+                return real_unlink(path, *args, **kwargs)
+            with patch.object(archive, 'BASE', base), patch('app.process_identity', return_value=None), \
+                    patch.object(Path, 'unlink', unlink), patch('session_archive.time.sleep'):
+                result = archive.pack_session(folder, target, sid, compact=True)
+            self.assertTrue(result['restoration_verified'])
+            self.assertEqual(['native.jsonl'], result['retained_duplicate_files'])
+            self.assertTrue(locked.exists())
+            self.assertEqual(sum(p.stat().st_size for p in folder.iterdir()), result['retained_bytes'])
+
+    def test_failed_restored_journal_audit_keeps_every_original_file(self):
+        with tempfile.TemporaryDirectory() as root:
+            base, sid, folder, target = self.fixture(root)
+            expected = archive.files(folder)
+            def reject(restored):
+                self.assertEqual(expected, archive.files(restored))
+                raise ValueError('journal mismatch')
+            with patch.object(archive, 'BASE', base), patch('app.process_identity', return_value=None):
+                with self.assertRaisesRegex(ValueError, 'journal mismatch'):
+                    archive.pack_session(folder, target, sid, compact=True, audit_restored=reject)
+            self.assertEqual(expected, archive.files(folder))
+            self.assertTrue(target.exists())
+
     def fixture(self, root):
         base = Path(root) / 'p0b-p1'
         sid = '11111111-1111-4111-8111-111111111111'

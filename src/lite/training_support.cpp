@@ -19,6 +19,7 @@
 #include <sstream>
 #include <algorithm>
 #include <map>
+#include <thread>
 
 namespace ygo {
 static std::string session;
@@ -109,6 +110,11 @@ bool TrainingLearningControlled() {
     return TrainingTestControlled() && GetEnvironmentVariableA("YGO_TRAIN_LEARNING", enabled, sizeof enabled)
         && enabled[0] == '1';
 }
+bool TrainingLearningFast() {
+    char enabled[8]{};
+    return TrainingLearningControlled() && GetEnvironmentVariableA("YGO_TRAIN_LEARNING_FAST", enabled, sizeof enabled)
+        && enabled[0] == '1';
+}
 static void TrainingTestInput() {
     if(!TrainingTestControlled()) return;
     std::ifstream command(TrainingPath("test-command.txt"));
@@ -120,6 +126,35 @@ static void TrainingTestInput() {
     if(token.size() != 32 || token.find_first_not_of("0123456789abcdef") != std::string::npos) return;
     const auto size = mainGame->driver->getScreenSize();
     if(x < 0 || y < 0 || x >= int(size.Width) || y >= int(size.Height)) return;
+    if(kind == "focus-lock") {
+        std::atomic<bool> held{false}, done{false};
+        std::thread blocker([&] {
+            std::lock_guard<std::recursive_mutex> lock(TrainingInputMutex());
+            held = true;
+            const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(350);
+            while(!done && std::chrono::steady_clock::now() < deadline)
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        });
+        while(!held) std::this_thread::yield();
+        const auto began = std::chrono::steady_clock::now();
+        bool consumed = false;
+        {
+            std::lock_guard<std::mutex> lock(mainGame->gMutex);
+            irr::SEvent event{};
+            event.EventType = irr::EET_GUI_EVENT;
+            event.GUIEvent.Caller = mainGame->wQuery;
+            for(const auto kind : {irr::gui::EGET_ELEMENT_FOCUSED, irr::gui::EGET_ELEMENT_FOCUS_LOST}) {
+                event.GUIEvent.EventType = kind;
+                consumed |= mainGame->dField.OnEvent(event);
+            }
+        }
+        const auto micros = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - began).count();
+        done = true; blocker.join();
+        std::ofstream response(TrainingPath(("native-" + token + ".json").c_str()));
+        response << "{\"focus_events\":2,\"history_mutex_contended\":true,\"consumed\":"
+                 << (consumed ? "true" : "false") << ",\"elapsed_us\":" << micros << '}';
+        return;
+    }
     if(kind == "click") {
         // Deliver Irrlicht events to this engine only. No SendInput, cursor warp or global keys.
         irr::SEvent event{};

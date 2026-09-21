@@ -87,6 +87,7 @@ class NativeSession:
         return state
 
     def request(self, command, state, paths, timeout=12, scenario=0):
+        request_started = time.perf_counter()
         latest = self.read('modular-state.json')
         if not latest or (latest['version'], latest['raw'], latest['answered']) != (state['version'], state['raw'], False):
             raise ValueError('stale_state')
@@ -98,9 +99,17 @@ class NativeSession:
         temporary.write_text(value, encoding='ascii')
         temporary.replace(self.folder / 'modular.request')
         began, deadline = time.perf_counter(), time.monotonic() + timeout
+        reads, polls = 0.0, 0
         while time.monotonic() < deadline:
+            read_started = time.perf_counter()
             result = self.read('modular-result.json')
+            reads += time.perf_counter() - read_started
+            polls += 1
             if result and result.get('token') == lease:
+                result['transport_profile'] = {
+                    'request_seconds': began - request_started,
+                    'result_read_decode_seconds': reads, 'polls': polls,
+                    'request_to_result_seconds': time.perf_counter() - request_started}
                 return result, time.perf_counter() - began
             time.sleep(0.005)
         raise TimeoutError('Engine request acknowledgement unavailable')

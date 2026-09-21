@@ -4,6 +4,7 @@ Archives never replace native evidence. A typed tree keeps ordinary user keys
 distinct from reference markers; hashes validate both snapshots and restoration.
 """
 import gzip
+from copy import deepcopy
 import hashlib
 import json
 from pathlib import Path
@@ -35,7 +36,7 @@ def json_value(value):
     return value
 
 
-def write_archive(path, record):
+def write_archive(path, record, *, verify=True):
     record = json_value(record)
     snapshots = {}
     references = 0
@@ -64,14 +65,14 @@ def write_archive(path, record):
     compressed = gzip.compress(payload, compresslevel=6, mtime=0)
     with Path(path).open('xb') as stream:
         stream.write(compressed)
-    if read_archive(path) != record:
+    if verify and read_archive(path) != record:
         raise ValueError('Evidence restoration differs from source')
     return {'record_sha256': archive['record_sha256'],
             'archive_sha256': hashlib.sha256(compressed).hexdigest(),
             'original_json_bytes': len(canonical(record)),
             'referenced_json_bytes': len(payload), 'compressed_bytes': len(compressed),
             'unique_snapshots': len(snapshots), 'snapshot_references': references,
-            'restoration_verified': True}
+            'restoration_verified': verify}
 
 
 def read_archive(path):
@@ -94,7 +95,7 @@ def read_archive(path):
         if kind == 's':
             if value not in snapshots:
                 raise ValueError('Missing snapshot reference')
-            return json.loads(canonical(snapshots[value]))
+            return deepcopy(snapshots[value])
         if kind == 'd':
             result = {}
             for key, item in value:

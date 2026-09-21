@@ -6,8 +6,8 @@ from protocol_p2 import ALLOWED_SYNCHRO_IDS as SYNCHROS
 
 STARTERS = {20001443, 55273560, 56495147}
 TENYI = {23431858, 87052196, 98159737}
-CONFIG = {'version': 'T0-correction-v5', 'nodes': 24, 'depth': 12,
-          'seconds': 2.0, 'width': 2, 'branching': 3}
+CONFIG = {'version': 'T0-resource-v7', 'nodes': 24, 'depth': 12,
+          'seconds': 2.0, 'width': 2, 'branching': 3, 'extra_stop_candidate': True}
 
 
 def decision_key(bundle):
@@ -35,7 +35,7 @@ def opponent_response(raw, scenario):
 
 
 def bounded_search(root, expand, rank, score, *, max_nodes=24, max_depth=6,
-                   seconds=2.0, width=2, branching=3, uncertainty_bonus=None):
+                   seconds=2.0, width=2, branching=3, uncertainty_bonus=None, extra_candidate=None):
     if not (0 < max_nodes <= 128 and 0 < max_depth <= 120 and 0 < seconds <= 10
             and 0 < width <= 8 and 0 < branching <= 64):
         raise ValueError('Teacher limits exceed the frozen safety ceiling')
@@ -53,7 +53,12 @@ def bounded_search(root, expand, rank, score, *, max_nodes=24, max_depth=6,
         following = []
         for path, bundle, depth in frontier:
             parent_score = score(bundle)
-            for index in rank(bundle)[:branching]:
+            ranked = rank(bundle)
+            candidates = ranked[:branching]
+            extra = extra_candidate(bundle) if extra_candidate else None
+            if extra in ranked and extra not in candidates:
+                candidates.append(extra)
+            for index in candidates:
                 if nodes >= max_nodes or time.monotonic() >= deadline or depth >= max_depth:
                     break
                 child = (*path, index)
@@ -114,7 +119,7 @@ def bounded_search(root, expand, rank, score, *, max_nodes=24, max_depth=6,
             'root_candidates_omitted': len(root['candidates']) - len(expanded_roots),
             'source': CONFIG['version'],
             'limits': {'nodes': max_nodes, 'depth': max_depth, 'seconds': seconds,
-                       'beam_width': width, 'branching': branching}}
+                       'beam_width': width, 'branching': branching, 'extra_candidate': extra_candidate is not None}}
 
 
 def board_score(bundle, goal=None, actual_draw_count=0):
@@ -136,10 +141,21 @@ def board_score(bundle, goal=None, actual_draw_count=0):
     effect_access = any(s['kind'] in ('activate', 'yes') and
                         s.get('card', {}).get('code') in STARTERS | {93490856, 56465981}
                         for s in offered)
+    # Committing an offered starter must not lose its value during its own
+    # cost/target or chain windows. Only visible contexts qualify; no future
+    # draw identity or assumption that the effect will resolve is used.
+    engines = STARTERS | {93490856, 56465981}
+    own_visible_codes = {c['code'] for c in own if c['location'] != 1}
+    pending_access = any((chain.get('effect') or {}).get('handler_code') in engines & own_visible_codes
+                         for chain in observed.get('chains', []))
+    pending_access |= any((candidate['public'].get('context') or {}).get('handler_code') in engines
+                          and candidate['public'].get('message') in (15, 20, 23, 26)
+                          for candidate in bundle.get('candidates', []))
     synchro_access = any(s['kind'] == 'special' and s.get('card', {}).get('code') in allowed
                          for s in offered)
     value = (100 * min(bosses, 1) + 8 * min(len(hand), minimum_hand) +
-             3 * min(len(field), 2) + 10 * (starter_access or effect_access) +
+             3 * min(len(field), 2) + 10 * (starter_access or effect_access or pending_access) +
+             4 * (normal_available and not starter_access) +
              50 * (synchro_access and not bosses) + .1 * len(hand))
     if (bundle.get('_terminal') and bosses >= 1 and len(hand) >= minimum_hand and
             actual_draw_count >= (goal or {}).get('minimum_actual_draw_count', 0)):
@@ -301,6 +317,12 @@ def choose(session, state, catalog, preferred=None, budget_check=None, *,
             order = [i for i in order if bundle['candidates'][i]['response'] not in blocked_responses]
         return order
 
+    def stopping_candidate(bundle):
+        # Compare resource retention without displacing a promising third
+        # branch. The extra alternative still consumes the SAME node budget.
+        return next((i for i, c in enumerate(bundle['candidates']) if any(
+            s['kind'] == 'end_turn' for s in c['public']['selection'])), None)
+
     def uncertain_progress(bundle):
         # Reward reaching an observation opportunity when the goal asks for a
         # draw. No unknown card identity or hidden successor score enters here.
@@ -312,7 +334,8 @@ def choose(session, state, catalog, preferred=None, budget_check=None, *,
     result = bounded_search(root, expand, rank, lambda b: board_score(b, goal, actual_draw_count),
                             max_nodes=CONFIG['nodes'], max_depth=CONFIG['depth'],
                             seconds=CONFIG['seconds'], width=CONFIG['width'],
-                            branching=CONFIG['branching'], uncertainty_bonus=uncertain_progress)
+                            branching=CONFIG['branching'], uncertainty_bonus=uncertain_progress,
+                            extra_candidate=stopping_candidate)
     result['proposals'] = proposed
     result['probes'] = probes
     result['blocked_responses'] = list(blocked_responses)

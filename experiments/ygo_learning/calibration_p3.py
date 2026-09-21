@@ -2,6 +2,7 @@
 from collections import Counter
 from copy import deepcopy
 import json
+import os
 from pathlib import Path
 import sys
 import time
@@ -17,7 +18,8 @@ from budget import Budget, folder_bytes
 from evidence_p3 import write_archive, read_archive, json_value, canonical
 from teacher_p3 import choose, decision_key, microchoice, CONFIG
 from module_proposals import PublicModules
-from session_archive import pack_session, restored_session
+from session_archive import pack_session
+from timing_p3 import measure
 from journal_audit import audit
 from experiments.ygo_agent.adapter import NativeInput
 from experiments.ygo_agent.policy import Policy
@@ -116,7 +118,13 @@ def restart(session, previous, expansion_hash):
     if session.sid:
         raise ValueError('Previous isolated run is still active')
     began = time.perf_counter()
-    session.sid = session.api('/api/restart', {'id': previous})['id']
+    source = json.loads((session.runtime / '_trainer/sessions' / previous / 'session.json').read_text('utf-8'))
+    if source['engine_sha256'] == sha256(session.runtime / 'YGOPro.exe'):
+        result = session.api('/api/restart', {'id': previous})
+    else:
+        result = session.api('/api/native/learning-fixture',
+                             {'id': previous, 'source_engine_sha256': source['engine_sha256']})
+    session.sid = result['id']
     state = session.current()
     session.samples = []
     session.start_seconds = time.perf_counter() - began
@@ -126,6 +134,41 @@ def restart(session, previous, expansion_hash):
     with (session.folder / 'native.jsonl').open(encoding='utf-8') as stream:
         if json.loads(stream.readline()).get('test_control') is not True:
             raise ValueError('Paired session is not test-controlled')
+    return state
+
+
+def recover_unfinished_condition(session, condition_path, condition, previous):
+    """Import the exact frozen expansion after an interrupted native teardown.
+
+    The abandoned session and its journal stay untouched. The replacement is
+    accepted only when the native expansion digest is byte-for-byte the frozen
+    condition; this is recovery of a test resource, not an engine equivalence
+    claim.
+    """
+    if session.sid:
+        raise ValueError('Previous isolated run is still active')
+    began = time.perf_counter()
+    source_meta = json.loads((session.runtime / '_trainer/sessions' / previous / 'session.json').read_text('utf-8'))
+    state = session.api('/api/native/learning-fixture', {
+        'id': previous, 'source_engine_sha256': source_meta['engine_sha256']})
+    session.sid = state['id']
+    state = session.current()
+    session.samples = []
+    session.start_seconds = time.perf_counter() - began
+    meta = session.read('session.json')
+    actual = digest(meta['expansion'])
+    if actual != condition['expansion_sha256']:
+        raise ValueError('Recovered condition changed the frozen random expansion')
+    with (session.folder / 'native.jsonl').open(encoding='utf-8') as stream:
+        if json.loads(stream.readline()).get('test_control') is not True:
+            raise ValueError('Recovered session is not test-controlled')
+    condition = dict(condition)
+    condition['recovery_sessions'] = [*condition.get('recovery_sessions', []), previous]
+    condition['session'] = session.sid
+    condition['recovery_reason'] = 'previous_native_teardown_incomplete'
+    temporary = condition_path.with_suffix('.tmp')
+    temporary.write_text(json.dumps(condition, ensure_ascii=False, indent=2), encoding='utf-8')
+    temporary.replace(condition_path)
     return state
 
 
@@ -149,7 +192,9 @@ def run_policy(session, state, catalog, family, mode, policy, budget, evaluate_g
     record = {'family_id': family['id'], 'scenario': family['scenario'], 'mode': mode,
               'status': 'running', 'steps': [], 'replayed': False, 'model_calls': 0,
               'model_proposal_failures': [], 'nodes': 0, 'multi_choice_windows': 0,
-              'single_choice_windows': 0, 'uncertain_branches': 0, 'aborted_searches': []}
+              'single_choice_windows': 0, 'uncertain_branches': 0, 'aborted_searches': [], 'timings': {}}
+    timings = record['timings']
+    session.active_record = record
     began = time.perf_counter()
     observer = TurnObserver()
     visits = Counter()
@@ -164,7 +209,8 @@ def run_policy(session, state, catalog, family, mode, policy, budget, evaluate_g
                 record['status'] = 'time_budget_stopped'
                 break
             budget.check()
-            bundle = build(state, catalog)
+            with measure(timings, 'feature_seconds'):
+                bundle = build(state, catalog)
             key = decision_key(bundle)
             visits[key] += 1
             if visits[key] > 3:
@@ -182,7 +228,8 @@ def run_policy(session, state, catalog, family, mode, policy, budget, evaluate_g
                         policy.rstate = policy.features.init_rstate()
                         policy.history = policy.features.HistoryActions()
                         policy.pending = None
-                    advice = policy.recommend(NativeInput(state, catalog))
+                    with measure(timings, 'model_seconds'):
+                        advice = policy.recommend(NativeInput(state, catalog))
                     record['model_calls'] += 1
                     preferred = candidate_index(bundle, state, advice['response'])
                 except (ValueError, KeyError) as error:
@@ -205,11 +252,12 @@ def run_policy(session, state, catalog, family, mode, policy, budget, evaluate_g
                     elif microchoice(bundle) is not None:
                         choice = microchoice(bundle)
                     else:
-                        choice = choose(session, state, catalog, preferred, budget_check=budget.check,
-                                        scenario='one_ash' if family['scenario'] == 'one_ash' else 'no_extra_response',
-                                        goal=family['goal'], actual_draw_count=observer.draws,
-                                        blocked_responses=tried.get(key, ()), avoid_state_keys=tried,
-                                        proposal_library=modules)
+                        with measure(timings, 'search_seconds'):
+                            choice = choose(session, state, catalog, preferred, budget_check=budget.check,
+                                            scenario='one_ash' if family['scenario'] == 'one_ash' else 'no_extra_response',
+                                            goal=family['goal'], actual_draw_count=observer.draws,
+                                            blocked_responses=tried.get(key, ()), avoid_state_keys=tried,
+                                            proposal_library=modules)
                     if choice.get('stopped'):
                         record['aborted_searches'].append(choice)
                         record['nodes'] += choice['nodes']
@@ -228,11 +276,13 @@ def run_policy(session, state, catalog, family, mode, policy, budget, evaluate_g
                           if p['guards'] == exact and p['result'].get('status') == 'ok'), None)
             reused_proof = proof is not None
             if proof is None:
-                proof = session.probe(state, exact)
+                with measure(timings, 'selected_probe_seconds'):
+                    proof = session.probe(state, exact)
             if proof['status'] != 'ok':
                 raise ValueError('selected_response_probe_failed: ' + str(proof))
             before = state
-            state = session.answer(before, response)
+            with measure(timings, 'answer_seconds'):
+                state = session.answer(before, response)
             tried.setdefault(key, []).append(response)
             if mode == 'B1' and advice is not None:
                 policy.commit(before['version'], before['raw'], response)
@@ -252,7 +302,10 @@ def run_policy(session, state, catalog, family, mode, policy, budget, evaluate_g
         observer.update(session.folder / 'native.jsonl')
         try:
             final = session.current()
-            replay = session.probe(final)
+            with measure(timings, 'final_replay_seconds'):
+                replay = session.probe(final)
+            if replay.get('learning_profile', {}).get('fast_animation') != (os.environ.get('YGO_TRAIN_LEARNING_FAST') == '1'):
+                raise ValueError('Native timing/animation mode does not match the experiment')
             if (replay['status'] != 'ok' or canonical_state(replay['state']) != canonical_state(final['state'])
                     or replay['learning'] != final['learning']):
                 raise ValueError('Full-prefix replay differs from executed state')
@@ -265,9 +318,15 @@ def run_policy(session, state, catalog, family, mode, policy, budget, evaluate_g
                                       completed=terminal is not None, actual_draw_count=observer.draws)
         record.update(goal_native_seq=observer.terminal_seq, actual_draw_count=observer.draws,
                       terminal_goal_view=goal_view(terminal) if terminal else None)
-        record['session'] = session.finish()
         try:
-            record['journal_audit'] = audit(record)
+            with measure(timings, 'finish_seconds'):
+                record['session'] = session.finish()
+        except Exception as error:
+            record['finish_error'] = str(error)
+            raise
+        try:
+            with measure(timings, 'journal_audit_seconds'):
+                record['journal_audit'] = audit(record)
         except Exception as error:
             record.update(status='journal_mismatch', audit_error=str(error))
         record['native_evidence_bytes'] = folder_bytes(Path(record['session']['folder']))
@@ -275,18 +334,32 @@ def run_policy(session, state, catalog, family, mode, policy, budget, evaluate_g
     return record
 
 
-def run(session, catalog, output, protocol_path, first=1, count=20):
+def run(session, catalog, output, protocol_path, first=1, count=20, *, validation_report=None, recovery=False):
     from protocol_p2 import load_protocol, calibration_families, evaluate_goal
     from mechanisms import deck, ASH, NORMAL
     output = Path(output)
     protocol = load_protocol(Path(protocol_path))
     families = calibration_families(protocol)
-    if not 1 <= first <= 20 or not 1 <= count <= 20 or first + count - 1 > 20:
-        raise ValueError('Calibration may access only the frozen 20 training families')
+    runtime = runtime_identity(session.runtime)
+    registration = None
+    if recovery:
+        if validation_report is not None:
+            raise ValueError('Recovery diagnostics are separate from teacher selection')
+        ids = {'p2-no_extra_response-27', 'p2-actual_draw-25'}
+        families = [f for f in protocol['families'] if f['split'] == 'validation' and f['id'] in ids]
+        if len(families) != 2 or any(not (CALIBRATION / 'validation-conditions' / (f['id'] + '.json')).is_file() for f in families):
+            raise ValueError('Only the two already recorded reliability failures may be diagnosed')
+    if validation_report is not None:
+        from validation_p3 import authorize, families as validation_families
+        if os.environ.get('YGO_TRAIN_LEARNING_FAST') != '1' or count > 5:
+            raise ValueError('Validation requires calibrated fast mode and at most five families per batch')
+        registration = authorize(protocol, validation_report, runtime)
+        families = validation_families(protocol)
+    if not 1 <= first <= len(families) or not 1 <= count <= len(families) or first + count - 1 > len(families):
+        raise ValueError('Requested families are outside the authorized frozen split')
     selected = families[first - 1:first - 1 + count]
     sources = source_registry()
     modules = PublicModules(sources)
-    runtime = runtime_identity(session.runtime)
     previous_compute = 0
     for directory in CALIBRATION.glob('teacher-*'):
         times = [json.loads(p.read_text(encoding='utf-8')).get('worker_seconds', 0)
@@ -297,19 +370,32 @@ def run(session, catalog, output, protocol_path, first=1, count=20):
     budget = CalibrationBudget(session, output, previous_compute)
     source_paths = [*Path(__file__).parent.glob('*.py'), Path(__file__).with_name('desktop_p1.cjs')]
     code = {p.name: sha256(p) for p in source_paths}
-    manifest = {'scope': '20_training_family_cost_calibration_not_quality_validation',
+    implementation_paths = ['src/lite/training_modular.inc', 'src/lite/training_support.cpp',
+                            'src/lite/training_support.h', 'scripts/apply_lite.py',
+                            'src/trainer/app.py', 'src/trainer/learning_fixture.py', 'src/trainer/desktop_host.py']
+    implementation = {name: sha256(ROOT / name) for name in implementation_paths}
+    manifest = {'scope': ('40_validation_family_teacher_selection_no_holdout' if registration else
+                          'two_known_validation_failures_reliability_recovery_only' if recovery else
+                          '20_training_family_cost_calibration_not_quality_validation'),
                 'protocol_fingerprint': protocol['fingerprint'], 'family_ids': [f['id'] for f in selected],
-                'runtime': runtime, 'sources': sources, 'code': code, 'paid_calls': 0,
+                'runtime': runtime, 'sources': sources, 'code': code, 'implementation': implementation, 'paid_calls': 0,
                 'B2_scope': 'exact_opening_match_to_frozen_public_P1_recipes_not_all_product_modules',
-                'search': CONFIG, 'public_module_edges': modules.edges,
+                'search': CONFIG, 'fast_animation_requested': os.environ.get('YGO_TRAIN_LEARNING_FAST') == '1',
+                'public_module_edges': modules.edges,
                 'initial_directory_bytes': folder_bytes(ROOT / '.local/ygo-learning')}
+    if registration:
+        manifest['validation_registration'] = registration
     (output / 'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding='utf-8')
     frozen = output / 'source'
     frozen.mkdir()
     for path in source_paths:
         (frozen / path.name).write_bytes(path.read_bytes())
+    for name in implementation:
+        target = output / 'implementation' / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes((ROOT / name).read_bytes())
     summaries = []
-    condition_folder = CALIBRATION / 'conditions'
+    condition_folder = CALIBRATION / ('validation-conditions' if registration or recovery else 'conditions')
     condition_folder.mkdir(exist_ok=True)
     began = time.perf_counter()
     try:
@@ -333,7 +419,11 @@ def run(session, catalog, output, protocol_path, first=1, count=20):
                         expansion_hash = condition['expansion_sha256']
                         last = latest_condition_session(session.runtime / '_trainer/sessions',
                                                         condition['session'], expansion_hash)
-                        state = restart(session, last, expansion_hash)
+                        source_meta = json.loads((session.runtime / '_trainer/sessions' / last / 'session.json').read_text('utf-8'))
+                        if source_meta.get('status') == 'completed':
+                            state = restart(session, last, expansion_hash)
+                        else:
+                            state = recover_unfinished_condition(session, condition_path, condition, last)
                     else:
                         opposing = {'name': 'TEST ONLY P3 declared opponent', 'deck': deck(ASH, ASH, ASH),
                                     'opening': [ASH] + [NORMAL] * 4 if family['scenario'] == 'one_ash' else [NORMAL] * 5}
@@ -363,37 +453,47 @@ def run(session, catalog, output, protocol_path, first=1, count=20):
                 record = run_policy(session, state, catalog, family, mode, policy, budget, evaluate_goal, modules)
                 previous = record['session']['id']
                 record.update(expansion_sha256=expansion_hash, B2='no_matching_public_source')
-                record = json_value(record)
+                storage_timings = {}
+                with measure(storage_timings, 'collector_normalize_seconds'):
+                    record = json_value(record)
                 raw_path = output / f'{family["id"]}-{mode}.json'
-                raw_path.write_bytes(canonical(record))
+                with measure(storage_timings, 'collector_write_seconds'):
+                    raw_path.write_bytes(canonical(record))
                 # Only the new session from this run is compacted. Every native
                 # byte is restored and checked before its duplicate is removed.
-                native_archive = pack_session(Path(record['session']['folder']),
-                    output / 'native' / (record['session']['id'] + '.zip'), record['session']['id'], compact=True)
+                with measure(storage_timings, 'native_pack_restore_audit_seconds'):
+                    native_archive = pack_session(Path(record['session']['folder']),
+                        output / 'native' / (record['session']['id'] + '.zip'), record['session']['id'], compact=True,
+                        audit_restored=lambda folder: audit(record, folder=folder))
                 record['native_archive'] = native_archive
-                raw_path.write_bytes(canonical(record))
+                with measure(storage_timings, 'collector_write_seconds'):
+                    raw_path.write_bytes(canonical(record))
                 path = output / f'{family["id"]}-{mode}.json.gz'
-                stats = write_archive(path, record)
-                with restored_session(native_archive['path'], native_archive['sha256']) as restored:
-                    audit(read_archive(path), folder=restored)
-                if json.loads(raw_path.read_text(encoding='utf-8')) != read_archive(path):
-                    raise ValueError('Collector changed before compaction')
+                with measure(storage_timings, 'collector_encode_seconds'):
+                    stats = write_archive(path, record, verify=False)
+                with measure(storage_timings, 'collector_decode_verify_seconds'):
+                    restored_record = read_archive(path)
+                    if record != restored_record or json.loads(raw_path.read_text(encoding='utf-8')) != restored_record:
+                        raise ValueError('Collector changed before compaction')
+                stats['restoration_verified'] = True
                 raw_path.unlink()  # Newly written duplicate; full record remains in verified gzip.
                 summary = {k: record[k] for k in ('family_id', 'scenario', 'mode', 'status', 'replayed',
                           'model_calls', 'nodes', 'multi_choice_windows', 'single_choice_windows',
                           'uncertain_branches', 'seconds', 'goal', 'native_evidence_bytes')}
                 summary.update(archive=path.name, storage={**stats, 'raw_collector_retained': False},
-                               native_archive=native_archive,
+                               native_archive=native_archive, storage_timings=storage_timings, timings=record['timings'],
                                proposal_failures=len(record['model_proposal_failures']),
                                execution_error=record.get('error'), B2=record['B2'])
                 summaries.append(summary)
                 (output / 'progress.json').write_text(json.dumps(summaries, ensure_ascii=False, indent=2), encoding='utf-8')
-                print(f'CAL {ordinal}/20 {mode} {record["status"]} goal={record["goal"]["success"]} '
+                print(f'{"VAL" if registration else "CAL"} {ordinal}/{len(families)} {mode} {record["status"]} goal={record["goal"]["success"]} '
                       f'windows={len(record["steps"])} nodes={record["nodes"]} replay={record["replayed"]}', flush=True)
                 if not record['replayed'] or record['status'] in ('execution_error', 'journal_mismatch'):
                     raise ValueError('Calibration reliability gate failed; evidence retained')
             if {p.name: sha256(p) for p in source_paths} != code:
                 raise ValueError('Calibration source changed during execution')
+            if {name: sha256(ROOT / name) for name in implementation} != implementation:
+                raise ValueError('Instrumented engine or fixture source changed during execution')
     finally:
         try:
             resources = budget.check(disk=True)
@@ -406,6 +506,9 @@ def run(session, catalog, output, protocol_path, first=1, count=20):
                   'resources': resources, 'previous_compute_seconds': previous_compute,
                   'directory_bytes': folder_bytes(ROOT / '.local/ygo-learning'),
                   'holdout_opened': False, 'formal_sampling_started': False, 'LLM_calls': 0,
-                  'quality_claim': 'not_evaluated_on_independent_validation_families'}
+                  'validation_opened': registration is not None or recovery,
+                  'quality_claim': 'pending_full_validation_selection_report' if registration else
+                                   'reliability_recovery_only_no_quality_claim' if recovery else
+                                   'not_evaluated_on_independent_validation_families'}
         (output / 'summary.json').write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding='utf-8')
     return report

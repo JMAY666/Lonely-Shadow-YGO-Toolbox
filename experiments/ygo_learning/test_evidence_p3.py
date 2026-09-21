@@ -9,6 +9,16 @@ import evidence_p3 as evidence
 
 
 class EvidenceTests(unittest.TestCase):
+    def test_deferred_verification_is_explicit_and_restored_snapshots_do_not_alias(self):
+        state = {'raw': '00', 'state': {'cards': [1]}, 'learning': {}}
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'case.json.gz'
+            stats = evidence.write_archive(path, [state, state], verify=False)
+            self.assertFalse(stats['restoration_verified'])
+            restored = evidence.read_archive(path)
+            restored[0]['state']['cards'].append(2)
+            self.assertEqual([1], restored[1]['state']['cards'])
+
     def test_native_numeric_counters_use_json_keys_without_collision(self):
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / 'case.json.gz'

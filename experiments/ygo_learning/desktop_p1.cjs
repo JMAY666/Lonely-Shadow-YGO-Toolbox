@@ -12,6 +12,8 @@ let app, child, metricsTimer;
 (async () => {
   fs.mkdirSync(path.join(base, 'empty-import'), {recursive:true});
   const env = {...process.env, YGO_DESKTOP_TEST:'1', YGO_DESKTOP_BACKGROUND:'1', YGO_TRAIN_LEARNING:'1'};
+  // Opt-in presentation acceleration; the native guard also requires test control.
+  env.YGO_TRAIN_LEARNING_FAST = process.argv.includes('--fast') ? '1' : '0';
   delete env.ELECTRON_RUN_AS_NODE;
   app = await electron.launch({executablePath:require('electron'),
     args:[workspace,'--data-dir',root,'--import-from',path.join(base,'empty-import')],env,timeout:120000});
@@ -30,7 +32,7 @@ let app, child, metricsTimer;
   }
   await metrics();metricsTimer=setInterval(()=>metrics().catch(()=>{}),1000);
   child = spawn(path.join(workspace,'.local/ygo-agent-pilot/.venv/Scripts/python.exe'),
-    ['-u',path.join(__dirname,'p1_run.py'),'--runtime',path.join(root,'runtime'),'--url',service.url,...process.argv.slice(2).filter(a=>a!=='--secondary')],
+    ['-u',path.join(__dirname,'p1_run.py'),'--runtime',path.join(root,'runtime'),'--url',service.url,...process.argv.slice(2).filter(a=>!['--secondary','--fast'].includes(a))],
     {windowsHide:true,env:{...env,PYTHONIOENCODING:'utf-8'},stdio:'inherit'});
   const timer=setTimeout(() => child.kill(), 2*60*60*1000);
   const code=await new Promise((resolve,reject)=>{child.once('error',reject);child.once('exit',resolve);}).finally(()=>clearTimeout(timer));

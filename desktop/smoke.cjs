@@ -413,6 +413,18 @@ async function activatePot(sid) {
   assert.deepEqual(metadata.deck, deck);
   const firstId=sessionId, firstOpening=metadata.expansion.actual_opening, firstConfig=metadata.expansion;
   await nativeWait(sessionId,s=>s.prompt===11);
+  const focusBoot=await (await fetch(`${service.url}/api/bootstrap`)).json();
+  const focusResponse=await fetch(`${service.url}/api/native/test`,{method:'POST',
+    headers:{'Content-Type':'application/json','X-Trainer-Token':focusBoot.token},
+    body:JSON.stringify({id:sessionId,kind:'focus-lock'})});
+  const focusProbe=await focusResponse.json();
+  assert(focusResponse.ok,focusProbe.error);
+  assert.equal(focusProbe.focus_events,2);
+  assert.equal(focusProbe.history_mutex_contended,true);
+  assert.equal(focusProbe.consumed,false);
+  assert(focusProbe.elapsed_us<100000,'Focus notifications must not wait on history while holding the GUI mutex');
+  fs.writeFileSync(path.join(evidence,'focus-lock.json'),JSON.stringify(focusProbe,null,2));
+  pass('Focus gain/loss under GUI lock stays responsive while another thread holds the history mutex');
   let firstReport=await (await fetch(`${service.url}/api/report/${sessionId}`)).json();
   assert.deepEqual(firstReport.initial_hand.map(c=>c.code),firstOpening);
   assert.equal(firstReport.final_state.cards.filter(c=>c.controller===0&&c.location===1).length,35);
@@ -668,6 +680,12 @@ async function activatePot(sid) {
     body:JSON.stringify({id:interrupted,kind:'capture'})});
   assert.equal(disabledControl.status, 400);
   assert.match((await disabledControl.json()).error, /未启用内部验收接口/);
+  const disabledLearningFixture = await fetch(`${service.url}/api/native/learning-fixture`, {method:'POST',
+    headers:{'Content-Type':'application/json','X-Trainer-Token':normalBoot.token},
+    body:JSON.stringify({id:interrupted,source_engine_sha256:'invalid-test-input'})});
+  assert.equal(disabledLearningFixture.status,400);
+  assert.match((await disabledLearningFixture.json()).error,/isolated test runtime/);
+  pass('Normal startup refuses cross-build learning fixtures before reading or changing a session');
   pass('Normal startup uses compatible composition with random training and refuses internal test input/capture');
   await close();
   const stopped = JSON.parse(fs.readFileSync(path.join(interruptedPath, 'session.json')));

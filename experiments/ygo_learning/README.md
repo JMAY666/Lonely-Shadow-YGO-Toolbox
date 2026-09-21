@@ -175,3 +175,45 @@ B1 保留旧模型的循环状态，只在实际响应确认后提交历史。B2
 新会话目录中的 `evidence-archive.json` 给出归档位置、哈希与会话身份。`session_archive.restore_archive(archive, destination, expected_hash)` 只恢复到不存在的新目录，拒绝覆盖、路径越界和哈希不符；汇总器自动恢复到 `.local/ygo-learning/p0b-p1/archive-restores/` 下的临时目录并完成审计。这些实验会话的历史时间线或原始日志如需直接从应用打开，应先恢复到独立副本；紧凑存储未接入正式用户历史。
 
 存储预算同时计算 ZIP、收集器 gzip、保留缓存、环境和原有证据，恢复和写入开销也计入批次时间。未通过保守预算前不扩大采样，不能仅用 gzip 或 ZIP 大小代替完整目录成本。
+
+## P3 后续：资源取舍与分项成本
+
+当前配置为 `T0-resource-v7`，结果及保留的失败尝试见[资源与时间优化报告](../../docs/ai-learning-p3-resource-results.md)。它仍只使用同一批 20 个训练家族，协议、划分、目标、B1 和失败分母不变。正式质量以独立验证为准，不能把开发反例上的改进当作泛化收益。
+
+评分补充了可见起动效果在费用/素材及连锁窗口中的潜力，并保留通常召唤机会的价值。搜索保持每窗 24 个原生节点、12 层、2 秒、束宽 2、排序前三个候选；若合法停止动作不在前三个中，再比较该动作，不挤掉原有候选。额外候选及所有微选择都扣同一个节点预算。实际未知随机后继仍在构造观察和评分前停止。
+
+本轮新增原生分项计时，先按项目构建流程更新测试资源：
+
+```powershell
+python scripts/apply_lite.py
+./scripts/build.ps1
+python scripts/prepare_desktop.py
+
+# --fast 仅为隔离学习实例跳过动画等待，仍逐窗提交并保留完整原生事件。
+node experiments/ygo_learning/desktop_p1.cjs --suite=teacher --first-family=1 --count=5 --fast
+# 后续批次将 first-family 依次改为 6、11、16；累计预算不会重置。
+```
+
+`--fast` 同时要求原生测试控制、学习模式与 `YGO_TRAIN_LEARNING_FAST=1`，默认关闭。它不关闭渲染、不绕过合法选择，也不改变正常训练随机性。计时分别保存前缀重建、分支结算、动态快照、请求与读取、实际回答等待、模型/特征、会话结束和归档编码/恢复。通信余量包含文件发布、轮询、解码和调度，不将它全部称为纯 IPC 开销；嵌套时间不能重复相加。
+
+加入原生计时会改变二进制哈希。普通恢复接口继续拒绝跨版本重开；`/api/native/learning-fixture` 只允许固定的本地隔离学习目录，且要求测试控制和学习模式同时开启。它核对关闭状态、固定实验种子、原卡库与脚本，把同一扩展条件导入新会话，记录新旧引擎与来源身份，保留旧记录。该操作本身不证明规则等价，还要核对实际起点、B1 完整响应前缀、终场和完整重放。正常桌面及打包应用都应拒绝此接口。
+
+ZIP 完整恢复时直接进行原生日志审计；收集器 gzip 只解码一次并同时核对内存记录和临时原始 JSON，验证后才移除重复表示。格式仍兼容旧证据，恢复出的共享快照是彼此独立的副本。最终汇总另做独立恢复审计，并将恢复临时空间加入存储门槛。原生与服务实现也随每批实验保存源码哈希及副本。
+
+Windows 短暂占用已验证的重复文件时，进行有限次数重试；仍被占用则保留该文件并计入实际磁盘成本，归档中的原始字节保持可恢复。收尾异常时另存已经收集的逐步轨迹和会话标识。仅在原生进程已退出时，允许从中断测试记录导入完全相同的扩展条件；重新按种子抽起手不能代替原牌序。
+
+### 40 家族验证集
+
+[选择标准](../../docs/ai-learning-p3-validation-protocol.md)在任何验证执行前登记。`validation_p3.py` 检查已审计标定报告、当前空间、剩余累计预算及教师/规则哈希，排他创建 `validation-registration.json`；已有登记只能原样核对复用。运行器只接受 P2 的 40 个 validation 家族，每批最多 5 个，holdout 不可作为参数选择。所有开发、失败重试及验证累计到同一 2 小时账本。
+
+```powershell
+node experiments/ygo_learning/desktop_p1.cjs --suite=teacher-validation --first-family=1 --count=5 --fast --calibration-report=.local/ygo-learning/p2-p3/report-20260921-113043/summary.json
+# 后续 first-family=6,11,16,21,26,31,36；可靠性失败先修复并保留原尝试。
+.local/ygo-agent-pilot/.venv/Scripts/python.exe -X utf8 experiments/ygo_learning/report_p3.py --validation "<最终批次1>" "<最终批次2>" "<最终批次3>" "<最终批次4>" "<最终批次5>" "<最终批次6>" "<最终批次7>" "<最终批次8>"
+```
+
+汇总必须覆盖全部 40 对，拒绝混用源码、模式或登记版本。输出配对差值、固定种子的 10,000 次 bootstrap 区间、共同支持范围、成本门槛和是否允许进入 P4。失败或证据不足时保留完整分母与记录，不用验证轨迹训练学生。
+
+本轮实际在 24/40 对完成后因原生焦点事件的锁顺序冲突中止，详见[验证中止与死锁修复](../../docs/ai-learning-p3-validation-results.md)。修复后仅复测两个已知失败家族，各三轮、共 12 次执行均通过；没有拼接成 40 对结论。当前 worker 剩余约 32.82 分钟，小于原保守完整验证预测 45.10 分钟，且旧登记绑定旧原生版本，因此继续停止扩展。
+
+限定恢复诊断命令是 `node experiments/ygo_learning/desktop_p1.cjs --suite=teacher-recovery --first-family=1 --count=2 --fast`，只允许这两个已保存原条件的验证失败家族，不能选择新验证或 holdout。新原生版本、诊断与旧版本部分验证分别保存；下一次完整验证须先登记新的版本/预算方案，不能覆盖原登记或重置累计预算。
