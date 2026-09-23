@@ -31,7 +31,6 @@ module.exports=async({page,application,root,evidence,pass})=>{
   const code=await new Promise(resolve=>python.once('exit',resolve));
   clearInterval(layoutTimer);
   assert.equal(code,0,output.slice(-7000));
-  if(process.env.YGO_MODULAR_KNOWLEDGE_ONLY==='1')await require('./knowledge-jobs-smoke.cjs')({page,evidence,pass});
   const continuationFile=path.join(evidence,'modular-step9-continuation.json');
   if(fs.existsSync(continuationFile)) {
     const data=JSON.parse(fs.readFileSync(continuationFile,'utf8'));

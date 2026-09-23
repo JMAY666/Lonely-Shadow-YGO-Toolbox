@@ -13,7 +13,6 @@ from planning_preferences import PREFERENCES, DEFAULT_PREFERENCE
 
 def context(modular, body, *, allow_stale=False):
     sid = body.get('id'); ctx = modular.sessions.get(sid, {})
-    if ctx.get('knowledge_verification'): raise ValueError('知识包验证实例不能作为对局教程采用或推进')
     if not ctx.get('forecast_meta') or sid not in modular.store.planning:
         raise ValueError('本局临时方案已结束，请重新生成')
     meta=ctx['forecast_meta']
@@ -51,7 +50,7 @@ def response(modular, sid, ctx, result=None):
             'confirmed': len(ctx.get('forecast_steps', [])), 'route': (ctx.get('forecast_route') or {}).get('id')}
 
 
-def generate(modular, body, on_started=None, *, verification=None, search_options=None):
+def generate(modular, body, on_started=None):
     store = modular.store; created = not body.get('id')
     refresh = body.get('refresh', False)
     if type(refresh) is not bool: raise ValueError('重新生成开关无效')
@@ -61,10 +60,7 @@ def generate(modular, body, on_started=None, *, verification=None, search_option
             if saved['revision'] != body.get('revision'): raise ValueError('卡组已修改，请返回卡组选择重新确认')
             validate_hand(saved['deck'], body.get('hand_count'), body.get('hand')); store.validate(saved['deck'], training=True)
             selected = body.get('sources', []); modular.library.sync()
-            if not verification and getattr(store, 'knowledge', None) and any(modular.library.entries.get(s, {}).get('knowledge_package') for s in selected):
-                store.knowledge.runtime.environment(force=True)
-                modular.library.sync()
-            modular.library.validate_deck_sources(saved.get('tag_selection', {}), selected, verification=verification)
+            modular.library.validate_deck_sources(saved.get('tag_selection', {}), selected)
             from duel_continuation import anchor_source
             anchor = anchor_source(modular, body['anchor']) if body.get('anchor') else None
             session = store.start(saved['id'], design={
@@ -79,7 +75,7 @@ def generate(modular, body, on_started=None, *, verification=None, search_option
         if created:
             deadline = time.monotonic() + 30
             while time.monotonic() < deadline:
-                if store.closing or ctx.get('forecast_cancelled') or (verification and verification['cancelled']()): raise ValueError('预计算已取消')
+                if store.closing or ctx.get('forecast_cancelled'): raise ValueError('预计算已取消')
                 try: state = modular.state(sid)
                 except ValueError: state = None
                 if state and state['running'] and not state['answered'] and state.get('player') == 0 and state.get('raw'): break
@@ -99,7 +95,7 @@ def generate(modular, body, on_started=None, *, verification=None, search_option
         if created and anchor:
             from duel_continuation import replay_anchor
             replay_anchor(modular, sid, ctx, anchor)
-        result = modular.search(sid, refresh=refresh, **({'all_preferences': True} if body.get('all_preferences') else {}), **(search_options or {}))
+        result = modular.search(sid, refresh=refresh, **({'all_preferences': True} if body.get('all_preferences') else {}))
         if body.get('all_preferences'):
             bank = {}
             for preference in PREFERENCES:

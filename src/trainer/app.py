@@ -187,9 +187,6 @@ class Store:
         self.compromise = Compromise(self, read_json, atomic_json, atomic_bytes)
         from modular import Modular
         self.modular = Modular(self, read_json, atomic_json, atomic_bytes)
-        from knowledge import Knowledge
-        self.knowledge = Knowledge(self, read_json, atomic_json)
-        self.modular.register_provider('knowledge', '已启用知识包', self.knowledge.provider_summary)
         self.job = None
         self.host = host
         self.ygopro_capture = ygopro_capture.Capture()
@@ -299,8 +296,7 @@ class Store:
             if body is not None:
                 identifier, favorite = body.get('id'), body.get('favorite')
                 if type(favorite) is not bool: raise ValueError('方案收藏状态无效')
-                if isinstance(identifier, str) and identifier.startswith('kp-'): self.knowledge.runtime.read_plan(identifier)
-                elif not self.plan_path(identifier).is_file(): raise ValueError('方案已不存在，请刷新列表')
+                if not self.plan_path(identifier).is_file(): raise ValueError('方案已不存在，请刷新列表')
                 if favorite: identifiers.add(identifier)
                 else: identifiers.discard(identifier)
                 atomic_json(path, {'plans': sorted(identifiers)})
@@ -353,8 +349,6 @@ class Store:
         return result
 
     def get_deck(self, identifier):
-        if isinstance(identifier, str) and identifier.startswith('knowledge-job/'):
-            return self.knowledge.runtime.temporary_deck(identifier)
         source, sep, relative = identifier.partition('/')
         if source == 'automatic' and sep:return self.automatic_duel.deck(relative)
         if not sep or source not in ('library', 'existing'): raise ValueError('构筑标识无效')
@@ -728,8 +722,6 @@ class Store:
             return result
 
     def plan_path(self, identifier):
-        if isinstance(identifier, str) and identifier.startswith('kp-'):
-            raise ValueError('此路线属于知识包；请通过个人修改或另存为制作项目编辑，原始版本保持只读')
         self.session_path(identifier)  # Validate UUID before forming a path.
         return self.plans / (identifier + '.json')
 
@@ -957,15 +949,9 @@ class Store:
         self.refresh()
 
     def report(self, identifier):
-        if isinstance(identifier, str) and identifier.startswith('kp-'): return self.read_plan(identifier)
         return self.compromise.edit(self._report(identifier))
 
-    def read_plan(self, identifier):
-        if isinstance(identifier, str) and identifier.startswith('kp-'): return self.knowledge.runtime.read_plan(identifier)
-        return read_json(self.plan_path(identifier))
-
     def _report(self, identifier):
-        if isinstance(identifier, str) and identifier.startswith('kp-'): return self.read_plan(identifier)
         self.refresh()
         plan = self.plan_path(identifier)
         if plan.exists(): return read_json(plan)
@@ -1008,10 +994,9 @@ class Handler(BaseHTTPRequestHandler):
                 origin = self.headers.get('Origin')
                 if origin and origin != f'http://127.0.0.1:{self.server.server_port}': raise ValueError('请求来源不匹配')
                 length = int(self.headers.get('Content-Length', 0))
-                maximum = 34 * 1024 * 1024 if path == '/api/knowledge' else MAX_BYTES if path in ('/api/plans/import', '/api/plans/import-preview') else 1_000_000 if path in ('/api/tags/save', '/api/tags/related', '/api/intelligence') else 100_000
-                if not 0 < length < maximum: raise ValueError('请求长度无效或文件超出当前接口大小上限')
+                maximum = MAX_BYTES if path in ('/api/plans/import', '/api/plans/import-preview') else 1_000_000 if path in ('/api/tags/save', '/api/tags/related', '/api/intelligence') else 100_000
+                if not 0 < length < maximum: raise ValueError('请求长度无效，分享文件上限为 20 MB')
                 body = json.loads(self.rfile.read(length))
-                if path == '/api/knowledge': return self.send(store.knowledge.command(body))
                 if path == '/api/superpre': return self.send(store.superpre.start(body.get('action')))
                 if path == '/api/modular/dispatch': return self.send(store.modular.dispatch(body))
                 if path == '/api/modular/configure': return self.send(store.modular.configure(body))
@@ -1095,7 +1080,6 @@ class Handler(BaseHTTPRequestHandler):
                     return self.send(store.modular.library.entries[path.rsplit('/', 1)[1]])
                 if path.startswith('/api/modular/state/'): return self.send(store.modular.status(path.rsplit('/', 1)[1]))
                 if path == '/api/bootstrap': return self.send({'token': self.server.token, 'cards': len(store.catalog.cards), 'sources': store.catalog.sources, 'runtime': str(store.runtime), 'embedded': bool(store.host)})
-                if path == '/api/knowledge': return self.send(store.knowledge.snapshot())
                 if path == '/api/intelligence': return self.send(store.intelligence.snapshot())
                 if path == '/api/intelligence/opponents':
                     from intelligence_opponents import snapshot
@@ -1147,7 +1131,7 @@ class Handler(BaseHTTPRequestHandler):
                 if path.startswith('/api/plan-export/'): return self.send(store.library.export(path.rsplit('/', 1)[1]))
                 if path.startswith('/api/plan/'):
                     from card_semantics import display_effects
-                    return self.send(display_effects(store.read_plan(path.rsplit('/', 1)[1])))
+                    return self.send(display_effects(read_json(store.plan_path(path.rsplit('/', 1)[1]))))
                 if path.startswith('/api/report/'):
                     from card_semantics import display_effects
                     return self.send(display_effects(store.report(path.rsplit('/', 1)[1])))
@@ -1185,7 +1169,6 @@ class Handler(BaseHTTPRequestHandler):
                 files.update({'/deck-tags.js': 'deck-tags.js', '/deck-tags.css': 'deck-tags.css', '/theme.css': 'theme.css'})
                 files['/scrollbars.css'] = 'scrollbars.css'
                 files.update({'/intelligence.js': 'intelligence.js', '/intelligence.css': 'intelligence.css'})
-                files.update({'/knowledge.js': 'knowledge.js', '/knowledge.css': 'knowledge.css'})
                 files.update({f'/{name}': name for name in ('intelligence-matchups.js', 'intelligence-matchups.css')})
                 files.update({f'/{name}': name for name in ('intelligence-opponents.js', 'intelligence-opponents.css')})
                 for art in ('first', 'second', 'bo1', 'bo3', 'manual', 'automatic', 'ygopro', 'ygopro2', 'mdpro3', 'masterduel'):
