@@ -29,7 +29,7 @@ module.exports=async({page,application,evidence,pass})=>{
     await click('order-manual-second');assert.equal(await page.locator('#duel-order-result').textContent(),'后攻');
     await click('confirm-order');assert.equal(await page.evaluate(()=>duelState().stage),4);
     assert.equal(confirmations[0].manual,true);assert.equal(confirmations[0].order,'second');
-    assert.match(await page.locator('#duel-body').textContent(),/后攻不会进入先攻/);
+    assert.match(await page.locator('#duel-body').textContent(),/完整起手获取后可进入后攻资源分析/);
     const before=polls;await page.waitForTimeout(800);assert(polls>before,'Opening capture continues after order confirmation');
     await click('order-return');await state('waiting_start');assert(await page.locator('[data-duel-action="confirm-order"]').isDisabled());
     assert(await page.locator('#duel-steps [data-duel-stage="4"]').isDisabled());

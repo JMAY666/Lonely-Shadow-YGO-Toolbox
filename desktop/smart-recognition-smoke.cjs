@@ -8,9 +8,9 @@ async function check({page,evidence,pass},platform){
   const hand=[55144522,55144522,1184620,1184620,1184620];
   const deck={id:'automatic/synthetic-smart',name:'智能识别合成构筑',revision:'fixture',deck:{main:[...hand,...Array(35).fill(1184620)],extra:[],side:[14558127]},tag_selection:{tag_ids:[],primary_ids:[]},tag_names:{}};
   const frame={phase:'detected',monitor_id:'synthetic-smart',round_id:'synthetic-round',detected_order:'first',confirmed:{order:'first',source:'software-audit'},opening:{status:'ready',snapshot_id:'synthetic-opening',cards:hand,confirmed:{snapshot_id:'synthetic-opening'}}};
-  const snapshot=()=>({id:requestId,capture_id:'synthetic',cycle,stage:mode,message:mode==='waiting'?'等待对局开始':mode==='second'?'已识别为后攻，后攻展开暂未支持':mode==='failed'?'自动识别未完成':'自动校验通过',
+  const snapshot=()=>({id:requestId,capture_id:'synthetic',cycle,stage:mode,message:mode==='waiting'?'等待对局开始':mode==='second'?'已识别为后攻，起手资源可供分析':mode==='failed'?'自动识别未完成':'自动校验通过',
     events:[{stage:'waiting'},{stage:'deck'},{stage:'tags'},{stage:'opening'},{stage:'audit'}],error:mode==='failed'?'未完整捕捉到本局初始发牌':'',failed_stage:mode==='failed'?'opening':null,
-    frame,construction:{deck:deck.deck},tag_result:{tag_names:{},selection:deck.tag_selection},context:mode==='ready'?{context_id:contextId,round_id:frame.round_id,snapshot_id:frame.opening.snapshot_id,deck,hand}:null});
+    frame:mode==='second'?{...frame,confirmed:{order:'second'}}:frame,construction:{deck:deck.deck},tag_result:{tag_names:{},selection:deck.tag_selection},context:mode==='ready'?{context_id:contextId,round_id:frame.round_id,snapshot_id:frame.opening.snapshot_id,deck,hand}:null});
   await page.route('**/api/ygopro/attach',route=>{
     assert.equal(route.request().postDataJSON().platform,platform);
     return route.fulfill({json:{connected:true,process:{capture_id:'synthetic',platform,name:platform+'.exe',pid:123,path:'synthetic/'+platform+'.exe'}}});
@@ -93,8 +93,8 @@ async function check({page,evidence,pass},platform){
     await page.locator('#duel-capture-close').click();pending.resolve();
     await page.waitForFunction(()=>!smartRun());assert.equal(await page.evaluate(()=>duelState().stage),1);assert.equal(prepares,2);
     mode='second';await begin();await page.waitForFunction(()=>smartRun()?.value?.stage==='second');
-    assert.match(await page.locator('#duel-capture-status').textContent(),/后攻展开暂未支持/);assert.equal(prepares,2);
-    await page.locator('#duel-capture-close').click();mode='failed';await begin();await page.waitForFunction(()=>smartRun()?.value?.stage==='failed');
+    await page.waitForFunction(()=>document.querySelector('.opening-workspace h2'));assert.match(await page.locator('.opening-workspace h2').textContent(),/后攻起手分析/);assert.equal(prepares,2);
+    await page.evaluate(()=>cancelSmartRecognition());mode='failed';await begin();await page.waitForFunction(()=>smartRun()?.value?.stage==='failed');
     assert.match(await page.locator('#duel-capture-processes').innerText(),/初始发牌/);assert(await page.locator('#duel-smart-restart').isVisible());assert.equal(prepares,2);
     await page.locator('#duel-capture-close').click();mode='start-failure';await begin();
     await page.waitForFunction(()=>smartRun()?.value?.stage==='invalidated');

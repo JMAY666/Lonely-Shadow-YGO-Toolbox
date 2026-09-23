@@ -47,7 +47,7 @@ module.exports=async({page,application,evidence,pass})=>{
       opening:{status:'ready',cards:[...cards],snapshot_id:'second-five',confirmed:null,error:''}});
     // Enter the retained result using the same confirmed-stage navigation.
     await page.locator('#duel-steps [data-duel-stage="4"]').click();
-    assert.match(await page.locator('.duel-opening-panel h2').textContent(),/后攻起手留存/);
+    assert.match(await page.locator('.opening-workspace h2').textContent(),/后攻起手分析/);
     assert.equal(await page.locator('[data-duel-action="confirm-opening"]').count(),0);assert(await page.locator('#duel-substeps').isHidden());
     assert.equal(await page.locator('.duel-opening-card').count(),5);
     await application.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().find(w=>!w.getParentWindow()).setContentSize(960,800));

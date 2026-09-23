@@ -76,7 +76,7 @@ async function launch(first = false, testControl = true) {
   assert.equal(identity.name,brand.name); assert.equal(identity.title,brand.name);
   assert.equal(identity.data,path.join(root,'electron'));
   if(testControl)assert.deepEqual(await application.evaluate(()=>globalThis.brandingAcceptance),{windowIconExists:true,loadingImage:true,loadingTitlebar:process.platform==='win32'});
-  if(first&&!onlyDuel&&!onlyAutomatic&&!onlyAutomaticWorkspace&&!onlyTutorialPresentation)await require('./titlebar-smoke.cjs')({application,page,pass,evidence});
+  if(first&&!process.argv.includes('--opening-only')&&!onlyDuel&&!onlyAutomatic&&!onlyAutomaticWorkspace&&!onlyTutorialPresentation)await require('./titlebar-smoke.cjs')({application,page,pass,evidence});
   assert.deepEqual(await page.locator('.primary-rail nav button>span').allTextContents(),['首页','卡组编辑','展开','决斗','模块化','情报站','全局设置','TAG 管理']);
   assert.equal(await page.locator('.app-bar #app-settings').count(),0);
   const settingsPosition=await page.locator('#app-settings').boundingBox();
@@ -204,6 +204,12 @@ async function activatePot(sid) {
 (async () => {
   await launch(true);
   if(onlyIntelligence){
+    if(process.argv.includes('--opening-only')){
+      const {input,persisted}=await require('./going-second-smoke.cjs')({page,application,root,evidence,pass});
+      await close();await launch();assert.deepEqual(await page.evaluate(input=>api('/api/opening/analyze',input),input),persisted);
+      pass('Opening personal settings and candidates survive a real application restart');
+      await close();assert.deepEqual(errors,[]);fs.writeFileSync(path.join(evidence,'opening-result.json'),JSON.stringify({checks,errors,globalInput:false},null,2));return;
+    }
     if(process.argv.includes('--opponents-only')){
       await require('./intelligence-matchups-smoke.cjs')({page,application,evidence,pass});
       await require('./intelligence-opponents-smoke.cjs')({page,application,root,evidence,pass});

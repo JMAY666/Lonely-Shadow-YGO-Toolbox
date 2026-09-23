@@ -1,6 +1,6 @@
 'use strict';
 const intelUI={data:null,tab:'endboards',topicFormat:'',draft:null,kind:null,recordMode:null,dirty:false,busy:false,serial:0,picker:null,pickerSerial:0,pickerTimer:null,sources:null,decks:[]};
-const intelNames={endboards:'终场标记',handtraps:'手坑标记',breakers:'解场标记',opponents:'对手卡组',records:'断点管理'};
+const intelNames={endboards:'终场标记',handtraps:'手坑标记',breakers:'解场标记',opponents:'对手卡组',records:'断点管理',opening:'起手分析'};
 const intelIsLibrary=kind=>['handtraps','breakers'].includes(kind);
 const intelLibraryName=kind=>kind==='breakers'?'解场':'手坑';
 const intelFolders=(kind=intelUI.tab)=>Object.values(intelUI.data?.folders||{}).filter(folder=>(folder.kind||'handtraps')===kind);
@@ -29,6 +29,7 @@ function intelFilterValues(prefix){const values=Object.fromEntries(['q','tag','k
 function intelMatchesCard(code,f){const c=intelCard(code),q=tagSearchKey(f.q);return (!q||tagSearchKey(c.name).includes(q)||String(code).includes(q))&&(!f.tag||intelUI.data.card_tags?.[code]?.includes(f.tag))&&(!f.kind||({monster:c.type&1,spell:c.type&2,trap:c.type&4,extra:c.extra})[f.kind])&&(!f.attribute||c.attribute===Number(f.attribute))&&(!f.race||c.race===Number(f.race))&&(f.level===''||!!(c.type&1)&&(c.level&255)===Number(f.level));}
 function intelShell(){
   $('#intelligence').innerHTML=`<header class="intel-heading"><div><div class="eyebrow">PERSONAL KNOWLEDGE</div><h1>情报站</h1></div><button id="intel-refresh">刷新资料</button></header><div class="intel-topbar"><nav class="intel-tabs" aria-label="情报站分类">${Object.entries(intelNames).map(([key,name])=>`<button data-intel-tab="${key}" aria-pressed="${intelUI.tab===key}"><span>${name}</span><small data-intel-count="${key}">0</small></button>`).join('')}</nav><div id="intel-actions" class="intel-actions"></div></div><p id="intel-status" class="intel-status" role="status"></p><section id="intel-picker" class="intel-picker" aria-label="选择卡牌" hidden></section><section id="intel-sources" class="intel-sources" aria-label="方案标记来源" hidden></section><div class="intel-layout"><aside class="intel-library" aria-label="资料检索"><div id="intel-controls"></div><section id="intel-list" class="intel-list" aria-label="资料列表"></section></aside><section id="intel-editor" class="intel-editor" aria-label="资料编辑"></section></div>`;
+  if(intelUI.tab==='opening'){void openingIntelLoad();return;}
   if(intelUI.tab==='opponents'){void intelOpponentLoad();return;}
   intelControls();intelList();
   const first=$('#intel-list [data-intel-edit]')?.dataset.intelEdit;
@@ -44,7 +45,7 @@ async function enterIntelligence(){
 function intelControls(){
   const d=intelUI.data;if(!d)return;
   const hand=intelIsLibrary(intelUI.tab),records=intelUI.tab==='records',libraryName=intelLibraryName(intelUI.tab);
-  for(const key of Object.keys(intelNames))$(`[data-intel-count="${key}"]`).textContent=key==='opponents'?(intelOpponentUI.data?.decks.length??'只读'):Object.keys(d[key]).length;
+  for(const key of Object.keys(intelNames))$(`[data-intel-count="${key}"]`).textContent=key==='opening'?'本地':key==='opponents'?(intelOpponentUI.data?.decks.length??'只读'):Object.keys(d[key]).length;
   $('#intel-actions').innerHTML=`${!hand&&!records?'<button data-intel-action="sources">汇总方案标记</button>':''}${hand?'<button data-intel-action="import-staples">导入常用分类</button>':''}${records?'<button data-intel-action="import-matchups">导入主流对策</button>':''}<button class="primary" data-intel-action="add">${records?'新增断点':'添加卡牌'}</button>`;
   $('#intel-controls').innerHTML=`${hand?`<div class="intel-group"><select id="intel-folder" aria-label="${libraryName}文件夹"><option value="">全部${libraryName}</option><option value="ungrouped">未分组</option>${intelFolders().map(f=>`<option value="${escape(f.id)}">${escape(f.name)}</option>`).join('')}</select><div class="intel-group-actions"><button data-intel-action="folder-new">新建文件夹</button><button data-intel-action="folder-edit">重命名</button><button data-intel-action="folder-remove">删除文件夹</button></div></div>`:records?intelTopicNavigation():''}${intelFilters('intel-filter',{records})}`;
   if(records)intelTopicScope();
@@ -227,7 +228,7 @@ $('#intelligence').addEventListener('click',run(async e=>{
   const b=e.target.closest('button');if(!b||b.disabled||intelUI.busy)return;
   if(intelUI.tab==='opponents'&&intelOpponentClick(b))return;
   if(b.id==='intel-refresh'){if(!await intelDiscard())return;intelUI.dirty=false;return enterIntelligence();}
-  if(b.dataset.intelTab){if(!await intelDiscard())return;intelClosePicker();intelUI.tab=b.dataset.intelTab;intelUI.draft=null;intelUI.kind=null;intelUI.dirty=false;intelShell();return;}
+  if(b.dataset.intelTab){if(!await intelDiscard())return;if(typeof openingIntel!=='undefined')OpeningView.invalidate(openingIntel);intelClosePicker();intelUI.tab=b.dataset.intelTab;intelUI.draft=null;intelUI.kind=null;intelUI.dirty=false;intelShell();return;}
   if(b.dataset.intelTopicFormat!==undefined){intelUI.topicFormat=b.dataset.intelTopicFormat;intelTopicScope();return intelBrowseTopics();}
   if(b.dataset.intelClear){const prefix=b.dataset.intelClear;document.querySelectorAll(`#${prefix}-filters input,#${prefix}-filters select`).forEach(el=>el.value='');if(prefix==='intel-filter'){if($('#intel-folder'))$('#intel-folder').value='';if($('#intel-topic')){intelUI.topicFormat='';intelTopicScope();return intelBrowseTopics();}intelList();}else void intelSearchPicker();return;}
   if(b.dataset.intelAction)return intelAction(b.dataset.intelAction);

@@ -38,6 +38,7 @@ function syncDuelOrderWatch() {
       const frame=await api('/api/ygopro/order/poll',{monitor_id:watch.frame.monitor_id});
       if(epoch!==duelOrderEpoch)return;
       const changed=JSON.stringify(watch.frame)!==JSON.stringify(frame);
+      if(watch.frame?.round_id!==frame.round_id||watch.frame?.opening?.snapshot_id!==frame.opening?.snapshot_id||frame.phase!=='detected')clearSecondOpening();
       DuelOrder.accept(watch,frame);
       if(frame.opening?.status==='ready')await Promise.all([...new Set(frame.opening.cards)].filter(code=>!app.cache.has(code)).map(code=>card(code).catch(()=>{})));
       if(epoch!==duelOrderEpoch)return;
@@ -46,7 +47,7 @@ function syncDuelOrderWatch() {
     } catch(error) {
       if(epoch!==duelOrderEpoch)return;
       const changed=watch.error!==error.message;
-      watch.error=error.message;watch.frame={...watch.frame,phase:'disconnected',detected_order:null};watch.manual=null;
+      clearSecondOpening();watch.error=error.message;watch.frame={...watch.frame,phase:'disconnected',detected_order:null};watch.manual=null;
       if(changed)renderDuel();
     } finally {if(epoch===duelOrderEpoch)duelOrderTimer=setTimeout(tick,!watch.frame.opening||['waiting','dealing'].includes(watch.frame.opening.status)?80:350);}
   };
@@ -62,7 +63,7 @@ function duelAutomaticOrderPage() {
     <div class="duel-order-result ${ready?'resolved':''}"><small>我方本局顺序</small><strong id="duel-order-result">${orderLabel(selected)}</strong><span>${ready?state.manual?`已手动更正 · 自动识别为${orderLabel(frame.detected_order)}`:'根据游戏本局开局数据识别':'等待正式开局后确定'}</span></div>
     <div class="duel-order-adjust" role="group" aria-label="手动更正先后攻"><span>更改结果</span>${duelButton('order-manual-first','先攻',!ready)}${duelButton('order-manual-second','后攻',!ready)}${duelButton('order-use-detected','使用自动结果',!ready||!state.manual)}</div>
     <p class="duel-order-error" role="alert">${escape(state?.error||frame.error||'')}</p><small id="duel-order-last-check">持续监测中</small>
-    ${selected==='second'?'<p class="duel-order-note">后攻顺序会正常记录；后攻展开功能尚未开发。</p>':''}
+    ${selected==='second'?'<p class="duel-order-note">后攻顺序确认后，可分析本局起手资源；实战操作仍由你完成。</p>':''}
     ${frame.opening?.status==='ready'?`<p class="duel-opening-order-note">已自动留存 ${frame.opening.cards.length} 张起手，确认先后攻后可查看预览。</p>`:''}
     <div class="duel-order-links">${duelButton('recapture-process','重新连接进程')}</div></section>`;
 }

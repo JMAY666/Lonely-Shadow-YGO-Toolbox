@@ -34,6 +34,7 @@ function resetCaptureDialog(){
   $('#duel-capture-retry').hidden=false;$('#duel-smart-retry').hidden=true;$('#duel-smart-restart').hidden=true;
 }
 function releaseSmartWorkspace(){
+  if(typeof clearSecondOpening==='function')clearSecondOpening();
   const workspace=autoDuelState();if(!workspace)return;
   workspace.ended=true;++workspace.generation;workspace.enabled=false;dropDuelForecast(workspace);
   closeAutoDuelPreview();closeReviewDetail();
@@ -92,6 +93,20 @@ async function acceptSmartRecognition(run,value){
     paintSmartRecognition(run);return;
   }
   if(!run.entered)paintSmartRecognition(run);
+  if(value.stage==='second'&&value.frame?.confirmed?.order==='second'&&value.frame?.opening?.status==='ready'&&!run.entered){
+    run.entered=true;
+    const draft=duelState().automatic,construction=value.construction;
+    clearSecondOpening();draft.deck={name:'自动识别本局构筑',deck:structuredClone(construction.deck)};draft.name=draft.deck.name;draft.fresh=true;
+    draft.tagIds=[...(value.tag_result?.selection?.tag_ids||[])];draft.primaryIds=[...(value.tag_result?.selection?.primary_ids||[])];
+    draft.order=DuelOrder.create(value.frame);$('#duel-capture-dialog').close();duelReach(duelStages.hand);duelTell('');renderDuel();
+    const cycle=run.cycle;
+    await Promise.all([...new Set([...construction.deck.main,...construction.deck.extra])].map(code=>card(code).catch(()=>{})));
+    if(smartAlive(run)&&run.cycle===cycle){renderDuel();void openingAnalyze('duel');}
+  }
+  if(value.stage==='second'&&run.entered&&duelState().automatic.order){
+    duelState().automatic.order.frame=value.frame;
+    if(value.reading_error){clearSecondOpening();duelTell(value.reading_error);renderDuel();}
+  }
   if(DuelSmart.ready(value)&&!run.entered){
     run.entered=true;
     const draft=duelState().automatic,context=value.context;
