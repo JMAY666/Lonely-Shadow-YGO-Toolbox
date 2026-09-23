@@ -421,7 +421,10 @@ class ModularLibrary:
                 except (ValueError, OSError, KeyError, TypeError) as error:
                     fresh[path.stem] = {'id': path.stem, 'name': path.stem, 'version': 'failed',
                                         'status': 'failed', 'error': str(error), 'routes': []}
-            version = digest({key: value['version'] for key, value in fresh.items()})
+            knowledge = getattr(self.store, 'knowledge', None)
+            if knowledge:
+                fresh.update(knowledge.runtime.entries(self))
+            version = digest({key: [value['version'], value['status'], value.get('available_for_new', True)] for key, value in fresh.items()})
             if version != self.version:
                 changed = {sid for sid in self.entries.keys() | fresh.keys() if self.entries.get(sid, {}).get('version') != fresh.get(sid, {}).get('version')}
                 self.store.modular.sources_changing(changed)
@@ -433,7 +436,7 @@ class ModularLibrary:
         # tag_ids contains both primary and secondary tags, using stable IDs.
         selected = set(selection.get('tag_ids', []))
         return {sid for sid, entry in self.entries.items()
-                if entry['status'] == 'ready' and selected.intersection(entry.get('tag_ids', []))}
+                if entry['status'] == 'ready' and entry.get('available_for_new', True) and selected.intersection(entry.get('tag_ids', []))}
 
     def for_deck(self, saved):
         with self.store.lock, self.lock:
@@ -446,17 +449,22 @@ class ModularLibrary:
                                 else '没有与当前卡组主、副 Tag 匹配的可用展开来源')
             return result
 
-    def validate_deck_sources(self, selection, selected):
+    def validate_deck_sources(self, selection, selected, *, verification=None, pinned=()):
         if not isinstance(selected, list) or not selected or any(not isinstance(s, str) for s in selected):
             raise ValueError('请选择与当前卡组主、副 Tag 匹配的可用展开来源')
-        if not set(selected) <= self.deck_source_ids(selection):
+        allowed = self.deck_source_ids(selection)
+        allowed.update(sid for sid in pinned if sid in self.entries and self.entries[sid].get('knowledge_package')
+                       and self.entries[sid]['status'] in ('ready', 'pinned'))
+        if verification:
+            allowed.update(sid for sid in verification['sources'] if self.entries.get(sid, {}).get('private'))
+        if not set(selected) <= allowed:
             raise ValueError('来源方案与当前卡组主、副 Tag 不匹配或已不可用，请刷新来源列表')
 
     def summary(self):
         return {'schema': 1, 'version': self.version, 'sources': [{**{k: v for k, v in e.items() if k != 'routes'},
                 'snapshots': sum(len(r['snapshots']) for r in e['routes']),
                 'connections': sum(len(r['edges']) for r in e['routes']),
-                'unknown': [u for r in e['routes'] for u in r['unknown']]} for e in self.entries.values()]}
+                'unknown': [u for r in e['routes'] for u in r['unknown']]} for e in self.entries.values() if not e.get('private')]}
 
     def edges(self, selected):
         result = []
@@ -563,7 +571,7 @@ class Modular:
             return self.sessions[sid]
 
     def save(self, ctx):
-        value = {k: v for k, v in ctx.items() if k not in ('result', 'busy', 'followup', 'forecast_state', 'forecast_route', 'forecast_bank', 'forecast_progress', 'forecast_partial')}
+        value = {k: v for k, v in ctx.items() if k not in ('result', 'busy', 'followup', 'forecast_state', 'forecast_route', 'forecast_bank', 'forecast_progress', 'forecast_partial', 'knowledge_verification')}
         self.write(self.store.session_path(ctx['id']) / 'modular.json', value)
 
     def audit(self, ctx, kind, **values):
@@ -604,8 +612,14 @@ class Modular:
             selected = body.get('sources', ctx['selected'])
             self.library.sync()
             if not isinstance(selected, list) or any(s not in self.library.entries for s in selected): raise ValueError('来源方案已经变化，请刷新来源列表')
+            verification = ctx.get('knowledge_verification')
+            if any(self.library.entries[s].get('private') for s in selected) and (not verification or not set(selected) <= set(verification['sources'])):
+                raise ValueError('该来源仅用于隔离验证，不能作为对局操作来源')
+            if any(self.library.entries[s].get('knowledge_package') and not self.library.entries[s].get('private')
+                   and not self.library.entries[s].get('available_for_new', True) and s not in ctx['selected'] for s in selected):
+                raise ValueError('该旧版本仅供已经固定它的场景使用，请为新场景选择当前启用版本')
             if ctx.get('forecast_meta'):
-                self.library.validate_deck_sources(ctx['forecast_meta'].get('tag_selection', {}), selected)
+                self.library.validate_deck_sources(ctx['forecast_meta'].get('tag_selection', {}), selected, verification=verification, pinned=ctx['selected'])
             goal = body.get('goal', ctx['goal'])
             if not isinstance(goal, list) or len(goal) > 30 or any(type(c) is not int or c not in self.store.catalog.cards for c in goal): raise ValueError('终场条件应是有效卡牌编号列表')
             self.cancel_lease(sid)
@@ -686,6 +700,8 @@ class Modular:
 
     def valid_token(self, sid, expected):
         if self.sessions.get(sid, {}).get('forecast_cancelled') or self.store.closing: return False
+        verification = self.sessions.get(sid, {}).get('knowledge_verification')
+        if verification and verification['cancelled'](): return False
         self.library.sync()
         current = self.state(sid)
         actual = self.token(current, self.context(sid))
@@ -701,7 +717,7 @@ class Modular:
             ctx = self.context(sid)
             if 'forecast_meta' not in ctx: return self._search(sid, **options)
             self.library.sync(); state = self.state(sid); expected = self.token(state, ctx)
-            self.library.validate_deck_sources(ctx['forecast_meta'].get('tag_selection', {}), ctx['selected'])
+            self.library.validate_deck_sources(ctx['forecast_meta'].get('tag_selection', {}), ctx['selected'], verification=ctx.get('knowledge_verification'), pinned=ctx['selected'])
             if not state['running'] or state['answered'] or state['player'] != 0:
                 raise ValueError('引擎尚未开放我方决策')
             key = digest([state, expected[2], ctx['precise'], ctx['goal'], ctx.get('original_goal'), ctx['preference'],
@@ -734,7 +750,7 @@ class Modular:
                 if hit: self.audit(ctx, 'planning_cache_hit', candidates=len(result['candidates']))
             return result
 
-    def _search(self, sid, *, scenario=0, seed=None, limits=None, all_preferences=False):
+    def _search(self, sid, *, scenario=0, seed=None, limits=None, all_preferences=False, hard_limits=False):
         ctx = self.context(sid); self.library.sync(); state = self.state(sid)
         if not state['running'] or state['answered'] or state['player'] != 0: raise ValueError('引擎尚未开放我方决策')
         expected = self.token(state, ctx); preference = ctx['preference']; goal = ctx['goal'][:]
@@ -745,7 +761,7 @@ class Modular:
         actual_facts=facts_from_report(self.store._report(sid)) if any(edge.get('if_condition') for edge in edges) else []
         state.setdefault('_if_memory', {'chains':{},'facts':actual_facts})
         longest = max((len(r['edges']) for source in ctx['selected'] for r in self.library.entries.get(source, {}).get('routes', [])), default=0)
-        bounds['depth'] = min(128, max(bounds['depth'], longest+8))
+        bounds['depth'] = min(128, bounds['depth'] if hard_limits else max(bounds['depth'], longest+8))
         start = time.monotonic(); queue = RouteFrontier() if forecast else deque(); source_checks = {}
         by_route = {}
         root_prompt = model(state['raw'], state['state'], state.get('effects'))
@@ -789,6 +805,7 @@ class Modular:
                     'complete': False, 'limited': True, 'status': 'searching', 'preference': preference,
                     'seconds': round(time.monotonic()-start, 3), 'coverage': {'total': len(source_checks),
                     'checked': ctx['forecast_progress']['checked'], 'routes': deepcopy(list(source_checks.values()))}})
+                if ctx.get('knowledge_verification'): ctx['knowledge_verification']['progress'](ctx['forecast_progress'])
             if budget_used() >= bounds['nodes'] or time.monotonic()-start >= bounds['seconds'] or (len(candidates) >= bounds['candidates']*(8 if forecast else 1) and (not forecast or not queue.guided)):
                 limited = True; break
             current, path, steps, seen, uncertain, guide = queue.popleft()
@@ -853,6 +870,9 @@ class Modular:
                     hidden = bool(public_state(state['state'])['unknown'])
                     opponent_steps = 0
                     while following['player'] == 1 and not following['ended']:
+                        if hard_limits and (budget_used() >= bounds['nodes'] or time.monotonic()-start >= bounds['seconds']):
+                            limited = True
+                            raise ValueError('search_limit')
                         if opponent_steps >= 20: raise ValueError('search_limit')
                         opponent_prompt = model(following['raw'], following['state'], following.get('effects'))
                         if hidden and scenario == 0:
@@ -976,7 +996,7 @@ class Modular:
                     else: rejected[str(error)] += 1
         candidates = list(candidates.values()) if forecast else list({c['id']: c for c in candidates}.values())
         verified_nodes = budget_used()
-        if scenario == 0 and candidates and state['state'].get('turn_player') == 0:
+        if not hard_limits and scenario == 0 and candidates and state['state'].get('turn_player') == 0:
             # One named, repeatable interference model; no claims beyond its scope.
             if forecast: ctx['forecast_progress'] = {'nodes': nodes, 'candidates': len(candidates), 'phase': '四种偏好评价与限定干扰校验'}
             stress = self.search(sid, scenario=1, all_preferences=all_preferences, limits={**bounds, 'seconds': min(4, bounds['seconds']), 'nodes': min(80, bounds['nodes'])})
@@ -1027,7 +1047,7 @@ class Modular:
                   'coverage': {'total': len(source_checks),
                                'checked': sum(c['status'] not in ('queued', 'checking') for c in source_checks.values()),
                                'routes': list(source_checks.values())},
-                  'evaluation_limits': {'interference_seconds': 4, 'terminal_seconds': 4, 'terminal_probe_seconds': 2.5},
+                  'evaluation_limits': {'interference_seconds': 0 if hard_limits else 4, 'terminal_seconds': 0 if hard_limits else 4, 'terminal_probe_seconds': 0 if hard_limits else 2.5},
                   'rejected': dict(rejected), 'start': self.visible_state(state), 'goal': goal,
                   'notice': '范围仅限所选来源与搜索预算，不代表规则上无解；未知对手信息、随机结果和未评估阻抗不会标成确定成功'}
         if scenario == 0:
@@ -1203,6 +1223,7 @@ class Modular:
 
     def execute(self, body):
         sid = body['id']; ctx = self.context(sid)
+        if ctx.get('knowledge_verification'): raise ValueError('知识包校验实例仅用于验证，不接受执行指令')
         if ctx.get('forecast_meta'): raise ValueError('临时方案通过步骤确认推进，不执行真实对局输入')
         with self.store.lock, self.lock:
             result = ctx.get('result')
@@ -1283,6 +1304,7 @@ class Modular:
 
     def automatic(self, body):
         ctx = self.context(body['id'])
+        if ctx.get('knowledge_verification'): raise ValueError('知识包校验实例不会启用自动打牌')
         if ctx.get('forecast_meta'): raise ValueError('临时方案不启用自动打牌，请使用步骤图')
         if type(body.get('enabled')) is not bool: raise ValueError('自动模式设置无效')
         with self.lock:

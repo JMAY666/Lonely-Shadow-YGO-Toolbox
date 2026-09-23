@@ -32,6 +32,11 @@ function renderPlanList(plans=planLibraryUI.plans) {
   $('#plan-list').innerHTML=directories+visible.map(p=>`<div class="plan-file-row ${p.favorite?'is-favorite':''}"><button class="history-item plan-file ${p.id===flow.selectedPlan?'current':''}" data-plan="${escape(p.id)}"><span class="plan-file-icon" aria-hidden="true">▤</span><strong>${escape(p.name)}</strong><small>${escape(p.deck_name)}${p.imported?' · 已导入':''}</small><small>${dt(p.saved_ms)}</small></button>${planFavoriteButton(p)}</div>`).join('')+(!visible.length?`<div class="empty">${planLibraryUI.favoritesOnly?'当前筛选下没有收藏方案':plans.length?'没有匹配的方案':'还没有正式方案'}<br><small>${plans.length?'可调整搜索或收藏筛选。':'展开结束后保存，或导入分享文件。'}</small></div>`:'');
   document.querySelectorAll('[data-plan-folder]').forEach(b=>b.onclick=()=>openPlanFolder(b.dataset.planFolder));
   bindPlanFavorites($('#plan-list'));
+  if(typeof knowledgeShelf==='function') {
+    let shelf=$('#knowledge-plan-shelf');
+    if(!shelf){shelf=document.createElement('section');shelf.id='knowledge-plan-shelf';$('#plans').append(shelf);}
+    void knowledgeShelf(shelf,['route','branch']).catch(error=>notice(error.message));
+  }
 }
 function planFavoriteButton(plan) {
   return `<button class="plan-favorite-toggle" data-plan-favorite="${escape(plan.id)}" aria-pressed="${!!plan.favorite}" aria-label="${escape((plan.favorite?'取消收藏：':'收藏方案：')+plan.name)}" title="${plan.favorite?'取消收藏':'收藏方案'}" ${planLibraryUI.favoriteBusy.has(plan.id)?'disabled':''}>${plan.favorite?'★':'☆'}</button>`;

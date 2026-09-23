@@ -146,6 +146,15 @@ def project(plan, deck, hand, catalog=None):
     return result, '', ''
 
 
+def plan_sources(store):
+    for path in sorted(store.plans.glob('*.json')):
+        yield path.stem, lambda path=path: store.library.read(path)
+    knowledge = getattr(store, 'knowledge', None)
+    if knowledge:
+        for plan in knowledge.runtime.plans():
+            yield plan['id'], lambda plan=plan: deepcopy(plan)
+
+
 def match(store, body):
     with store.lock:
         saved = store.get_deck(body.get('deck_id', ''))
@@ -160,10 +169,10 @@ def match(store, body):
         if not selected:
             result['reason'] = '当前卡组没有可用 Tag，请在卡组编辑中设置并保存'
             return result
-        for path in sorted(store.plans.glob('*.json')):
+        for source_id, read_source in plan_sources(store):
             result['counts']['total'] += 1
             try:
-                plan = store.library.read(path)
+                plan = read_source()
                 classification = store.library.selection(plan, vocabulary)
                 if not selected.intersection(classification['tag_ids']): continue
                 result['counts']['tags'] += 1
@@ -178,7 +187,7 @@ def match(store, body):
                     result['matches'].append(projected)
             except (ValueError, KeyError, TypeError, AttributeError, OSError):
                 result['counts']['incomplete'] += 1
-                result['excluded'].append({'id': path.stem, 'name': '无法读取的旧方案', 'stage': 'incomplete',
+                result['excluded'].append({'id': source_id, 'name': '无法读取的来源方案', 'stage': 'incomplete',
                                            'reason': '条件待补全：方案数据无法可靠读取，原文件保留'})
         result['reason'] = ('没有关联 Tag 的方案' if not result['counts']['tags'] else
                             '没有满足资源和起手条件的方案') if not result['matches'] else ''

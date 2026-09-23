@@ -1,0 +1,26 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+module.exports=async({page,evidence,pass})=>{
+  const summary=JSON.parse(fs.readFileSync(path.join(evidence,'knowledge-native-summary.json'),'utf8'));
+  const job=await page.evaluate(id=>api('/api/knowledge',{op:'job.poll',id}),summary.job);
+  await page.evaluate(async()=>{flow.restarting=false;await refreshHistory();await switchModule('knowledge');});
+  await page.waitForFunction(()=>moduleUI.current==='knowledge'&&!moduleUI.switching);
+  await page.locator('#knowledge [data-k-action="tab"][data-tab="projects"]').click();
+  await page.locator(`[data-k-action="project-open"][data-id="${job.project_id}"]`).click();
+  await page.waitForFunction(id=>knowledgeUI.project?.id===id&&!knowledgeUI.busy,job.project_id);
+  const details=page.locator('#knowledge-jobs details').first();
+  if(!await details.getAttribute('open'))await details.locator('summary').first().click();
+  await page.locator('[data-k-action="jobs-refresh"]').click();
+  await page.waitForFunction(()=>!knowledgeUI.busy&&knowledgeUI.jobs.some(j=>j.status==='completed'));
+  assert.equal(await page.locator('[data-k-job="route"]').inputValue(),job.route_id);
+  assert.equal(await page.locator('[data-k-job="build"]').inputValue(),job.build_id);
+  assert.equal(await page.locator('[data-k-job="hands"]').inputValue(),'1184620 1184620 1184620');
+  await page.locator('[data-k-job="seconds"]').fill('15');
+  await page.locator('[data-k-action="job-start"]').click();
+  await page.waitForFunction(()=>!knowledgeUI.busy&&knowledgeUI.jobs.some(j=>j.status==='completed'&&j.reused>0),null,{timeout:90000});
+  assert((await page.locator('#knowledge-jobs').innerText()).includes('复用'));
+  assert((await page.locator('#knowledge-jobs').innerText()).includes('不代表最优')||(await page.locator('#knowledge-jobs').innerText()).includes('不证明最优'));
+  await page.locator('#knowledge-jobs').scrollIntoViewIfNeeded();
+  await page.screenshot({path:path.join(evidence,'knowledge-rule-jobs.png'),preserveScroll:true});
+  pass('Rule-verification workspace shows explicit inputs/budgets and real completed evidence; repeated UI submission reuses the checked scene');
+};

@@ -20,15 +20,16 @@ const onlyConditions=process.argv.includes('--conditions-only');
 const onlyTutorialPresentation=process.argv.includes('--tutorial-presentation-only');
 const onlyTags=process.argv.includes('--tags-only');
 const onlyIntelligence=process.argv.includes('--intelligence-only');
-const modularSuite=Object.entries({implicit:'YGO_MODULAR_IMPLICIT_ONLY',if:'YGO_MODULAR_IF_ONLY',mechanics:'YGO_MODULAR_MECHANICS_ONLY',rules:'YGO_MODULAR_RULES_ONLY',precision:'YGO_MODULAR_PRECISION_ONLY',preferences:'YGO_MODULAR_PREFERENCES_ONLY',routes:'YGO_MODULAR_ADDITIONAL_ONLY',cross:'YGO_MODULAR_CROSS_ONLY',planning:'YGO_MODULAR_PLANNING_ONLY',pipeline:'YGO_MODULAR_PIPELINE_ONLY',forecast:'YGO_MODULAR_FORECAST_ONLY'}).find(([,key])=>process.env[key]==='1')?.[0]||'core';
-const profileSuffix=onlyIntelligence?'-intelligence':onlyTags?'-tags':onlyTutorialPresentation?'-tutorial-presentation':onlyConditions?'-conditions':onlyModular?'-modular-'+modularSuite:onlyCompromise?'-compromise':onlySelection?'-selection':onlyDuel?'-duel':onlyAutomatic?'-automatic':onlyAutomaticWorkspace?'-automatic-workspace':onlyNative?'-native':'';
+const onlyKnowledge=process.argv.includes('--knowledge-only');
+const modularSuite=Object.entries({knowledge:'YGO_MODULAR_KNOWLEDGE_ONLY',implicit:'YGO_MODULAR_IMPLICIT_ONLY',if:'YGO_MODULAR_IF_ONLY',mechanics:'YGO_MODULAR_MECHANICS_ONLY',rules:'YGO_MODULAR_RULES_ONLY',precision:'YGO_MODULAR_PRECISION_ONLY',preferences:'YGO_MODULAR_PREFERENCES_ONLY',routes:'YGO_MODULAR_ADDITIONAL_ONLY',cross:'YGO_MODULAR_CROSS_ONLY',planning:'YGO_MODULAR_PLANNING_ONLY',pipeline:'YGO_MODULAR_PIPELINE_ONLY',forecast:'YGO_MODULAR_FORECAST_ONLY'}).find(([,key])=>process.env[key]==='1')?.[0]||'core';
+const profileSuffix=onlyKnowledge?'-knowledge':onlyIntelligence?'-intelligence':onlyTags?'-tags':onlyTutorialPresentation?'-tutorial-presentation':onlyConditions?'-conditions':onlyModular?'-modular-'+modularSuite:onlyCompromise?'-compromise':onlySelection?'-selection':onlyDuel?'-duel':onlyAutomatic?'-automatic':onlyAutomaticWorkspace?'-automatic-workspace':onlyNative?'-native':'';
 const runLabel=process.env.YGO_TEST_RUN||'';
 assert(/^[a-z0-9-]*$/.test(runLabel),'Isolated test run label must contain only letters, digits and hyphens');
 const runSuffix=profileSuffix+(runLabel?'-'+runLabel:'');
 const root = path.join(workspace, '.local', `desktop-check-${label}${runSuffix}`);
 const evidence = path.join(workspace, '.local', 'evidence', `electron-${label}${runSuffix}`);
-const importSource=process.env.YGO_DESKTOP_TEST_SOURCE||(onlyNative||onlyTutorialPresentation||onlyTags||onlyIntelligence?path.join(root,'empty-import'):path.join(workspace,'.local','YGOPro-Lite'));
-if((onlyNative||onlyTutorialPresentation||onlyTags||onlyIntelligence)&&!process.env.YGO_DESKTOP_TEST_SOURCE)fs.mkdirSync(importSource,{recursive:true});
+const importSource=process.env.YGO_DESKTOP_TEST_SOURCE||(onlyNative||onlyTutorialPresentation||onlyTags||onlyIntelligence||onlyKnowledge?path.join(root,'empty-import'):path.join(workspace,'.local','YGOPro-Lite'));
+if((onlyNative||onlyTutorialPresentation||onlyTags||onlyIntelligence||onlyKnowledge)&&!process.env.YGO_DESKTOP_TEST_SOURCE)fs.mkdirSync(importSource,{recursive:true});
 fs.mkdirSync(evidence, { recursive: true });
 const executable = packaged ? path.resolve(workspace, process.env.YGO_PACKAGE_DIR||require('../package.json').build.directories.output, 'win-unpacked', require('../package.json').build.win.executableName + '.exe') : require('electron');
 const checks = [], errors = [];
@@ -77,7 +78,7 @@ async function launch(first = false, testControl = true) {
   assert.equal(identity.data,path.join(root,'electron'));
   if(testControl)assert.deepEqual(await application.evaluate(()=>globalThis.brandingAcceptance),{windowIconExists:true,loadingImage:true,loadingTitlebar:process.platform==='win32'});
   if(first&&!onlyDuel&&!onlyAutomatic&&!onlyAutomaticWorkspace&&!onlyTutorialPresentation)await require('./titlebar-smoke.cjs')({application,page,pass,evidence});
-  assert.deepEqual(await page.locator('.primary-rail nav button>span').allTextContents(),['首页','卡组编辑','展开','决斗','模块化','情报站','全局设置','TAG 管理']);
+  assert.deepEqual(await page.locator('.primary-rail nav button>span').allTextContents(),['首页','卡组编辑','展开','决斗','模块化','情报站','知识包','全局设置','TAG 管理']);
   assert.equal(await page.locator('.app-bar #app-settings').count(),0);
   const settingsPosition=await page.locator('#app-settings').boundingBox();
   const tagsPosition=await page.locator('#module-tags').boundingBox();
@@ -203,6 +204,13 @@ async function activatePot(sid) {
 
 (async () => {
   await launch(true);
+  if(onlyKnowledge){
+    await require('./knowledge-smoke.cjs')({page,application,root,evidence,pass});
+    const before=await page.evaluate(()=>api('/api/knowledge'));
+    await close();await launch();assert.deepEqual(await page.evaluate(()=>api('/api/knowledge')),before);
+    pass('Knowledge registry, editable projects and personal overlays survive an application restart');
+    await close();assert.deepEqual(errors,[]);fs.writeFileSync(path.join(evidence,'knowledge-result.json'),JSON.stringify({checks,errors,globalInput:false},null,2));return;
+  }
   if(onlyIntelligence){
     if(process.argv.includes('--opponents-only')){
       await require('./intelligence-matchups-smoke.cjs')({page,application,evidence,pass});

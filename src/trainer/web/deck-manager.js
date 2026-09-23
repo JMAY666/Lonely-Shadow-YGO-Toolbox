@@ -24,6 +24,11 @@ function renderDeckBoxes(decks) {
     <article class="deck-box-item"><button class="deck-box" data-open-deck="${escape(d.id)}" aria-label="编辑卡组：${escape(d.name)}">
       ${deckBoxArt(d)}<strong>${escape(d.name)}</strong>
     </button><button class="deck-box-menu" data-deck-menu="${escape(d.id)}" aria-label="卡组操作：${escape(d.name)}" title="卡组操作" aria-haspopup="menu">···</button></article>`).join('');
+  if(typeof knowledgeShelf==='function') {
+    let shelf=$('#knowledge-deck-shelf');
+    if(!shelf){shelf=document.createElement('section');shelf.id='knowledge-deck-shelf';$('#deck-manager').append(shelf);}
+    void knowledgeShelf(shelf,['build']).catch(error=>notice(error.message));
+  }
 }
 function closeDeckPreview() {
   ++deckManager.previewGeneration;

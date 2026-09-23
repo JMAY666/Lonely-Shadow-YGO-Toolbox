@@ -58,6 +58,16 @@ class DesktopDataTests(unittest.TestCase):
             migrate_data(self.source, self.runtime)
         self.assertFalse((self.runtime / '_trainer/decks/测试.ydk').exists())
 
+    def test_knowledge_projects_versions_and_overlays_are_backed_up_and_migrated(self):
+        target = self.source / '_trainer/knowledge/registry.json'
+        target.parent.mkdir(parents=True)
+        original = b'{"projects":{"fixture":{}},"overrides":{"personal":"preserve"}}\n'
+        target.write_bytes(original)
+        state = migrate_data(self.source, self.runtime)
+        self.assertEqual(target.read_bytes(), original)
+        self.assertEqual((self.runtime / '_trainer/knowledge/registry.json').read_bytes(), original)
+        self.assertEqual((Path(state['backup']) / 'files/_trainer/knowledge/registry.json').read_bytes(), original)
+
     def test_resume_interrupted_copy_from_verified_backup(self):
         state = migrate_data(self.source, self.runtime)
         state['status'] = 'copying'

@@ -29,6 +29,10 @@ function intelFilterValues(prefix){const values=Object.fromEntries(['q','tag','k
 function intelMatchesCard(code,f){const c=intelCard(code),q=tagSearchKey(f.q);return (!q||tagSearchKey(c.name).includes(q)||String(code).includes(q))&&(!f.tag||intelUI.data.card_tags?.[code]?.includes(f.tag))&&(!f.kind||({monster:c.type&1,spell:c.type&2,trap:c.type&4,extra:c.extra})[f.kind])&&(!f.attribute||c.attribute===Number(f.attribute))&&(!f.race||c.race===Number(f.race))&&(f.level===''||!!(c.type&1)&&(c.level&255)===Number(f.level));}
 function intelShell(){
   $('#intelligence').innerHTML=`<header class="intel-heading"><div><div class="eyebrow">PERSONAL KNOWLEDGE</div><h1>情报站</h1></div><button id="intel-refresh">刷新资料</button></header><div class="intel-topbar"><nav class="intel-tabs" aria-label="情报站分类">${Object.entries(intelNames).map(([key,name])=>`<button data-intel-tab="${key}" aria-pressed="${intelUI.tab===key}"><span>${name}</span><small data-intel-count="${key}">0</small></button>`).join('')}</nav><div id="intel-actions" class="intel-actions"></div></div><p id="intel-status" class="intel-status" role="status"></p><section id="intel-picker" class="intel-picker" aria-label="选择卡牌" hidden></section><section id="intel-sources" class="intel-sources" aria-label="方案标记来源" hidden></section><div class="intel-layout"><aside class="intel-library" aria-label="资料检索"><div id="intel-controls"></div><section id="intel-list" class="intel-list" aria-label="资料列表"></section></aside><section id="intel-editor" class="intel-editor" aria-label="资料编辑"></section></div>`;
+  if(typeof knowledgeShelf==='function') {
+    const shelf=document.createElement('section');shelf.id='knowledge-intelligence-shelf';$('#intelligence').append(shelf);
+    void knowledgeShelf(shelf,['countermeasure','endboard']).catch(error=>notice(error.message));
+  }
   if(intelUI.tab==='opponents'){void intelOpponentLoad();return;}
   intelControls();intelList();
   const first=$('#intel-list [data-intel-edit]')?.dataset.intelEdit;

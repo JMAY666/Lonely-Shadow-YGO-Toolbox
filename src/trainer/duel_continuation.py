@@ -8,7 +8,7 @@ from module_conditions import advance_facts
 
 def anchor_source(modular, anchor):
     if not isinstance(anchor, dict): raise ValueError('请选择普通方案中的一个步骤')
-    plan = modular.read(modular.store.plan_path(anchor.get('plan', '')))
+    plan = modular.store.read_plan(anchor.get('plan', '')) if hasattr(modular.store, 'read_plan') else modular.read(modular.store.plan_path(anchor.get('plan', '')))
     if plan.get('edit_revision', 0) != anchor.get('revision'):
         raise ValueError('普通方案已修改，请刷新后再从当前步骤生成后续')
     route_id = anchor.get('route', 'main')

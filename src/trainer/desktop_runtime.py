@@ -108,7 +108,7 @@ def prepare_resources(bundle, runtime):
 
 def migration_inventory(source):
     result = {}
-    for relative in ('_trainer/decks', '_trainer/backups', '_trainer/sessions', '_trainer/plans', 'deck'):
+    for relative in ('_trainer/decks', '_trainer/backups', '_trainer/sessions', '_trainer/plans', '_trainer/knowledge', 'deck'):
         folder = source / relative
         if not folder.exists():
             continue
@@ -139,7 +139,7 @@ def migrate_data(source, runtime):
         source = source.resolve(strict=True)
         if runtime.resolve().is_relative_to(source) or source.is_relative_to(runtime.resolve()):
             raise ValueError('迁移源和目标必须相互独立')
-        if (runtime / '.desktop-resources.json').exists() or any((runtime / p).exists() for p in ('_trainer/decks', '_trainer/sessions', '_trainer/plans', '_trainer/card-favorites.json', 'deck')):
+        if (runtime / '.desktop-resources.json').exists() or any((runtime / p).exists() for p in ('_trainer/decks', '_trainer/sessions', '_trainer/plans', '_trainer/knowledge', '_trainer/card-favorites.json', 'deck')):
             raise ValueError('目标已有桌面数据。请保留现有目录，改用一个空的 --data-dir 迁移，避免覆盖。')
         source_lock = source / '_trainer/service.lock'
         with ServiceLock(source_lock, create=False) if source_lock.exists() else nullcontext():
