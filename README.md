@@ -222,6 +222,7 @@ npm run build
 | --- | --- |
 | 详细操作、更新、构建与恢复 | [使用与开发手册](docs/usage-guide.md) |
 | BO1 方案筛选与教程导航 | [决斗辅助](docs/duel.md) |
+| 后攻实战辅助的五点讨论（初稿，新增能力尚未实现） | [后攻讨论记录](docs/going-second-discussion.md) |
 | 分支、对手接管与恢复条件 | [妥协场构建](docs/compromise-design.md) |
 | 日志、快照与资源统计依据 | [记录说明](docs/recording.md) |
 | 已执行检查及尚未验证事项 | [验收记录](docs/verification.md) |
