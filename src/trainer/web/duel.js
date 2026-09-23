@@ -139,9 +139,10 @@ function duelCandidate(code) {
 }
 function duelHandPage() {
   const s=duelState(),main=s.deck.deck.main;
+  const second=!s.first,expanded=!s.secondOpening?.result||s.target!==null;
   return `<section class="duel-hand-setup"><div class="duel-section-heading"><h2>准备起手 <small>${s.hand.filter(Boolean).length} / ${s.count}</small></h2></div>
     <div class="duel-hand">${s.hand.map((code,i)=>`<article class="duel-slot ${s.target===i?'selected':''}">${code?duelReadCard(code).replace('<button ',`<button data-duel-slot="${i}" aria-pressed="${s.target===i}" `):`<button data-duel-slot="${i}" aria-label="起手 ${i+1} 空槽位" aria-pressed="${s.target===i}"><span class="duel-slot-plus">＋</span></button>`}</article>`).join('')}</div>
-    </section><section class="duel-candidates"><h3>主卡组 <small>${main.length} 张</small></h3><div class="duel-candidate-grid">${[...new Set(main)].sort(compareDeckCards).map(duelCandidate).join('')}</div></section>`;
+    </section>${second?`<details class="duel-opening-picker" ${expanded?'open':''}><summary>调整起手 · 从主卡组选择</summary>`:''}<section class="duel-candidates"><h3>主卡组 <small>${main.length} 张</small></h3><div class="duel-candidate-grid">${[...new Set(main)].sort(compareDeckCards).map(duelCandidate).join('')}</div></section>${second?'</details>':''}`;
 }
 function duelOpeningText(plan) {
   return (plan.requirements?.opening||[]).map(c=>`${c.name||c.constraint||duelName(c.code)} ×${c.count}`).join(' + ')||'无额外指定起手要求（已记录空条件）';

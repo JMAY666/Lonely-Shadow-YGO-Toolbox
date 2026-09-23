@@ -8,6 +8,7 @@ from duel import validate_hand
 from intelligence_staples import load_catalog
 from intelligence_marks import effect_parts
 from opening_analysis import DEFAULTS, digest, concentration, analyze_routes
+from opening_guidance import describe as describe_deck
 
 ROLE_NAMES = {'handtrap': '手坑', 'breaker': '解场', 'protection': '护航', 'resource': '资源补充'}
 
@@ -165,14 +166,19 @@ class OpeningWorkspace:
                 cards.append({'code': code, 'count': count, 'name': self.store.catalog.cards.get(code, {}).get('name', str(code)),
                     'roles': roles, 'status': '已核对通用资料' if roles else '用途待补充／依方案判断',
                     'effects': [e['key'] for e in entries]})
-            warnings = self.conflicts(counts, knowledge, routes['routes'])
+            guide = describe_deck(deck, hand, self.store.catalog.cards)
+            context_cards = {row['code']: row for row in guide['hand_cards']}
+            for row in cards:
+                row['context'] = context_cards.get(row['code'])
+            warnings = self.conflicts(counts, knowledge, routes['routes']) + guide['warnings']
             version = digest({'deck': deck, 'tags': tags, 'plans': [digest(p) for p in plans],
-                              'catalog': self.store.catalog.sources, 'knowledge': {k: v['version'] for k, v in knowledge.items()}})
+                              'catalog': self.store.catalog.sources, 'knowledge': {k: v['version'] for k, v in knowledge.items()},
+                              'guide': guide['version']})
             result = {'schema': 1, 'revision': document['revision'], 'source_version': version, 'source': source,
                 'frozen': frozen, 'supplemental': supplemental, 'hand_count': len(hand), 'cards': cards,
                 'handtrap_count': sum(c['count'] for c in cards if 'handtrap' in c['roles']),
                 'concentration': concentration(deck, tags, self.store.catalog.cards, document['settings']),
-                'knowledge': effects, 'role_names': ROLE_NAMES, 'analysis': routes, 'warnings': warnings,
+                'knowledge': effects, 'role_names': ROLE_NAMES, 'analysis': routes, 'warnings': warnings, 'guide': guide,
                 'notes': document['notes'], 'settings': document['settings'],
                 'boundary': '仅分析已知起手资源；持有不等于已经发动。手坑张数不等于可用次数，未知对手场面不作补全。',
                 'direction': '现有终场效果可供比较；斩杀与长盘收益待真实场面核对，不提供保证值。'}

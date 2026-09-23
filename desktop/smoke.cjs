@@ -205,7 +205,9 @@ async function activatePot(sid) {
   await launch(true);
   if(onlyIntelligence){
     if(process.argv.includes('--opening-only')){
-      const {input,persisted}=await require('./going-second-smoke.cjs')({page,application,root,evidence,pass});
+      const {input}=await require('./going-second-smoke.cjs')({page,application,root,evidence,pass});
+      await require('./opening-layout-smoke.cjs')({page,application,root,evidence,pass});
+      const persisted=await page.evaluate(input=>api('/api/opening/analyze',input),input);
       await close();await launch();assert.deepEqual(await page.evaluate(input=>api('/api/opening/analyze',input),input),persisted);
       pass('Opening personal settings and candidates survive a real application restart');
       await close();assert.deepEqual(errors,[]);fs.writeFileSync(path.join(evidence,'opening-result.json'),JSON.stringify({checks,errors,globalInput:false},null,2));return;

@@ -4,12 +4,16 @@ import hashlib
 import json
 
 from actions import project_actions
+from card_semantics import card_activation
 from duel import checked_rows, resource_error, shortage, Incomplete
 from implicit_conditions import check as check_implicit
 from opening_conditions import match_hand
 from plan_tags import contains_card, matches_set
 
 DEFAULTS = {'dual_ratio': .8, 'dual_minimum': .15, 'representatives': 8}
+# Broad card-name search families are useful references, not independent deck engines.
+# Preserve TAG membership; exclude only these built-in umbrella labels from this ranking.
+SUPPORT_POOLS = {'set:17': 0x17, 'set:46': 0x46}
 
 
 def digest(value):
@@ -19,8 +23,9 @@ def digest(value):
 def concentration(deck, tags, catalog, settings):
     """Group only known numeric parent/subseries, then split shared copies."""
     copies = Counter(deck['main'] + deck['extra'])
+    pools = {key: tag for key, tag in tags.items() if key in SUPPORT_POOLS and tag.get('setcode') == SUPPORT_POOLS[key]}
     members = {key: {c for c in copies if contains_card(tag, c, catalog.get(c, {}))}
-               for key, tag in tags.items() if tag.get('kind') != 'purpose'}
+               for key, tag in tags.items() if tag.get('kind') != 'purpose' and key not in pools}
     members = {key: ids for key, ids in members.items() if ids}
     parents = {key: key for key in members}
 
@@ -59,7 +64,9 @@ def concentration(deck, tags, catalog, settings):
     ambiguous = len(near) > 1
     return {'total': total, 'groups': groups, 'primary': [] if ambiguous else ([groups[0]['id'], *near] if groups else []),
             'status': '多个系列接近，主系列待核对' if ambiguous else '双主系列' if near else '单主系列' if groups else '未识别系列',
-            'unclassified': sum(n for c, n in copies.items() if not owners[c]), 'settings': settings}
+            'unclassified': sum(n for c, n in copies.items() if not owners[c]), 'settings': settings,
+            'support_tags': [{'id': key, 'name': tag['name'], 'count': sum(n for c, n in copies.items() if contains_card(tag, c, catalog.get(c, {})))}
+                             for key, tag in pools.items() if any(contains_card(tag, c, catalog.get(c, {})) for c in copies)]}
 
 
 def semantic(value):
@@ -159,10 +166,16 @@ def analyze_routes(plans, deck, hand, catalog, limit):
                     c = next((c for c in action['cards'] if c.get('controller') == 0), None)
                     if not c or not c.get('code'): continue
                     number = action.get('effect_number')
+                    activation = card_activation(action, report.get('catalog', {})) if number is None else None
+                    # Keep the pre-existing note identity; changing the display label
+                    # must not orphan annotations made before activation recognition.
                     eid = f"{c['code']}:{number if number is not None else 'unknown'}"
                     item = effects.setdefault(eid, {'key': eid, 'code': c['code'], 'number': number,
-                        'text': action.get('selected_effect_text') or '效果身份待核对', 'attempts': 0, 'resolved': 0,
+                        'text': action.get('selected_effect_text') or activation or '效果身份待核对',
+                        'kind': 'card_activation' if activation else 'effect', 'attempts': 0, 'resolved': 0,
                         'negated': 0, 'applied': 0, 'evidence': []})
+                    if number is None and (item['kind'] == 'card_activation') != bool(activation):
+                        item.update(kind='mixed', text='卡片发动与尚未对应编号的效果')
                     item['attempts'] += 1
                     item['resolved'] += action['status'] == 'resolved'
                     item['negated'] += action['status'] in ('negated', 'disabled')
@@ -201,7 +214,7 @@ def analyze_routes(plans, deck, hand, catalog, limit):
                 'note': '替代／增强补点候选；起点、费用、次数与其他终场资源仍须核对，不保证能连续执行或结果等价'})
     return {'routes': selected, 'groups': len(unique), 'omitted': max(0, len(unique)-len(selected)),
             'coverage_gaps': ['尚无逐局斩杀／受阻续接验证；现有路线不保证突破未知对手场面',
-                              *(['代表方案不足 8 组，保留资料缺口'] if len(selected) < 8 else [])],
+                              *([f'本次代表方案不足 {limit} 组，保留资料缺口'] if len(selected) < limit else [])],
             'errors': errors, 'effects': stats, 'comparisons': comparisons}
 
 

@@ -1,0 +1,66 @@
+'use strict';
+
+const openingStatus = value => ({satisfied:'资源条件满足',unmet:'资源不足',random:'含随机结果',pending:'条件待核对'})[value]||'条件待核对';
+const openingPill = (text,kind='') => `<span class="opening-pill ${kind}">${escape(String(text))}</span>`;
+const openingFold = (id,title,content,{open=false,hint=''}={}) => `<details class="opening-fold" data-opening-panel="${id}" ${open?'open':''}><summary><span>${escape(title)}</span>${hint?`<small>${escape(hint)}</small>`:''}</summary><div class="opening-fold-body">${content}</div></details>`;
+
+function openingReference(effect,result,editable){
+  const names=result.role_names,e=effect;
+  return `<article class="opening-reference opening-effect" data-opening-effect="${escape(e.key)}">${openingCard(e.code)}<div class="opening-reference-body"><div class="opening-section-heading"><strong>${escape(e.name)}</strong>${openingPill(e.reviewed?'卡文已核对':'卡文变化，待核对')}</div><p class="opening-card-text">${escape(e.text)}</p><p>${escape(e.condition)}</p><ul>${e.explanation.map(t=>`<li>${escape(t)}</li>`).join('')}</ul><p>${e.roles.map(r=>openingPill(names[r])).join('')}</p>
+    ${e.override_stale?`<p role="status">旧人工选择已保留，需重新核对：${escape(JSON.stringify(e.override.value))}</p>`:''}
+    ${editable&&e.reviewed?`<form data-opening-form="override" data-key="${escape(e.key)}"><fieldset><legend>个人展示选择</legend><div class="opening-checkboxes">${[...e.roles,...e.allowed_roles.filter(r=>!e.roles.includes(r))].map(r=>`<label><input type="checkbox" name="role" value="${r}" ${e.roles.includes(r)?'checked':''}>${escape(names[r])}</label>`).join('')}</div><div class="opening-form-row"><label>用途顺序<select name="order"><option value="normal">按当前顺序</option><option value="reverse">反转所选顺序</option></select></label><label>展示优先<select name="priority"><option value="primary" ${e.priority==='primary'?'selected':''}>主要</option><option value="secondary" ${e.priority==='secondary'?'selected':''}>次要</option></select></label></div><label>备注<textarea name="note" maxlength="4000">${escape(e.note)}</textarea></label></fieldset><div class="opening-actions"><button type="submit">保存通用选择</button><button type="button" data-opening-command="restore" data-key="${escape(e.key)}">恢复自动</button><button type="button" data-opening-command="suggest" data-key="${escape(e.key)}">本地归纳候选</button></div></form>${e.candidate?`<p>本地候选${e.candidate_stale?'已过期':'待采纳'}：${e.candidate.value.roles.map(r=>escape(names[r])).join(' / ')}。人工选择保持不变。</p><button data-opening-command="apply" data-key="${escape(e.key)}" ${e.candidate_stale?'disabled':''}>采纳候选</button>`:''}`:e.note?`<p>个人备注：${escape(e.note)}</p>`:''}
+    <details class="opening-source"><summary>官方依据与版本</summary><a href="${escape(e.source.url)}" data-opening-reference>查看官方卡文</a><small>核对 ${escape(e.source.checked_on)} · ${escape(e.source.id)} · ${e.version.slice(0,10)}</small></details></div></article>`;
+}
+
+function openingRouteCard(route,result,editable){
+  const status=route.condition.status;
+  const origin=route.turn_order==='second'?'后攻录制':'先攻录制';
+  const needs=route.opening.map(r=>`${openingName(r.code)} ×${r.count}`).join(' + ')+(route.generic_cost?` + 任意费用手牌 ×${route.generic_cost}`:'');
+  const title=route.sources[0]?.name||'未命名方案';
+  const finalCards=[...new Set(route.endboard.map(e=>e.code))];
+  return `<article class="opening-route-card"><div class="opening-section-heading"><h4>${escape(title)}</h4>${openingPill(openingStatus(status),status==='satisfied'?'positive':'')}</div><div class="opening-route-facts">${openingPill(origin)}${openingPill(route.one_card?'一卡起手依据':`${route.required_hand} 张起手资源`)}${openingPill(`${route.endboard_count} 项来源效果`)}</div><p><span class="opening-label">起点</span>${escape(needs||'条件待补')}</p><p class="opening-route-reason">${escape(route.condition.reason)}</p>${route.idea?`<p>${escape(route.idea)}</p>`:''}${finalCards.length?`<p><span class="opening-label">终场</span>${finalCards.map(c=>escape(openingName(c))).join('、')}</p>`:''}
+    <details class="opening-route" data-opening-route="${escape(route.key)}"><summary>展开步骤与完整依据</summary><ol class="opening-step-list">${route.steps.map(step=>`<li>${escape(step)}</li>`).join('')||'<li>尚无可读步骤</li>'}</ol><p>以下为来源标记；可用次数、费用与实际响应条件另行核对。</p><ul>${route.endboard.map(e=>`<li><strong>${escape(e.name)}</strong> · 效果 ${escape(String(e.effect))} · ${escape(e.status)}</li>`).join('')||'<li>未标记终场效果，不视为零能力。</li>'}</ul><p>在本路线中未见参与依据：${route.relative_unused.map(c=>escape(openingName(c))).join('、')||'无'}。${route.generic_cost?'其中卡片仍可能承担通用费用。':'其他用途继续保留。'}</p><details class="opening-source"><summary>来源标识</summary><p>${route.sources.map(s=>`${escape(s.name)} · ${escape(s.plan_id)}${s.branch_id?' / '+escape(s.branch_id):''} · ${s.revision.slice(0,10)}`).join('<br>')}</p></details>${openingNote(route.key,result,editable)}</details></article>`;
+}
+
+function openingGuide(guide){
+  if(!guide?.active)return '';
+  return `<section class="opening-guide opening-surface"><div class="opening-section-heading"><h3>${escape(guide.title)}</h3>${openingPill('卡文参考')}</div><div class="opening-guide-flow">${guide.stages.map((stage,i)=>`<article><span class="opening-step-number">${i+1}</span><strong>${escape(stage.label)}</strong><p>${stage.codes.map(c=>escape(openingName(c))).join('、')}</p></article>`).join('')}</div><p class="opening-muted">这是卡片之间的基本分工，不是一条已验证的完整展开路线。</p></section>`;
+}
+
+function openingParticipation(result,editable){
+  const groups=new Map();for(const row of result.analysis.effects){if(!groups.has(row.code))groups.set(row.code,[]);groups.get(row.code).push(row);}
+  return `<p class="opening-muted">统计来自 ${result.analysis.routes.filter(r=>r.verified_sample).length} 组可核对录制；少于 3 组时保留候选。统计不替代当前规则验证。</p><div class="opening-evidence-grid">${[...groups].map(([code,rows])=>`<article class="opening-evidence-card"><h4>${escape(openingName(code))}</h4>${rows.map(e=>`<details class="opening-effect-detail"><summary><span>${e.kind==='card_activation'?'卡片发动':e.number==null?'待对应的效果':`效果 ${e.number}`}</span>${openingPill(e.kind==='card_activation'?'不计主要效果':`${e.coverage_count}/${e.sample_count} 组 · ${e.recommendation}`)}</summary><p class="opening-card-text">${escape(e.text)}</p><dl class="opening-stat-list"><div><dt>发动</dt><dd>${e.attempts}</dd></div><div><dt>处理完成</dt><dd>${e.resolved}</dd></div><div><dt>有实际结果</dt><dd>${e.applied}</dd></div><div><dt>被无效</dt><dd>${e.negated}</dd></div></dl>${openingNote(e.key,result,editable)}</details>`).join('')}</article>`).join('')||'<p>暂无具体效果的参与记录。</p>'}</div>`;
+}
+
+function openingComposition(result){
+  const c=result.concentration;
+  return `<p>${c.total} 张主卡与额外。原有个人 TAG 未修改；泛用与未归属系列的卡共 ${c.unclassified} 张。</p><div class="opening-series">${c.groups.map(g=>`<article><div class="opening-section-heading"><strong>${escape(g.name)}</strong>${openingPill(c.primary.includes(g.id)?'主系列':g.main+g.extra===1?'单卡支援':'支援系列候选')}</div><b>${(g.ratio*100).toFixed(1)}%</b><p>主卡 ${g.main} · 额外 ${g.extra}</p><small>独占 ${g.exclusive} + 共享折算 ${g.shared.toFixed(1)}${g.hierarchy.length>1?' · '+g.hierarchy.map(escape).join(' / '):''}</small></article>`).join('')||'<p>没有可用系列依据。</p>'}</div>${c.support_tags?.length?`<p>通用支援标签：${c.support_tags.map(t=>`${escape(t.name)} ${t.count} 张`).join('、')}。这些检索标签不作为独立主系列参与浓度排名。</p>`:''}`;
+}
+
+function openingGuideReferences(guide){
+  if(!guide?.cards?.length&&!guide?.stale?.length)return '';
+  return `<p>${escape(guide.scope)}</p><div class="opening-guide-reference-grid">${guide.cards.map(card=>`<article class="opening-evidence-card"><div class="opening-section-heading"><strong>${escape(card.name)}</strong>${openingPill(card.label)}</div><p>${escape(card.summary)}</p><ul>${card.details.map(t=>`<li>${escape(t)}</li>`).join('')}</ul><a href="${escape(card.source.url)}" data-opening-reference>官方卡文</a><small>核对 ${escape(card.source.checked_on)}</small></article>`).join('')}</div>${guide.stale.length?`<p>以下卡片与参考版本不符，用途说明未应用：${guide.stale.map(c=>escape(c.name)).join('、')}。</p>`:''}`;
+}
+
+function renderOpeningOverview(result,editable=false){
+  const a=result.analysis,c=result.concentration,guide=result.guide;
+  const primary=c.groups.filter(g=>c.primary.includes(g.id)).map(g=>g.name).join(' / ')||c.status;
+  const roleCount=role=>result.cards.filter(card=>card.roles.includes(role)).reduce((n,c)=>n+c.count,0);
+  const entries=result.cards.filter(card=>card.context?.roles.includes('starter'));
+  const missing=result.cards.filter(card=>!card.roles.length&&!card.context);
+  const held=new Set(result.cards.map(c=>c.code)),handKnowledge=result.knowledge.filter(e=>held.has(e.code)),otherKnowledge=result.knowledge.filter(e=>!held.has(e.code));
+  const shortRole={handtrap:'在对应窗口干扰对方，留意同名次数。',protection:'保留给关键启动护航，需满足对象和时点。',breaker:'按对象和素材条件处理场面。',resource:'满足条件时补充资源。'};
+  const metrics=[['手坑',result.handtrap_count],['护航',roleCount('protection')],['解场',roleCount('breaker')],['启动线索',entries.reduce((n,c)=>n+c.count,0)]];
+  const summary=result.hand_count?`<section class="opening-overview opening-surface"><div class="opening-section-heading"><div><span class="opening-eyebrow">这手牌的分工</span><h3>${escape(primary)}</h3></div><small>${result.hand_count} 张已知资源${result.supplemental.length?` · 含 ${result.supplemental.length} 张人工补充`:''}</small></div><div class="opening-metrics">${metrics.map(([label,count])=>`<div><span>${label}</span><strong>${count}</strong><small>${label==='启动线索'?'按卡文识别':'张'}</small></div>`).join('')}</div><div class="opening-hand-roles">${result.cards.map(card=>`<article><strong>${escape(card.name)}${card.count>1?' ×'+card.count:''}</strong><div>${card.roles.map(role=>openingPill(result.role_names[role])).join('')}${card.context?openingPill(card.context.label,'context'):!card.roles.length?openingPill('用途待补'):''}</div><p>${escape(card.context?.summary||card.roles.map(role=>shortRole[role]).filter(Boolean).join(' ')||'暂缺可核对用途，不能据此判为废件。')}</p></article>`).join('')}</div><p class="opening-muted">按已核对资料识别；手坑张数不等于可用次数，持有卡片不代表效果已发动。</p></section>`:`<section class="opening-overview opening-surface"><span class="opening-eyebrow">构筑资料</span><h3>${escape(primary)}</h3><p>先认识基本分工，再到决斗页分析实际起手。</p></section>`;
+  const highlights=(guide?.highlights||[]).filter(h=>h.kind!=='starter');
+  const keyPoints=highlights.length?`<section class="opening-surface opening-key-points"><h3>这手牌的关键配合</h3><ul>${highlights.map(h=>`<li>${escape(h.text)}</li>`).join('')}</ul></section>`:'';
+  const warnings=result.warnings.length?`<section class="opening-attention opening-surface"><h3>优先留意</h3><ul>${result.warnings.map(w=>`<li>${escape(w.text)}</li>`).join('')}</ul></section>`:'';
+  const routeList=a.routes.map(r=>openingRouteCard(r,result,editable)).join('')||'<div class="opening-empty"><strong>还没有适合这副牌的完整方案</strong><p>卡文用途仍可参考。保存更多基本展开后，这里会显示相应起手和补点依据。</p></div>';
+  const routes=`<section class="opening-surface opening-route-section"><div class="opening-section-heading"><h3>基本展开与补点</h3><small>${a.groups} 组本地方案${a.omitted?` · 展示 ${a.routes.length} 组`:''}</small></div>${routeList}<p class="opening-muted">斩杀与长盘收益需要实际对手场面；这里先看资源和路线前提。</p></section>`;
+  const gaps=[...a.coverage_gaps,...a.errors,...(guide?.stale||[]).map(r=>`${r.name}：${r.reason}`)];
+  const knowledge=editable?result.knowledge:handKnowledge;
+  const library=knowledge.map(e=>openingReference(e,result,editable)).join('')||'<p>本次手牌暂无已核对的通用资料。</p>';
+  const others=!editable&&otherKnowledge.length?openingFold('other-cards','查看构筑中其他通用卡',otherKnowledge.map(e=>openingReference(e,result,false)).join(''),{hint:`${otherKnowledge.length} 条，仅供参考`}):'';
+  const comparison=a.comparisons.length?openingFold('comparison','比较来源终场效果',a.comparisons.map(row=>`<p><strong>${escape(a.routes.find(r=>r.key===row.a)?.sources[0].name||'方案')} → ${escape(a.routes.find(r=>r.key===row.b)?.sources[0].name||'方案')}</strong><br>${escape(row.relation)} · 差 ${row.difference} 项<br>${escape(row.note)}</p>`).join('')):'';
+  return `<div class="opening-results">${summary}${keyPoints}<div class="opening-reading-layout"><div class="opening-primary-column">${routes}${comparison}</div><div class="opening-side-column">${warnings}${openingGuide(guide)}${missing.length?`<section class="opening-surface"><h3>仍需补充的用途</h3><p>${missing.map(card=>`${escape(card.name)} ×${card.count}`).join('、')}</p><small>缺资料不等于无用；相对未参与的卡片见各方案详情。</small></section>`:''}</div></div><section class="opening-reference-section"><h3>资料与依据</h3><p class="opening-muted">需要核对时再展开；个人标记和来源记录都保留。</p>${openingFold('composition','卡组构成',openingComposition(result),{hint:c.status})}${guide?.cards?.length?openingFold('guide','卡组关键卡与配合说明',openingGuideReferences(guide),{hint:`${guide.cards.length} 张卡文参考`}):''}${openingFold('participation','效果参与依据',openingParticipation(result,editable),{hint:`${a.effects.length} 项录制记录`})}${openingFold('knowledge',editable?'通用用途维护':'本次手牌的通用用途详情',library+others,{open:editable,hint:`${knowledge.length} 条`})}${openingFold('gaps','资料覆盖与待核对项',`<ul>${gaps.map(t=>`<li>${escape(t)}</li>`).join('')||'<li>暂无新增缺口。</li>'}</ul><p>${escape(result.boundary)}</p><p class="opening-meta">来源版本 ${result.source_version.slice(0,12)} · 个人修订 ${result.revision}</p>`,{hint:gaps.length?`${gaps.length} 项`:'查看范围'})}${editable?openingNote('deck',result,true):''}</section></div>`;
+}

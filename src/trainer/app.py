@@ -1173,7 +1173,7 @@ class Handler(BaseHTTPRequestHandler):
                 files.update({'/deck-tags.js': 'deck-tags.js', '/deck-tags.css': 'deck-tags.css', '/theme.css': 'theme.css'})
                 files['/scrollbars.css'] = 'scrollbars.css'
                 files.update({'/intelligence.js': 'intelligence.js', '/intelligence.css': 'intelligence.css'})
-                files.update({'/going-second.js': 'going-second.js', '/going-second.css': 'going-second.css'})
+                files.update({'/going-second.js': 'going-second.js', '/going-second.css': 'going-second.css', '/opening-summary.js': 'opening-summary.js'})
                 files.update({f'/{name}': name for name in ('intelligence-matchups.js', 'intelligence-matchups.css')})
                 files.update({f'/{name}': name for name in ('intelligence-opponents.js', 'intelligence-opponents.css')})
                 for art in ('first', 'second', 'bo1', 'bo3', 'manual', 'automatic', 'ygopro', 'ygopro2', 'mdpro3', 'masterduel'):
