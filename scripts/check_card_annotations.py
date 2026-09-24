@@ -43,7 +43,7 @@ def check(runtime=None):
             if digest(card.get('desc')) != entry['text_digest']:
                 raise ValueError(f'{code}: 当前卡文已变化，须重新核对')
             keys = {part['key'] for part in segments(card.get('desc'), card.get('type', 0))}
-            validate_entry(entry, registry, keys)
+            validate_entry(entry, registry, keys, card_type=card.get('type', 0))
             if entry['review']['status'] == 'reviewed' and not entry.get('no_effect') and keys != {e['key'] for e in entry['effects']}:
                 raise ValueError(f'{code}: 已核对条目缺少卡文分段')
     print(f'PASS {len(document["cards"])} annotations: vocabulary, sources, text snapshots'

@@ -31,6 +31,30 @@ RELATION_KINDS = {'material_rule', 'summon_condition', 'shared_limit', 'usage_li
 STATUSES = ('none', 'auto', 'partial', 'reviewed', 'confirmed', 'pending', 'stale')
 CONDITION_FIELDS = ('action', 'from_zone', 'to_zone', 'usage', 'cost_kind', 'timing')
 
+# Only promote explicitly recorded child zones to a broader query. A generic
+# field annotation never proves that a particular child zone is eligible.
+ZONE_GROUPS = {'field': {'monster', 'opponent_monster', 'spell', 'pendulum', 'field_spell'},
+               'monster': {'opponent_monster'}, 'spell': {'pendulum'}}
+ACTION_TAGS = {'add_hand': 'etag:add-hand', 'draw': 'etag:draw', 'return_deck': 'etag:return-deck',
+               'hand_reveal': 'etag:hand-look', 'deck_reveal': 'etag:deck-look',
+               'destroy': 'etag:destroy', 'banish': 'etag:banish', 'send_grave': 'etag:send-grave',
+               'special_summon': 'etag:special-summon', 'normal_summon': 'etag:normal-summon',
+               'negate_effect': 'etag:negate-effect', 'negate_activation': 'etag:negate-activation',
+               'burn': 'etag:effect-damage', 'heal': 'etag:recover-lp'}
+
+
+def zone_matches(query, zones):
+    return bool(({query} | ZONE_GROUPS.get(query, set())) & set(zones or []))
+
+
+def processing_actions(items):
+    for item in items:
+        yield item['action']
+        yield from processing_actions(item.get('then', []))
+        for branch in item.get('branches', []):
+            yield from processing_actions(branch.get('actions', []))
+            yield from processing_actions(branch.get('then', []))
+
 # Implied destinations keep queries honest when an annotation omits to_zones:
 # the action itself names the zone it moves a card to.
 DEFAULT_DESTINATION = {'add_hand': 'hand', 'draw': 'hand', 'special_summon': 'monster',
@@ -176,7 +200,7 @@ def _check_processing(items, registry, where):
             _check_text(restriction, f'{where}限制', 400)
 
 
-def validate_entry(entry, registry, segment_keys=None, where=''):
+def validate_entry(entry, registry, segment_keys=None, where='', card_type=None):
     """Structural validation; segment_keys (when given) must cover the frozen text."""
     where = where or f"卡牌 {entry.get('code')}"
     if not isinstance(entry.get('code'), int) or not 0 < entry['code'] < 2**32: raise ValueError(f'{where}卡号无效')
@@ -214,6 +238,8 @@ def validate_entry(entry, registry, segment_keys=None, where=''):
         if not isinstance(structure, dict): raise ValueError(f'{where}效果 {key} 结构无效')
         activation = structure.get('activation')
         if activation is not None:
+            if 'fast_effect' in activation and type(activation['fast_effect']) is not bool:
+                raise ValueError(f'{where}效果 {key} 快速效果标记须为布尔值')
             if activation.get('timing'): registry.require('timings', activation['timing'], f'{where}效果 {key}')
             for zone in activation.get('zones', []): registry.require('zones', zone, f'{where}效果 {key}')
             for condition in activation.get('conditions', []): _check_text(condition, f'{where}效果 {key}条件', 400)
@@ -224,6 +250,22 @@ def validate_entry(entry, registry, segment_keys=None, where=''):
             if not isinstance(target.get('count'), int) or target['count'] < 0: raise ValueError(f'{where}效果 {key}对象数量无效')
             _check_text(target.get('filter', '对象'), f'{where}效果 {key}对象', 400)
         _check_processing(structure.get('processing', []), registry, f'{where}效果 {key}')
+        if review.get('status') == 'reviewed' and effect.get('effect_type') not in (None, 'non_effect', 'unclassified'):
+            effect_type = effect['effect_type']
+            fast = (activation or {}).get('fast_effect')
+            expected_fast = None
+            if effect_type in ('quick', 'trap_activation', 'trap_effect'): expected_fast = True
+            elif effect_type == 'trigger': expected_fast = False
+            elif effect_type == 'spell_activation' and card_type is not None: expected_fast = bool(card_type & 0x10000)
+            if expected_fast is not None and fast is not expected_fast:
+                raise ValueError(f'{where}效果 {key} 类别与快速效果标记不一致')
+            # These tags describe direct processing, including optional branches.
+            # Rules, stat changes and locks may instead live in restriction text.
+            expected_tags = {ACTION_TAGS[action] for action in processing_actions(structure.get('processing', []))
+                             if action in ACTION_TAGS}
+            actual_tags = set(effect.get('tags', [])) & set(ACTION_TAGS.values())
+            if actual_tags != expected_tags:
+                raise ValueError(f'{where}效果 {key} TAG 与处理不一致：缺少 {sorted(expected_tags - actual_tags)}；多余 {sorted(actual_tags - expected_tags)}')
         for usage in structure.get('usage', []): registry.require('usage_limits', usage, f'{where}效果 {key}')
         _check_notes(effect.get('notes', []), f'{where}效果 {key}')
         if effect.get('engine') is not None and not isinstance(effect['engine'], dict):
@@ -296,16 +338,17 @@ class CardAnnotations:
                 segment_keys = None
                 if card is not None and entry.get('text_digest') == digest(card.get('desc') or ''):
                     segment_keys = {seg['key'] for seg in segments(card.get('desc') or '', card.get('type') or 0)}
-                entries[int(key)] = validate_entry({**entry, 'code': int(key)}, self.registry, segment_keys=segment_keys)
+                entries[int(key)] = validate_entry({**entry, 'code': int(key)}, self.registry, segment_keys=segment_keys,
+                                                   card_type=card.get('type', 0) if segment_keys is not None else None)
             except ValueError as exc:
                 raise ValueError(f'内置卡片标注资料无效：{exc}') from None
         document['cards'] = entries
         return document
 
     def _load_user(self):
-        if not self.path.exists(): return {'version': 1, 'revision': 1, 'cards': {}}
+        if not self.path.exists(): return {'version': 2, 'revision': 1, 'cards': {}}
         document = self.read_json(self.path)
-        if document.get('version') != 1 or not isinstance(document.get('cards'), dict) or not isinstance(document.get('revision'), int):
+        if document.get('version') not in (1, 2) or not isinstance(document.get('cards'), dict) or not isinstance(document.get('revision'), int):
             raise ValueError('本地卡片标注文件无效，请从备份恢复后重试')
         return document
 
@@ -336,7 +379,12 @@ class CardAnnotations:
         if card is None: raise ValueError(f'卡牌编号 {code} 不在当前卡库')
         current = digest(card.get('desc') or '')
         current_segs = segments(card.get('desc') or '', card.get('type') or 0)
-        user = self.document['cards'].get(str(code)) or {}
+        personal = self.document['cards'].get(str(code)) or {}
+        user = personal if personal.get('text_digest') == current else {}
+        personal_review_required = self._has_overlay(personal) and not user
+        history = deepcopy(personal.get('history', []))
+        if personal_review_required:
+            history.append(self._overlay_snapshot(personal))
         curated = self.curated['cards'].get(code)
         base, provenance, stale = None, None, False
         if curated is not None:
@@ -344,10 +392,10 @@ class CardAnnotations:
             provenance = {'source': 'curated', 'id': self.curated.get('id'), 'title': self.curated.get('title'),
                           'checked_on': curated['review'].get('checked_on')}
             stale = curated.get('text_digest') != current
-        draft = user.get('draft')
+        draft = personal.get('draft')
         if base is None and draft is not None:
             base, provenance = draft, {'source': 'user-draft'}
-            stale = user.get('draft_digest') != current
+            stale = personal.get('draft_digest') != current
         # Never pair an old numbered annotation with new text at the same key.
         segs = current_segs
         if stale:
@@ -356,13 +404,17 @@ class CardAnnotations:
                  'block': 'p' if effect['key'].startswith('p') else 'm'} for effect in base.get('effects', [])]
         seg_map = {seg['key']: seg for seg in segs}
         if stale: status = 'stale'
-        elif user.get('pending') and base is not None: status = 'pending'
+        elif (user.get('pending') or personal_review_required) and base is not None: status = 'pending'
         elif user.get('confirmed') and base is not None and base['review'].get('origin') != 'auto': status = 'confirmed'
         elif base is not None: status = 'reviewed' if base['review']['status'] == 'reviewed' else 'auto'
         else: status = 'none'
         annotated = {effect['key']: effect for effect in (base or {}).get('effects', [])}
-        add, remove = user.get('tag_add', {}), user.get('tag_remove', {})
-        user_notes = user.get('notes', {})
+        # A stale view can show old corrections ONLY beside their matching old
+        # frozen text. Neither its tags nor its confirmation apply to new text.
+        display_digest = base.get('text_digest') if stale else current
+        display_user = personal if personal.get('text_digest') == display_digest else {}
+        add, remove = display_user.get('tag_add', {}), display_user.get('tag_remove', {})
+        user_notes = display_user.get('notes', {})
         engine = {} if stale else self._engine_links(code, current, seg_map)
         effects, missing = [], []
         for seg in segs:
@@ -391,6 +443,7 @@ class CardAnnotations:
                   'digest_ok': not stale, 'text_digest': (base or {}).get('text_digest', current),
                   'current_text_digest': current, 'current_text': card.get('desc') or '',
                   'review': deepcopy((base or {}).get('review')), 'provenance': provenance,
+                  'personal_review_required': bool(personal_review_required), 'personal_history': history,
                   'effects': effects, 'relations': deepcopy((base or {}).get('relations', [])),
                   'notes': deepcopy((base or {}).get('notes', [])),
                   'sources': deepcopy((base or {}).get('sources', []))}
@@ -469,10 +522,10 @@ class CardAnnotations:
                 field = 'from_zones' if name == 'from_zone' else 'to_zones'
                 for _, item in self._iter_processing(effect.get('structure', {}).get('processing')):
                     zones = item.get(field)
-                    if zones and value in zones:
+                    if zones and zone_matches(value, zones):
                         found = {'condition': name, 'value': value, 'basis': self.registry.zone_label(value)}
                         break
-                    if name == 'to_zone' and not zones and DEFAULT_DESTINATION.get(item.get('action')) == value:
+                    if name == 'to_zone' and not zones and zone_matches(value, [DEFAULT_DESTINATION.get(item.get('action'))]):
                         found = {'condition': name, 'value': value,
                                  'basis': f"隐含去向：{self.registry.action_label(item.get('action'))}"}
                         break
@@ -609,18 +662,37 @@ class CardAnnotations:
     def _save(self, mutate):
         with self.store.lock:
             previous = deepcopy(self.document)
-            mutate(self.document)
+            updated = deepcopy(previous)
+            mutate(updated)
+            updated['version'] = 2
+            updated['revision'] += 1
             self.backup_dir.mkdir(parents=True, exist_ok=True)
-            self.atomic_json(self.backup_dir / f"{self.document['revision']}.json", previous)
-            self.document['revision'] += 1
-            self.atomic_json(self.path, self.document)
+            self.atomic_json(self.backup_dir / f"{previous['revision']}.json", previous)
+            self.atomic_json(self.path, updated)
+            self.document = updated
             self._views = {}
 
-    def _card_entry(self, code):
-        entry = self.document['cards'].get(str(code))
-        if entry is None:
-            entry = {'confirmed': False, 'pending': False, 'tag_add': {}, 'tag_remove': {}, 'notes': {}}
-            self.document['cards'][str(code)] = entry
+    @staticmethod
+    def _has_overlay(entry):
+        return bool(entry.get('confirmed') or entry.get('pending') or any(
+            any(entry.get(field, {}).values()) for field in ('tag_add', 'tag_remove', 'notes')))
+
+    @staticmethod
+    def _overlay_snapshot(entry):
+        return {key: deepcopy(value) for key, value in entry.items() if key not in ('history', 'draft', 'draft_digest')}
+
+    def _card_entry(self, document, code):
+        entry = document['cards'].setdefault(str(code), {})
+        text = self.store.catalog.cards[code].get('desc') or ''
+        current = digest(text)
+        if entry.get('text_digest') != current:
+            archived = self._has_overlay(entry)
+            if archived:
+                snapshot = self._overlay_snapshot(entry)
+                snapshot['archived_on'] = self._now()
+                entry.setdefault('history', []).append(snapshot)
+            entry.update(text_digest=current, frozen_text=text, confirmed=False, pending=archived,
+                         tag_add={}, tag_remove={}, notes={})
         return entry
 
     def set_review(self, body):
@@ -631,7 +703,7 @@ class CardAnnotations:
         if value == 'confirmed' and (not view['digest_ok'] or not view['full'] or view['origin'] == 'auto' or view['status'] == 'none'):
             raise ValueError('请先完成全部分段的人工结构标注；自动草稿或旧卡文不能直接确认为已核对')
         def mutate(document):
-            entry = self._card_entry(code)
+            entry = self._card_entry(document, code)
             entry['confirmed'] = value == 'confirmed'
             entry['pending'] = value == 'pending'
         self._save(mutate)
@@ -644,7 +716,7 @@ class CardAnnotations:
         if key not in {effect['key'] for effect in self.view(code)['effects']}:
             raise ValueError('效果编号不在当前卡文分段中')
         def mutate(document):
-            entry = self._card_entry(code)
+            entry = self._card_entry(document, code)
             entry.setdefault('notes', {}).setdefault(key, []).append({'text': text.strip(), 'ts': self._now()})
         self._save(mutate)
         return {'code': code, 'key': key, 'revision': self.document['revision']}
@@ -653,7 +725,7 @@ class CardAnnotations:
         code, key, index = self._require_code(body), body.get('key'), body.get('index')
         if not isinstance(key, str) or not isinstance(index, int) or index < 0: raise ValueError('备注定位无效')
         def mutate(document):
-            notes = self._card_entry(code).get('notes', {}).get(key, [])
+            notes = self._card_entry(document, code).get('notes', {}).get(key, [])
             if index >= len(notes): raise ValueError('备注不存在，请刷新后重试')
             notes.pop(index)
         self._save(mutate)
@@ -669,7 +741,7 @@ class CardAnnotations:
         if key not in {effect['key'] for effect in self.view(code)['effects']}:
             raise ValueError('效果编号不在当前卡文分段中')
         def mutate(document):
-            entry = self._card_entry(code)
+            entry = self._card_entry(document, code)
             added = (set(entry.get('tag_add', {}).get(key, [])) | set(add)) - set(remove)
             removed = (set(entry.get('tag_remove', {}).get(key, [])) | set(remove)) - set(add)
             # Removing a personal addition undoes it; tag_remove only counters curated tags.
@@ -686,8 +758,9 @@ class CardAnnotations:
         entry['frozen_text'] = card.get('desc') or ''
         if not entry['effects']: raise ValueError('未能从卡文中提取任何候选；请人工标注或稍后扩充词表')
         def mutate(document):
-            self._card_entry(code)['draft'] = entry
-            self._card_entry(code)['draft_digest'] = current
+            personal = document['cards'].setdefault(str(code), {})
+            personal['draft'] = entry
+            personal['draft_digest'] = current
         self._save(mutate)
         return {'code': code, 'effects': len(entry['effects']), 'origin': 'auto', 'revision': self.document['revision']}
 
@@ -697,7 +770,7 @@ class CardAnnotations:
             entry = document['cards'].get(str(code))
             if entry is None or 'draft' not in entry: raise ValueError('该卡没有自动草稿')
             entry.pop('draft', None); entry.pop('draft_digest', None)
-            if not any(entry.get(field) for field in ('confirmed', 'pending', 'tag_add', 'tag_remove', 'notes')):
+            if not self._has_overlay(entry) and not entry.get('history'):
                 document['cards'].pop(str(code), None)
         self._save(mutate)
         return {'code': code, 'revision': self.document['revision']}
@@ -723,11 +796,12 @@ class CardAnnotations:
         if op == 'card': return self.view(self._require_code(body))
         if op == 'registry': return self.registry_document()
         if op in ('set-review', 'add-note', 'remove-note', 'set-tags', 'discard-draft'):
-            if body.get('revision') != self.document['revision']:
-                raise ValueError('本地标注已更新，请刷新后重试')
-            if op == 'set-tags' and not self.view(self._require_code(body))['digest_ok']:
-                raise ValueError('卡文已变化，旧标注暂不接受标签修改')
-            return getattr(self, {'set-review': 'set_review', 'add-note': 'add_note', 'remove-note': 'remove_note',
-                                  'set-tags': 'set_tags', 'discard-draft': 'discard_draft'}[op])(body)
+            with self.store.lock:
+                if body.get('revision') != self.document['revision']:
+                    raise ValueError('本地标注已更新，请刷新后重试')
+                if op in ('set-tags', 'add-note', 'remove-note') and not self.view(self._require_code(body))['digest_ok']:
+                    raise ValueError('卡文已变化，旧标注暂不接受标签或备注修改')
+                return getattr(self, {'set-review': 'set_review', 'add-note': 'add_note', 'remove-note': 'remove_note',
+                                      'set-tags': 'set_tags', 'discard-draft': 'discard_draft'}[op])(body)
         if op == 'draft': return self.make_draft(body)
         raise ValueError('未知的标注操作')

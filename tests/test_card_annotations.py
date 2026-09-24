@@ -6,10 +6,12 @@ import sqlite3
 import sys
 import tempfile
 import unittest
+from copy import deepcopy
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src/trainer'))
 from app import Store, atomic_json, read_json, now
-from card_annotations import CardAnnotations, Registry, draft_entry, segments
+from card_annotations import CardAnnotations, Registry, draft_entry, segments, digest, validate_entry, zone_matches
 
 SEARCHER = '①：从卡组把1只「测试」怪兽加入手卡。'
 RECYCLER = '①：以自己墓地1只「测试」怪兽为对象才能发动。那只怪兽加入手卡。'
@@ -186,6 +188,117 @@ class CardAnnotationTests(unittest.TestCase):
         self.service.command({'op': 'set-tags', 'code': 20000002, 'key': 'm1', 'add': [], 'remove': ['etag:draw'], 'revision': revision + 1})
         self.assertNotIn('etag:draw', self.service.view(20000002)['effects'][0]['tags'])
         self.assertIn('etag:add-hand', self.service.view(20000002)['effects'][0]['tags'])
+
+    def test_personal_corrections_are_isolated_across_text_update_and_restart(self):
+        service, code = self.service, 20000001
+        service.command({'op': 'set-tags', 'code': code, 'key': 'm1', 'add': ['etag:destroy'], 'remove': ['etag:add-hand'], 'revision': 1})
+        service.command({'op': 'add-note', 'code': code, 'key': 'm1', 'text': '只针对旧检索效果', 'revision': 2})
+        service.command({'op': 'set-review', 'code': code, 'value': 'confirmed', 'revision': 3})
+        original = deepcopy(service.document)
+        new_text = '①：自己抽1张。'
+        with closing(sqlite3.connect(self.root / 'cards.cdb')) as db:
+            db.execute('UPDATE texts SET desc=? WHERE id=?', (new_text, code))
+            db.commit()
+        self.store.reload_resources()
+        service.reload()
+        self.assertEqual(service.view(code)['status'], 'stale')
+        with self.assertRaises(ValueError):
+            service.command({'op': 'add-note', 'code': code, 'key': 'm1', 'text': '不可混入新卡文', 'revision': 4})
+        def update(entries):
+            entries[str(code)] = make_entry(code, new_text, [simple_effect('m1', 1, ['etag:draw'], [{'action': 'draw', 'count': '1'}])])
+        self.write_curated(mutate=update)
+        service = CardAnnotations(self.store, read_json, atomic_json, now, curated_path=self.curated_path)
+        view = service.view(code)
+        self.assertEqual(view['status'], 'pending')
+        self.assertTrue(view['personal_review_required'])
+        self.assertEqual(view['effects'][0]['tags'], ['etag:draw'])
+        self.assertEqual(view['effects'][0]['notes'], [])
+        self.assertEqual(view['personal_history'][0]['notes']['m1'][0]['text'], '只针对旧检索效果')
+        self.assertNotIn(code, [c['code'] for c in service.search({'etags': ['etag:destroy']})['cards']])
+        self.assertEqual(read_json(service.path), original, 'browsing does not rewrite old data')
+        service.command({'op': 'add-note', 'code': code, 'key': 'm1', 'text': '新卡文的核对备注', 'revision': 4})
+        self.assertEqual(read_json(service.backup_dir / '4.json'), original)
+        service.command({'op': 'set-review', 'code': code, 'value': 'confirmed', 'revision': 5})
+        restarted = CardAnnotations(self.store, read_json, atomic_json, now, curated_path=self.curated_path)
+        view = restarted.view(code)
+        self.assertEqual(view['status'], 'confirmed')
+        self.assertFalse(view['personal_review_required'])
+        self.assertEqual(view['effects'][0]['notes'][0]['text'], '新卡文的核对备注')
+        self.assertEqual(view['effects'][0]['tags'], ['etag:draw'])
+        self.assertEqual(view['personal_history'][0]['tag_remove'], {'m1': ['etag:add-hand']})
+        self.assertEqual(restarted.document['cards'][str(code)]['text_digest'], digest(new_text))
+
+    def test_unversioned_personal_data_is_preserved_and_backed_up_before_adoption(self):
+        code = 20000001
+        legacy = {'version': 1, 'revision': 7, 'cards': {str(code): {
+            'confirmed': True, 'pending': False, 'tag_add': {'m1': ['etag:destroy']},
+            'tag_remove': {'m1': ['etag:add-hand']}, 'notes': {'m1': [{'text': '旧版备注', 'ts': 1}]}}}}
+        atomic_json(self.service.path, legacy)
+        self.service.reload()
+        view = self.service.view(code)
+        self.assertEqual(view['status'], 'pending')
+        self.assertEqual(view['effects'][0]['tags'], ['etag:add-hand'])
+        self.assertEqual(view['personal_history'][0], legacy['cards'][str(code)])
+        self.assertEqual(read_json(self.service.path), legacy)
+        self.service.command({'op': 'set-review', 'code': code, 'value': 'confirmed', 'revision': 7})
+        self.assertEqual(read_json(self.service.backup_dir / '7.json'), legacy)
+        saved = read_json(self.service.path)
+        self.assertEqual(saved['version'], 2)
+        self.assertEqual(saved['cards'][str(code)]['history'][0]['notes'], legacy['cards'][str(code)]['notes'])
+        self.service.reload()
+        self.assertEqual(self.service.view(code)['status'], 'confirmed')
+        self.assertEqual(len(self.service.view(code)['personal_history']), 1)
+
+    def test_failed_personal_save_does_not_mutate_memory_or_saved_data(self):
+        self.service.command({'op': 'add-note', 'code': 20000001, 'key': 'm1', 'text': '保存的备注', 'revision': 1})
+        before = deepcopy(self.service.document)
+        def fail_current(path, value):
+            if path == self.service.path: raise OSError('simulated disk write failure')
+            atomic_json(path, value)
+        with patch.object(self.service, 'atomic_json', side_effect=fail_current):
+            with self.assertRaises(OSError):
+                self.service.command({'op': 'set-review', 'code': 20000001, 'value': 'confirmed', 'revision': 2})
+        self.assertEqual(self.service.document, before)
+        self.assertEqual(read_json(self.service.path), before)
+        self.assertEqual(read_json(self.service.backup_dir / '2.json'), before)
+
+    def test_broad_zone_queries_only_include_explicit_child_zones(self):
+        self.assertTrue(zone_matches('field', ['opponent_monster']))
+        self.assertTrue(zone_matches('field', ['field_spell']))
+        self.assertTrue(zone_matches('monster', ['opponent_monster']))
+        self.assertTrue(zone_matches('spell', ['pendulum']))
+        self.assertFalse(zone_matches('spell', ['field']))
+        self.assertFalse(zone_matches('spell', ['opponent_monster']))
+        self.assertFalse(zone_matches('grave', ['spell']))
+
+    def test_curated_samples_query_corrected_capabilities_and_reject_regressions(self):
+        path = Path(__file__).resolve().parents[1] / 'src/trainer/card-annotations.json'
+        cards = json.loads(path.read_text('utf-8'))['cards']
+        talent = next(e for e in cards['25311006']['effects'] if e['key'] == 'm1')
+        for tag in ('etag:draw', 'etag:return-deck', 'etag:hand-look'):
+            self.assertIsNotNone(self.service._effect_conditions(talent, {'etags': [tag]}))
+        self.assertIsNone(self.service._effect_conditions(talent, {'etags': ['etag:add-hand']}))
+        self.assertEqual(len(talent['structure']['processing'][0]['branches']), 2)
+        accesscode = next(e for e in cards['86066372']['effects'] if e['key'] == 'm2')
+        for zone in ('field', 'monster', 'opponent_monster', 'spell', 'pendulum', 'field_spell'):
+            self.assertIsNotNone(self.service._effect_conditions(accesscode, {'action': 'destroy', 'from_zone': zone}))
+        for zone in ('hand', 'grave', 'deck'):
+            self.assertIsNone(self.service._effect_conditions(accesscode, {'action': 'destroy', 'from_zone': zone}))
+        for effect in cards['23434538']['effects']:
+            if effect.get('effect_type') == 'quick':
+                self.assertTrue(effect['structure']['activation']['fast_effect'])
+        broken = deepcopy(cards['23434538'])
+        next(e for e in broken['effects'] if e['key'] == 'm1')['structure']['activation']['fast_effect'] = False
+        with self.assertRaisesRegex(ValueError, '快速效果'):
+            validate_entry(broken, self.service.registry)
+        broken = deepcopy(cards['25311006'])
+        next(e for e in broken['effects'] if e['key'] == 'm1')['tags'] = ['etag:draw', 'etag:add-hand']
+        with self.assertRaisesRegex(ValueError, 'TAG 与处理'):
+            validate_entry(broken, self.service.registry)
+        broken = deepcopy(cards['14087893'])
+        broken['effects'][0]['structure']['activation']['fast_effect'] = False
+        with self.assertRaisesRegex(ValueError, '快速效果'):
+            validate_entry(broken, self.service.registry, card_type=0x10002)
 
     def test_invalid_curated_data_fails_closed(self):
         self.write_curated(mutate=lambda entries: entries['20000001']['effects'][0]['tags'].append('etag:not-registered'))

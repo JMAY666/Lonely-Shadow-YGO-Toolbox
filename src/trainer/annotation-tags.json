@@ -87,8 +87,8 @@
       "id": "etag:return-deck",
       "name": "回到卡组",
       "category": "removal",
-      "definition": "把卡放回卡组（最上面、最下面或洗回）。区分回卡组处理与卡组顶底操作。",
-      "scope": "处理内容含『回到卡组／放回卡组』。",
+      "definition": "把卡放回主卡组或额外卡组；去向区域与主卡组中的最上面、最下面或洗回方式由结构说明。区分回卡组处理与卡组顶底操作。",
+      "scope": "处理内容含『回到卡组／放回卡组／回到额外卡组』。",
       "synonyms": [
         "回卡组",
         "洗回卡组"
@@ -252,7 +252,8 @@
       "opponent_monster": "对方怪兽区",
       "pendulum": "灵摆区域",
       "opponent_deck_top": "对方卡组最上面",
-      "opponent_deck_bottom": "对方卡组最下面"
+      "opponent_deck_bottom": "对方卡组最下面",
+      "field_spell": "场地区"
     },
     "actions": {
       "add_hand": "加入手卡",

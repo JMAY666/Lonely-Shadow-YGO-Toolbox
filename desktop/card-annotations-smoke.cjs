@@ -121,6 +121,20 @@ module.exports = async ({page, application, root, evidence, pass}) => {
   assert.equal(strict.total,0);
   const loose=await page.evaluate(()=>api('/api/annotations',{op:'query',q:'16387555',etags:['etag:special-summon','etag:banish'],scope:'card'}));
   assert.equal(loose.total,1);assert.ok(loose.cards[0].cross_effects);
+  for (const tag of ['etag:draw','etag:return-deck','etag:hand-look']) {
+    const hit=await page.evaluate(tag=>api('/api/annotations',{op:'query',q:'25311006',etags:[tag]}),tag);
+    assert.equal(hit.total,1);
+  }
+  assert.equal((await page.evaluate(()=>api('/api/annotations',{op:'query',q:'25311006',etags:['etag:add-hand']}))).total,0);
+  for (const zone of ['field','monster','spell','field_spell','pendulum']) {
+    const hit=await page.evaluate(zone=>api('/api/annotations',{op:'query',q:'86066372',action:'destroy',from_zone:zone}),zone);
+    assert.equal(hit.total,1);
+  }
+  assert.equal((await page.evaluate(()=>api('/api/annotations',{op:'query',q:'86066372',action:'destroy',from_zone:'grave'}))).total,0);
+  const maxx=await page.evaluate(()=>api('/api/annotations',{op:'card',code:23434538}));
+  assert.equal(maxx.effects.find(e=>e.key==='m1').structure.activation.fast_effect,true);
+  const shifter=await page.evaluate(()=>api('/api/annotations',{op:'card',code:91800273}));
+  assert.match(shifter.effects[0].structure.cost[0].text,/必须实际送墓/);
   await search('');
   await page.locator('#anno-advanced > summary').click();
   await page.locator('[data-anno-etag="etag:add-hand"]').click();
@@ -148,6 +162,10 @@ module.exports = async ({page, application, root, evidence, pass}) => {
     await page.waitForFunction(()=>annoUI.detail?.status==='confirmed'&&!annoUI.busy);
   }
   assert.equal((await page.evaluate(()=>api('/api/annotations',{op:'card',code:16387555}))).status,'confirmed');
+  const personal=JSON.parse(fs.readFileSync(path.join(root,'runtime','_trainer','card-annotations.json'),'utf8'));
+  assert.equal(personal.version,2);
+  assert.match(personal.cards['16387555'].text_digest,/^[a-f0-9]{64}$/);
+  assert.ok(personal.cards['16387555'].frozen_text.includes('①'));
   const draft=await page.evaluate(()=>api('/api/annotations',{op:'draft',code:483}));
   assert.equal(draft.origin,'auto');
   await page.evaluate(revision=>api('/api/annotations',{op:'discard-draft',code:483,revision}),draft.revision);

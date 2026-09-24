@@ -5921,7 +5921,8 @@
           "kind": "numbered",
           "number": 3,
           "tags": [
-            "etag:special-summon"
+            "etag:special-summon",
+            "etag:return-deck"
           ],
           "effect_type": "trigger",
           "structure": {
@@ -7350,7 +7351,8 @@
           "number": 1,
           "tags": [
             "etag:banish",
-            "etag:lock"
+            "etag:lock",
+            "etag:special-summon"
           ],
           "structure": {
             "activation": {
@@ -7362,7 +7364,7 @@
                 "对方手卡为0或对方不能特殊召唤的场合也能发动",
                 "伤害步骤不能发动"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "targeting": [
               {
@@ -7646,7 +7648,7 @@
                 "魔法陷阱区需有这张卡以外的卡才能发动",
                 "伤害步骤不能发动"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "cost": [
               {
@@ -7925,7 +7927,7 @@
                 "速攻魔法：盖放的场合对方回合也能发动；当回合盖放的不能发动（通用盖放规则）",
                 "伤害步骤不能发动"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "targeting": [
               {
@@ -8122,7 +8124,7 @@
                 "自己·对方的战斗阶段结束时（结束步骤）",
                 "对方场上的卡数量比自己场上的卡多的场合"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "processing": [
               {
@@ -8275,7 +8277,7 @@
               "conditions": [
                 "自己·对方回合（伤害步骤不能发动；不能抽卡的状况也能发动）"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "cost": [
               {
@@ -8386,7 +8388,7 @@
                 "速攻魔法：盖放的场合对方回合也能发动；当回合盖放的不能发动（通用盖放规则）",
                 "伤害步骤开始时至伤害计算前之间也能发动"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "cost": [
               {
@@ -8471,7 +8473,7 @@
               "conditions": [
                 "自己·对方回合（伤害步骤不能发动）"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "cost": [
               {
@@ -8558,7 +8560,8 @@
           "number": 1,
           "tags": [
             "etag:draw",
-            "etag:add-hand"
+            "etag:hand-look",
+            "etag:return-deck"
           ],
           "structure": {
             "activation": {
@@ -8695,7 +8698,7 @@
                 "速攻魔法：盖放的场合对方回合也能发动；当回合盖放的不能发动（通用盖放规则）",
                 "伤害步骤开始时至伤害计算前之间也能发动"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "targeting": [
               {
@@ -8779,7 +8782,7 @@
               "conditions": [
                 "对方把5只以上的怪兽召唤·特殊召唤的自己·对方回合的主要阶段"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "processing": [
               {
@@ -8959,7 +8962,7 @@
               "conditions": [
                 "对方的效果发动时（直接连锁；伤害步骤不能发动）"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "targeting": [
               {
@@ -9485,7 +9488,7 @@
               "conditions": [
                 "对方回合（伤害步骤不能发动）"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "cost": [
               {
@@ -9698,7 +9701,7 @@
                 "场上需有连接怪兽·衍生物以外的表侧表示怪兽才能发动",
                 "伤害步骤不能发动"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "processing": [
               {
@@ -9896,7 +9899,7 @@
               "conditions": [
                 "自己·对方回合1次（伤害步骤开始时至伤害计算前也能发动）"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "cost": [
               {
@@ -10207,7 +10210,7 @@
                 "自己场上没有怪兽存在",
                 "对方把怪兽的效果发动时（直接连锁；同一连锁上最多1次；伤害步骤也能发动）"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "processing": [
               {
@@ -10323,7 +10326,7 @@
                 "包含把怪兽特殊召唤效果的魔法·陷阱·怪兽的效果发动时（直接连锁）",
                 "伤害步骤不能发动"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "processing": [
               {
@@ -10431,7 +10434,8 @@
           "number": 1,
           "tags": [
             "etag:add-hand",
-            "etag:lock"
+            "etag:lock",
+            "etag:special-summon"
           ],
           "structure": {
             "activation": {
@@ -10443,7 +10447,7 @@
                 "对方墓地没有怪兽或对方不能特殊召唤的场合也能发动",
                 "伤害步骤不能发动"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "targeting": [
               {
@@ -10558,7 +10562,8 @@
           "kind": "numbered",
           "number": 1,
           "tags": [
-            "etag:draw"
+            "etag:draw",
+            "etag:return-deck"
           ],
           "structure": {
             "activation": {
@@ -10569,7 +10574,7 @@
               "conditions": [
                 "自己·对方回合且自己场上没有卡存在的场合（伤害步骤不能发动；不能抽卡的状况也能发动）"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "cost": [
               {
@@ -10667,7 +10672,7 @@
                 "速攻魔法：盖放的场合对方回合也能发动；当回合盖放的不能发动（通用盖放规则）",
                 "伤害步骤不能发动"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "cost": [
               {
@@ -10741,7 +10746,7 @@
               "conditions": [
                 "包含把怪兽特殊召唤效果的魔法卡由对方发动时（直接连锁；不能对应不伴随卡片发动的魔法效果发动；伤害步骤不能发动）"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "processing": [
               {
@@ -11009,7 +11014,7 @@
                 "速攻魔法：盖放的场合对方回合也能发动；当回合盖放的不能发动（通用盖放规则）",
                 "伤害步骤不能发动"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "cost": [
               {
@@ -11466,7 +11471,7 @@
               "conditions": [
                 "对方把「海龟坏兽 加美西耶勒」以外的魔法·陷阱·怪兽的效果发动时（直接连锁卡片发动或效果发动；伤害步骤也能发动）"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "cost": [
               {
@@ -11564,7 +11569,7 @@
               "conditions": [
                 "场上的怪兽的效果发动时，或场上的已是表侧表示存在的魔法·陷阱卡的效果发动时（直接连锁；不能对应魔法·陷阱卡自身的卡片发动；伤害步骤不能发动）"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "cost": [
               {
@@ -11831,7 +11836,7 @@
               "conditions": [
                 "自己·对方回合，对方场上的怪兽数量比自己场上的怪兽多的场合（双方额外卡组各1张以上；伤害步骤不能发动）"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "cost": [
               {
@@ -12009,7 +12014,7 @@
               "conditions": [
                 "对方墓地有魔法·陷阱·怪兽的效果发动时（直接连锁；伤害步骤不能发动）"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "cost": [
               {
@@ -12402,7 +12407,7 @@
               "conditions": [
                 "包含以下其中任意种效果的魔法·陷阱·怪兽的效果发动时（直接连锁；伤害步骤也能发动）：●从墓地把卡加入手卡·卡组·额外卡组的效果 ●从墓地把怪兽特殊召唤的效果 ●从墓地把卡除外的效果"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "cost": [
               {
@@ -12541,7 +12546,7 @@
               "conditions": [
                 "自己·对方回合（伤害步骤不能发动）"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "cost": [
               {
@@ -12639,7 +12644,8 @@
           "kind": "numbered",
           "number": 1,
           "tags": [
-            "etag:draw"
+            "etag:draw",
+            "etag:return-deck"
           ],
           "structure": {
             "activation": {
@@ -12650,7 +12656,7 @@
               "conditions": [
                 "自己·对方回合且自己场上没有卡存在的场合（伤害步骤不能发动；不能抽卡的状况也能发动）"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "cost": [
               {
@@ -12825,7 +12831,10 @@
                 "action": "destroy",
                 "count": "1",
                 "from_zones": [
-                  "opponent_monster"
+                  "opponent_monster",
+                  "spell",
+                  "pendulum",
+                  "field_spell"
                 ],
                 "selector": {
                   "text": "对方场上1张卡"
@@ -12906,7 +12915,8 @@
           "kind": "numbered",
           "number": 1,
           "tags": [
-            "etag:draw"
+            "etag:draw",
+            "etag:return-deck"
           ],
           "structure": {
             "activation": {
@@ -12917,7 +12927,7 @@
               "conditions": [
                 "自己·对方回合且自己场上没有卡存在的场合（伤害步骤不能发动；不能抽卡的状况也能发动）"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "cost": [
               {
@@ -13132,7 +13142,7 @@
               "conditions": [
                 "自己·对方回合（伤害步骤不能发动；同一连锁上可发动多次）"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "cost": [
               {
@@ -13257,12 +13267,12 @@
               "conditions": [
                 "自己·对方回合且自己墓地没有卡存在的场合（伤害步骤不能发动）"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "cost": [
               {
                 "kind": "send_grave_self",
-                "text": "把这张卡从手卡送去墓地（费用本身受本效果改道影响时也照常支付）"
+                "text": "把这张卡从手卡送去墓地；必须实际送墓。已有除外替代使本卡不能送墓时，不能支付此费用，也不能发动。"
               }
             ],
             "processing": [
@@ -13291,6 +13301,13 @@
               "source_refs": [
                 "konami-14740"
               ]
+            },
+            {
+              "text": "本次效果尚未结算时，先按通常规则支付送墓费用；若已有除外替代适用而无法实际送墓，则不能发动。单纯丢弃或解放费用另按其文字判断，不等同于要求送墓的费用。",
+              "source_refs": [
+                "konami-14740",
+                "konami-cost-14540"
+              ]
             }
           ],
           "effect_type": "quick"
@@ -13304,6 +13321,13 @@
           "id": "konami-14740",
           "title": "KONAMI 官方卡文与补充说明",
           "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14740&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        },
+        {
+          "id": "konami-cost-14540",
+          "title": "KONAMI OCG FAQ：除外替代适用时不能支付送墓费用",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?fid=14540&ope=5&request_locale=ja&tag=-1",
           "checked_on": "2026-09-24",
           "format": "OCG"
         }
@@ -13666,7 +13690,7 @@
               "conditions": [
                 "对方在抽卡阶段以外从卡组把卡加入手卡的场合（连锁处理完后也能发动；伤害步骤不能发动）"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "cost": [
               {
@@ -13763,7 +13787,7 @@
                 "包含从卡组把卡加入手卡效果的魔法·陷阱·怪兽的效果发动时（直接连锁）",
                 "伤害步骤不能发动"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "processing": [
               {
@@ -13858,7 +13882,7 @@
               "conditions": [
                 "对方主要阶段"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "cost": [
               {
@@ -13937,7 +13961,7 @@
                 "速攻魔法：盖放的场合对方回合也能发动；当回合盖放的不能发动（通用盖放规则）",
                 "伤害步骤不能发动"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "cost": [
               {
@@ -14129,7 +14153,7 @@
               "conditions": [
                 "包含从墓地把怪兽特殊召唤效果的魔法·陷阱·怪兽的效果由对方发动时（直接连锁；伤害步骤中满足条件也能发动）"
               ],
-              "fast_effect": false
+              "fast_effect": true
             },
             "processing": [
               {
@@ -14345,5 +14369,5 @@
       ]
     }
   },
-  "revision": 4
+  "revision": 5
 }

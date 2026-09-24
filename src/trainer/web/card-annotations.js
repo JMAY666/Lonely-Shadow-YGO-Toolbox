@@ -234,6 +234,19 @@ function annoSourceHTML(source) {
     return `<a href="${escape(url.href)}" data-anno-source target="_blank" rel="noopener noreferrer">${escape(source.title)} ↗</a><small> ${escape(source.format || '地区未注明')} · 核对 ${escape(source.checked_on)}</small>`;
   } catch { return `<span>${escape(source.title || '来源待补充')}</span>`; }
 }
+function annoPersonalHistoryHTML(view, registry) {
+  if (!view.personal_history?.length) return '';
+  const tagNames = ids => (ids || []).map(id => registry.tags[id]?.name || id).join('、');
+  return `<details class="anno-more anno-personal-history"><summary>历史个人修正 <small>${view.personal_history.length} 份</small></summary>
+    <p>这些修正未自动应用到当前卡文。请核对后重新添加需要的标签或备注，再确认已核对；历史内容会继续保留。</p>
+    ${view.personal_history.map(entry=>`<section>
+      <p><b>${entry.text_digest?'旧卡文版本':'旧资料未记录卡文版本'}</b>${entry.confirmed?' · 原标记：已确认':entry.pending?' · 原标记：待核对':''}</p>
+      ${entry.frozen_text?`<details><summary>原卡文</summary><blockquote>${escape(entry.frozen_text)}</blockquote></details>`:''}
+      ${Object.entries(entry.tag_add||{}).filter(([,ids])=>ids.length).map(([key,ids])=>`<p>${escape(key)} · 曾添加：${escape(tagNames(ids))}</p>`).join('')}
+      ${Object.entries(entry.tag_remove||{}).filter(([,ids])=>ids.length).map(([key,ids])=>`<p>${escape(key)} · 曾移除：${escape(tagNames(ids))}</p>`).join('')}
+      ${Object.entries(entry.notes||{}).map(([key,notes])=>`<p>${escape(key)} · 原备注</p>${annoNotesHTML(notes)}`).join('')}
+    </section>`).join('')}</details>`;
+}
 function annoDetailHTML(view, registry) {
   const editable = annoUI.editing && view.digest_ok;
   const rules = view.effects.filter(effect=>effect.effect_type==='non_effect');
@@ -251,8 +264,10 @@ function annoDetailHTML(view, registry) {
   return `<div class="anno-panel anno-detail"><div class="anno-detail-heading"><div><p class="anno-card-meta">${escape(annoCardKind(view.type))} · ${view.code}</p><h2>${escape(view.name)}</h2><div class="anno-card-labels">${annoMonsterBadgesHTML(view.type)}${annoStatusBadge(view.status)}${view.no_effect?'<span class="anno-badge">无效果</span>':''}</div><div class="anno-detail-series">${annoSeriesBadgesHTML(view.series)}</div></div>
     <div class="anno-detail-actions"><button type="button" id="anno-art-toggle" aria-controls="anno-art-popover" aria-expanded="false" popovertarget="anno-art-popover">查看卡图</button><button type="button" id="anno-edit-toggle" aria-pressed="${annoUI.editing}" ${view.digest_ok?'':'disabled'}>${annoUI.editing?'完成修正':'个人修正'}</button></div></div>
     ${!view.digest_ok ? '<p class="anno-warning">卡库卡文已变化。以下为旧版标注，不参与能力查询；个人资料保留，等待复核。</p>' : ''}
+    ${view.personal_review_required ? '<p class="anno-warning">旧个人修正需要重新核对，未继承旧确认。可展开「历史个人修正」查看保留的标签和备注。</p>' : ''}
     ${annoUI.editing ? '<p class="anno-edit-hint">修改保存在本机。结构化标注由资料文件维护；自动草稿须逐段复核后才能作为参考。</p>' : ''}
     <div class="anno-detail-body">
+    ${annoPersonalHistoryHTML(view,registry)}
     ${view.no_effect ? `<div class="anno-empty">${escape(annoCardKind(view.type))} · 无效果文本</div><blockquote>${escape(view.effects.map(e=>e.text).join('\n') || (view.digest_ok ? view.current_text : '旧卡文未保存'))}</blockquote>` :
       `${rules.length ? `<details class="anno-rules"><summary>规则与次数限制 <small>${rules.length} 段</small></summary>${rules.map(effect=>annoEffectHTML(effect,registry,editable,view.code)).join('')}</details>` : ''}
       ${effects.map(effect=>annoEffectHTML(effect,registry,editable,view.code)).join('') || '<p class="anno-empty">暂无可展示效果。</p>'}`}

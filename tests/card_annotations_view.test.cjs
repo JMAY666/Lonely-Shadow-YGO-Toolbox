@@ -116,6 +116,24 @@ test('detail marks stale entries, unannotated segments and drafts as auto', () =
   assert.match(fresh, /data-anno-op="draft"/);
 });
 
+test('historical personal corrections stay visible and escaped outside current effects', () => {
+  const e = setup();
+  const html = e.annoDetailHTML({code: 1, name: '测试', type: 2, status: 'pending', digest_ok: true,
+    personal_review_required: true, personal_history: [{confirmed: true,
+      tag_add: {'m1': ['etag:banish']}, tag_remove: {'m1': ['etag:add-hand']},
+      notes: {'m1': [{text: '<img src=x onerror=alert(1)>'}]}}],
+    text_digest: 'a'.repeat(64), no_effect: false, missing_keys: [], relations: [], notes: [],
+    effects: [{key: 'm1', number: 1, block: 'm', text: '①：当前效果', annotated: true, tags: [], notes: []}]}, registry);
+  assert.match(html, /历史个人修正/);
+  assert.match(html, /未继承旧确认/);
+  assert.match(html, /旧资料未记录卡文版本/);
+  assert.match(html, /曾添加：除外/);
+  assert.match(html, /曾移除：加入手卡/);
+  assert.match(html, /&lt;img src=x onerror=alert\(1\)&gt;/);
+  assert.doesNotMatch(html, /<img src=x/);
+  assert.match(html, /①：当前效果/);
+});
+
 test('overview chips reflect selectable statuses and catalog source digest', () => {
   const e = setup();
   const html = e.annoOverviewHTML({catalog: {cards: 14981, sources: [{path: 'cards.cdb', sha256: '5f13245de4e6'}]},
