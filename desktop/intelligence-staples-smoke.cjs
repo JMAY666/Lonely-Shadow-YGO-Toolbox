@@ -13,7 +13,7 @@ module.exports=async({page,application,evidence,pass})=>{
     data=await api('/api/intelligence',{revision:data.revision,op:'handtrap.save',value:{code:14558127,folder_id:data.saved_id,note:'验收原有用途',condition:'验收原有条件',effects:{'1':{note:'验收原有独立备注'}}}});
     await api('/api/intelligence',{revision:data.revision,op:'endboard.save',value:{code:14558127,note:'验收终场独立资料'}});
   });
-  await page.locator('#module-intelligence').click();await page.waitForFunction(()=>moduleUI.current==='intelligence'&&!moduleUI.switching);
+  await require('./navigation-test.cjs')(page, 'intelligence');await page.waitForFunction(()=>moduleUI.current==='intelligence'&&!moduleUI.switching);
   await tab('handtraps');
   await page.route('**/api/intelligence',route=>route.request().method()==='POST'?route.fulfill({status:500,json:{error:'isolated import failure'}}):route.continue(),{times:1});
   await action('import-staples');await page.locator('#flow-confirm').click();
@@ -62,12 +62,12 @@ module.exports=async({page,application,evidence,pass})=>{
   assert(!(await page.evaluate(()=>api('/api/tag-members/purpose%3Ahandtrap'))).cards.some(c=>c.id===98127546));
   pass('Boardbreaker folders and notes are independent from handtraps, include Extra Deck cards and update their own purpose TAG on manual add/remove');
 
-  await page.locator('#module-tags').click();await page.waitForFunction(()=>tagManagerUI.loaded);
+  await require('./navigation-test.cjs')(page, 'tags');await page.waitForFunction(()=>tagManagerUI.loaded);
   await page.locator('#tag-manager-search').fill('解场');await page.locator('[data-managed-tag="purpose:boardbreaker"]').click();
   await page.waitForFunction(()=>tagManagerUI.selected==='purpose:boardbreaker'&&!tagManagerUI.busy);
   await page.locator('#tag-add-search').fill('23995346');await page.locator('#tag-add-results [data-member-add="23995346"]').click();
   await page.locator('#tag-manager-save').click();await page.waitForFunction(()=>!tagManagerUI.busy&&!tagManagerUI.dirty);
-  await page.locator('#module-intelligence').click();await page.waitForFunction(()=>moduleUI.current==='intelligence'&&!moduleUI.switching);
+  await require('./navigation-test.cjs')(page, 'intelligence');await page.waitForFunction(()=>moduleUI.current==='intelligence'&&!moduleUI.switching);
   assert(await page.locator('[data-intel-edit="23995346"]').isVisible());
   await page.locator('[data-intel-edit="23995346"]').click();await action('remove');await page.locator('#flow-confirm').click();
   await page.waitForFunction(()=>!intelUI.busy&&!intelUI.data.breakers[23995346]);

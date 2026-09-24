@@ -78,14 +78,11 @@ async function launch(first = false, testControl = true) {
   assert.equal(identity.data,path.join(root,'electron'));
   if(testControl)assert.deepEqual(await application.evaluate(()=>globalThis.brandingAcceptance),{windowIconExists:true,loadingImage:true,loadingTitlebar:process.platform==='win32'});
   if(first&&!process.argv.includes('--opening-only')&&!process.argv.includes('--live-only')&&!onlyDuel&&!onlyAutomatic&&!onlyAutomaticWorkspace&&!onlyTutorialPresentation)await require('./titlebar-smoke.cjs')({application,page,pass,evidence});
-  assert.deepEqual(await page.locator('.primary-rail nav button>span').allTextContents(),['首页','卡组编辑','展开','决斗','模块化','情报站','卡片标注','全局设置','TAG 管理']);
-  assert.equal(await page.locator('.app-bar #app-settings').count(),0);
-  const settingsPosition=await page.locator('#app-settings').boundingBox();
-  const tagsPosition=await page.locator('#module-tags').boundingBox();
-  assert(tagsPosition.y-settingsPosition.y-settingsPosition.height<=12,'Settings stays directly above TAG management');
+  assert.deepEqual(await page.locator('.primary-rail nav button>span').allTextContents(),['首页','构筑训练','决斗','资料库']);
+  assert.equal(await page.locator('.primary-rail #app-settings').count(),1);
+  assert.equal(await page.locator('#workspace-library #module-tags').count(),1);
+  assert.equal(await page.locator('#workspace-training #module-modular').count(),1);
   assert.equal(await page.locator('#expansion-navigation #nav-tags, #manage-tags').count(),0);
-  const tagPosition=await page.locator('#module-tags').boundingBox();
-  assert(tagPosition.y>700,'TAG management stays at the bottom of the 900px primary column');
   assert.equal(await page.locator('#module-home').getAttribute('aria-current'),'page');
   assert.equal(await page.locator('#home').isVisible(),true);
   await page.locator('#navigation-toggle').click();
@@ -101,7 +98,7 @@ async function launch(first = false, testControl = true) {
   await page.locator('#home-decks').click();
   await page.waitForFunction(()=>moduleUI.current==='decks'&&!moduleUI.switching);
   assert.equal(await page.locator('#module-decks').getAttribute('aria-current'),'page');
-  await page.locator('#module-expansion').click();
+  await require('./navigation-test.cjs')(page, 'expansion');
   await page.waitForFunction(()=>moduleUI.current==='expansion'&&!moduleUI.switching);
   return page;
 }
@@ -392,7 +389,7 @@ async function activatePot(sid) {
   const bootstrap = await (await fetch(`${service.url}/api/bootstrap`)).json();
   assert.equal(bootstrap.cards, 14981);
   pass('Desktop window, isolated renderer, embedded Python and local catalog');
-  await page.locator('#module-decks').click();
+  await require('./navigation-test.cjs')(page, 'decks');
   await page.waitForFunction(()=>moduleUI.current==='decks'&&!moduleUI.switching);
   let deck,deckId;
   if(onlyNative) {
@@ -482,19 +479,19 @@ async function activatePot(sid) {
   await page.waitForFunction(()=>moduleUI.current==='home'&&!moduleUI.switching);
   await hostWait(sessionId,s=>!s.visible);
   assert.equal(await page.evaluate(()=>app.active.id),sessionId);
-  await page.locator('#module-tags').click();
+  await require('./navigation-test.cjs')(page, 'tags');
   await page.waitForFunction(()=>moduleUI.current==='tags'&&!moduleUI.switching);
   assert.equal(await page.locator('#expansion-navigation').isVisible(),false);
   assert.equal(await page.locator('#tags').isVisible(),true);
   assert.equal(await page.evaluate(()=>app.active.id),sessionId);
-  await page.locator('#module-decks').click();
+  await require('./navigation-test.cjs')(page, 'decks');
   await page.waitForFunction(()=>moduleUI.current==='decks'&&!moduleUI.switching);
   assert.equal(await page.locator('#active-training').isVisible(),false);
   // Save the shared source through the independent module while the engine runs.
   await page.evaluate(async id=>{await openDeck(id);await addCard(55144522,'side');await saveDeck();},deckId);
   assert.deepEqual(await page.evaluate(id=>api('/api/design/'+id),sessionId),sessionSnapshot);
   await page.evaluate(async()=>{await undoDeck();await saveDeck();});
-  await page.locator('#module-expansion').click();
+  await require('./navigation-test.cjs')(page, 'expansion');
   await page.waitForFunction(()=>moduleUI.current==='expansion'&&!moduleUI.switching);
   assert.equal(await page.evaluate(()=>app.active.id),sessionId);
   assert.equal(await page.evaluate(()=>app.view),'training');
@@ -807,7 +804,7 @@ async function activatePot(sid) {
   assert.deepEqual(await (await fetch(`${service.url}/api/plan/${sessionId}`)).json(),report);
   assert.equal((await (await fetch(`${service.url}/api/deck?id=${encodeURIComponent(deckId)}`)).json()).deck.side.length,0);
   pass('Editing the source deck leaves the entire saved plan byte-for-byte equivalent at the API');
-  await page.locator('#module-decks').click();
+  await require('./navigation-test.cjs')(page, 'decks');
   await page.waitForFunction(()=>moduleUI.current==='decks'&&!moduleUI.switching);
   if (await page.locator('#deck-workbench').isVisible()) await page.locator('#back-to-decks').click();
   await page.locator('[data-open-deck='+JSON.stringify(deckId)+']').click({button:'right'});

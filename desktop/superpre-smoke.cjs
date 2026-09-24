@@ -70,8 +70,7 @@ async function run() {
   await launch();
   assert.equal(await page.locator('#app-settings').count(),1);
   assert.equal(await page.locator('.app-bar #app-settings').count(),0);
-  const a=await page.locator('#app-settings').boundingBox(),b=await page.locator('#module-tags').boundingBox();
-  assert(b.y>=a.y+a.height&&b.y-a.y-a.height<=12);
+  assert.equal(await page.locator('.primary-rail #app-settings').isVisible(),true);
   await page.locator('#app-settings').click();await settled();
   let state=await request('/api/superpre');
   if(state.installed)await action('uninstall');

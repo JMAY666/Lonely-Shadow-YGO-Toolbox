@@ -48,7 +48,7 @@ module.exports=async function({page,application,plan,pass,evidence}) {
   for(const b of await maps.evaluateAll(els=>els.map(el=>{const r=el.getBoundingClientRect();return {width:r.width,height:r.height};})))assert(b.width<=30&&b.height<=24);
   await page.screenshot({path:path.join(evidence,'compact-log-small-maps.png')});
   await page.evaluate(id=>showPlan(id),importedId);
-  await page.locator('#module-tags').click();
+  await require('./navigation-test.cjs')(page, 'tags');
   await page.waitForFunction(()=>moduleUI.current==='tags'&&!moduleUI.switching);
   await page.locator('#tag-manager-new').click();
   const name='隔离分类 '+Date.now(),alias='分类别名 '+Date.now();
@@ -56,7 +56,7 @@ module.exports=async function({page,application,plan,pass,evidence}) {
   await page.locator('#tag-manager-save').click();
   await page.waitForFunction(()=>!tagManagerUI.busy&&!tagManagerUI.dirty);
   const tag=await page.evaluate(name=>tagManagerUI.tags.find(t=>t.name===name),name);
-  await page.locator('#module-expansion').click();
+  await require('./navigation-test.cjs')(page, 'expansion');
   await page.waitForFunction(()=>moduleUI.current==='expansion'&&!moduleUI.switching);
   await page.locator('#edit-plan-tags').click();
   assert.equal(await page.locator('#open-tag-dictionary').count(),0);
@@ -88,7 +88,7 @@ module.exports=async function({page,application,plan,pass,evidence}) {
   await page.locator('#edit-plan-tags').click();await page.locator('[data-tag-remove="set:119"]').click();await page.locator('#save-plan-tags').click();
   await page.waitForFunction(()=>!document.querySelector('#plan-tags-dialog').open);
   await page.reload();await page.waitForFunction(()=>document.querySelector('#resource-count')?.textContent.includes('张卡牌'));
-  await page.locator('#module-expansion').click();
+  await require('./navigation-test.cjs')(page, 'expansion');
   await page.waitForFunction(()=>moduleUI.current==='expansion'&&!moduleUI.switching);
   await page.evaluate(id=>showPlan(id),importedId);
   info=await page.evaluate(id=>api(`/api/plan-tags/${id}`),importedId);

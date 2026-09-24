@@ -3,7 +3,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 
 module.exports=async({page,application,root,evidence,pass})=>{
   page.setDefaultTimeout(30000);
-  const enter=async module=>{await page.locator('#module-'+module).click();await page.waitForFunction(module=>moduleUI.current===module&&!moduleUI.switching,module);};
+  const enter=async module=>{await require('./navigation-test.cjs')(page, module);await page.waitForFunction(module=>moduleUI.current===module&&!moduleUI.switching,module);};
   const relatedReady=()=>page.waitForFunction(()=>!tagManagerUI.relatedBusy&&document.querySelector('#tag-related-cards').getAttribute('aria-busy')==='false');
   const query=async value=>{
     await Promise.all([page.waitForResponse(r=>r.url().endsWith('/api/tags/related')&&r.request().postDataJSON().query===value),page.locator('#tag-related-query').fill(value)]);

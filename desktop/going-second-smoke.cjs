@@ -1,7 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict'),path=require('node:path'),fs=require('node:fs'),crypto=require('node:crypto');
 module.exports=async({page,application,root,evidence,pass})=>{
-  const enter=async name=>{await page.locator('#module-'+name).click();await page.waitForFunction(n=>moduleUI.current===n&&!moduleUI.switching,name);};
+  const enter=async name=>{await require('./navigation-test.cjs')(page, name);await page.waitForFunction(n=>moduleUI.current===n&&!moduleUI.switching,name);};
   const click=async name=>{await page.locator(`[data-duel-action="${name}"]`).click();await page.waitForFunction(()=>!duelUI.busy);};
   const hand=[23434538,94145021,91800273,54693926,24224830];
   const deck=await page.evaluate(async hand=>{

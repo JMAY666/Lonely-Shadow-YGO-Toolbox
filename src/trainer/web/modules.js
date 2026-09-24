@@ -3,6 +3,7 @@
 // The standalone editor and temporary preparation edits keep independent buffers.
 // Expansion's first step uses a separate, read-only saved-deck selection.
 const moduleUI = {current:'home', editorOwner:'decks', expansionView:'decks', switching:false, railCollapsed:false,
+  lastModules:{training:'decks',library:'cardanno'},
   editors:{decks:null, expansion:null}, scroll:{home:0,decks:0,expansion:0,duel:0,tags:0,modular:0,intelligence:0,cardanno:0}};
 const editorKeys = ['deck','representatives','deckTags','deckTagNames','id','revision','sourceName','dirty','undo','savedState','selected','offset','deckPage','libraryTab','targetZone'];
 const emptyDetail = $('#card-detail').innerHTML;
@@ -25,12 +26,22 @@ function editorUnsavedSummary() {
     .map(owner=>`${owner==='decks'?'独立卡组编辑':'前置设计临时卡组编辑'}有未保存修改。`);
 }
 function updateShellHeight() {
-  const height = $('.app-bar').getBoundingClientRect().height + $('#expansion-navigation').getBoundingClientRect().height;
+  const height = $('.app-bar').getBoundingClientRect().height + $('#workspace-navigation').getBoundingClientRect().height + $('#expansion-navigation').getBoundingClientRect().height;
   document.documentElement.style.setProperty('--app-bar-height', `${height}px`);
   void syncNativeHost().catch(()=>{});
 }
 function updateModuleChrome() {
   document.body.dataset.module = moduleUI.current;
+  const group = moduleGroup(moduleUI.current);
+  if (group) moduleUI.lastModules[group] = moduleUI.current;
+  $('#workspace-navigation').hidden = !group;
+  for (const name of ['training','library']) {
+    const active = group === name;
+    $(`#nav-group-${name}`).classList.toggle('active',active);
+    $(`#nav-group-${name}`).setAttribute('aria-expanded',String(active));
+    $(`#nav-group-${name}`).disabled = moduleUI.switching;
+    $(`#workspace-${name}`).hidden = !active;
+  }
   $('#expansion-navigation').hidden = moduleUI.current !== 'expansion';
   for (const name of ['home','decks','expansion','duel','tags','modular','intelligence','cardanno']) {
     const button = $(`#module-${name}`);
@@ -45,6 +56,10 @@ function updateModuleChrome() {
   $('#save-deck').textContent = activeDesignDeckEdit() ? '应用卡组并返回条件' : '保存构筑';
   $('#module-expansion-status').hidden = !app.active;
   updateShellHeight();
+}
+function moduleGroup(name) {
+  return ['decks','expansion','modular'].includes(name) ? 'training'
+    : ['cardanno','intelligence','tags'].includes(name) ? 'library' : null;
 }
 function toggleNavigation() {
   moduleUI.railCollapsed = !moduleUI.railCollapsed;
@@ -117,5 +132,10 @@ document.querySelectorAll('[data-module-target]').forEach(button=>{
 });
 $('#navigation-toggle').addEventListener('click',toggleNavigation);
 new ResizeObserver(updateShellHeight).observe($('#expansion-navigation'));
+new ResizeObserver(updateShellHeight).observe($('#workspace-navigation'));
 updateModuleChrome();
 displayView('home');
+
+for (const group of ['training','library']) {
+  $(`#nav-group-${group}`).addEventListener('click',run(()=>switchModule(moduleUI.lastModules[group])));
+}

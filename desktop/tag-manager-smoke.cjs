@@ -2,10 +2,10 @@
 const assert=require('node:assert/strict'),path=require('node:path');
 module.exports=async function({page,plan,pass,evidence}) {
   const before=JSON.stringify(await page.evaluate(id=>api(`/api/plan/${id}`),plan.id));
-  const enter=async module=>{await page.locator('#module-'+module).click();await page.waitForFunction(module=>moduleUI.current===module&&!moduleUI.switching,module);};
+  const enter=async module=>{await require('./navigation-test.cjs')(page, module);await page.waitForFunction(module=>moduleUI.current===module&&!moduleUI.switching,module);};
   await enter('tags');await page.waitForFunction(()=>tagManagerUI.loaded);
   assert(await page.evaluate(()=>document.body.classList.contains('history-view')));
-  assert.equal(await page.locator('.primary-rail nav button').last().getAttribute('id'),'module-tags');
+  assert.equal(await page.locator('#workspace-library #module-tags').getAttribute('aria-current'),'page');
   assert.equal(await page.locator('#nav-tags, #manage-tags').count(),0);
   await page.locator('#tag-manager-new').click();
   const name='TAG 卡牌范围 '+Date.now(),alias='别名 '+Date.now();

@@ -33,19 +33,19 @@
 </div>
 <aside id="primary-navigation" class="primary-rail" aria-label="主要导航">
   <img class="rail-mark" src="/app-icon.svg" alt="月影卡牌图标">
-  <nav>
+  <nav aria-label="功能分类">
     <button id="module-home" data-module-target="home" class="module-link active" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7M5 9v12h5v-7h4v7h5V9"/></svg><span>首页</span></button>
-    <button id="module-decks" data-module-target="decks" class="module-link"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="3" width="12" height="17" rx="2"/><path d="M5 6H3v15h12v-1m-3-13h4m-4 4h4"/></svg><span>卡组编辑</span></button>
-    <button id="module-expansion" data-module-target="expansion" class="module-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4v8h13M5 12v8m13-15v7m0-7-3 3m3-3 3 3"/><circle cx="5" cy="4" r="2"/><circle cx="5" cy="20" r="2"/><circle cx="18" cy="19" r="2"/><path d="M18 12v5"/></svg><span>展开</span><small id="module-expansion-status" hidden>进行中</small></button>
+    <button id="nav-group-training" aria-controls="workspace-training" aria-expanded="false" class="module-link"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="3" width="12" height="17" rx="2"/><path d="M5 6H3v15h12v-1m-3-13h4m-4 4h4"/></svg><span>构筑训练</span></button>
     <button id="module-duel" data-module-target="duel" class="module-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 3 17 17m-1-17L3 20M3 3l1 5 4-4M21 3l-1 5-4-4M2 16l6 6m8 0 6-6"/></svg><span>决斗</span></button>
-    <button id="module-modular" data-module-target="modular" class="module-link"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="3" width="7" height="7" rx="2"/><rect x="15" y="14" width="7" height="7" rx="2"/><path d="M9 6h9v8M5 10v8h10"/></svg><span>模块化</span></button>
-    <button id="module-intelligence" data-module-target="intelligence" class="module-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h7l2 2 2-2h7v16h-7l-2 2-2-2H3ZM12 6v16M6 9h3M6 13h3M15 9h3M15 13h3"/></svg><span>情报站</span></button>
-    <button id="module-cardanno" data-module-target="cardanno" class="module-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v4H4zM4 10h9v10H4zM15 10h5v4h-5zM15 16h5v4h-5z"/></svg><span>卡片标注</span></button>
-    <button id="app-settings" class="module-link" aria-label="全局设置" title="全局设置" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 3-1 3-3 1v3l-2 2 2 2v3l3 1 1 3h6l1-3 3-1v-3l2-2-2-2V7l-3-1-1-3Z"/><circle cx="12" cy="12" r="3"/></svg><span>全局设置</span></button>
-    <button id="module-tags" data-module-target="tags" class="module-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h8l10 10-8 8L3 11Z"/><circle cx="8" cy="8" r="1.5"/></svg><span>TAG 管理</span></button>
+    <button id="nav-group-library" aria-controls="workspace-library" aria-expanded="false" class="module-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h7l2 2 2-2h7v16h-7l-2 2-2-2H3ZM12 6v16M6 9h3M6 13h3M15 9h3M15 13h3"/></svg><span>资料库</span></button>
   </nav>
+  <button id="app-settings" class="module-link" aria-label="全局设置" title="全局设置" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 3-1 3-3 1v3l-2 2 2 2v3l3 1 1 3h6l1-3 3-1v-3l2-2-2-2V7l-3-1-1-3Z"/><circle cx="12" cy="12" r="3"/></svg><span>全局设置</span></button>
 </aside>
 <button id="navigation-toggle" class="navigation-toggle" aria-label="收起导航" title="收起导航" aria-controls="primary-navigation" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button>
+<div id="workspace-navigation" hidden>
+  <nav id="workspace-training" aria-label="构筑与训练" hidden><span class="workspace-caption">构筑与训练</span><button id="module-decks" data-module-target="decks" class="workspace-link"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="3" width="12" height="17" rx="2"/><path d="M5 6H3v15h12v-1m-3-13h4m-4 4h4"/></svg><span>卡组编辑</span></button><button id="module-expansion" data-module-target="expansion" class="workspace-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4v8h13M5 12v8m13-15v7m0-7-3 3m3-3 3 3"/><circle cx="5" cy="4" r="2"/><circle cx="5" cy="20" r="2"/><circle cx="18" cy="19" r="2"/><path d="M18 12v5"/></svg><span>展开</span><small id="module-expansion-status" hidden>进行中</small></button><button id="module-modular" data-module-target="modular" class="workspace-link"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="3" width="7" height="7" rx="2"/><rect x="15" y="14" width="7" height="7" rx="2"/><path d="M9 6h9v8M5 10v8h10"/></svg><span>模块化</span></button></nav>
+  <nav id="workspace-library" aria-label="资料库" hidden><span class="workspace-caption">资料库</span><button id="module-cardanno" data-module-target="cardanno" class="workspace-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v4H4zM4 10h9v10H4zM15 10h5v4h-5zM15 16h5v4h-5z"/></svg><span>卡片标注</span></button><button id="module-intelligence" data-module-target="intelligence" class="workspace-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h7l2 2 2-2h7v16h-7l-2 2-2-2H3ZM12 6v16M6 9h3M6 13h3M15 9h3M15 13h3"/></svg><span>情报站</span></button><button id="module-tags" data-module-target="tags" class="workspace-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h8l10 10-8 8L3 11Z"/><circle cx="8" cy="8" r="1.5"/></svg><span>TAG 管理</span></button></nav>
+</div>
 <div id="expansion-navigation" hidden>
   <nav aria-label="展开流程导航">
     <button id="nav-decks" class="nav active" aria-current="page">选择卡组</button>
@@ -66,7 +66,7 @@
       <button id="home-decks" data-module-target="decks" class="home-shortcut"><span class="shortcut-number">01 / DECK LIBRARY</span><strong>卡组编辑 <span aria-hidden="true">↗</span></strong><p>新建或导入构筑，搜索卡牌，整理主卡组、额外与副卡组。</p><span class="shortcut-action">打开卡组编辑 →</span></button>
       <button id="home-expansion" data-module-target="expansion" class="home-shortcut"><span class="shortcut-number">02 / EXPANSION</span><strong>展开 <span aria-hidden="true">↗</span></strong><p>设计起手、进入场地、调整与保存方案，构建妥协分支。</p><span class="shortcut-action">进入展开 →</span></button>
       <button id="home-duel" data-module-target="duel" class="home-shortcut"><span class="shortcut-number">03 / DUEL</span><strong>决斗 <span aria-hidden="true">↗</span></strong><p>录入起手，筛选已保存方案，跟随主线与可用分支逐步展开。</p><span class="shortcut-action">进入 BO1 决斗 →</span></button>
-      <button id="home-tags" data-module-target="tags" class="home-shortcut"><span class="shortcut-number">04 / TAGS</span><strong>TAG 管理 <span aria-hidden="true">↗</span></strong><p>维护标签、别名和关联卡牌，用同一套标签整理卡组与方案。</p><span class="shortcut-action">打开 TAG 管理 →</span></button>
+      <button id="home-tags" data-module-target="cardanno" class="home-shortcut"><span class="shortcut-number">04 / LIBRARY</span><strong>资料库 <span aria-hidden="true">↗</span></strong><p>查阅卡片标注、维护实战情报，使用 TAG 整理卡组与方案。</p><span class="shortcut-action">打开卡片标注 →</span></button>
     </div>
     <p class="home-footnote">保存卡组后进入展开练习，保存方案后可用于 BO1 决斗辅助。切换模块后，可以回来继续当前工作。</p>
   </section>

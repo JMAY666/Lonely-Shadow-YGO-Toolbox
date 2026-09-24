@@ -96,6 +96,10 @@ Thumbs.db
 Desktop.ini
 .idea/
 .vs/
+# 本机 Agent 插件指针、会话与审核缓存；仅排除，保留本地文件。
+/.mimosa/
+/.v2c/
+/.video_agent/
 *.suo
 *.user
 

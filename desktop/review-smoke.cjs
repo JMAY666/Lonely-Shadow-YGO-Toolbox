@@ -43,7 +43,7 @@ module.exports=async function({page,report,pass,evidence}) {
   await page.waitForFunction(()=>moduleUI.current==='home'&&!moduleUI.switching);
   await page.locator('#home-decks').click();
   await page.waitForFunction(()=>moduleUI.current==='decks'&&!moduleUI.switching);
-  await page.locator('#module-expansion').click();
+  await require('./navigation-test.cjs')(page, 'expansion');
   await page.waitForFunction(()=>moduleUI.current==='expansion'&&!moduleUI.switching);
   assert.equal(await page.evaluate(()=>JSON.stringify({draft:flow.draft,node:reviewUI.node})),draftBefore);
   assert.equal(await page.locator('#review-step-notes').inputValue(),'终场验收：保留怪兽作为后续资源。');

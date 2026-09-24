@@ -30,7 +30,7 @@ def make_entry(code, desc, effects, **extra):
     return {'code': code,
             'text_digest': hashlib.sha256(desc.replace('\r\n', '\n').strip().encode()).hexdigest(),
             'review': {'status': 'reviewed', 'origin': 'manual', 'checked_on': '2026-09-24', 'basis': '测试标注'},
-            'effects': effects, 'relations': [], 'notes': [], **extra}
+            'frozen_text': desc, 'effects': effects, 'relations': [], 'notes': [], **extra}
 
 
 def simple_effect(key, number, tags, processing, usage=()):
@@ -164,8 +164,10 @@ class CardAnnotationTests(unittest.TestCase):
         self.assertTrue(all(effect.get('notes') for effect in view['effects'] if effect.get('annotated')))
         self.assertEqual(self.service.overview()['statuses']['auto'], 1)
         revision = made['revision']
-        confirmed = self.service.command({'op': 'set-review', 'code': 20000004, 'value': 'confirmed', 'revision': revision})
-        self.assertEqual(confirmed['status'], 'confirmed')
+        with self.assertRaises(ValueError):
+            self.service.command({'op': 'set-review', 'code': 20000004, 'value': 'confirmed', 'revision': revision})
+        pending = self.service.command({'op': 'set-review', 'code': 20000004, 'value': 'pending', 'revision': revision})
+        self.assertEqual(pending['status'], 'pending')
         with self.assertRaises(ValueError):
             self.service.command({'op': 'set-review', 'code': 20000004, 'value': None, 'revision': revision})
         noted = self.service.command({'op': 'add-note', 'code': 20000004, 'key': 'p1', 'text': '人工核对备注', 'revision': revision + 1})
@@ -193,12 +195,57 @@ class CardAnnotationTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             CardAnnotations(self.store, read_json, atomic_json, now, curated_path=self.curated_path)
 
+    def test_browsing_includes_no_effect_and_unknown_only_when_requested(self):
+        regular = self.service.search({})
+        self.assertIn(20000005, [card['code'] for card in regular['cards']])
+        self.assertTrue(all(not card['cross_effects'] for card in regular['cards']))
+        unknown = self.service.search({'catalog_scope': 'all', 'status': ['none']})
+        self.assertEqual([card['code'] for card in unknown['cards']], [20000004])
+        self.assertEqual(self.service.search({'status': []})['total'], 0)
+
+    def test_stale_text_is_not_rebound_and_never_matches_abilities(self):
+        self.service.command({'op': 'add-note', 'code': 20000001, 'key': 'm1', 'text': '保留备注', 'revision': 1})
+        self.store.catalog.cards[20000001]['desc'] = '①：把场上1张卡破坏。'
+        self.service.reload()
+        view = self.service.view(20000001)
+        self.assertEqual(view['effects'][0]['text'], SEARCHER)
+        self.assertNotEqual(view['current_text_digest'], view['text_digest'])
+        self.assertIn('保留备注', str(view['effects'][0]['notes']))
+        self.assertNotIn(20000001, [card['code'] for card in self.service.search({'etags': ['etag:add-hand']})['cards']])
+        self.assertEqual(self.service.search({'status': ['stale']})['total'], 1)
+
+    def test_partial_status_is_consistent_and_tokens_are_not_unannotated(self):
+        self.write_curated(mutate=lambda entries: entries['20000003']['effects'].pop(0))
+        self.service.reload()
+        self.assertEqual(self.service.view(20000003)['status'], 'partial')
+        self.assertEqual(self.service.search({'status': ['partial']})['total'], 1)
+        self.store.catalog.cards[99999999] = {'name': '测试衍生物', 'type': 0x4011, 'desc': ''}
+        overview = self.service.overview()
+        self.assertEqual(overview['tokens'], 1)
+        self.assertEqual(overview['eligible_total'], 5)
+        self.assertEqual(overview['statuses']['none'], 1)
+        self.assertEqual(self.service.search({'catalog_scope': 'all'})['total'], 5)
+
+    def test_removed_builtin_tag_can_be_restored(self):
+        self.service.command({'op': 'set-tags', 'code': 20000002, 'key': 'm1', 'add': [], 'remove': ['etag:add-hand'], 'revision': 1})
+        self.assertNotIn('etag:add-hand', self.service.view(20000002)['effects'][0]['tags'])
+        self.service.command({'op': 'set-tags', 'code': 20000002, 'key': 'm1', 'add': ['etag:add-hand'], 'remove': [], 'revision': 2})
+        self.assertIn('etag:add-hand', self.service.view(20000002)['effects'][0]['tags'])
+
     def test_registry_rejects_bad_documents(self):
         with self.assertRaises(ValueError):
             Registry({'version': 2})
         with self.assertRaises(ValueError):
             Registry({'version': 1, 'tags': [{'id': 'not-an-etag', 'name': 'x', 'definition': 'y', 'category': 'resource'}],
                       'vocabularies': {'categories': {'resource': '资源'}}})
+
+    def test_snapshot_and_automatic_review_cannot_forge_trust(self):
+        self.write_curated(mutate=lambda entries: entries['20000001'].update(frozen_text='不同的卡文'))
+        with self.assertRaises(ValueError):
+            self.service.reload()
+        self.write_curated(mutate=lambda entries: entries['20000001']['review'].update(origin='auto'))
+        with self.assertRaises(ValueError):
+            self.service.reload()
 
     def test_draft_entry_records_evidence_only(self):
         entry = draft_entry(20000003, segments(DUAL, 0x21), '0' * 64)

@@ -3,31 +3,322 @@
   "updated_on": "2026-09-24",
   "note": "通用效果 TAG 与受控词表。TAG 表达卡片间的共性能力；每张卡的具体参数（来源区域、数量、费用、限制）记录在标注结构里，不因共用 TAG 而可互相替代。同义词仅用于检索匹配提示，不改变定义。",
   "tags": [
-    {"id": "etag:add-hand", "name": "加入手卡", "category": "resource", "definition": "把卡牌加入（或回到）手卡作为效果处理的一部分。来源区域、可选范围、数量与费用以每个效果的标注结构为准。", "scope": "处理内容含『加入手卡／回到手卡』的效果。", "synonyms": ["检索", "回收", "加入手牌", "回到手卡"]},
-    {"id": "etag:special-summon", "name": "特殊召唤", "category": "board", "definition": "通过效果进行特殊召唤（含从手卡、卡组、墓地、除外区、额外卡组等区域的特殊召唤）。素材要求、召唤场地与召唤限制以标注结构为准。", "scope": "处理内容含『特殊召唤』的效果及召唤条件文本。", "synonyms": ["特召", "从墓地特殊召唤", "从卡组特殊召唤"]},
-    {"id": "etag:normal-summon", "name": "通常召唤支援", "category": "board", "definition": "效果处理包含进行通常召唤（召唤／覆盖），或规则文本允许额外的通常召唤。", "scope": "处理内容或规则文本含『进行召唤／通常召唤』。", "synonyms": ["召唤", "通常召唤"]},
-    {"id": "etag:draw", "name": "抽卡", "category": "resource", "definition": "从卡组抽卡作为效果处理。数量与条件以标注结构为准。", "scope": "处理内容含『抽』卡的效果。", "synonyms": ["抽牌", "draw"]},
-    {"id": "etag:destroy", "name": "破坏", "category": "removal", "definition": "以效果破坏场上的卡。对象要求、数量与耐性例外以标注结构为准。", "scope": "处理内容含『破坏』的效果。", "synonyms": ["效果破坏"]},
-    {"id": "etag:banish", "name": "除外", "category": "removal", "definition": "把卡除外作为处理内容。区分『把场上／墓地／手卡／卡组的卡除外』与『把自己除外作为费用』；后者记录在费用字段，不挂本 TAG。", "scope": "处理内容含把卡移出游戏（除外）的效果；『除外状态』仅指区域来源时不挂本 TAG。", "synonyms": ["排除", "移除出游戏", "banish"]},
-    {"id": "etag:send-grave", "name": "送去墓地", "category": "removal", "definition": "把卡送去墓地作为处理内容（如堆墓、送墓代价的对象侧处理）。", "scope": "处理内容含『送去墓地／送入墓地』。", "synonyms": ["堆墓", "送墓"]},
-    {"id": "etag:return-deck", "name": "回到卡组", "category": "removal", "definition": "把卡放回卡组（最上面、最下面或洗回）。区分回卡组处理与卡组顶底操作。", "scope": "处理内容含『回到卡组／放回卡组』。", "synonyms": ["回卡组", "洗回卡组"]},
-    {"id": "etag:negate-effect", "name": "效果无效", "category": "disruption", "definition": "使卡的效果无效（含『那个效果无效』『效果直到回合结束时无效化』）。无效的是效果还是发动、持续时间与例外以标注结构为准。", "scope": "处理内容含『效果无效／无效化』。", "synonyms": ["无效化", "效果无效化"]},
-    {"id": "etag:negate-activation", "name": "发动无效", "category": "disruption", "definition": "无效卡的效果『发动』（通常伴随破坏或除外该卡）。与『效果无效』区分：发动无效处理发动本身。", "scope": "处理内容含『发动无效』。", "synonyms": ["无效并破坏", "发动无效化"]},
-    {"id": "etag:protect", "name": "保护／耐性", "category": "protection", "definition": "赋予我方卡不受效果影响、不会被破坏、不能成为对象等保护。保护对象与范围以标注结构为准。", "scope": "处理内容含『不会被破坏／不会成为效果对象／不受影响』等。", "synonyms": ["耐性", "抗性", "免疫"]},
-    {"id": "etag:lock", "name": "行动封锁／限制", "category": "disruption", "definition": "限制双方可执行的行动，如『不是调整不能特殊召唤』『对方不能特殊召唤』等。持续范围（本回合／直到回合结束等）以标注结构为准。", "scope": "处理内容或持续限制含行动限制条款。", "synonyms": ["召唤限制", "封锁", "自锁"]},
-    {"id": "etag:stat-change", "name": "攻守·等级变更", "category": "utility", "definition": "变更怪兽攻击力·守备力·等级·种族·属性等数值或类别。", "scope": "处理内容含攻守／等级等数值变更。", "synonyms": ["攻击力变更", "等级变更"]},
-    {"id": "etag:deck-look", "name": "卡组确认·操作", "category": "utility", "definition": "翻开或确认卡组、排列卡组顺序、把卡放回卡组顶底等操作。", "scope": "处理内容含『翻开／确认卡组／放到卡组最上面或最下面』。", "synonyms": ["卡组翻转", "确认卡组", "卡组顶底操作"]},
-    {"id": "etag:hand-look", "name": "确认手卡", "category": "utility", "definition": "确认（查看）手卡内容。", "scope": "处理内容含『确认手卡／观看手卡』。", "synonyms": ["看手卡"]},
-    {"id": "etag:burn", "name": "效果伤害·回复", "category": "utility", "definition": "给予效果伤害或回复基本分。", "scope": "处理内容含『受到伤害／给予伤害／回复』。", "synonyms": ["灼烧", "伤害", "回复"]},
-    {"id": "etag:material-rule", "name": "素材规则文本", "category": "rule", "definition": "无编号规则文本中的召唤素材规则（如『以场上的这张卡为素材作同调召唤的场合，手卡1只调整也能作为同调素材』）。属于规则文本，不构成可发动的效果。", "scope": "无编号段落中的召唤条件／素材规则文本。", "synonyms": ["召唤条件", "素材条件"]},
-    {"id": "etag:damage-modify", "name": "战斗伤害变更", "category": "utility", "definition": "变更战斗伤害（如减半、变为0）。", "scope": "处理内容含『战斗伤害…变成／减半』。", "synonyms": ["伤害减半"]}
+    {
+      "id": "etag:add-hand",
+      "name": "加入手卡",
+      "category": "resource",
+      "definition": "把非抽卡方式的加入或回到手卡处理归入此类；从卡组检索、墓地回收与场上回手须结合来源区域区分。",
+      "scope": "效果处理包含加入或回到手卡；不包含抽卡及单纯支付费用。",
+      "synonyms": [
+        "检索",
+        "回收",
+        "加入手牌",
+        "回到手卡"
+      ]
+    },
+    {
+      "id": "etag:special-summon",
+      "name": "特殊召唤",
+      "category": "board",
+      "definition": "通过效果进行特殊召唤；非效果的特殊召唤手续另记召唤条件。",
+      "scope": "效果处理中的特殊召唤，不含仅提及特召的条件或限制。",
+      "synonyms": [
+        "特召",
+        "从墓地特殊召唤",
+        "从卡组特殊召唤"
+      ]
+    },
+    {
+      "id": "etag:normal-summon",
+      "name": "通常召唤支援",
+      "category": "board",
+      "definition": "效果处理包含进行通常召唤（召唤／覆盖），或规则文本允许额外的通常召唤。",
+      "scope": "处理内容或规则文本含『进行召唤／通常召唤』。",
+      "synonyms": [
+        "召唤",
+        "通常召唤"
+      ]
+    },
+    {
+      "id": "etag:draw",
+      "name": "抽卡",
+      "category": "resource",
+      "definition": "从卡组抽卡作为效果处理。数量与条件以标注结构为准。",
+      "scope": "处理内容含『抽』卡的效果。",
+      "synonyms": [
+        "抽牌",
+        "draw"
+      ]
+    },
+    {
+      "id": "etag:destroy",
+      "name": "破坏",
+      "category": "removal",
+      "definition": "通过效果破坏卡牌；不限定场上，具体区域与对象记录在结构参数中。",
+      "scope": "只包括效果处理的破坏，不因卡文提到破坏条件或破坏耐性而挂此标签。",
+      "synonyms": [
+        "效果破坏"
+      ]
+    },
+    {
+      "id": "etag:banish",
+      "name": "除外",
+      "category": "removal",
+      "definition": "把卡除外作为处理内容。区分『把场上／墓地／手卡／卡组的卡除外』与『把自己除外作为费用』；后者记录在费用字段，不挂本 TAG。",
+      "scope": "处理内容含把卡移出游戏（除外）的效果；『除外状态』仅指区域来源时不挂本 TAG。",
+      "synonyms": [
+        "排除",
+        "移除出游戏",
+        "banish"
+      ]
+    },
+    {
+      "id": "etag:send-grave",
+      "name": "送去墓地",
+      "category": "removal",
+      "definition": "将卡送去墓地作为效果处理；发送自身等费用只记在费用字段。",
+      "scope": "只包括直接送墓处理；不从破坏、解放或作为素材推导送墓能力。",
+      "synonyms": [
+        "堆墓",
+        "送墓"
+      ]
+    },
+    {
+      "id": "etag:return-deck",
+      "name": "回到卡组",
+      "category": "removal",
+      "definition": "把卡放回卡组（最上面、最下面或洗回）。区分回卡组处理与卡组顶底操作。",
+      "scope": "处理内容含『回到卡组／放回卡组』。",
+      "synonyms": [
+        "回卡组",
+        "洗回卡组"
+      ]
+    },
+    {
+      "id": "etag:negate-effect",
+      "name": "效果无效",
+      "category": "disruption",
+      "definition": "使卡的效果无效（含『那个效果无效』『效果直到回合结束时无效化』）。无效的是效果还是发动、持续时间与例外以标注结构为准。",
+      "scope": "处理内容含『效果无效／无效化』。",
+      "synonyms": [
+        "无效化",
+        "效果无效化"
+      ]
+    },
+    {
+      "id": "etag:negate-activation",
+      "name": "发动无效",
+      "category": "disruption",
+      "definition": "无效卡的效果『发动』（通常伴随破坏或除外该卡）。与『效果无效』区分：发动无效处理发动本身。",
+      "scope": "处理内容含『发动无效』。",
+      "synonyms": [
+        "发动无效化"
+      ]
+    },
+    {
+      "id": "etag:protect",
+      "name": "保护／耐性",
+      "category": "protection",
+      "definition": "不会被破坏、不能成为对象、不受影响等保护分别记录保护范围与条件。",
+      "scope": "包括永续适用或赋予的保护；不能把三种耐性混为同一参数。",
+      "synonyms": [
+        "耐性",
+        "抗性",
+        "免疫"
+      ]
+    },
+    {
+      "id": "etag:lock",
+      "name": "行动封锁／限制",
+      "category": "restriction",
+      "definition": "行动限制的检索标签，包括自己、对方或双方的限制；具体适用者、起止点与前提必须单独说明。",
+      "scope": "限制条款；不把自身限制自动视为对手阻抗。",
+      "synonyms": [
+        "召唤限制",
+        "封锁",
+        "自锁"
+      ]
+    },
+    {
+      "id": "etag:stat-change",
+      "name": "攻守·等级变更",
+      "category": "utility",
+      "definition": "变更怪兽攻击力·守备力·等级·种族·属性等数值或类别。",
+      "scope": "处理内容含攻守／等级等数值变更。",
+      "synonyms": [
+        "攻击力变更",
+        "等级变更"
+      ]
+    },
+    {
+      "id": "etag:deck-look",
+      "name": "卡组确认·操作",
+      "category": "utility",
+      "definition": "翻开或确认卡组、排列卡组顺序、把卡放回卡组顶底等操作。",
+      "scope": "处理内容含『翻开／确认卡组／放到卡组最上面或最下面』。",
+      "synonyms": [
+        "卡组翻转",
+        "确认卡组",
+        "卡组顶底操作"
+      ]
+    },
+    {
+      "id": "etag:hand-look",
+      "name": "确认手卡",
+      "category": "utility",
+      "definition": "确认（查看）手卡内容。",
+      "scope": "处理内容含『确认手卡／观看手卡』。",
+      "synonyms": [
+        "看手卡"
+      ]
+    },
+    {
+      "id": "etag:burn",
+      "name": "伤害／回复（旧标签）",
+      "category": "utility",
+      "definition": "旧版合并标签，仅保留兼容已有个人标注。新增标注请分别使用效果伤害或回复基本分。",
+      "scope": "仅供历史资料兼容。",
+      "synonyms": [
+        "灼烧",
+        "伤害",
+        "回复"
+      ],
+      "deprecated": true
+    },
+    {
+      "id": "etag:material-rule",
+      "name": "素材规则文本",
+      "category": "rule",
+      "definition": "召唤素材条件或素材使用手续，须按官方说明区分非效果文本与效果。",
+      "scope": "素材规则单独呈现；没有效果编号不等于非效果。",
+      "synonyms": [
+        "召唤条件",
+        "素材条件"
+      ]
+    },
+    {
+      "id": "etag:damage-modify",
+      "name": "战斗伤害变更",
+      "category": "utility",
+      "definition": "变更战斗伤害（如减半、变为0）。",
+      "scope": "处理内容含『战斗伤害…变成／减半』。",
+      "synonyms": [
+        "伤害减半"
+      ]
+    },
+    {
+      "id": "etag:effect-damage",
+      "name": "效果伤害",
+      "category": "utility",
+      "definition": "由效果给予伤害；区别于战斗伤害变更与支付基本分。",
+      "scope": "效果处理。",
+      "synonyms": []
+    },
+    {
+      "id": "etag:recover-lp",
+      "name": "回复基本分",
+      "category": "utility",
+      "definition": "通过效果回复基本分；区别于效果伤害与基本分费用。",
+      "scope": "效果处理。",
+      "synonyms": []
+    }
   ],
   "vocabularies": {
-    "categories": {"resource": "资源与检索", "board": "场面展开", "removal": "除去与转移", "disruption": "干扰与阻抗", "protection": "防护", "utility": "其他功能", "rule": "规则文本"},
-    "zones": {"hand": "手卡", "deck": "卡组", "deck_top": "卡组最上面", "deck_bottom": "卡组最下面", "grave": "墓地", "banished": "除外区（除外状态）", "monster": "怪兽区", "spell": "魔法陷阱区", "extra": "额外卡组", "extra_faceup": "额外卡组（表侧）", "field": "场上（未细分）", "opponent_hand": "对方手卡", "opponent_deck": "对方卡组", "opponent_grave": "对方墓地", "opponent_monster": "对方怪兽区"},
-    "actions": {"add_hand": "加入手卡", "special_summon": "特殊召唤", "normal_summon": "通常召唤", "draw": "抽卡", "destroy": "破坏", "banish": "除外", "send_grave": "送去墓地", "return_deck": "回到卡组", "negate_effect": "效果无效", "negate_activation": "发动无效", "protect": "赋予保护", "lock": "施加行动限制", "stat_change": "数值变更", "deck_reveal": "翻开·确认卡组", "hand_reveal": "确认手卡", "burn": "效果伤害", "heal": "回复基本分", "damage_modify": "战斗伤害变更"},
-    "cost_kinds": {"discard_self": "把这张卡从手卡丢弃", "discard": "丢弃手卡", "send_grave_self": "把这张卡送去墓地", "banish_self_from_grave": "把墓地的这张卡除外", "reveal_self": "把这张卡给对方观看", "reveal": "给对方观看", "tribute": "解放", "lp": "支付基本分", "material_as_cost": "作为素材使用"},
-    "usage_limits": {"soft_opt": "这张卡的效果1回合只能使用1次", "name_soft_opt": "这个卡名的效果1回合只能使用1次（同名共享）", "per_effect_name_soft_opt": "这个卡名的各编号效果1回合各能使用1次（同名共享）", "shared_name_once": "这个卡名的效果1回合只能合计使用1次（任选其一）", "field_once": "场上的这张卡的效果只能使用1次"},
-    "timings": {"on_summon": "召唤·特殊召唤成功时", "on_normal_summon": "召唤时", "on_material_sent": "作为素材送去墓地时", "main_phase_self": "自己主要阶段", "on_opponent_effect": "对方效果发动时", "on_any_effect": "魔法·陷阱·怪兽效果发动时", "on_draw": "抽到卡时", "standby": "准备阶段", "manual": "任意时点（无触发条件）", "condition_text": "条件文本（见条件说明）"}
+    "categories": {
+      "resource": "资源获取",
+      "board": "召唤与展开",
+      "removal": "除去与转移",
+      "disruption": "无效与干扰",
+      "protection": "保护与耐性",
+      "restriction": "行动限制",
+      "utility": "信息与数值",
+      "rule": "规则与手续"
+    },
+    "zones": {
+      "hand": "手卡",
+      "deck": "卡组",
+      "deck_top": "卡组最上面",
+      "deck_bottom": "卡组最下面",
+      "grave": "墓地",
+      "banished": "除外区（除外状态）",
+      "monster": "怪兽区",
+      "spell": "魔法陷阱区",
+      "extra": "额外卡组",
+      "extra_faceup": "额外卡组（表侧）",
+      "field": "场上（未细分）",
+      "opponent_hand": "对方手卡",
+      "opponent_deck": "对方卡组",
+      "opponent_grave": "对方墓地",
+      "opponent_monster": "对方怪兽区",
+      "pendulum": "灵摆区域",
+      "opponent_deck_top": "对方卡组最上面",
+      "opponent_deck_bottom": "对方卡组最下面"
+    },
+    "actions": {
+      "add_hand": "加入手卡",
+      "special_summon": "特殊召唤",
+      "normal_summon": "通常召唤",
+      "draw": "抽卡",
+      "destroy": "破坏",
+      "banish": "除外",
+      "send_grave": "送去墓地",
+      "return_deck": "回到卡组",
+      "negate_effect": "效果无效",
+      "negate_activation": "发动无效",
+      "protect": "赋予保护",
+      "lock": "施加行动限制",
+      "stat_change": "数值变更",
+      "deck_reveal": "翻开·确认卡组",
+      "hand_reveal": "确认手卡",
+      "burn": "效果伤害",
+      "heal": "回复基本分",
+      "damage_modify": "战斗伤害变更"
+    },
+    "cost_kinds": {
+      "discard_self": "把这张卡从手卡丢弃",
+      "discard": "丢弃手卡",
+      "send_grave_self": "把这张卡送去墓地",
+      "banish_self_from_grave": "把墓地的这张卡除外",
+      "reveal_self": "把这张卡给对方观看",
+      "reveal": "给对方观看",
+      "tribute": "解放",
+      "lp": "支付基本分",
+      "material_as_cost": "素材手续（旧取值，新增标注请使用规则文本）"
+    },
+    "usage_limits": {
+      "soft_opt": "每张表侧卡片每回合1次（具体措辞以原文为准）",
+      "name_soft_opt": "这个卡名的效果1回合只能使用1次（同名共享）",
+      "per_effect_name_soft_opt": "这个卡名的各编号效果1回合各能使用1次（同名共享）",
+      "shared_name_once": "这个卡名的效果1回合只能合计使用1次（任选其一）",
+      "field_once": "场上的这张卡的效果只能使用1次",
+      "name_activation_once": "同名卡每回合只能发动1张／次（以原文为准）",
+      "card_activation_once": "这张卡每回合只能发动1次"
+    },
+    "timings": {
+      "on_summon": "召唤·特殊召唤成功的场合",
+      "on_normal_summon": "召唤成功的场合",
+      "on_material_sent": "作为素材送墓的场合（细节见条件）",
+      "main_phase_self": "自己主要阶段",
+      "on_opponent_effect": "对方效果发动时",
+      "on_any_effect": "魔法·陷阱·怪兽效果发动时",
+      "on_draw": "抽到卡时",
+      "standby": "准备阶段",
+      "manual": "依卡片种类与规则确定时点",
+      "condition_text": "条件文本（见条件说明）",
+      "on_card_or_monster_effect": "魔法·陷阱卡的发动或怪兽效果发动时",
+      "fast_window": "满足规则的快速效果时点"
+    },
+    "effect_types": {
+      "ignition": "起动效果",
+      "trigger": "诱发效果",
+      "quick": "诱发即时效果",
+      "continuous": "永续效果",
+      "spell_activation": "魔法卡的发动",
+      "trap_activation": "陷阱卡的发动",
+      "trap_effect": "陷阱效果的发动",
+      "pendulum_activation": "灵摆效果的发动",
+      "non_effect": "规则／限制文本（非效果）",
+      "unclassified": "待核对效果类别"
+    }
   }
 }

@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const path = require('node:path');
 
 module.exports = async ({page,application,deckId,deck,evidence,pass}) => {
-  const enter = async name => {await page.locator('#module-'+name).click();await page.waitForFunction(name=>moduleUI.current===name&&!moduleUI.switching,name);};
+  const enter = async name => {await require('./navigation-test.cjs')(page, name);await page.waitForFunction(name=>moduleUI.current===name&&!moduleUI.switching,name);};
   const open = async () => {await page.locator('#deck-tags-button').click();await page.waitForFunction(()=>!!deckTagUI.suggestions&&!deckTagUI.busy);};
   const save = async () => {await page.locator('#save-deck').click();await page.waitForFunction(()=>!app.busy&&!app.dirty);};
   const query = async text => {

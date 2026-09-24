@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict'),path=require('node:path');
 
 module.exports=async ({page,application,evidence,pass})=>{
-  const enter=async name=>{await page.locator('#module-'+name).click();await page.waitForFunction(name=>moduleUI.current===name&&!moduleUI.switching,name);};
+  const enter=async name=>{await require('./navigation-test.cjs')(page, name);await page.waitForFunction(name=>moduleUI.current===name&&!moduleUI.switching,name);};
   const check=async (selector,horizontal=false)=>{
     const result=await page.locator(selector).evaluate((node,horizontal)=>{
       const bar=getComputedStyle(node,'::-webkit-scrollbar'),thumb=getComputedStyle(node,'::-webkit-scrollbar-thumb');

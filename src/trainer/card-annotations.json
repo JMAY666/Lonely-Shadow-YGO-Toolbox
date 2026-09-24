@@ -1,7 +1,7 @@
 {
   "version": 1,
   "id": "card-annotations-2026-09-24",
-  "title": "卡片效果结构化标注 · 首批代表性样本",
+  "title": "卡片标注参考样本 · 官方资料复核",
   "checked_on": "2026-09-24",
   "verified_against": {
     "cards.cdb": "5f13245de4e665450858f66ef2f736a3d2f48cc7f0036961373a96a650cb6797"
@@ -16,7 +16,7 @@
         "status": "reviewed",
         "origin": "manual",
         "checked_on": "2026-09-24",
-        "basis": "通常怪兽：卡文为描述文本，无规则效果，逐字核对。"
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
       },
       "effects": [],
       "relations": [],
@@ -24,8 +24,18 @@
         {
           "text": "通常怪兽样本：不标注任何效果 TAG；检索『无效果怪兽』时按卡片层类型判断，不按标签缺失判断。",
           "source_refs": [
-            "card-annotations-2026-09-24:89631139"
+            "konami-4007"
           ]
+        }
+      ],
+      "frozen_text": "以高攻击力著称的传说之龙。任何对手都能粉碎，其破坏力不可估量。",
+      "sources": [
+        {
+          "id": "konami-4007",
+          "title": "KONAMI 官方卡文",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=4007&ope=2&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
         }
       ]
     },
@@ -36,7 +46,7 @@
         "status": "reviewed",
         "origin": "manual",
         "checked_on": "2026-09-24",
-        "basis": "卡文逐字核对；手坑用途另见情报站手坑资料。"
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
       },
       "effects": [
         {
@@ -49,10 +59,11 @@
             {
               "text": "纯粹的次数限制文本，无独立效果；限制关系记录在 relations。",
               "source_refs": [
-                "card-annotations-2026-09-24:14558127"
+                "konami-12950"
               ]
             }
-          ]
+          ],
+          "effect_type": "non_effect"
         },
         {
           "key": "m1",
@@ -97,10 +108,11 @@
             {
               "text": "三个●项目是同一效果的适用范围（条件列表），不是三次独立干扰；『那个效果无效』无效的是效果，不是发动。",
               "source_refs": [
-                "card-annotations-2026-09-24:14558127"
+                "konami-12950"
               ]
             }
-          ]
+          ],
+          "effect_type": "quick"
         }
       ],
       "relations": [
@@ -113,7 +125,17 @@
           "scope": "同名卡共享"
         }
       ],
-      "notes": []
+      "notes": [],
+      "frozen_text": "这个卡名的效果1回合只能使用1次。\r\n①：包含以下其中任意种效果的魔法·陷阱·怪兽的效果发动时，把这张卡从手卡丢弃才能发动。那个效果无效。\r\n●从卡组把卡加入手卡的效果\r\n●从卡组把怪兽特殊召唤的效果\r\n●从卡组把卡送去墓地的效果",
+      "sources": [
+        {
+          "id": "konami-12950",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=12950&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
     },
     "10045474": {
       "code": 10045474,
@@ -122,7 +144,7 @@
         "status": "reviewed",
         "origin": "manual",
         "checked_on": "2026-09-24",
-        "basis": "卡文逐字核对。"
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
       },
       "effects": [
         {
@@ -135,10 +157,11 @@
             {
               "text": "条件文本：允许在满足『自己场上没有卡』时从手卡直接发动，属于①发动区域的条件扩展，不构成独立效果。",
               "source_refs": [
-                "card-annotations-2026-09-24:10045474"
+                "konami-13631"
               ]
             }
-          ]
+          ],
+          "effect_type": "non_effect"
         },
         {
           "key": "m1",
@@ -149,13 +172,13 @@
           ],
           "structure": {
             "activation": {
-              "timing": "manual",
+              "timing": "fast_window",
               "zones": [
-                "spell",
-                "hand"
+                "spell"
               ],
               "conditions": [
-                "手卡直接发动需自己场上没有卡（见条件文本）"
+                "自己场上没有卡时，可从手卡放置到魔法陷阱区发动；否则通常须已盖放且不是盖放当回合。",
+                "伤害步骤不能发动。"
               ],
               "fast_effect": true
             },
@@ -176,7 +199,7 @@
                 "duration": "直到回合结束时",
                 "branches": [
                   {
-                    "condition": "盖放的这张卡发动的场合",
+                    "condition": "成功使对象怪兽效果无效，且本卡由盖放发动、处理时仍在魔法陷阱区",
                     "actions": [
                       {
                         "action": "negate_effect",
@@ -196,23 +219,34 @@
             {
               "text": "追加无效化只在与盖放发动的分支绑定；手卡直接发动（满足条件文本）时不适用追加处理。",
               "source_refs": [
-                "card-annotations-2026-09-24:10045474"
+                "konami-13631"
               ]
             }
-          ]
+          ],
+          "effect_type": "trap_activation"
         }
       ],
       "relations": [],
-      "notes": []
+      "notes": [],
+      "frozen_text": "自己场上没有卡存在的场合，这张卡的发动从手卡也能用。\r\n①：以对方场上1只表侧表示怪兽为对象才能发动。那只怪兽的效果直到回合结束时无效。盖放的这张卡发动的场合，再在这个回合中让和这张卡相同纵列的其他的魔法·陷阱卡的效果无效化。",
+      "sources": [
+        {
+          "id": "konami-13631",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=13631&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
     },
     "16387555": {
       "code": 16387555,
       "text_digest": "41eaaec6be4e0a69836b97b1f50e13b3555325c13ad7da26e712cbe50f80238c",
       "review": {
         "status": "reviewed",
-        "origin": "engine",
+        "origin": "manual",
         "checked_on": "2026-09-24",
-        "basis": "卡文逐字核对；效果编号与脚本映射经 card_semantics.AUDITED_EFFECTS 引擎验证（c16387555.spop / c16387555.rmop）。"
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
       },
       "effects": [
         {
@@ -227,10 +261,11 @@
             {
               "text": "同调素材规则文本：场上的这张卡作素材时，手卡1只调整也可作为同调素材。属规则文本，不是可发动效果。",
               "source_refs": [
-                "card-annotations-2026-09-24:16387555"
+                "konami-21956"
               ]
             }
-          ]
+          ],
+          "effect_type": "non_effect"
         },
         {
           "key": "m1",
@@ -269,7 +304,7 @@
                   "text": "「杀手级调整曲·提示员」以外的1只调整"
                 },
                 "restrictions": [
-                  "这个回合，自己不是调整不能特殊召唤"
+                  "本效果未被无效时，从效果处理后至本回合结束，自己只能特殊召唤调整（此前的特召不受此限制追溯）"
                 ]
               }
             ],
@@ -284,12 +319,13 @@
           },
           "notes": [
             {
-              "text": "特召来源区域为手卡·卡组·墓地三处；召唤自锁只限当回合。",
+              "text": "特召来源为手卡、卡组、墓地。自锁从未被无效的效果处理后开始，不回溯此前特召；并非仅在特召成功时适用。",
               "source_refs": [
-                "card-annotations-2026-09-24:16387555"
+                "konami-21956"
               ]
             }
-          ]
+          ],
+          "effect_type": "trigger"
         },
         {
           "key": "m2",
@@ -329,19 +365,26 @@
                 "count": "1",
                 "selector": {
                   "text": "翻开的2张中的1张"
-                }
+                },
+                "from_zones": [
+                  "opponent_deck"
+                ]
               },
               {
                 "action": "return_deck",
                 "count": "1",
                 "to_zones": [
-                  "deck_top",
-                  "deck_bottom"
+                  "opponent_deck_top",
+                  "opponent_deck_bottom"
                 ],
                 "selector": {
                   "text": "另1张",
                   "choice": "选择放回最上面或最下面"
-                }
+                },
+                "from_zones": [
+                  "opponent_deck"
+                ],
+                "condition": "与除外另1张同时处理"
               }
             ],
             "usage": [
@@ -357,10 +400,11 @@
             {
               "text": "操作对象是对方卡组顶部；除外与回卡组针对翻开的两张各一张。",
               "source_refs": [
-                "card-annotations-2026-09-24:16387555"
+                "konami-21956"
               ]
             }
-          ]
+          ],
+          "effect_type": "trigger"
         }
       ],
       "relations": [
@@ -379,16 +423,26 @@
           "scope": "同名卡共享、各编号独立"
         }
       ],
-      "notes": []
+      "notes": [],
+      "frozen_text": "场上的这张卡为素材作同调召唤的场合，手卡1只调整也能作为同调素材。这个卡名的①②的效果1回合各能使用1次。\r\n①：这张卡召唤的场合才能发动。从自己的手卡·卡组·墓地把「杀手级调整曲·提示员」以外的1只调整特殊召唤。这个回合，自己不是调整不能特殊召唤。\r\n②：这张卡作为同调素材送去墓地的场合才能发动。从对方卡组上面把2张卡翻开，从那之中把1张除外，另1张回到卡组最上面或最下面。",
+      "sources": [
+        {
+          "id": "konami-21956",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=21956&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
     },
     "17209452": {
       "code": 17209452,
       "text_digest": "a9960e40b0b0ec57a08ac98915ff4876e0ef0a4e4fe4056389fa81c64faea16d",
       "review": {
         "status": "reviewed",
-        "origin": "engine",
+        "origin": "manual",
         "checked_on": "2026-09-24",
-        "basis": "卡文逐字核对；效果编号与脚本映射经 card_semantics.AUDITED_EFFECTS 引擎验证（c17209452.sumop / c17209452.efop）。"
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
       },
       "effects": [
         {
@@ -403,10 +457,11 @@
             {
               "text": "同调素材规则文本，同系列共用句式；不是可发动效果。",
               "source_refs": [
-                "card-annotations-2026-09-24:17209452"
+                "konami-22531"
               ]
             }
-          ]
+          ],
+          "effect_type": "non_effect"
         },
         {
           "key": "m1",
@@ -417,13 +472,11 @@
           ],
           "structure": {
             "activation": {
-              "timing": "manual",
+              "timing": "main_phase_self",
               "zones": [
                 "hand"
               ],
-              "conditions": [
-                "把手卡的这张卡和手卡1只调整给对方观看"
-              ],
+              "conditions": [],
               "fast_effect": false
             },
             "cost": [
@@ -445,8 +498,12 @@
                   "monster"
                 ],
                 "selector": {
-                  "text": "被观看的那只调整（进行1只调整的召唤）"
-                }
+                  "text": "手卡中可以通常召唤的1只调整（不限于给对方观看的调整）"
+                },
+                "condition": "此连锁块处理完毕后立即进行召唤",
+                "from_zones": [
+                  "hand"
+                ]
               }
             ],
             "usage": [
@@ -462,10 +519,11 @@
             {
               "text": "进行的是通常召唤（召唤），不是特殊召唤；费用为展示而非丢弃，两张卡都留在手卡直至召唤。",
               "source_refs": [
-                "card-annotations-2026-09-24:17209452"
+                "konami-22531"
               ]
             }
-          ]
+          ],
+          "effect_type": "ignition"
         },
         {
           "key": "m2",
@@ -497,7 +555,7 @@
                   "opponent_grave"
                 ],
                 "to_zones": [
-                  "deck_bottom"
+                  "opponent_deck_bottom"
                 ],
                 "selector": {
                   "text": "对方墓地1张卡"
@@ -527,9 +585,13 @@
                         "set:1d5"
                       ]
                     },
-                    "optional": true
+                    "optional": true,
+                    "to_zones": [
+                      "hand"
+                    ]
                   }
-                ]
+                ],
+                "condition": "选择此分支需对方有手卡；确认成功后才可追加检索"
               }
             ],
             "usage": [
@@ -545,10 +607,11 @@
             {
               "text": "发动时从 A／B 两个分支中选择其一；B 分支的检索是确认手卡之后的可选追加（『可以从卡组…加入手卡』）。",
               "source_refs": [
-                "card-annotations-2026-09-24:17209452"
+                "konami-22531"
               ]
             }
-          ]
+          ],
+          "effect_type": "trigger"
         }
       ],
       "relations": [
@@ -574,16 +637,26 @@
           "text": "②可以从以下效果选择1个发动。"
         }
       ],
-      "notes": []
+      "notes": [],
+      "frozen_text": "场上的这张卡为素材作同调召唤的场合，手卡1只调整也能作为同调素材。这个卡名的①②的效果1回合各能使用1次。\r\n①：把手卡的这张卡和手卡1只调整给对方观看才能发动。进行1只调整的召唤。\r\n②：这张卡作为同调素材送去墓地的场合，可以从以下效果选择1个发动。\r\n●从对方墓地让1张卡回到卡组最下面。\r\n●对方手卡全部确认。那之后，可以从卡组把1张「杀手级调整曲」魔法·陷阱卡加入手卡。",
+      "sources": [
+        {
+          "id": "konami-22531",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=22531&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
     },
     "16509007": {
       "code": 16509007,
       "text_digest": "55cb7815cef74f0344f48b4d584240909aa2690deef3e38b4903cba0f2147544",
       "review": {
         "status": "reviewed",
-        "origin": "engine",
+        "origin": "manual",
         "checked_on": "2026-09-24",
-        "basis": "卡文逐字核对；效果编号与脚本映射经 card_semantics.AUDITED_EFFECTS 引擎验证（c16509007.thop / c16509007.desop）。"
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
       },
       "effects": [
         {
@@ -598,10 +671,11 @@
             {
               "text": "同调素材规则文本；不是可发动效果。",
               "source_refs": [
-                "card-annotations-2026-09-24:16509007"
+                "konami-21953"
               ]
             }
-          ]
+          ],
+          "effect_type": "non_effect"
         },
         {
           "key": "m1",
@@ -656,10 +730,11 @@
             {
               "text": "来源区域为卡组·墓地；与『E-紧急呼唤』（仅卡组）、『暗黑爆发』（仅墓地）共用加入手卡标签但参数不同，不可互相替代。",
               "source_refs": [
-                "card-annotations-2026-09-24:16509007"
+                "konami-21953"
               ]
             }
-          ]
+          ],
+          "effect_type": "trigger"
         },
         {
           "key": "m2",
@@ -708,10 +783,11 @@
             {
               "text": "对象在发动时指定；破坏不除外。",
               "source_refs": [
-                "card-annotations-2026-09-24:16509007"
+                "konami-21953"
               ]
             }
-          ]
+          ],
+          "effect_type": "trigger"
         }
       ],
       "relations": [
@@ -730,7 +806,17 @@
           "scope": "同名卡共享、各编号独立"
         }
       ],
-      "notes": []
+      "notes": [],
+      "frozen_text": "场上的这张卡为素材作同调召唤的场合，手卡1只调整也能作为同调素材。这个卡名的①②的效果1回合各能使用1次。\r\n①：这张卡召唤·特殊召唤的场合才能发动。从自己的卡组·墓地把2星怪兽以外的1只「杀手级调整曲」怪兽加入手卡。\r\n②：这张卡作为同调素材送去墓地的场合，以对方场上1只怪兽为对象才能发动。那只怪兽破坏。",
+      "sources": [
+        {
+          "id": "konami-21953",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=21953&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
     },
     "24224830": {
       "code": 24224830,
@@ -739,7 +825,7 @@
         "status": "reviewed",
         "origin": "manual",
         "checked_on": "2026-09-24",
-        "basis": "卡文逐字核对；护航用途另见起手分析护航资料。"
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
       },
       "effects": [
         {
@@ -752,12 +838,13 @@
           ],
           "structure": {
             "activation": {
-              "timing": "manual",
+              "timing": "fast_window",
               "zones": [
-                "hand"
+                "spell"
               ],
               "conditions": [
-                "速攻魔法：对方回合也可发动"
+                "自己回合可从手卡放置到魔法陷阱区发动；对方回合通常须此前已盖放。盖放当回合不能发动。",
+                "伤害步骤不能发动。"
               ],
               "fast_effect": true
             },
@@ -777,15 +864,18 @@
                 ],
                 "selector": {
                   "text": "对象怪兽"
-                }
-              },
-              {
-                "action": "negate_effect",
-                "count": "1",
-                "selector": {
-                  "text": "被除外的怪兽及原本卡名与其相同的怪兽"
                 },
-                "duration": "直到下个回合的结束时"
+                "then": [
+                  {
+                    "action": "negate_effect",
+                    "count": "all",
+                    "selector": {
+                      "text": "双方具有对应原本卡名的怪兽效果（具体范围见官方补充说明）"
+                    },
+                    "duration": "直到下个回合的结束时",
+                    "condition": "成功除外对象怪兽时适用"
+                  }
+                ]
               }
             ],
             "usage": []
@@ -794,14 +884,25 @@
             {
               "text": "无效对象是卡名维度：除外的那只与同名卡的效果都无效；持续到下个回合的结束时。",
               "source_refs": [
-                "card-annotations-2026-09-24:24224830"
+                "konami-13619"
               ]
             }
-          ]
+          ],
+          "effect_type": "spell_activation"
         }
       ],
       "relations": [],
-      "notes": []
+      "notes": [],
+      "frozen_text": "①：以对方墓地1只怪兽为对象才能发动。那只怪兽除外。直到下个回合的结束时，这个效果除外的怪兽以及原本卡名和那只怪兽相同的怪兽的效果无效化。",
+      "sources": [
+        {
+          "id": "konami-13619",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=13619&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
     },
     "41546": {
       "code": 41546,
@@ -810,7 +911,7 @@
         "status": "reviewed",
         "origin": "manual",
         "checked_on": "2026-09-24",
-        "basis": "卡文逐字核对（灵摆双文本区分段）。"
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
       },
       "effects": [
         {
@@ -824,10 +925,11 @@
             {
               "text": "灵摆效果的次数限制文本；限制关系记录在 relations。",
               "source_refs": [
-                "card-annotations-2026-09-24:41546"
+                "konami-12409"
               ]
             }
-          ]
+          ],
+          "effect_type": "non_effect"
         },
         {
           "key": "p1",
@@ -841,7 +943,7 @@
             "activation": {
               "timing": "main_phase_self",
               "zones": [
-                "spell"
+                "pendulum"
               ],
               "conditions": [],
               "fast_effect": false
@@ -872,12 +974,13 @@
           },
           "notes": [
             {
-              "text": "来源区域是额外卡组表侧表示区（灵摆区被破坏后表侧放置的区域），不是主卡组。",
+              "text": "来源为自己的表侧额外卡组；不包括里侧额外卡组和主卡组。",
               "source_refs": [
-                "card-annotations-2026-09-24:41546"
+                "konami-12409"
               ]
             }
-          ]
+          ],
+          "effect_type": "pendulum_activation"
         },
         {
           "key": "m-pre",
@@ -890,10 +993,11 @@
             {
               "text": "怪兽效果的次数限制文本；限制关系记录在 relations。",
               "source_refs": [
-                "card-annotations-2026-09-24:41546"
+                "konami-12409"
               ]
             }
-          ]
+          ],
+          "effect_type": "non_effect"
         },
         {
           "key": "m1",
@@ -903,11 +1007,12 @@
           "tags": [
             "etag:destroy",
             "etag:special-summon",
-            "etag:damage-modify"
+            "etag:damage-modify",
+            "etag:negate-effect"
           ],
           "structure": {
             "activation": {
-              "timing": "manual",
+              "timing": "main_phase_self",
               "zones": [
                 "monster"
               ],
@@ -939,17 +1044,33 @@
                       "monster"
                     ],
                     "selector": {
-                      "text": "1只8星「DDD」怪兽（DD 的上位子系列）",
+                      "text": "1只8星「DDD」怪兽",
                       "series": [
-                        "set:af"
+                        "set:10af"
                       ]
                     },
                     "position": "守备表示",
-                    "restrictions": [
-                      "这个回合，这个效果特殊召唤的怪兽的效果无效化",
-                      "这个回合，对方受到的战斗伤害变成一半"
+                    "restrictions": [],
+                    "then": [
+                      {
+                        "action": "negate_effect",
+                        "selector": {
+                          "text": "由此效果特殊召唤的怪兽"
+                        },
+                        "duration": "这个回合"
+                      },
+                      {
+                        "action": "damage_modify",
+                        "selector": {
+                          "text": "对方受到的全部战斗伤害减半"
+                        },
+                        "duration": "这个回合"
+                      }
                     ]
                   }
+                ],
+                "from_zones": [
+                  "pendulum"
                 ]
               }
             ],
@@ -959,12 +1080,13 @@
           },
           "notes": [
             {
-              "text": "破坏自己灵摆区是处理内容的一部分（同时是后续特召的前提），不是费用；召唤自负面（效果无效／伤害减半）记录在 restrictions，不挂无效标签。",
+              "text": "破坏自己灵摆区卡牌是效果处理，不是费用。无效化影响由此效果特召的怪兽；伤害减半影响该回合对方受到的全部战斗伤害。标签表达处理，不能仅据无效标签当作对手阻抗。",
               "source_refs": [
-                "card-annotations-2026-09-24:41546"
+                "konami-12409"
               ]
             }
-          ]
+          ],
+          "effect_type": "ignition"
         }
       ],
       "relations": [
@@ -989,8 +1111,18 @@
         {
           "text": "灵摆样本：p* 键属于灵摆区文本，m* 键属于怪兽区文本；两侧次数限制彼此独立。",
           "source_refs": [
-            "card-annotations-2026-09-24:41546"
+            "konami-12409"
           ]
+        }
+      ],
+      "frozen_text": "←6 【灵摆】 6→\r\n「DD 魔导贤者 托马斯」的灵摆效果1回合只能使用1次。\r\n①：自己主要阶段才能发动。从自己的额外卡组把1只表侧表示的「DD」灵摆怪兽加入手卡。\r\n【怪兽效果】\r\n「DD 魔导贤者 托马斯」的怪兽效果1回合只能使用1次。\r\n①：以自己的灵摆区域1张「DD」卡为对象才能发动。那张卡破坏，从卡组把1只8星「DDD」怪兽守备表示特殊召唤。这个回合，这个效果特殊召唤的怪兽的效果无效化，对方受到的战斗伤害变成一半。",
+      "sources": [
+        {
+          "id": "konami-12409",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=12409&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
         }
       ]
     },
@@ -1001,7 +1133,7 @@
         "status": "reviewed",
         "origin": "manual",
         "checked_on": "2026-09-24",
-        "basis": "卡文逐字核对。"
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
       },
       "effects": [
         {
@@ -1014,10 +1146,11 @@
             {
               "text": "互斥次数限制文本：①②合计每回合仅可使用其一；限制关系记录在 relations。",
               "source_refs": [
-                "card-annotations-2026-09-24:703897"
+                "konami-14324"
               ]
             }
-          ]
+          ],
+          "effect_type": "non_effect"
         },
         {
           "key": "m1",
@@ -1029,12 +1162,13 @@
           ],
           "structure": {
             "activation": {
-              "timing": "on_any_effect",
+              "timing": "on_card_or_monster_effect",
               "zones": [
                 "spell"
               ],
               "conditions": [
-                "自己场上有「自奏圣乐」连接怪兽存在"
+                "自己场上有「自奏圣乐」连接怪兽存在",
+                "不能对应不伴随卡的发动的魔法·陷阱效果发动。"
               ],
               "fast_effect": true
             },
@@ -1064,10 +1198,11 @@
             {
               "text": "无效的是发动并顺带除外；需要场上已有「自奏圣乐」连接怪兽。",
               "source_refs": [
-                "card-annotations-2026-09-24:703897"
+                "konami-14324"
               ]
             }
-          ]
+          ],
+          "effect_type": "trap_activation"
         },
         {
           "key": "m2",
@@ -1079,12 +1214,14 @@
           ],
           "structure": {
             "activation": {
-              "timing": "manual",
+              "timing": "fast_window",
               "zones": [
                 "grave"
               ],
-              "conditions": [],
-              "fast_effect": false
+              "conditions": [
+                "本回合此前不能特殊召唤过机械族·暗属性以外的怪兽。"
+              ],
+              "fast_effect": true
             },
             "cost": [
               {
@@ -1108,7 +1245,7 @@
                   "text": "自己的卡组·除外状态的1只机械族·暗属性怪兽"
                 },
                 "restrictions": [
-                  "这个效果发动的回合，自己不是机械族·暗属性怪兽不能特殊召唤"
+                  "本效果发动的整个回合只能特殊召唤机械族·暗属性怪兽；发动被无效后此限制解除，效果被无效不解除。"
                 ]
               }
             ],
@@ -1118,12 +1255,13 @@
           },
           "notes": [
             {
-              "text": "费用是把自己从墓地除外；检索来源含除外区；发动后当回合特殊召唤被锁定为机械族·暗属性。",
+              "text": "墓地自身除外是费用，不单独挂除外能力标签。特召限制涉及发动前后整个回合，区别于提示员的处理后自锁。",
               "source_refs": [
-                "card-annotations-2026-09-24:703897"
+                "konami-14324"
               ]
             }
-          ]
+          ],
+          "effect_type": "trap_effect"
         }
       ],
       "relations": [
@@ -1137,7 +1275,17 @@
           "scope": "同名卡共享且互斥"
         }
       ],
-      "notes": []
+      "notes": [],
+      "frozen_text": "这个卡名的①②的效果1回合只能有1次使用其中任意1个。\r\n①：自己场上有「自奏圣乐」连接怪兽存在，怪兽的效果·魔法·陷阱卡发动时才能发动。那个发动无效并除外。\r\n②：把墓地的这张卡除外才能发动（这个效果发动的回合，自己不是机械族·暗属性怪兽不能特殊召唤）。自己的卡组·除外状态的1只机械族·暗属性怪兽加入手卡。",
+      "sources": [
+        {
+          "id": "konami-14324",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14324&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
     },
     "213326": {
       "code": 213326,
@@ -1146,7 +1294,7 @@
         "status": "reviewed",
         "origin": "manual",
         "checked_on": "2026-09-24",
-        "basis": "卡文逐字核对。"
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
       },
       "effects": [
         {
@@ -1158,11 +1306,13 @@
           ],
           "structure": {
             "activation": {
-              "timing": "manual",
+              "timing": "main_phase_self",
               "zones": [
-                "hand"
+                "spell"
               ],
-              "conditions": [],
+              "conditions": [
+                "通常魔法：可从手卡放置到魔法陷阱区发动，也可从已盖放状态发动。"
+              ],
               "fast_effect": false
             },
             "cost": [],
@@ -1188,14 +1338,25 @@
             {
               "text": "最简检索样本：来源仅卡组、无费用、无次数限制。",
               "source_refs": [
-                "card-annotations-2026-09-24:213326"
+                "konami-6672"
               ]
             }
-          ]
+          ],
+          "effect_type": "spell_activation"
         }
       ],
       "relations": [],
-      "notes": []
+      "notes": [],
+      "frozen_text": "①：从卡组把1只「元素英雄」怪兽加入手卡。",
+      "sources": [
+        {
+          "id": "konami-6672",
+          "title": "KONAMI 官方卡文",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=6672&ope=2&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
     },
     "674561": {
       "code": 674561,
@@ -1204,7 +1365,7 @@
         "status": "reviewed",
         "origin": "manual",
         "checked_on": "2026-09-24",
-        "basis": "卡文逐字核对。"
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
       },
       "effects": [
         {
@@ -1216,11 +1377,13 @@
           ],
           "structure": {
             "activation": {
-              "timing": "manual",
+              "timing": "main_phase_self",
               "zones": [
-                "hand"
+                "spell"
               ],
-              "conditions": [],
+              "conditions": [
+                "通常魔法：可从手卡放置到魔法陷阱区发动，也可从已盖放状态发动。"
+              ],
               "fast_effect": false
             },
             "cost": [],
@@ -1251,14 +1414,26 @@
             {
               "text": "回收样本：与『E-紧急呼唤』同为加入手卡标签，但来源区域是墓地且需满足攻击力／属性筛选；两者不可互相替代。",
               "source_refs": [
-                "card-annotations-2026-09-24:674561"
+                "konami-7453"
               ]
             }
-          ]
+          ],
+          "effect_type": "spell_activation"
         }
       ],
       "relations": [],
-      "notes": []
+      "notes": [],
+      "frozen_text": "①：以自己墓地1只攻击力1500以下的暗属性怪兽为对象才能发动。那只暗属性怪兽加入手卡。",
+      "sources": [
+        {
+          "id": "konami-7453",
+          "title": "KONAMI 官方卡文",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=7453&ope=2&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
     }
-  }
+  },
+  "revision": 2
 }

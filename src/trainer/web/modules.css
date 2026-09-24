@@ -1,4 +1,4 @@
-/* The collapsible left rail is the only primary navigation. */
+/* Categories live in the rail; their tools live in a horizontal workspace nav. */
 :root { --rail-size:100px; --rail-width:var(--rail-size); --app-bar-height:60px; }
 body { padding-left:var(--rail-width); }
 body.rail-collapsed { --rail-width:0px; }
@@ -24,7 +24,7 @@ body.rail-collapsed { --rail-width:0px; }
 .primary-rail { position:fixed; inset:0 auto 0 0; width:var(--rail-size); z-index:45; display:flex; flex-direction:column; align-items:center; gap:30px; padding:18px 8px; background:#17262f; border-right:1px solid #35434a; color:#c3d0d5; }
 .rail-mark { width:40px; height:40px; }
 .primary-rail nav { display:flex; flex-direction:column; width:100%; gap:10px; flex:1; min-height:0; overflow-y:auto; }
-#module-intelligence { margin-top:auto; }
+#app-settings { margin-top:auto; flex-shrink:0; }
 .module-link { display:flex; align-items:center; flex-direction:column; justify-content:center; gap:9px; min-height:80px; width:100%; padding:12px 4px; border:1px solid transparent; border-radius:9px; background:transparent; color:#93a8b3; font-size:12px; position:relative; }
 .module-link svg { width:23px; height:23px; stroke:currentColor; stroke-width:1.7; fill:none; stroke-linecap:round; stroke-linejoin:round; }
 .module-link:hover { background:#243740; border-color:#47604e; }
@@ -87,3 +87,12 @@ body.rail-collapsed { --rail-width:0px; }
   #deck-status { grid-column:2; }
   .deck-picker { flex-wrap:wrap; }
 }
+
+#workspace-navigation { padding:0 24px; border-bottom:1px solid var(--line); background:var(--panel); }
+#workspace-navigation nav { display:flex; align-items:center; gap:8px; min-height:50px; overflow-x:auto; }
+.workspace-caption { color:var(--muted); font-size:12px; margin-right:18px; white-space:nowrap; }
+.workspace-link { display:flex; align-items:center; gap:7px; flex-shrink:0; border:0; border-radius:7px; background:transparent; padding:9px 14px; color:var(--muted); }
+.workspace-link svg { width:18px; height:18px; stroke:currentColor; stroke-width:1.6; fill:none; }
+.workspace-link.active { background:var(--surface-selected); color:var(--accent); }
+.workspace-link small { font-size:10px; }
+@media(max-width:700px) { #workspace-navigation { padding:0 12px; } .workspace-caption { display:none; } .workspace-link { padding:9px; } }

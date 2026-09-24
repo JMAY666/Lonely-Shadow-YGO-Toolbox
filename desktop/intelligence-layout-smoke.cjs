@@ -31,7 +31,7 @@ module.exports=async({page,application,evidence,pass})=>{
     });
     assert.deepEqual(failures,[],'Controls fit their columns and save actions remain reachable');
   };
-  await page.locator('#module-intelligence').click();
+  await require('./navigation-test.cjs')(page, 'intelligence');
   await page.waitForFunction(()=>moduleUI.current==='intelligence'&&!moduleUI.switching);
   assert(await page.locator('.intel-empty').isVisible());
   assert.equal(await page.locator('#intel-status').evaluate(el=>el.getBoundingClientRect().height),0);

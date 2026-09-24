@@ -3,7 +3,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 
 module.exports=async({page,application,root,evidence,pass})=>{
   page.setDefaultTimeout(25000);
-  const enter=async name=>{await page.locator('#module-'+name).click();await page.waitForFunction(name=>moduleUI.current===name&&!moduleUI.switching,name);};
+  const enter=async name=>{await require('./navigation-test.cjs')(page, name);await page.waitForFunction(name=>moduleUI.current===name&&!moduleUI.switching,name);};
   const action=name=>page.locator(`[data-intel-action="${name}"]`).click();
   const saved=()=>page.waitForFunction(()=>!intelUI.busy&&document.querySelector('#intel-status').textContent==='已保存。');
   const merged=()=>page.waitForFunction(()=>!intelUI.busy&&document.querySelector('#intel-status').textContent.startsWith('已合并'));

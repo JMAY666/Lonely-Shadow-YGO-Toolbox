@@ -3,7 +3,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 
 module.exports=async({page,application,root,evidence,pass})=>{
   page.setDefaultTimeout(25000);
-  const enter=async name=>{await page.locator('#module-'+name).click();await page.waitForFunction(name=>moduleUI.current===name&&!moduleUI.switching,name);};
+  const enter=async name=>{await require('./navigation-test.cjs')(page, name);await page.waitForFunction(name=>moduleUI.current===name&&!moduleUI.switching,name);};
   const action=name=>page.locator(`[data-intel-action="${name}"]`).click();
   const field=name=>page.locator(name==='note'?'[data-intel-field="note"],[data-intel-field="notes.0.text"]':`[data-intel-field="${name.startsWith('effects.')?name.replace(/\.note$/,'.notes.0.text'):name}"]`);
   const tab=async name=>{await page.locator(`[data-intel-tab="${name}"]`).click();await page.waitForFunction(name=>intelUI.tab===name,name);};
@@ -11,8 +11,7 @@ module.exports=async({page,application,root,evidence,pass})=>{
   const queryPicker=async code=>{await page.locator('#intel-pick-q').fill(String(code));await page.locator(`[data-intel-choose="${code}"]`).waitFor();};
   const pick=async code=>{await queryPicker(code);await page.locator(`[data-intel-choose="${code}"]`).click();};
   await enter('intelligence');
-  const nav=await page.locator('#module-intelligence').boundingBox(),settings=await page.locator('#app-settings').boundingBox();
-  assert(settings.y>nav.y&&settings.y-nav.y-nav.height<=12);
+  assert.equal(await page.locator('#workspace-library #module-intelligence').isVisible(),true);
   assert.match(await page.locator('#intel-list').textContent(),/没有匹配/);
 
   await action('add');await pick(14558127);await field('note').fill('通用用途验收');

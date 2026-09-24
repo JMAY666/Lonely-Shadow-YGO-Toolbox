@@ -74,7 +74,7 @@ function inventory() {
   assert.deepEqual(await page.evaluate(id=>api('/api/deck?id='+encodeURIComponent(id)),deck.id),deck);
   const after=await page.evaluate(async id=>({report:await api('/api/report/'+id),plan:await api('/api/plan/'+id),history:await api('/api/history')}),fixture.id);
   assert.deepEqual(after,before);
-  await page.locator('#module-expansion').click();
+  await require('./navigation-test.cjs')(page, 'expansion');
   await page.waitForFunction(()=>moduleUI.current==='expansion'&&!moduleUI.switching);
   await page.evaluate(id=>showPlan(id),fixture.id);
   assert.equal(await page.locator('#plans').isVisible(),true);

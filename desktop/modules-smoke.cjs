@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const path = require('node:path');
 module.exports = async function ({page,application,deckId,deck,pass,evidence}) {
   const selectModule = async name => {
-    await page.locator(`#module-${name}`).click();
+    await require('./navigation-test.cjs')(page, name);
     await page.waitForFunction(name=>moduleUI.current===name&&!moduleUI.switching,name);
   };
   const originalName = await page.locator('#deck-name').inputValue();

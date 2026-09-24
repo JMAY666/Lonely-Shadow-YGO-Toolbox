@@ -18,7 +18,7 @@ let application;
   page.on('dialog', async dialog => {systemDialogs++;await dialog.dismiss();});
   await page.waitForFunction(()=>document.querySelector('#resource-count')?.textContent.includes('张卡牌'),null,{timeout:120000});
   await page.waitForFunction(()=>app.history.length>0);
-  await page.locator('#module-decks').click();
+  await require('./navigation-test.cjs')(page, 'decks');
   await page.waitForFunction(()=>moduleUI.current==='decks'&&!moduleUI.switching);
   const fixtures = await page.evaluate(async () => {
     const decks=await api('/api/decks'); let template;

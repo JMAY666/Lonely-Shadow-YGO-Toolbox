@@ -14,7 +14,7 @@ module.exports=async({page,application,evidence,pass})=>{
     data=await api('/api/intelligence',{revision:data.revision,op:'topic.save',value:{name:'验收个人主题',tag_ids:[],note:''}});
     await api('/api/intelligence',{revision:data.revision,op:'record.save',value:{topic_id:data.saved_id,title:'验收个人断点',note:'原有手写资料',steps:[{opponent:55144522,action:'对手发动效果',timing:'效果发动时',condition:'核对具体卡文',note:'',responses:[{mode:'alternative',cards:[14558127],method:'单独应对',condition:'满足发动条件',expected:'核对后使用',note:''}]}]}});
   });
-  await page.locator('#module-intelligence').click();await page.waitForFunction(()=>moduleUI.current==='intelligence'&&!moduleUI.switching);
+  await require('./navigation-test.cjs')(page, 'intelligence');await page.waitForFunction(()=>moduleUI.current==='intelligence'&&!moduleUI.switching);
   await page.locator('[data-intel-tab="records"]').click();
   assert(await field('title').isVisible(),'Existing personal records keep their default editing workflow');
   await page.route('**/api/intelligence',route=>route.request().method()==='POST'?route.fulfill({status:500,json:{error:'isolated import failure'}}):route.continue(),{times:1});

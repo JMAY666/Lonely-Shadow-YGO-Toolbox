@@ -15,6 +15,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
+from urllib.parse import urlparse
 
 from card_semantics import AUDITED_EFFECTS, CIRCLED
 
@@ -179,11 +180,24 @@ def validate_entry(entry, registry, segment_keys=None, where=''):
     where = where or f"卡牌 {entry.get('code')}"
     if not isinstance(entry.get('code'), int) or not 0 < entry['code'] < 2**32: raise ValueError(f'{where}卡号无效')
     if not HEX64.fullmatch(entry.get('text_digest') or ''): raise ValueError(f'{where}卡文指纹无效')
+    if 'frozen_text' in entry and (not isinstance(entry['frozen_text'], str) or digest(entry['frozen_text']) != entry['text_digest']):
+        raise ValueError(f'{where}卡文快照与指纹不一致')
     review = entry.get('review', {})
     if review.get('status') not in ('reviewed', 'draft') or review.get('origin') not in ('manual', 'auto', 'engine'):
         raise ValueError(f'{where}审核状态无效')
+    if review.get('origin') == 'auto' and review.get('status') == 'reviewed':
+        raise ValueError(f'{where}自动草稿不能标记为已核对')
     if not DATE.fullmatch(review.get('checked_on') or ''): raise ValueError(f'{where}核对日期无效')
     _check_notes(entry.get('notes', []), where)
+    source_ids = set()
+    for source in entry.get('sources', []):
+        identifier = _check_text(source.get('id', ''), f'{where}来源编号', 120)
+        url = urlparse(source.get('url', ''))
+        if identifier in source_ids or url.scheme != 'https' or not url.hostname or url.username or url.password:
+            raise ValueError(f'{where}来源链接或编号无效')
+        source_ids.add(identifier)
+        _check_text(source.get('title', ''), f'{where}来源标题', 200)
+        if not DATE.fullmatch(source.get('checked_on', '')): raise ValueError(f'{where}来源核对日期无效')
     seen = set()
     for effect in entry.get('effects', []):
         key = effect.get('key')
@@ -192,6 +206,7 @@ def validate_entry(entry, registry, segment_keys=None, where=''):
         if segment_keys is not None and key not in segment_keys:
             raise ValueError(f'{where}效果键 {key} 不在当前卡文分段中，请核对卡文')
         if effect.get('kind') not in ('numbered', 'unnumbered', 'ambiguous'): raise ValueError(f'{where}效果 {key} 类型无效')
+        if effect.get('effect_type'): registry.require('effect_types', effect['effect_type'], f'{where}效果 {key}')
         for tag in effect.get('tags', []):
             if tag not in registry.tags: raise ValueError(f'{where}效果 {key} 使用未登记 TAG：{tag}')
         structure = effect.get('structure', {})
@@ -317,8 +332,7 @@ class CardAnnotations:
         card = self.store.catalog.cards.get(code)
         if card is None: raise ValueError(f'卡牌编号 {code} 不在当前卡库')
         current = digest(card.get('desc') or '')
-        segs = segments(card.get('desc') or '', card.get('type') or 0)
-        seg_map = {seg['key']: seg for seg in segs}
+        current_segs = segments(card.get('desc') or '', card.get('type') or 0)
         user = self.document['cards'].get(str(code)) or {}
         curated = self.curated['cards'].get(code)
         base, provenance, stale = None, None, False
@@ -329,19 +343,24 @@ class CardAnnotations:
             stale = curated.get('text_digest') != current
         draft = user.get('draft')
         if base is None and draft is not None:
-            if user.get('draft_digest') == current:
-                base, provenance = draft, {'source': 'user-draft'}
-            else:
-                stale = True
+            base, provenance = draft, {'source': 'user-draft'}
+            stale = user.get('draft_digest') != current
+        # Never pair an old numbered annotation with new text at the same key.
+        segs = current_segs
+        if stale:
+            segs = segments(base['frozen_text'], card.get('type') or 0) if base.get('frozen_text') else [
+                {**effect, 'text': effect.get('text', '旧卡文未保存，请查阅来源核对。'),
+                 'block': 'p' if effect['key'].startswith('p') else 'm'} for effect in base.get('effects', [])]
+        seg_map = {seg['key']: seg for seg in segs}
         if stale: status = 'stale'
-        elif user.get('pending'): status = 'pending'
-        elif user.get('confirmed') and base is not None: status = 'confirmed'
+        elif user.get('pending') and base is not None: status = 'pending'
+        elif user.get('confirmed') and base is not None and base['review'].get('origin') != 'auto': status = 'confirmed'
         elif base is not None: status = 'reviewed' if base['review']['status'] == 'reviewed' else 'auto'
         else: status = 'none'
         annotated = {effect['key']: effect for effect in (base or {}).get('effects', [])}
         add, remove = user.get('tag_add', {}), user.get('tag_remove', {})
         user_notes = user.get('notes', {})
-        engine = self._engine_links(code, current, seg_map)
+        engine = {} if stale else self._engine_links(code, current, seg_map)
         effects, missing = [], []
         for seg in segs:
             if seg['key'] in annotated:
@@ -358,15 +377,19 @@ class CardAnnotations:
                 effect = {**seg, 'annotated': False}
                 if seg['key'] in user_notes: effect['notes'] = deepcopy(user_notes[seg['key']])
             effects.append(effect)
+        full = base is not None and (bool(base.get('no_effect')) or not missing)
+        if status in ('reviewed', 'confirmed') and not full: status = 'partial'
         result = {'code': code, 'name': card.get('name', str(code)), 'type': card.get('type', 0),
                   'setcode': card.get('setcode'), 'status': status,
-                  'full': base is not None and (bool(base.get('no_effect')) or not missing),
+                  'full': full,
                   'origin': base['review'].get('origin') if base else None,
-                  'no_effect': bool((base or {}).get('no_effect')), 'missing_keys': missing,
-                  'digest_ok': not stale, 'text_digest': current,
+                  'no_effect': bool((base or {}).get('no_effect')), 'missing_keys': [] if (base or {}).get('no_effect') else missing,
+                  'digest_ok': not stale, 'text_digest': (base or {}).get('text_digest', current),
+                  'current_text_digest': current, 'current_text': card.get('desc') or '',
                   'review': deepcopy((base or {}).get('review')), 'provenance': provenance,
                   'effects': effects, 'relations': deepcopy((base or {}).get('relations', [])),
-                  'notes': deepcopy((base or {}).get('notes', []))}
+                  'notes': deepcopy((base or {}).get('notes', [])),
+                  'sources': deepcopy((base or {}).get('sources', []))}
         self._views[code] = result
         return result
 
@@ -374,7 +397,7 @@ class CardAnnotations:
         curated = set(self.curated['cards'])
         codes = curated | {int(code) for code, entry in self.document['cards'].items()
                            if entry.get('draft') and int(code) not in curated}
-        return sorted(code for code in codes if code in self.store.catalog.cards)
+        return sorted(code for code in codes if code in self.store.catalog.cards and not self.store.catalog.cards[code].get('type', 0) & 0x4000)
 
     def overview(self):
         cards = self.store.catalog.cards
@@ -384,13 +407,14 @@ class CardAnnotations:
             view = self.view(code)
             status = view['status']
             if status == 'stale': stale.append(code)
-            elif status in ('reviewed', 'confirmed') and not view['full']:
-                status, _ = 'partial', partial.append(code)
+            elif status == 'partial': partial.append(code)
             counts[status] += 1
-        counts['none'] = len(cards) - sum(counts[status] for status in STATUSES if status != 'none')
+        tokens = sum(1 for card in cards.values() if card.get('type', 0) & 0x4000)
+        eligible = len(cards) - tokens
+        counts['none'] = eligible - sum(counts[status] for status in STATUSES if status != 'none')
         return {'version': 1, 'statuses': counts,
                 'catalog': {'cards': len(cards), 'sources': self.store.catalog.sources},
-                'tokens': sum(1 for card in cards.values() if card.get('type', 0) & 0x4000),
+                'tokens': tokens, 'eligible_total': eligible,
                 'annotated_total': sum(counts[status] for status in STATUSES if status != 'none'),
                 'curated': {'id': self.curated.get('id'), 'title': self.curated.get('title'),
                             'checked_on': self.curated.get('checked_on'),
@@ -398,7 +422,7 @@ class CardAnnotations:
                 'registry': {'tags': len(self.registry.tags), 'updated_on': self.registry.updated_on},
                 'partial_codes': partial, 'stale_codes': stale,
                 'missing_codes': sorted(set(self.curated['cards']) - set(cards)),
-                'note': '未标注 ≠ 没有能力；覆盖清单只统计已完成核对的效果，未知内容保持未知。'}
+                'note': '未标注 ≠ 没有能力。草稿与部分标注单独统计；衍生物不参与标注。'}
 
     # ---- query ----------------------------------------------------------
 
@@ -479,11 +503,11 @@ class CardAnnotations:
         from plan_tags import contains_card, member_ids, normalized
         query = normalized(body.get('q', ''))
         if len(body.get('q', '')) > 120: raise ValueError('搜索文字最多 120 个字符')
-        statuses = body.get('status') or list(STATUSES)
-        if not isinstance(statuses, list) or not statuses or any(status not in STATUSES for status in statuses):
+        statuses = body.get('status', list(STATUSES))
+        if not isinstance(statuses, list) or any(status not in STATUSES for status in statuses):
             raise ValueError('标注状态筛选无效')
         etags = body.get('etags') or []
-        if not isinstance(etags, list) or len(etags) > 12 or any(tag not in self.registry.tags for tag in etags):
+        if not isinstance(etags, list) or len(etags) > len(self.registry.tags) or any(tag not in self.registry.tags for tag in etags):
             raise ValueError('效果 TAG 筛选无效')
         scope = body.get('scope') or 'effect'
         if scope not in ('effect', 'card'): raise ValueError('查询范围无效')
@@ -499,8 +523,12 @@ class CardAnnotations:
         if kind not in ('', 'monster', 'spell', 'trap', 'extra'): raise ValueError('卡片类型筛选无效')
         condition_names = ({'tag'} if etags else set()) | {name for name in CONDITION_FIELDS if body.get(name)}
         matched = []
-        for code in self.annotated_codes():
+        catalog_scope = body.get('catalog_scope', 'annotated')
+        if catalog_scope not in ('annotated', 'all'): raise ValueError('卡片范围无效')
+        candidates = self.store.catalog.cards if catalog_scope == 'all' else self.annotated_codes()
+        for code in candidates:
             card = self.store.catalog.cards[code]
+            if card.get('type', 0) & 0x4000: continue
             if kind == 'monster' and not card.get('type', 0) & 1: continue
             if kind == 'spell' and not card.get('type', 0) & 2: continue
             if kind == 'trap' and not card.get('type', 0) & 4: continue
@@ -511,6 +539,7 @@ class CardAnnotations:
                 continue
             view = self.view(code)
             if view['status'] not in statuses: continue
+            if condition_names and not view['digest_ok']: continue
             hits = []
             for effect in view['effects']:
                 if not effect.get('annotated'): continue
@@ -526,7 +555,6 @@ class CardAnnotations:
                                  'usage': effect.get('structure', {}).get('usage', []),
                                  'engine': effect.get('engine'), 'evidence': []}
                                 for effect in view['effects'] if effect.get('annotated')]
-                if not hits: continue
             elif scope == 'effect':
                 if not hits: continue
             else:
@@ -552,7 +580,10 @@ class CardAnnotations:
             keys = sorted({hit['key'] for hit in hits})
             matched.append({'code': code, 'name': view['name'], 'type': card.get('type', 0),
                             'status': view['status'], 'full': view['full'], 'origin': view['origin'],
-                            'hits': hits, 'cross_effects': len(keys) > 1,
+                            'hits': hits, 'no_effect': view['no_effect'],
+                            'cross_effects': scope == 'card' and bool(condition_names) and not any(
+                                self._effect_conditions(effect, body) is not None
+                                for effect in view['effects'] if effect.get('annotated')),
                             'hit_keys': keys})
         matched.sort(key=lambda item: (item['name'], item['code']))
         return {'total': len(matched), 'offset': offset, 'scope': scope,
@@ -584,6 +615,9 @@ class CardAnnotations:
         code = self._require_code(body)
         value = body.get('value')
         if value not in ('confirmed', 'pending', None): raise ValueError('核对状态取值无效')
+        view = self.view(code)
+        if value == 'confirmed' and (not view['digest_ok'] or not view['full'] or view['origin'] == 'auto' or view['status'] == 'none'):
+            raise ValueError('请先完成全部分段的人工结构标注；自动草稿或旧卡文不能直接确认为已核对')
         def mutate(document):
             entry = self._card_entry(code)
             entry['confirmed'] = value == 'confirmed'
@@ -618,17 +652,15 @@ class CardAnnotations:
         add, remove = body.get('add', []), body.get('remove', [])
         if not isinstance(key, str) or not key: raise ValueError('效果编号无效')
         for field, ids in (('add', add), ('remove', remove)):
-            if not isinstance(ids, list) or len(ids) > 18 or any(tag not in self.registry.tags for tag in ids):
+            if not isinstance(ids, list) or len(ids) > len(self.registry.tags) or any(tag not in self.registry.tags for tag in ids):
                 raise ValueError(f'{field} 的效果 TAG 无效')
         if key not in {effect['key'] for effect in self.view(code)['effects']}:
             raise ValueError('效果编号不在当前卡文分段中')
         def mutate(document):
             entry = self._card_entry(code)
-            added = set(entry.get('tag_add', {}).get(key, [])) | set(add)
-            removed = set(entry.get('tag_remove', {}).get(key, [])) | set(remove)
+            added = (set(entry.get('tag_add', {}).get(key, [])) | set(add)) - set(remove)
+            removed = (set(entry.get('tag_remove', {}).get(key, [])) | set(remove)) - set(add)
             # Removing a personal addition undoes it; tag_remove only counters curated tags.
-            added -= removed
-            removed -= added
             entry.setdefault('tag_add', {})[key] = sorted(added)
             entry.setdefault('tag_remove', {})[key] = sorted(removed)
         self._save(mutate)
@@ -639,6 +671,7 @@ class CardAnnotations:
         card = self.store.catalog.cards[code]
         current = digest(card.get('desc') or '')
         entry = draft_entry(code, segments(card.get('desc') or '', card.get('type') or 0), current)
+        entry['frozen_text'] = card.get('desc') or ''
         if not entry['effects']: raise ValueError('未能从卡文中提取任何候选；请人工标注或稍后扩充词表')
         def mutate(document):
             self._card_entry(code)['draft'] = entry
@@ -680,6 +713,8 @@ class CardAnnotations:
         if op in ('set-review', 'add-note', 'remove-note', 'set-tags', 'discard-draft'):
             if body.get('revision') != self.document['revision']:
                 raise ValueError('本地标注已更新，请刷新后重试')
+            if op == 'set-tags' and not self.view(self._require_code(body))['digest_ok']:
+                raise ValueError('卡文已变化，旧标注暂不接受标签修改')
             return getattr(self, {'set-review': 'set_review', 'add-note': 'add_note', 'remove-note': 'remove_note',
                                   'set-tags': 'set_tags', 'discard-draft': 'discard_draft'}[op])(body)
         if op == 'draft': return self.make_draft(body)

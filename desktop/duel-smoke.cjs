@@ -2,14 +2,14 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 
 module.exports=async function({page,application,root,evidence,pass}) {
-  const enter=async name=>{await page.locator('#module-'+name).click();await page.waitForFunction(name=>moduleUI.current===name&&!moduleUI.switching,name);};
+  const enter=async name=>{await require('./navigation-test.cjs')(page, name);await page.waitForFunction(name=>moduleUI.current===name&&!moduleUI.switching,name);};
   const click=async action=>{await page.locator(`[data-duel-action="${action}"]`).click();await page.waitForFunction(()=>!duelUI.busy);};
   const stage=async value=>page.waitForFunction(value=>duelState().stage===duelStages[value]&&!duelUI.busy,value);
   await enter('home');
-  assert.deepEqual(await page.locator('.home-shortcut').evaluateAll(nodes=>nodes.map(node=>node.dataset.moduleTarget)),['decks','expansion','duel','tags']);
+  assert.deepEqual(await page.locator('.home-shortcut').evaluateAll(nodes=>nodes.map(node=>node.dataset.moduleTarget)),['decks','expansion','duel','cardanno']);
   await page.screenshot({path:path.join(evidence,'home-four-entries.png')});
   for(const name of ['decks','expansion','duel','tags']) {
-    await page.locator('#home-'+name).click();await page.waitForFunction(name=>moduleUI.current===name&&!moduleUI.switching,name);
+    await page.locator('#home-'+name).click();await page.waitForFunction(name=>moduleUI.current===name&&!moduleUI.switching,name==='tags'?'cardanno':name);
     await enter('home');
   }
   const key=crypto.randomUUID();

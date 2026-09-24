@@ -5,7 +5,7 @@ module.exports=async({page,application,root,evidence,pass})=>{
  const tagFile=path.join(root,'runtime','_trainer','tag-library.json');
  const beforeTags=fs.existsSync(tagFile)?fs.readFileSync(tagFile):null;
  const before=await page.evaluate(async()=>({intel:await api('/api/intelligence'),decks:await api('/api/decks')}));
- await page.locator('#module-intelligence').click();
+ await require('./navigation-test.cjs')(page, 'intelligence');
  await page.waitForFunction(()=>moduleUI.current==='intelligence'&&!moduleUI.switching);
  await page.locator('[data-intel-tab="opponents"]').click();
  await page.waitForFunction(()=>!intelOpponentUI.busy&&!!intelOpponentUI.data);
