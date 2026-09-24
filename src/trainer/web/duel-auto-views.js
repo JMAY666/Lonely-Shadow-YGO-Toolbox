@@ -61,7 +61,7 @@ function mountAutoDuelGraphResize() {
 
 function autoDuelTutorialPage() {
   const s=autoDuelState();
-  return `<div class="auto-duel-section-heading"><h2>${escape(s.plan.name)}</h2><div class="auto-duel-actions">${autoDuelButton('toggle-shortcuts',s.enabled?'暂停快捷键':'启用快捷键')}${autoDuelButton('shortcuts','快捷键设置')}${autoDuelButton('modular',s.plan?.temporary?'重新生成后续':'生成展开后续')}</div></div><p id="auto-duel-shortcut-status" role="status"></p>${autoDuelGraphHtml()}<div id="auto-duel-graph-resize" class="auto-duel-graph-resize" role="separator" tabindex="0" aria-label="调整教程图高度" aria-orientation="horizontal" aria-valuemin="200" aria-valuemax="1800" title="拖动调整教程图高度；双击恢复默认"><span></span></div><div id="auto-duel-route-choice" class="auto-duel-route-choice"></div><article id="auto-duel-current-detail" class="auto-duel-current-detail"></article><div id="auto-duel-zone-content" class="review-zone-popover" role="dialog" aria-label="区域卡牌" hidden></div>`;
+  return `<div class="auto-duel-section-heading"><h2>${escape(s.plan.name)}</h2><div class="auto-duel-actions">${autoDuelButton('toggle-shortcuts',s.enabled?'暂停快捷键':'启用快捷键')}${autoDuelButton('shortcuts','快捷键设置')}${autoDuelButton('modular',s.plan?.temporary?'重新生成后续':'生成展开后续')}</div></div>${typeof autoFollowPanel==='function'?autoFollowPanel():''}<p id="auto-duel-shortcut-status" role="status"></p>${autoDuelGraphHtml()}<div id="auto-duel-graph-resize" class="auto-duel-graph-resize" role="separator" tabindex="0" aria-label="调整教程图高度" aria-orientation="horizontal" aria-valuemin="200" aria-valuemax="1800" title="拖动调整教程图高度；双击恢复默认"><span></span></div><div id="auto-duel-route-choice" class="auto-duel-route-choice"></div><article id="auto-duel-current-detail" class="auto-duel-current-detail"></article><div id="auto-duel-zone-content" class="review-zone-popover" role="dialog" aria-label="区域卡牌" hidden></div>`;
 }
 
 function focusAutoDuelPosition() {
@@ -76,12 +76,12 @@ function paintAutoDuelPosition(scroll=true) {
   $('#auto-duel-route-choice').hidden=outgoing.length<2;
   $('#auto-duel-route-choice').innerHTML=outgoing.length>1?outgoing.map((edge,i)=>`<button data-auto-duel-choice="${i}" aria-pressed="${i===(s.position.choice||0)}">${escape(edge.label)}</button>`).join(''):'';
   const current=s.graph.nodes.find(n=>n.key===s.position.key),source=autoDuelNodeSource(current),edit=source.report.annotations?.nodes?.[source.node.id];
-  $('#auto-duel-current-detail').innerHTML=`<header><h3>${escape(current.label)} · ${escape(edit?.name||(current.id==='initial'?'初始手牌':current.id==='final'?'终场':`Step ${current.number}`))}</h3>${edit?.notes?`<p>${escape(edit.notes)}</p>`:''}</header><div class="review-board">${renderBoard(source.node,source.report)}</div>`;
+  $('#auto-duel-current-detail').innerHTML=`<header><h3>${escape(current.label)} · ${escape(edit?.name||(current.id==='initial'?'初始手牌':current.id==='final'?'终场':`Step ${current.number}`))}</h3>${edit?.notes?`<p>${escape(edit.notes)}</p>`:''}</header><p class="auto-follow-expected">方案预期场面 · 非游戏实时读取</p><div class="review-board">${renderBoard(source.node,source.report)}</div>`;
   $('#auto-duel-zone-content').hidden=true;
   const edges=s.graph.edges;
   $('[data-auto-duel-action="back-step"]').disabled=!edges.some(e=>e.to===s.position.key);
   $('[data-auto-duel-action="forward-step"]').disabled=!outgoing.length;
-  paintAutoDuelShortcutStatus();pruneReviewCards();
+  paintAutoDuelShortcutStatus();pruneReviewCards();if(typeof paintAutoFollow==='function')paintAutoFollow();
 }
 
 function showAutoDuelZone(key) {

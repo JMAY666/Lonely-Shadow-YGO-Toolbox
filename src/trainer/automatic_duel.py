@@ -111,7 +111,10 @@ class AutomaticDuels:
         if not plan or plan['automatic_revision']!=body.get('revision'):
             raise ValueError('方案或匹配条件已变化，请刷新方案列表后重新选择。')
         with self.lock:
-            self.context(context['id']);context['selected_plan']=deepcopy(plan);self.save(context)
+            self.context(context['id']);context['selected_plan']=deepcopy(plan)
+            context['selected_temporary']=None
+            context['selection_version']=context.get('selection_version',0)+1
+            self.save(context)
         return plan
 
     def dispatch(self,body):
@@ -131,6 +134,10 @@ class AutomaticDuels:
             if not closed:
                 if result_sid and result_sid not in context['planner_ids']:context['planner_ids'].append(result_sid)
                 if intent=='plan-close':context['planner_ids']=[p for p in context['planner_ids'] if p!=sid]
+                if intent=='plan-adopt':
+                    context['selected_plan']=None
+                    context['selected_temporary']={'id':result_sid,'route':result.get('route')}
+                    context['selection_version']=context.get('selection_version',0)+1
                 self.save(context)
         if closed:
             # A queued preparation may be created after close_owner ran, and
@@ -145,6 +152,8 @@ class AutomaticDuels:
             context=self.context(body.get('context_id'),active=False)
             context['closed']=True;context['closed_ms']=self.now();self.save(context)
             sessions=list(context['planner_ids'])
+        # Retire outside our lock: follower validation acquires this lock too.
+        if getattr(self.store,'duel_follow',None):self.store.duel_follow.retire_context(context['id'])
         self.store.modular.precompute.close_owner('automatic-duel', context['id'])
         for sid in sessions:
             if sid in self.store.planning:

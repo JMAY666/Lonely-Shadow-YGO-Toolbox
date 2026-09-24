@@ -38,6 +38,7 @@ import ygopro_capture
 from ygopro_order import OrderMonitor
 from automatic_duel import AutomaticDuels
 from ygopro_smart import SmartRecognition
+from duel_follow import FollowService
 from intelligence import Intelligence, main_card
 from opening_workspace import OpeningWorkspace
 from live_duel import LiveDuel
@@ -197,6 +198,7 @@ class Store:
         self.ygopro_order = OrderMonitor(self, atomic_json, now)
         self.automatic_duel = AutomaticDuels(self, read_json, atomic_json, now)
         self.ygopro_smart = SmartRecognition(self, atomic_json, now)
+        self.duel_follow = FollowService(self, atomic_json, now)
         if desktop:
             from desktop_runtime import OwnedJob
             self.job = OwnedJob()
@@ -1039,6 +1041,8 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/automatic-duel/select': return self.send(store.automatic_duel.select(body))
                 if path == '/api/automatic-duel/dispatch': return self.send(store.automatic_duel.dispatch(body))
                 if path == '/api/automatic-duel/close': return self.send(store.automatic_duel.close(body))
+                if path == '/api/automatic-duel/follow/start': return self.send(store.duel_follow.start(body))
+                if path == '/api/automatic-duel/follow/poll': return self.send(store.duel_follow.poll(body))
                 if path == '/api/decks/tag-options': return self.send(store.deck_tag_options(body))
                 if path == '/api/card-favorites': return self.send(store.set_favorite(body))
                 if path == '/api/plan-favorites': return self.send(store.plan_favorites(body))
@@ -1186,7 +1190,7 @@ class Handler(BaseHTTPRequestHandler):
                     files['/' + name] = name
                 if path in files:
                     p = WEB / files[path]; return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0] + '; charset=utf-8')
-                if path in ('/duel-auto-workspace.js','/duel-auto-views.js','/duel-auto-forecast.js','/duel-auto-workspace.css'):
+                if path in ('/duel-auto-workspace.js','/duel-auto-views.js','/duel-auto-forecast.js','/duel-auto-follow.js','/duel-auto-workspace.css'):
                     p=WEB/path[1:];return self.send(p.read_bytes(),mimetypes.guess_type(p.name)[0]+'; charset=utf-8')
                 if path in ('/modular.js', '/modular.css', '/activation.js', '/plan-library.js', '/plan-library.css', '/tag-manager.js', '/tag-manager.css', '/compromise.js', '/compromise.css', '/compromise-tutorial.js', '/opponent.html', '/opponent.js'):
                     p = WEB / path[1:]; return self.send(p.read_bytes(), mimetypes.guess_type(p.name)[0] + '; charset=utf-8')

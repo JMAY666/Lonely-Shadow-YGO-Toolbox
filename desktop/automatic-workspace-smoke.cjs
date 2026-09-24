@@ -88,6 +88,7 @@ module.exports=async({page,application,root,evidence,pass})=>{
     await page.locator('#duel-steps [data-duel-stage="1"]').click();await page.locator('[data-duel-action="automatic"]').click();await page.waitForFunction(()=>!duelUI.busy);
     await page.locator('#duel-steps [data-duel-stage="4"]').click();await page.locator('[data-duel-stage="6"]').click();
     assert.equal(await page.evaluate(()=>autoDuelState().position.key),'main/s2');
+    await require('./duel-follow-smoke.cjs')({page,application,evidence,pass});
     await click('end');await page.waitForFunction(()=>duelState().stage===7);assert.equal(await application.evaluate(()=>globalThis.tutorialAcceptance.status().registered.length),0);
     assert(fs.readFileSync(planPath).equals(original),'Original saved plan stays byte-identical');
     assert.equal(await page.evaluate(()=>duelState().position.key),'manual-position');

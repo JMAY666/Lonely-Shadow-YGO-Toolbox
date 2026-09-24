@@ -28,6 +28,19 @@ class ForecastStateTests(unittest.TestCase):
         self.assertEqual(self.ctx['forecast_route'], before)
         self.modular.bridge.assert_not_called()
 
+    def test_live_confirmation_records_source_and_rechecks_guard_after_engine_work(self):
+        self.modular.bridge.return_value={'state':{'cards':[]},'raw':'0b00','player':0}
+        body={'id':'forecast','route':'route','index':0,'through':1}
+        guard=Mock(side_effect=ValueError('route changed'))
+        with self.assertRaisesRegex(ValueError,'route changed'):
+            confirm(self.modular,body,source='mdpro3-read-only',evidence={'event_through':42},guard=guard)
+        self.assertEqual(self.ctx['forecast_route']['confirmed'],0)
+        self.assertNotIn('forecast_state',self.ctx)
+        confirm(self.modular,body,source='mdpro3-read-only',evidence={'event_through':42},guard=Mock())
+        self.assertEqual(self.modular.audit.call_args.args[1],'live_confirmed_step')
+        self.assertEqual(self.modular.audit.call_args.kwargs['source'],'mdpro3-read-only')
+        self.assertEqual(self.ctx['forecast_route']['confirmed'],2)
+
     def test_interruption_is_applied_to_the_action_after_an_empty_response_acknowledgement(self):
         actor={'instance_id':1,'code':1,'controller':0,'location':4}
         self.ctx['forecast_route']['candidate']['steps']=[

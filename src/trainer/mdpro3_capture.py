@@ -5,6 +5,7 @@ code, remote calls, game inputs, deck-file imports or opponent card identities.
 """
 import hashlib
 import struct
+import time
 
 from capture_memory import CheckedMemory
 from ygopro_capture import CaptureError
@@ -188,3 +189,56 @@ class Reader(CheckedMemory):
         deck = self.deck()
         self.verify()
         return deck
+
+    def follow_sample(self, offset=0):
+        """Read processed, retained packets, never pending animation results.
+
+        Every ordinal is retained, including redacted/unsupported messages. This
+        lets the consumer detect holes without reading hidden opponent identities.
+        A bounded overlap checks that a cursor still addresses the same stream.
+        """
+        from duel_follow_events import read_packet
+        frame, start, _, processed = self.state()
+        if not start or not frame['evidence']['in_duel']:
+            raise CaptureError('当前不在可跟随的正式对局中。')
+        if frame['detected_order'] != 'first' or frame['evidence']['turn'] != 1:
+            raise CaptureError('实时跟随首版仅支持 BO1 先攻第一回合。')
+        if type(offset) is not int or not 0 <= offset <= processed or processed - offset > 4096:
+            raise CaptureError('消息游标失效或积压超出上限，请重新同步。')
+        all_list = self.pointer(self.cs + 0x198)
+        array = self.pointer(all_list + 16)
+        records = []
+        for i in range(max(0, offset - 1), processed):
+            package = self.pointer(array + 32 + i * 8)
+            kind = self.integer(package + 24)
+            stream = self.pointer(self.pointer(package + 16) + 16)
+            buffer = self.pointer(stream + 0x28)
+            origin, length = self.integer(stream + 0x30), self.integer(stream + 0x38)
+            capacity = struct.unpack('<Q', self.read(buffer + 24, 8))[0]
+            if origin or not 0 <= length <= 8192 or not length <= capacity <= 1024 * 1024:
+                self.fail()
+            def take(at, size):
+                if at < 0 or at + size > length: self.fail()
+                return self.read(buffer + 32 + at, size)
+            records.append({'seq': i, 'ref': format(package, 'x'), 'message': kind,
+                            **read_packet(kind, length, take)})
+        own, counts = [], {}
+        for card in self.sequence(self.pointer(self.cs + 0xe0), limit=512):
+            gps = self.pointer(card + 0x30)
+            controller, location, seq, pos = struct.unpack('<4I', self.read(gps + 16, 16))
+            if controller != 0 or not location: continue
+            if location not in (1, 2, 4, 8, 16, 32, 64, 132, 192): self.fail()
+            counts[str(location)] = counts.get(str(location), 0) + 1
+            # Deck / facedown Extra identities are unnecessary for following.
+            if location == 1 or location == 64 and not pos & 5: continue
+            code = self.integer(self.pointer(card + 0x20) + 0x10)
+            if not 0 < code <= 0x0fffffff: self.fail()
+            own.append({'instance_id': format(card, 'x'), 'code': code, 'controller': 0,
+                        'location': location, 'sequence': seq, 'position': pos})
+        pending = self.sequence(self.pointer(self.cs + 0x190), limit=200000, prefix=1)
+        head = self.integer(pending[0] + 24) if pending else None
+        self.verify()
+        return {'schema': 1, 'game': self.game, 'duel_token': frame['evidence']['duel_token'],
+                'turn': frame['evidence']['turn'], 'processed': processed, 'records': records,
+                'prompt': head, 'sampled_ms': int(time.time() * 1000),
+                'state': {'cards': own, 'counts': counts, 'source': 'mdpro3-read-only'}}

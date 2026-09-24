@@ -7,7 +7,7 @@ function autoRenderDuelForecast() {
   // continuation controls as an opening-hand generator.
   if(s.stage===duelStages.plans&&duelForecastHasProgress(s))return;
   if(s.stage===duelStages.tutorial&&!f.showResults&&s.plan?.temporary){
-    const info=document.createElement('p');info.id='auto-duel-forecast-progress';info.textContent=`本局临时方案 · 已确认 ${s.plan.confirmed} 步。下一步表示已照做；出现偏差请在对应步骤报告实际情况。`;
+    const info=document.createElement('p');info.id='auto-duel-forecast-progress';info.textContent=`本局临时方案 · 已确认 ${s.plan.confirmed} 步。${s.follow?'箭头仅浏览；实时完成证据或明确的手动确认写入操作历史。':'下一步表示已照做；出现偏差请在对应步骤报告实际情况。'}`;
     $('#auto-duel-content').prepend(info);return;
   }
   const panel=document.createElement('section');panel.className='modular-panel auto-duel-forecast';panel.id='auto-duel-modular-status';
@@ -52,11 +52,13 @@ async function autoAdoptDuelForecast(candidateId) {
     s.routes=duelPlanRoutes(s.plan);s.graph=DuelModel.graph(s.routes);
     const first=reviewNodes(s.plan).find(n=>n.kind==='step'&&n.forecast_index===0);
     s.position={key:'main/'+(first?.id||'final'),choice:0};s.enabled=true;s.ended=false;autoDuelReach(duelStages.tutorial);autoDuelTell('');
+    if(typeof startAutoFollow==='function')void startAutoFollow(s);
   }finally{if(generation===f.generation)f.busy=false;renderAutoDuel();void syncAutoDuelShortcuts();}
 }
 
 async function autoAdvanceDuelForecast() {
   const s=autoDuelState(),f=s.forecast,p=s.plan;if(!f||f.busy||!p?.temporary)return;
+  if(s.follow){autoFollowBrowse(s);s.position=DuelModel.navigate(s.graph,s.position,'forward');paintAutoDuelPosition();return;}
   if(p.stale)return autoDuelTell('当前后续正在重新生成，请采用最新路线后继续。');
   const node=autoDuelNodeSource(s.graph.nodes.find(n=>n.key===s.position.key)).node;
   if(node.kind==='step'&&node.number-2>=p.confirmed){
@@ -70,6 +72,7 @@ async function autoAdvanceDuelForecast() {
 
 async function autoSelectForecastNode(key) {
   const s=autoDuelState(),p=s.plan,target=s.graph.nodes.find(n=>n.key===key);if(!target||s.forecast?.busy)return;
+  if(s.follow){autoFollowBrowse(s);s.position={key,choice:0};paintAutoDuelPosition();return;}
   const next=DuelModel.navigate(s.graph,s.position,'forward');
   if(key!==s.position.key&&key===next.key)return autoAdvanceDuelForecast();
   const node=autoDuelNodeSource(target).node;
@@ -79,6 +82,7 @@ async function autoSelectForecastNode(key) {
 
 async function autoOpenDuelObservation() {
   const s=autoDuelState(),f=s.forecast,p=s.plan;if(!p?.temporary||!f||f.busy)return;
+  if(s.follow?.id)await pollAutoFollow(s,s.follow,'pause');
   const node=autoDuelNodeSource(s.graph.nodes.find(n=>n.key===s.position.key)).node;
   if(node.kind!=='step'||node.forecast_index<0)return autoDuelTell('请选择当前临时路线中需要报告实际情况的步骤。');
   let selected=[],searchRevision=0,timer;

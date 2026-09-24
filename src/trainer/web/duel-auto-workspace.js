@@ -22,6 +22,7 @@ function automaticDeckContext(){const d=duelState().automatic;return {name:d.nam
 async function disposeAutoDuel(){
   const draft=duelState().automatic,s=draft.workspace;draft.workspace=null;closeAutoDuelPreview();
   if(!s)return;++s.generation;s.enabled=false;s.ended=true;
+  if(typeof stopAutoFollow==='function')stopAutoFollow(s);
   dropDuelForecast(s);
   if(autoDuelObservationDialog.open)autoDuelObservationDialog.close();
   await api('/api/automatic-duel/close',{context_id:s.context.context_id}).catch(()=>{});
@@ -49,12 +50,14 @@ async function refreshAutoDuel(){await autoDuelWork(async s=>{
 });}
 async function chooseAutoDuelPlan(id){await autoDuelWork(async s=>{
   const candidate=s.result?.matches.find(p=>p.id===id);if(!candidate)return;
+  if(typeof stopAutoFollow==='function')stopAutoFollow(s);
   const generation=++s.generation,plan=await api('/api/automatic-duel/select',{context_id:s.context.context_id,plan_id:id,revision:candidate.automatic_revision});
   if(s!==autoDuelState()||generation!==s.generation)return;
   if(s.tutorialForecast)releasePreparedForecast(s,s.tutorialForecast);
   s.tutorialForecast=s.forecast=null;s.plan=plan;s.routes=duelPlanRoutes(plan);s.graph=DuelModel.graph(s.routes);
   s.position={key:s.graph.start,choice:0};s.enabled=true;s.ended=false;s.session='automatic-'+crypto.randomUUID();
   closeAutoDuelPreview();closeReviewDetail();autoDuelTell('');autoDuelReach(duelStages.tutorial);
+  if(typeof startAutoFollow==='function')void startAutoFollow(s);
 });void syncAutoDuelShortcuts();}
 function autoDuelFavoriteButton(plan){return `<button type="button" class="plan-favorite-toggle" data-auto-plan-favorite="${escape(plan.id)}" aria-pressed="${!!plan.favorite}" aria-label="${escape((plan.favorite?'取消收藏：':'收藏方案：')+plan.name)}">${plan.favorite?'★':'☆'}</button>`;}
 async function toggleAutoDuelFavorite(id){await autoDuelWork(async s=>{
@@ -82,17 +85,19 @@ function mountAutoDuelWorkspace(){
   root.onpointerdown=event=>{if(event.button===0&&event.target.closest('[data-auto-duel-node]'))closeAutoDuelPreview();};
   root.onkeydown=event=>{const node=event.target.closest('[data-auto-duel-node]');if(node&&['Enter',' '].includes(event.key)){event.preventDefault();node.click();}};
   if(s.stage===duelStages.tutorial&&s.plan){mountAutoDuelGraphResize();layoutAutoDuelGraph();paintAutoDuelPosition();}
+  if(typeof paintAutoFollow==='function')paintAutoFollow();
   if(s.busy)root.querySelectorAll('button,input,select').forEach(el=>el.disabled=true);
   pruneReviewCards();void syncAutoDuelShortcuts();
 }
 async function handleAutoDuelClick(event){
   const s=autoDuelState(),button=event.target.closest('button'),node=event.target.closest('[data-auto-duel-node]');
   if(!s||s.busy)return;
-  if(node){event.stopPropagation();closeAutoDuelPreview();closeReviewDetail();if(s.plan.temporary)return autoSelectForecastNode(node.dataset.autoDuelNode);s.position={key:node.dataset.autoDuelNode,choice:0};paintAutoDuelPosition();return;}
+  if(node){event.stopPropagation();closeAutoDuelPreview();closeReviewDetail();if(s.follow){autoFollowBrowse(s);s.position={key:node.dataset.autoDuelNode,choice:0};paintAutoDuelPosition();return;}if(s.plan.temporary)return autoSelectForecastNode(node.dataset.autoDuelNode);s.position={key:node.dataset.autoDuelNode,choice:0};paintAutoDuelPosition();return;}
   if(!button||button.disabled)return;
+  if(button.dataset.autoFollow){event.stopPropagation();return handleAutoFollowClick(button.dataset.autoFollow);}
   if(button.dataset.autoDuelPlan){event.stopPropagation();return chooseAutoDuelPlan(button.dataset.autoDuelPlan);}
   if(button.dataset.autoPlanFavorite){event.stopPropagation();return toggleAutoDuelFavorite(button.dataset.autoPlanFavorite);}
-  if(button.dataset.autoDuelChoice!==undefined){event.stopPropagation();s.position.choice=Number(button.dataset.autoDuelChoice);paintAutoDuelPosition(false);return;}
+  if(button.dataset.autoDuelChoice!==undefined){event.stopPropagation();if(s.follow)autoFollowBrowse(s);s.position.choice=Number(button.dataset.autoDuelChoice);paintAutoDuelPosition(false);return;}
   if(button.dataset.reviewZone){event.stopPropagation();showAutoDuelZone(button.dataset.reviewZone);return;}
   if(button.dataset.autoDuelCloseZone!==undefined){event.stopPropagation();$('#auto-duel-zone-content').hidden=true;return;}
   const action=button.dataset.autoDuelAction;if(!action)return;
@@ -112,10 +117,12 @@ async function handleAutoDuelClick(event){
 function autoDuelNavigate(action){
   const s=autoDuelState();if(!autoDuelVisible(s)||s.stage!==duelStages.tutorial||s.ended||s.busy||duelUI.busy||s.forecast?.busy||document.querySelector('dialog[open]')||moduleUI.current!=='duel')return;
   if(action==='end')return void endAutoDuel();
-  if(action==='forward'&&s.plan.temporary)return void autoAdvanceDuelForecast().catch(error=>autoDuelTell(error.message));
+  if(s.follow)autoFollowBrowse(s);
+  if(action==='forward'&&s.plan.temporary&&!s.follow)return void autoAdvanceDuelForecast().catch(error=>autoDuelTell(error.message));
   closeAutoDuelPreview();closeReviewDetail();s.position=DuelModel.navigate(s.graph,s.position,action);paintAutoDuelPosition();
 }
 async function endAutoDuel(){await autoDuelWork(async s=>{
+  if(typeof stopAutoFollow==='function')stopAutoFollow(s);
   dropDuelForecast(s);await api('/api/automatic-duel/close',{context_id:s.context.context_id});
   if(s!==autoDuelState())return;s.enabled=false;s.ended=true;s.session='automatic-'+crypto.randomUUID();autoDuelReach(duelStages.complete);closeAutoDuelPreview();
 });await syncAutoDuelShortcuts();}

@@ -36,6 +36,7 @@ function resetCaptureDialog(){
 function releaseSmartWorkspace(){
   if(typeof clearSecondOpening==='function')clearSecondOpening();
   const workspace=autoDuelState();if(!workspace)return;
+  if(typeof stopAutoFollow==='function')stopAutoFollow(workspace);
   workspace.ended=true;++workspace.generation;workspace.enabled=false;dropDuelForecast(workspace);
   closeAutoDuelPreview();closeReviewDetail();
   if(autoDuelObservationDialog.open)autoDuelObservationDialog.close();

@@ -356,7 +356,12 @@ class Capture:
                     raise CaptureError('游戏场景已变化，请重新监测。')
                 return result
 
-    def _unity_sample(self, capture_id, *, with_deck=False, with_opening=False, submitted=False):
+    def follow_sample(self, capture_id, offset=0):
+        if not self.attached or self.attached.get('platform') != 'mdpro3':
+            raise CaptureError('实时跟随目前只适配 MDPRO3。')
+        return self._unity_sample(capture_id, follow_offset=offset)
+
+    def _unity_sample(self, capture_id, *, with_deck=False, with_opening=False, submitted=False, follow_offset=None):
         with self.lock:
             attached = self.attached
             if not attached or attached['capture_id'] != capture_id or attached.get('platform') not in ('ygopro2', 'mdpro3', 'masterduel'):
@@ -375,6 +380,8 @@ class Capture:
                     module = 'mono.dll'
                 reader = Reader(memory, memory.image_base(attached['pid'], module))
                 if submitted: return reader.submitted_deck()
+                if follow_offset is not None:
+                    return {**reader.follow_sample(follow_offset), 'capture_id': capture_id}
                 return {**reader.sample(with_deck, with_opening), 'capture_id': capture_id}
 
 

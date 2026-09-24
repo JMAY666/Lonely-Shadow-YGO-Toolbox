@@ -114,6 +114,45 @@ class Memory:
 
 
 class ReaderTests(unittest.TestCase):
+    def test_follow_reads_beyond_opening_prefix_and_keeps_processed_boundary(self):
+        m = Memory()
+        m.packets += [m.packet(40, b'\0')] + [m.packet(2, bytes(6)) for _ in range(140)]
+        m.packets += [m.packet(11, bytes(9))]
+        m.set_packets(len(m.packets)-1); m.put(m.cs+0x28, 'i', 1); m.put(m.cs+0x188, 'i', 11)
+        reader = Reader(m, m.base); value = reader.follow_sample()
+        self.assertEqual(len(value['records']),144)
+        self.assertEqual(value['prompt'],11)
+        self.assertEqual(value['state']['counts']['2'],5)
+        self.assertEqual([c['code'] for c in value['state']['cards']],m.hand)
+        self.assertTrue(value['records'][2]['opponent_draw'])
+        self.assertNotIn('raw',value['records'][2])
+        tail = Reader(m,m.base).follow_sample(140)
+        self.assertEqual([r['seq'] for r in tail['records']],list(range(139,144)))
+        with self.assertRaises(CaptureError):Reader(m,m.base).follow_sample(1000)
+
+    def test_follow_checks_live_snapshot_and_does_not_read_hidden_opponent(self):
+        m = Memory();m.packets.append(m.packet(40,b'\0'));m.set_packets(4);m.put(m.cs+0x28,'i',1)
+        value=Reader(m,m.base).follow_sample()
+        self.assertEqual(value['duel_token'],format(m.start,'x'))
+        opposing=m.payloads[m.opponent_draw]
+        self.assertFalse(any(a < opposing+22 and a+n > opposing+2 for a,n in m.reads))
+        # A reader's guarded structures may not change during a sample.
+        reader=Reader(m,m.base); original=m.read
+        def changing(address,size):
+            result=original(address,size)
+            if address==m.cs+0x28:m.put(address,'i',2)
+            return result
+        m.read=changing
+        with self.assertRaises(CaptureError):reader.follow_sample()
+
+    def test_follow_accepts_materials_attached_before_extra_host_enters_field(self):
+        m=Memory();m.packets.append(m.packet(40,b'\0'));m.set_packets(4);m.put(m.cs+0x28,'i',1)
+        gps=struct.unpack('<Q',m.read(m.hand_objects[0]+0x30,8))[0]
+        m.put(gps+16,'4I',0,192,0,0)
+        value=Reader(m,m.base).follow_sample()
+        self.assertEqual(value['state']['counts']['192'],1)
+        self.assertEqual(next(c for c in value['state']['cards'] if c['location']==192)['code'],m.hand[0])
+
     def test_first_and_second_order_duplicate_hand_and_no_opponent_ids(self):
         for first in (True, False):
             m = Memory(first)

@@ -165,7 +165,7 @@ def commit_projection(ctx, value):
     ctx.pop('forecast_job', None)
 
 
-def confirm(modular, body):
+def confirm(modular, body, *, source='manual', evidence=None, guard=None):
     sid, ctx, route, index = route_context(modular, body)
     candidate = route['candidate']; through = body.get('through', index)
     if type(through) is not int or not index <= through < len(candidate['steps']): raise ValueError('步骤确认范围无效')
@@ -175,9 +175,13 @@ def confirm(modular, body):
     if candidate.get('observation_required') and through == len(candidate['steps']) - 1:
         raise ValueError('此步骤包含随机结果，请先填写实际获得或堆墓的卡牌')
     path = candidate['path'][:step['path_end']]; following = modular.bridge(sid, route['base'], path)
+    if guard: guard()
     commit_projection(ctx, projected(route['base'], following, path, step.get('if_memory')))
     ctx['forecast_steps'] = route['prefix'] + deepcopy(candidate['steps'][:through + 1]); route['confirmed'] = through + 1
-    modular.audit(ctx, 'user_confirmed_step', step=index, through=through, route=route['id'])
+    if evidence is not None:
+        evidence = {**deepcopy(evidence), 'confirmed_ms': time.time_ns() // 1_000_000}
+    modular.audit(ctx, 'user_confirmed_step' if source == 'manual' else 'live_confirmed_step',
+                  step=index, through=through, route=route['id'], source=source, evidence=evidence)
     return response(modular, sid, ctx)
 
 
