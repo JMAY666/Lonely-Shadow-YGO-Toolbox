@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updated_on": "2026-09-24",
-  "note": "通用效果 TAG 与受控词表。TAG 表达卡片间的共性能力；每张卡的具体参数（来源区域、数量、费用、限制）记录在标注结构里，不因共用 TAG 而可互相替代。同义词仅用于检索匹配提示，不改变定义。",
+  "note": "通用效果 TAG 与受控词表。TAG 表达卡片间的共性能力；每张卡的具体参数（来源区域、数量、费用、限制）记录在标注结构里，不因共用 TAG 而可互相替代。同义词仅用于检索匹配提示，不改变定义。 第三批（2026-09-24）新增 actions.set_position、actions.take_control 处理与 cost_kinds.remove_counter 费用受控取值（定义与正反例见 docs/card-annotation-system.md §4）。",
   "tags": [
     {
       "id": "etag:add-hand",
@@ -274,7 +274,9 @@
       "heal": "回复基本分",
       "damage_modify": "战斗伤害变更",
       "set_card": "把魔法·陷阱卡盖放到场上",
-      "attach_material": "把这张卡转移为对象怪兽的超量素材"
+      "attach_material": "把这张卡转移为对象怪兽的超量素材",
+      "set_position": "变更场上怪兽的表示形式（表侧/里侧·攻击/守备）",
+      "take_control": "得到对方怪兽的控制权（时限见结构说明）"
     },
     "cost_kinds": {
       "discard_self": "把这张卡从手卡丢弃",
@@ -288,7 +290,8 @@
       "banish": "把卡除外（费用，具体来源区域见文字说明）",
       "send_grave_cost": "把卡送去墓地（费用，具体来源区域见文字说明）",
       "detach_material": "把这张卡的超量素材取除（费用）",
-      "material_as_cost": "素材手续（旧取值，新增标注请使用规则文本）"
+      "material_as_cost": "素材手续（旧取值，新增标注请使用规则文本）",
+      "remove_counter": "把场上指示物取除作为费用（种类与数量见文字说明）"
     },
     "usage_limits": {
       "soft_opt": "每张表侧卡片每回合1次（具体措辞以原文为准）",
