@@ -42,6 +42,7 @@ from duel_follow import FollowService
 from intelligence import Intelligence, main_card
 from opening_workspace import OpeningWorkspace
 from live_duel import LiveDuel
+from card_annotations import CardAnnotations
 
 WORKSPACE = Path(__file__).resolve().parents[2]
 RUNTIME = WORKSPACE / '.local/YGOPro-Lite'
@@ -187,6 +188,7 @@ class Store:
         self.history_plan_names = {}
         self.library = PlanLibrary(self, read_json, atomic_json, now)
         self.intelligence = Intelligence(self)
+        self.card_annotations = CardAnnotations(self, read_json, atomic_json, now)
         self.opening_workspace = OpeningWorkspace(self, read_json, atomic_json, now)
         self.live_duel = LiveDuel(self, read_json, atomic_json, now)
         self.compromise = Compromise(self, read_json, atomic_json, atomic_bytes)
@@ -210,6 +212,7 @@ class Store:
         catalog = Catalog(self.runtime)
         builtins = builtin_tags(self.runtime)
         self.catalog, self.library.builtins = catalog, builtins
+        self.card_annotations.reload()
         self.modular.precompute.invalidate_all()
         with self.modular.lock:
             for sid in self.modular.sessions: self.modular.planning_cache.discard(sid)
@@ -1011,6 +1014,7 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/modular/auto': return self.send(store.modular.automatic(body))
                 if path == '/api/tags/save': return self.send(store.library.edit_tag(body))
                 if path == '/api/intelligence': return self.send(store.intelligence.command(body))
+                if path == '/api/annotations': return self.send(store.card_annotations.command(body))
                 if path == '/api/opening/analyze': return self.send(store.opening_workspace.analyze(body))
                 if path == '/api/opening/save': return self.send(store.opening_workspace.command(body))
                 if path == '/api/duel/live': return self.send(store.live_duel.command(body))
@@ -1092,6 +1096,7 @@ class Handler(BaseHTTPRequestHandler):
                 if path.startswith('/api/modular/state/'): return self.send(store.modular.status(path.rsplit('/', 1)[1]))
                 if path == '/api/bootstrap': return self.send({'token': self.server.token, 'cards': len(store.catalog.cards), 'sources': store.catalog.sources, 'runtime': str(store.runtime), 'embedded': bool(store.host)})
                 if path == '/api/intelligence': return self.send(store.intelligence.snapshot())
+                if path == '/api/annotations': return self.send(store.card_annotations.snapshot())
                 if path == '/api/intelligence/opponents':
                     from intelligence_opponents import snapshot
                     return self.send(snapshot(store))
@@ -1180,6 +1185,7 @@ class Handler(BaseHTTPRequestHandler):
                 files.update({'/deck-tags.js': 'deck-tags.js', '/deck-tags.css': 'deck-tags.css', '/theme.css': 'theme.css'})
                 files['/scrollbars.css'] = 'scrollbars.css'
                 files.update({'/intelligence.js': 'intelligence.js', '/intelligence.css': 'intelligence.css'})
+                files.update({'/card-annotations.js': 'card-annotations.js', '/card-annotations.css': 'card-annotations.css'})
                 files.update({'/going-second.js': 'going-second.js', '/going-second.css': 'going-second.css', '/opening-summary.js': 'opening-summary.js'})
                 files.update({'/live-duel.js': 'live-duel.js', '/live-duel.css': 'live-duel.css'})
                 files.update({f'/{name}': name for name in ('intelligence-matchups.js', 'intelligence-matchups.css')})

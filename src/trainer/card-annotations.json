@@ -1,0 +1,1264 @@
+{
+  "version": 1,
+  "id": "card-annotations-2026-09-24",
+  "title": "卡片效果结构化标注 · 首批代表性样本",
+  "checked_on": "2026-09-24",
+  "verified_against": {
+    "cards.cdb": "5f13245de4e665450858f66ef2f736a3d2f48cc7f0036961373a96a650cb6797"
+  },
+  "note": "首批样本覆盖：多效果编号、效果内分支、共享／互斥次数限制、灵摆双文本区、召唤条件与素材规则文本、通常怪兽（无效果）、无效／除外／破坏／检索／回收／封锁等机制。每个效果的 tags 只表达共性能力；来源区域、数量、费用、对象与限制等差异记录在 structure 中，共用标签不代表可互相替代。",
+  "cards": {
+    "89631139": {
+      "code": 89631139,
+      "text_digest": "f63bbcaee9000316092515ee1e15c0ac659f9dbe7bfb3ee65974ee02f1515830",
+      "no_effect": true,
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "通常怪兽：卡文为描述文本，无规则效果，逐字核对。"
+      },
+      "effects": [],
+      "relations": [],
+      "notes": [
+        {
+          "text": "通常怪兽样本：不标注任何效果 TAG；检索『无效果怪兽』时按卡片层类型判断，不按标签缺失判断。",
+          "source_refs": [
+            "card-annotations-2026-09-24:89631139"
+          ]
+        }
+      ]
+    },
+    "14558127": {
+      "code": 14558127,
+      "text_digest": "1136cabcce1bbc674a794f6c8d2ad03e60ccefd1d93cc3be6099afbf011ca6d8",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "卡文逐字核对；手坑用途另见情报站手坑资料。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [],
+          "structure": {},
+          "notes": [
+            {
+              "text": "纯粹的次数限制文本，无独立效果；限制关系记录在 relations。",
+              "source_refs": [
+                "card-annotations-2026-09-24:14558127"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:negate-effect"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "on_any_effect",
+              "zones": [
+                "hand"
+              ],
+              "conditions": [
+                "仅限包含以下任意种效果的效果发动时：从卡组把卡加入手卡／从卡组把怪兽特殊召唤／从卡组把卡送去墓地"
+              ],
+              "fast_effect": true
+            },
+            "cost": [
+              {
+                "kind": "discard_self",
+                "text": "把这张卡从手卡丢弃"
+              }
+            ],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "negate_effect",
+                "count": "1",
+                "selector": {
+                  "text": "发动中的那个效果"
+                },
+                "duration": "该次发动"
+              }
+            ],
+            "usage": [
+              "name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "三个●项目是同一效果的适用范围（条件列表），不是三次独立干扰；『那个效果无效』无效的是效果，不是发动。",
+              "source_refs": [
+                "card-annotations-2026-09-24:14558127"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "shared_limit",
+          "effects": [
+            "m1"
+          ],
+          "text": "这个卡名的效果1回合只能使用1次。",
+          "scope": "同名卡共享"
+        }
+      ],
+      "notes": []
+    },
+    "10045474": {
+      "code": 10045474,
+      "text_digest": "ead116fe47d94e23cafda76af3ce495c168138d12aa5846c9f99eb35f034781f",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "卡文逐字核对。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [],
+          "structure": {},
+          "notes": [
+            {
+              "text": "条件文本：允许在满足『自己场上没有卡』时从手卡直接发动，属于①发动区域的条件扩展，不构成独立效果。",
+              "source_refs": [
+                "card-annotations-2026-09-24:10045474"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:negate-effect"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "manual",
+              "zones": [
+                "spell",
+                "hand"
+              ],
+              "conditions": [
+                "手卡直接发动需自己场上没有卡（见条件文本）"
+              ],
+              "fast_effect": true
+            },
+            "cost": [],
+            "targeting": [
+              {
+                "count": 1,
+                "filter": "对方场上1只表侧表示怪兽"
+              }
+            ],
+            "processing": [
+              {
+                "action": "negate_effect",
+                "count": "1",
+                "selector": {
+                  "text": "对象怪兽"
+                },
+                "duration": "直到回合结束时",
+                "branches": [
+                  {
+                    "condition": "盖放的这张卡发动的场合",
+                    "actions": [
+                      {
+                        "action": "negate_effect",
+                        "selector": {
+                          "text": "与这张卡相同纵列的其他魔法·陷阱卡"
+                        },
+                        "duration": "这个回合中"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "usage": []
+          },
+          "notes": [
+            {
+              "text": "追加无效化只在与盖放发动的分支绑定；手卡直接发动（满足条件文本）时不适用追加处理。",
+              "source_refs": [
+                "card-annotations-2026-09-24:10045474"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [],
+      "notes": []
+    },
+    "16387555": {
+      "code": 16387555,
+      "text_digest": "41eaaec6be4e0a69836b97b1f50e13b3555325c13ad7da26e712cbe50f80238c",
+      "review": {
+        "status": "reviewed",
+        "origin": "engine",
+        "checked_on": "2026-09-24",
+        "basis": "卡文逐字核对；效果编号与脚本映射经 card_semantics.AUDITED_EFFECTS 引擎验证（c16387555.spop / c16387555.rmop）。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [
+            "etag:material-rule"
+          ],
+          "structure": {},
+          "notes": [
+            {
+              "text": "同调素材规则文本：场上的这张卡作素材时，手卡1只调整也可作为同调素材。属规则文本，不是可发动效果。",
+              "source_refs": [
+                "card-annotations-2026-09-24:16387555"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:special-summon",
+            "etag:lock"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "on_normal_summon",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "这张卡召唤的场合"
+              ],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "special_summon",
+                "count": "1",
+                "from_zones": [
+                  "hand",
+                  "deck",
+                  "grave"
+                ],
+                "to_zones": [
+                  "monster"
+                ],
+                "selector": {
+                  "text": "「杀手级调整曲·提示员」以外的1只调整"
+                },
+                "restrictions": [
+                  "这个回合，自己不是调整不能特殊召唤"
+                ]
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "engine": {
+            "script": "c16387555.spop",
+            "location": 4,
+            "audited": true
+          },
+          "notes": [
+            {
+              "text": "特召来源区域为手卡·卡组·墓地三处；召唤自锁只限当回合。",
+              "source_refs": [
+                "card-annotations-2026-09-24:16387555"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:banish",
+            "etag:return-deck",
+            "etag:deck-look"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "on_material_sent",
+              "zones": [
+                "grave"
+              ],
+              "conditions": [
+                "这张卡作为同调素材送去墓地的场合"
+              ],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "deck_reveal",
+                "count": "2",
+                "from_zones": [
+                  "opponent_deck"
+                ],
+                "selector": {
+                  "text": "对方卡组上面2张"
+                }
+              },
+              {
+                "action": "banish",
+                "count": "1",
+                "selector": {
+                  "text": "翻开的2张中的1张"
+                }
+              },
+              {
+                "action": "return_deck",
+                "count": "1",
+                "to_zones": [
+                  "deck_top",
+                  "deck_bottom"
+                ],
+                "selector": {
+                  "text": "另1张",
+                  "choice": "选择放回最上面或最下面"
+                }
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "engine": {
+            "script": "c16387555.rmop",
+            "location": 16,
+            "audited": true
+          },
+          "notes": [
+            {
+              "text": "操作对象是对方卡组顶部；除外与回卡组针对翻开的两张各一张。",
+              "source_refs": [
+                "card-annotations-2026-09-24:16387555"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "material_rule",
+          "effects": [],
+          "text": "场上的这张卡为素材作同调召唤的场合，手卡1只调整也能作为同调素材。"
+        },
+        {
+          "kind": "usage_limit_group",
+          "effects": [
+            "m1",
+            "m2"
+          ],
+          "text": "这个卡名的①②的效果1回合各能使用1次。",
+          "scope": "同名卡共享、各编号独立"
+        }
+      ],
+      "notes": []
+    },
+    "17209452": {
+      "code": 17209452,
+      "text_digest": "a9960e40b0b0ec57a08ac98915ff4876e0ef0a4e4fe4056389fa81c64faea16d",
+      "review": {
+        "status": "reviewed",
+        "origin": "engine",
+        "checked_on": "2026-09-24",
+        "basis": "卡文逐字核对；效果编号与脚本映射经 card_semantics.AUDITED_EFFECTS 引擎验证（c17209452.sumop / c17209452.efop）。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [
+            "etag:material-rule"
+          ],
+          "structure": {},
+          "notes": [
+            {
+              "text": "同调素材规则文本，同系列共用句式；不是可发动效果。",
+              "source_refs": [
+                "card-annotations-2026-09-24:17209452"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:normal-summon"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "manual",
+              "zones": [
+                "hand"
+              ],
+              "conditions": [
+                "把手卡的这张卡和手卡1只调整给对方观看"
+              ],
+              "fast_effect": false
+            },
+            "cost": [
+              {
+                "kind": "reveal_self",
+                "text": "把手卡的这张卡给对方观看"
+              },
+              {
+                "kind": "reveal",
+                "text": "手卡1只调整给对方观看"
+              }
+            ],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "normal_summon",
+                "count": "1",
+                "to_zones": [
+                  "monster"
+                ],
+                "selector": {
+                  "text": "被观看的那只调整（进行1只调整的召唤）"
+                }
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "engine": {
+            "script": "c17209452.sumop",
+            "location": 2,
+            "audited": true
+          },
+          "notes": [
+            {
+              "text": "进行的是通常召唤（召唤），不是特殊召唤；费用为展示而非丢弃，两张卡都留在手卡直至召唤。",
+              "source_refs": [
+                "card-annotations-2026-09-24:17209452"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:return-deck",
+            "etag:hand-look",
+            "etag:add-hand"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "on_material_sent",
+              "zones": [
+                "grave"
+              ],
+              "conditions": [
+                "这张卡作为同调素材送去墓地的场合"
+              ],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "return_deck",
+                "count": "1",
+                "from_zones": [
+                  "opponent_grave"
+                ],
+                "to_zones": [
+                  "deck_bottom"
+                ],
+                "selector": {
+                  "text": "对方墓地1张卡"
+                },
+                "branch": "A"
+              },
+              {
+                "action": "hand_reveal",
+                "count": "all",
+                "from_zones": [
+                  "opponent_hand"
+                ],
+                "selector": {
+                  "text": "对方手卡全部确认"
+                },
+                "branch": "B",
+                "then": [
+                  {
+                    "action": "add_hand",
+                    "count": "up_to_1",
+                    "from_zones": [
+                      "deck"
+                    ],
+                    "selector": {
+                      "text": "1张「杀手级调整曲」魔法·陷阱卡",
+                      "series": [
+                        "set:1d5"
+                      ]
+                    },
+                    "optional": true
+                  }
+                ]
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "engine": {
+            "script": "c17209452.efop",
+            "location": 16,
+            "audited": true
+          },
+          "notes": [
+            {
+              "text": "发动时从 A／B 两个分支中选择其一；B 分支的检索是确认手卡之后的可选追加（『可以从卡组…加入手卡』）。",
+              "source_refs": [
+                "card-annotations-2026-09-24:17209452"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "material_rule",
+          "effects": [],
+          "text": "场上的这张卡为素材作同调召唤的场合，手卡1只调整也能作为同调素材。"
+        },
+        {
+          "kind": "usage_limit_group",
+          "effects": [
+            "m1",
+            "m2"
+          ],
+          "text": "这个卡名的①②的效果1回合各能使用1次。",
+          "scope": "同名卡共享、各编号独立"
+        },
+        {
+          "kind": "choose_branch",
+          "effects": [
+            "m2"
+          ],
+          "text": "②可以从以下效果选择1个发动。"
+        }
+      ],
+      "notes": []
+    },
+    "16509007": {
+      "code": 16509007,
+      "text_digest": "55cb7815cef74f0344f48b4d584240909aa2690deef3e38b4903cba0f2147544",
+      "review": {
+        "status": "reviewed",
+        "origin": "engine",
+        "checked_on": "2026-09-24",
+        "basis": "卡文逐字核对；效果编号与脚本映射经 card_semantics.AUDITED_EFFECTS 引擎验证（c16509007.thop / c16509007.desop）。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [
+            "etag:material-rule"
+          ],
+          "structure": {},
+          "notes": [
+            {
+              "text": "同调素材规则文本；不是可发动效果。",
+              "source_refs": [
+                "card-annotations-2026-09-24:16509007"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:add-hand"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "on_summon",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "这张卡召唤·特殊召唤的场合"
+              ],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "add_hand",
+                "count": "1",
+                "from_zones": [
+                  "deck",
+                  "grave"
+                ],
+                "selector": {
+                  "text": "2星怪兽以外的1只「杀手级调整曲」怪兽",
+                  "series": [
+                    "set:1d5"
+                  ],
+                  "exclude": "2星（等级2）怪兽"
+                },
+                "to_zones": [
+                  "hand"
+                ]
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "engine": {
+            "script": "c16509007.thop",
+            "location": 4,
+            "audited": true
+          },
+          "notes": [
+            {
+              "text": "来源区域为卡组·墓地；与『E-紧急呼唤』（仅卡组）、『暗黑爆发』（仅墓地）共用加入手卡标签但参数不同，不可互相替代。",
+              "source_refs": [
+                "card-annotations-2026-09-24:16509007"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:destroy"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "on_material_sent",
+              "zones": [
+                "grave"
+              ],
+              "conditions": [
+                "这张卡作为同调素材送去墓地的场合"
+              ],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [
+              {
+                "count": 1,
+                "filter": "对方场上1只怪兽"
+              }
+            ],
+            "processing": [
+              {
+                "action": "destroy",
+                "count": "1",
+                "selector": {
+                  "text": "对象怪兽"
+                }
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "engine": {
+            "script": "c16509007.desop",
+            "location": 16,
+            "audited": true
+          },
+          "notes": [
+            {
+              "text": "对象在发动时指定；破坏不除外。",
+              "source_refs": [
+                "card-annotations-2026-09-24:16509007"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "material_rule",
+          "effects": [],
+          "text": "场上的这张卡为素材作同调召唤的场合，手卡1只调整也能作为同调素材。"
+        },
+        {
+          "kind": "usage_limit_group",
+          "effects": [
+            "m1",
+            "m2"
+          ],
+          "text": "这个卡名的①②的效果1回合各能使用1次。",
+          "scope": "同名卡共享、各编号独立"
+        }
+      ],
+      "notes": []
+    },
+    "24224830": {
+      "code": 24224830,
+      "text_digest": "32a6598657e4924e5be4f05ce2160f3c5173afb590cb177a2a1b6b1c9c657b6e",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "卡文逐字核对；护航用途另见起手分析护航资料。"
+      },
+      "effects": [
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:banish",
+            "etag:negate-effect"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "manual",
+              "zones": [
+                "hand"
+              ],
+              "conditions": [
+                "速攻魔法：对方回合也可发动"
+              ],
+              "fast_effect": true
+            },
+            "cost": [],
+            "targeting": [
+              {
+                "count": 1,
+                "filter": "对方墓地1只怪兽"
+              }
+            ],
+            "processing": [
+              {
+                "action": "banish",
+                "count": "1",
+                "from_zones": [
+                  "opponent_grave"
+                ],
+                "selector": {
+                  "text": "对象怪兽"
+                }
+              },
+              {
+                "action": "negate_effect",
+                "count": "1",
+                "selector": {
+                  "text": "被除外的怪兽及原本卡名与其相同的怪兽"
+                },
+                "duration": "直到下个回合的结束时"
+              }
+            ],
+            "usage": []
+          },
+          "notes": [
+            {
+              "text": "无效对象是卡名维度：除外的那只与同名卡的效果都无效；持续到下个回合的结束时。",
+              "source_refs": [
+                "card-annotations-2026-09-24:24224830"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [],
+      "notes": []
+    },
+    "41546": {
+      "code": 41546,
+      "text_digest": "7e08bf6b8f87239daa403998d99bd04c3a44fb9a43b74c4a6305535dd87d5fb9",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "卡文逐字核对（灵摆双文本区分段）。"
+      },
+      "effects": [
+        {
+          "key": "p-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "block": "pendulum",
+          "tags": [],
+          "structure": {},
+          "notes": [
+            {
+              "text": "灵摆效果的次数限制文本；限制关系记录在 relations。",
+              "source_refs": [
+                "card-annotations-2026-09-24:41546"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "p1",
+          "kind": "numbered",
+          "number": 1,
+          "block": "pendulum",
+          "tags": [
+            "etag:add-hand"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "spell"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "add_hand",
+                "count": "1",
+                "from_zones": [
+                  "extra_faceup"
+                ],
+                "selector": {
+                  "text": "1只表侧表示的「DD」灵摆怪兽",
+                  "series": [
+                    "set:af"
+                  ]
+                },
+                "to_zones": [
+                  "hand"
+                ]
+              }
+            ],
+            "usage": [
+              "name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "来源区域是额外卡组表侧表示区（灵摆区被破坏后表侧放置的区域），不是主卡组。",
+              "source_refs": [
+                "card-annotations-2026-09-24:41546"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "block": "monster",
+          "tags": [],
+          "structure": {},
+          "notes": [
+            {
+              "text": "怪兽效果的次数限制文本；限制关系记录在 relations。",
+              "source_refs": [
+                "card-annotations-2026-09-24:41546"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "block": "monster",
+          "tags": [
+            "etag:destroy",
+            "etag:special-summon",
+            "etag:damage-modify"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "manual",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [
+              {
+                "count": 1,
+                "filter": "自己的灵摆区域1张「DD」卡"
+              }
+            ],
+            "processing": [
+              {
+                "action": "destroy",
+                "count": "1",
+                "selector": {
+                  "text": "对象灵摆卡"
+                },
+                "then": [
+                  {
+                    "action": "special_summon",
+                    "count": "1",
+                    "from_zones": [
+                      "deck"
+                    ],
+                    "to_zones": [
+                      "monster"
+                    ],
+                    "selector": {
+                      "text": "1只8星「DDD」怪兽（DD 的上位子系列）",
+                      "series": [
+                        "set:af"
+                      ]
+                    },
+                    "position": "守备表示",
+                    "restrictions": [
+                      "这个回合，这个效果特殊召唤的怪兽的效果无效化",
+                      "这个回合，对方受到的战斗伤害变成一半"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "usage": [
+              "name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "破坏自己灵摆区是处理内容的一部分（同时是后续特召的前提），不是费用；召唤自负面（效果无效／伤害减半）记录在 restrictions，不挂无效标签。",
+              "source_refs": [
+                "card-annotations-2026-09-24:41546"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "usage_limit_group",
+          "effects": [
+            "p1"
+          ],
+          "text": "「DD 魔导贤者 托马斯」的灵摆效果1回合只能使用1次。",
+          "scope": "同名卡共享"
+        },
+        {
+          "kind": "usage_limit_group",
+          "effects": [
+            "m1"
+          ],
+          "text": "「DD 魔导贤者 托马斯」的怪兽效果1回合只能使用1次。",
+          "scope": "同名卡共享"
+        }
+      ],
+      "notes": [
+        {
+          "text": "灵摆样本：p* 键属于灵摆区文本，m* 键属于怪兽区文本；两侧次数限制彼此独立。",
+          "source_refs": [
+            "card-annotations-2026-09-24:41546"
+          ]
+        }
+      ]
+    },
+    "703897": {
+      "code": 703897,
+      "text_digest": "353b805c71ddcc863ddfd7059b481012cda27d9bb62b464718358ca54b62de9a",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "卡文逐字核对。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [],
+          "structure": {},
+          "notes": [
+            {
+              "text": "互斥次数限制文本：①②合计每回合仅可使用其一；限制关系记录在 relations。",
+              "source_refs": [
+                "card-annotations-2026-09-24:703897"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:negate-activation",
+            "etag:banish"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "on_any_effect",
+              "zones": [
+                "spell"
+              ],
+              "conditions": [
+                "自己场上有「自奏圣乐」连接怪兽存在"
+              ],
+              "fast_effect": true
+            },
+            "cost": [],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "negate_activation",
+                "count": "1",
+                "selector": {
+                  "text": "发动中的怪兽效果·魔法·陷阱卡"
+                }
+              },
+              {
+                "action": "banish",
+                "count": "1",
+                "selector": {
+                  "text": "被无效发动的那张卡"
+                }
+              }
+            ],
+            "usage": [
+              "shared_name_once"
+            ]
+          },
+          "notes": [
+            {
+              "text": "无效的是发动并顺带除外；需要场上已有「自奏圣乐」连接怪兽。",
+              "source_refs": [
+                "card-annotations-2026-09-24:703897"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:add-hand",
+            "etag:lock"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "manual",
+              "zones": [
+                "grave"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [
+              {
+                "kind": "banish_self_from_grave",
+                "text": "把墓地的这张卡除外"
+              }
+            ],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "add_hand",
+                "count": "1",
+                "from_zones": [
+                  "deck",
+                  "banished"
+                ],
+                "to_zones": [
+                  "hand"
+                ],
+                "selector": {
+                  "text": "自己的卡组·除外状态的1只机械族·暗属性怪兽"
+                },
+                "restrictions": [
+                  "这个效果发动的回合，自己不是机械族·暗属性怪兽不能特殊召唤"
+                ]
+              }
+            ],
+            "usage": [
+              "shared_name_once"
+            ]
+          },
+          "notes": [
+            {
+              "text": "费用是把自己从墓地除外；检索来源含除外区；发动后当回合特殊召唤被锁定为机械族·暗属性。",
+              "source_refs": [
+                "card-annotations-2026-09-24:703897"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "exclusive_choice",
+          "effects": [
+            "m1",
+            "m2"
+          ],
+          "text": "这个卡名的①②的效果1回合只能有1次使用其中任意1个。",
+          "scope": "同名卡共享且互斥"
+        }
+      ],
+      "notes": []
+    },
+    "213326": {
+      "code": 213326,
+      "text_digest": "7901cbe65ae40c1ab62a52273a75b3efe1ac51b349da846f4172a454e319e72a",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "卡文逐字核对。"
+      },
+      "effects": [
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:add-hand"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "manual",
+              "zones": [
+                "hand"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "add_hand",
+                "count": "1",
+                "from_zones": [
+                  "deck"
+                ],
+                "selector": {
+                  "text": "1只「元素英雄」怪兽"
+                },
+                "to_zones": [
+                  "hand"
+                ]
+              }
+            ],
+            "usage": []
+          },
+          "notes": [
+            {
+              "text": "最简检索样本：来源仅卡组、无费用、无次数限制。",
+              "source_refs": [
+                "card-annotations-2026-09-24:213326"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [],
+      "notes": []
+    },
+    "674561": {
+      "code": 674561,
+      "text_digest": "e3d2ae6ec8bf9dc1502c2c70ead5c66ed408360427d505bb49ec6917c9e30435",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "卡文逐字核对。"
+      },
+      "effects": [
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:add-hand"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "manual",
+              "zones": [
+                "hand"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [
+              {
+                "count": 1,
+                "filter": "自己墓地1只攻击力1500以下的暗属性怪兽"
+              }
+            ],
+            "processing": [
+              {
+                "action": "add_hand",
+                "count": "1",
+                "from_zones": [
+                  "grave"
+                ],
+                "selector": {
+                  "text": "对象怪兽"
+                },
+                "to_zones": [
+                  "hand"
+                ]
+              }
+            ],
+            "usage": []
+          },
+          "notes": [
+            {
+              "text": "回收样本：与『E-紧急呼唤』同为加入手卡标签，但来源区域是墓地且需满足攻击力／属性筛选；两者不可互相替代。",
+              "source_refs": [
+                "card-annotations-2026-09-24:674561"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [],
+      "notes": []
+    }
+  }
+}

@@ -1,0 +1,127 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+const test = require('node:test');
+const source = fs.readFileSync(path.join(__dirname, '../src/trainer/web/card-annotations.js'), 'utf8');
+
+function setup() {
+  const nodes = new Map();
+  const $ = key => {
+    if (!nodes.has(key)) nodes.set(key, {value: '', textContent: '', innerHTML: '', hidden: false,
+      setAttribute() {}, style: {}});
+    return nodes.get(key);
+  };
+  const context = vm.createContext({$, structuredClone, setTimeout: () => 1, clearTimeout() {},
+    escape: s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c])),
+    notice() {}, run: fn => fn,
+    api: async () => ({})});
+  vm.runInContext(source.slice(0, source.indexOf("$('#card-annotations').addEventListener"))
+    + '\nglobalThis.e={annoUI,annoEffectLabel,annoCardKind,annoEvidenceItems,annoProcessingLines,annoStructureLines,annoOverviewHTML,annoResultsHTML,annoDetailHTML,annoRelationLabel};', context);
+  return {context, $, ...context.e};
+}
+
+const registry = {
+  tags: {'etag:add-hand': {id: 'etag:add-hand', name: '加入手卡', definition: '', category: 'resource', synonyms: []},
+         'etag:banish': {id: 'etag:banish', name: '除外', definition: '', category: 'removal', synonyms: []}},
+  actions: {add_hand: '加入手卡', banish: '除外', special_summon: '特殊召唤'},
+  zones: {deck: '卡组', hand: '手卡', grave: '墓地', banished: '除外区', monster: '怪兽区'},
+  cost_kinds: {discard_self: '把这张卡从手卡丢弃'},
+  usage_limits: {name_soft_opt: '这个卡名的效果1回合只能使用1次'},
+  timings: {on_summon: '召唤·特殊召唤成功时', manual: '任意时点'},
+  categories: {resource: '资源与检索', removal: '除去与转移'},
+};
+
+test('effect labels distinguish numbered, leading text and pendulum blocks', () => {
+  const e = setup();
+  assert.equal(e.annoEffectLabel({number: 2, key: 'm2', block: 'm'}), '②');
+  assert.equal(e.annoEffectLabel({number: 1, key: 'p1', block: 'p'}), '灵摆·①');
+  assert.equal(e.annoEffectLabel({number: null, key: 'm-pre', block: 'm'}), '前置文本');
+});
+
+test('card kinds combine type bits and normal monsters stay distinguishable', () => {
+  const e = setup();
+  assert.equal(e.annoCardKind(0x21), '效果怪兽');
+  assert.equal(e.annoCardKind(0x11), '通常怪兽');
+  assert.equal(e.annoCardKind(0x2), '魔法');
+  assert.equal(e.annoCardKind(0x102), '魔法');
+  assert.equal(e.annoCardKind(0x100004), '陷阱');
+});
+
+test('evidence rows name the condition, value and basis', () => {
+  const e = setup();
+  const html = e.annoEvidenceItems({evidence: [
+    {condition: 'tag', value: ['etag:add-hand'], basis: '效果 TAG'},
+    {condition: 'from_zone', value: 'deck', basis: '卡组'}]});
+  assert.match(html, /效果 TAG：etag:add-hand — 效果 TAG/);
+  assert.match(html, /来源区域：deck — 卡组/);
+});
+
+test('processing lines render nested then and conditional branches with selectors', () => {
+  const e = setup();
+  const lines = e.annoProcessingLines([
+    {action: 'add_hand', count: '1', from_zones: ['deck'], to_zones: ['hand'], selector: {text: '1只怪兽'}},
+    {action: 'banish', selector: {text: '那张卡'}, then: [{action: 'special_summon', count: 'up_to_1', from_zones: ['grave']}],
+     branches: [{condition: '盖放发动', actions: [{action: 'banish', selector: {text: '同纵列卡'}}]}]}], registry);
+  assert.match(lines[0], /加入手卡×1（卡组 → 手卡）：1只怪兽/);
+  assert.ok(lines.some(line => line.includes('↳') && line.includes('特殊召唤×至多1')));
+  assert.ok(lines.some(line => line.includes('若「盖放发动」')));
+});
+
+test('structure lines cover activation, cost, targeting, usage and fast-effect note', () => {
+  const e = setup();
+  const lines = e.annoStructureLines({structure: {
+    activation: {timing: 'on_summon', zones: ['hand'], conditions: ['手卡发动需自己场上没有卡'], fast_effect: true},
+    cost: [{kind: 'discard_self', text: '把这张卡从手卡丢弃'}],
+    targeting: [{count: 1, filter: '对方场上1只表侧表示怪兽'}],
+    processing: [{action: 'banish', selector: {text: '对象怪兽'}}],
+    usage: ['name_soft_opt']}}, registry);
+  assert.ok(lines.some(line => line.startsWith('发动：召唤·特殊召唤成功时') && line.includes('区域 手卡') && line.includes('可在对方回合使用')));
+  assert.ok(lines.some(line => line.includes('费用：把这张卡从手卡丢弃')));
+  assert.ok(lines.some(line => line.includes('对象：1×')));
+  assert.ok(lines.some(line => line.includes('次数：这个卡名的效果1回合只能使用1次')));
+});
+
+test('results list shows per-effect hits, cross-effect warning and unknown-is-not-negative note', () => {
+  const e = setup();
+  const html = e.annoResultsHTML({total: 1, offset: 0, annotated_total: 4, catalog_total: 5,
+    note: '查询只在已标注范围内命中', cards: [
+      {code: 20000003, name: '测试卡', type: 0x21, status: 'reviewed', cross_effects: true,
+       hits: [{key: 'm1', number: 1, block: 'm', text: '①：测试效果', tags: ['etag:add-hand'],
+               evidence: [{condition: 'tag', value: ['etag:add-hand'], basis: '效果 TAG'}]}]}]});
+  assert.match(html, /命中 1 张（已标注 4 \/ 卡库 5/);
+  assert.match(html, /跨效果命中/);
+  assert.match(html, /已核对/);
+  assert.match(html, /①：测试效果/);
+  const empty = e.annoResultsHTML({total: 0, offset: 0, annotated_total: 4, catalog_total: 5, note: '', cards: []});
+  assert.match(empty, /未标注不代表没有该能力/);
+});
+
+test('detail marks stale entries, unannotated segments and drafts as auto', () => {
+  const e = setup();
+  const stale = e.annoDetailHTML({code: 1, name: '测试', type: 2, status: 'stale', digest_ok: false,
+    text_digest: 'a'.repeat(64), review: {status: 'reviewed', origin: 'manual'},
+    provenance: {source: 'curated', title: '内置资料', checked_on: '2026-09-24'},
+    no_effect: false, missing_keys: [], relations: [], notes: [],
+    effects: [{key: 'm1', number: 1, block: 'm', text: '①：旧文本', annotated: true, tags: ['etag:add-hand'], notes: []},
+              {key: 'm2', number: null, block: 'm', text: '前置文本', annotated: false}]}, registry);
+  assert.match(stale, /卡库卡文已变化/);
+  assert.match(stale, /未标注/);
+  assert.ok(!stale.includes('data-anno-op="draft"'), 'stale entries cannot generate drafts');
+  const fresh = e.annoDetailHTML({code: 1, name: '测试', type: 2, status: 'none', digest_ok: true,
+    text_digest: 'a'.repeat(64), review: null, provenance: null, no_effect: false,
+    missing_keys: ['m1'], relations: [], notes: [], effects: [{key: 'm1', number: 1, block: 'm', text: '①', annotated: false}]}, registry);
+  assert.match(fresh, /data-anno-op="draft"/);
+});
+
+test('overview chips reflect selectable statuses and catalog source digest', () => {
+  const e = setup();
+  const html = e.annoOverviewHTML({catalog: {cards: 14981, sources: [{path: 'cards.cdb', sha256: '5f13245de4e6'}]},
+    tokens: 265, annotated_total: 11, statuses: {reviewed: 11, none: 14970, stale: 0},
+    curated: {title: '样本', checked_on: '2026-09-24'}, registry: {tags: 18}, stale_codes: [], missing_codes: [], note: '未标注 ≠ 没有能力'});
+  assert.match(html, /卡库 14981 张（含衍生物 265/);
+  assert.match(html, /cards\.cdb/);
+  assert.match(html, /aria-pressed="true"/);
+  assert.match(html, /未标注 ≠ 没有能力/);
+  assert.doesNotMatch(html, /待核对<\/span>/, 'no stale highlight when none are stale');
+});
