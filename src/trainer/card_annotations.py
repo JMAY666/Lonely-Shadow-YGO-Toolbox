@@ -210,6 +210,8 @@ def _check_processing(items, registry, where):
                 raise ValueError(f'{where}仪式素材处理须登记来源和后续仪式召唤')
         if item.get('action') == 'grant_effect' and not item.get('then'):
             raise ValueError(f'{where}赋予效果须登记未来处理')
+        if item.get('action') == 'place_faceup_card' and 'spell' not in item.get('to_zones', []):
+            raise ValueError(f'{where}表侧放置永续魔陷须登记魔陷区去向')
         for restriction in item.get('restrictions', []):
             _check_text(restriction, f'{where}限制', 400)
 

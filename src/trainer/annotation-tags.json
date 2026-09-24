@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updated_on": "2026-09-25",
-  "note": "通用效果 TAG 与受控词表。TAG 表达卡片间的共性能力；每张卡的具体参数（来源区域、数量、费用、限制）记录在标注结构里，不因共用 TAG 而可互相替代。同义词仅用于检索匹配提示，不改变定义。 第三批（2026-09-24）新增 actions.set_position、actions.take_control 处理与 cost_kinds.remove_counter 费用受控取值（定义与正反例见 docs/card-annotation-system.md §4）。 第四批按官方裁定新增分支、素材处理、复制效果、装备、LP损失、额外素材区等受控取值；不变更既有TAG ID，正反例与兼容规则见 docs/card-annotation-system.md §4。",
+  "note": "通用效果 TAG 与受控词表。TAG 表达卡片间的共性能力；每张卡的具体参数（来源区域、数量、费用、限制）记录在标注结构里，不因共用 TAG 而可互相替代。同义词仅用于检索匹配提示，不改变定义。 第三批（2026-09-24）新增 actions.set_position、actions.take_control 处理与 cost_kinds.remove_counter 费用受控取值（定义与正反例见 docs/card-annotation-system.md §4）。 第四批按官方裁定新增分支、素材处理、复制效果、装备、LP损失、额外素材区等受控取值；不变更既有TAG ID，正反例与兼容规则见 docs/card-annotation-system.md §4。 第五批新增 place_faceup_card、modify_activation_window、allow_direct_attack、require_attack_payment 等受控动作，定义与反例见 docs/card-annotation-system.md §4；既有 TAG ID 保持不变。",
   "tags": [
     {
       "id": "etag:add-hand",
@@ -293,7 +293,11 @@
       "equip_card": "把当前魔法卡装备到指定场上怪兽",
       "grant_piercing": "赋予装备怪兽对守备怪兽攻击时造成贯通战斗伤害的规则",
       "lose_lp": "由效果处理使自己失去基本分，不等同效果伤害或发动费用",
-      "place_field_spell": "从指定来源把场地魔法表侧放置到场地区域（非盖放）"
+      "place_field_spell": "从指定来源把场地魔法表侧放置到场地区域（非盖放）",
+      "place_faceup_card": "从指定来源把永续魔法或永续陷阱表侧放置到魔法陷阱区（非盖放）",
+      "modify_activation_window": "持续改变指定效果可发动的回合或时点，本身不发动那些效果",
+      "allow_direct_attack": "允许指定怪兽按卡文条件直接攻击对方玩家",
+      "require_attack_payment": "每次攻击宣言时必须支付规定基本分；不是效果发动费用"
     },
     "cost_kinds": {
       "discard_self": "把这张卡从手卡丢弃",

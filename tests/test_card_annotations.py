@@ -155,6 +155,16 @@ class CardAnnotationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, '融合素材处理'):
             validate_entry(entry, registry, {'m1'}, card_type=2)
 
+        entry['effects'][0]['tags'] = []
+        entry['effects'][0]['effect_type'] = 'spell_effect'
+        entry['effects'][0]['structure']['processing'] = [
+            {'action': 'place_faceup_card', 'selector': {'text': '墓地的永续陷阱'},
+             'from_zones': ['grave'], 'to_zones': ['spell']}]
+        validate_entry(entry, registry, {'m1'}, card_type=2)
+        entry['effects'][0]['structure']['processing'][0]['to_zones'] = ['field_spell']
+        with self.assertRaisesRegex(ValueError, '表侧放置永续魔陷'):
+            validate_entry(entry, registry, {'m1'}, card_type=2)
+
     def test_usage_and_action_filters(self):
         locked = self.service.search({'etags': ['etag:special-summon'], 'usage': 'per_effect_name_soft_opt'})
         self.assertEqual([c['code'] for c in locked['cards']], [20000003])
