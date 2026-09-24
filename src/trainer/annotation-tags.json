@@ -272,7 +272,9 @@
       "hand_reveal": "确认手卡",
       "burn": "效果伤害",
       "heal": "回复基本分",
-      "damage_modify": "战斗伤害变更"
+      "damage_modify": "战斗伤害变更",
+      "set_card": "把魔法·陷阱卡盖放到场上",
+      "attach_material": "把这张卡转移为对象怪兽的超量素材"
     },
     "cost_kinds": {
       "discard_self": "把这张卡从手卡丢弃",
@@ -283,6 +285,9 @@
       "reveal": "给对方观看",
       "tribute": "解放",
       "lp": "支付基本分",
+      "banish": "把卡除外（费用，具体来源区域见文字说明）",
+      "send_grave_cost": "把卡送去墓地（费用，具体来源区域见文字说明）",
+      "detach_material": "把这张卡的超量素材取除（费用）",
       "material_as_cost": "素材手续（旧取值，新增标注请使用规则文本）"
     },
     "usage_limits": {
@@ -318,6 +323,8 @@
       "trap_effect": "陷阱效果的发动",
       "pendulum_activation": "灵摆效果的发动",
       "non_effect": "规则／限制文本（非效果）",
+      "no_chain_effect": "不产生连锁块的效果（官方裁定不属于起动／诱发／诱发即时／永续任一类）",
+      "spell_effect": "魔法效果的发动（非卡片放置时的发动，如从墓地发动的魔法效果）",
       "unclassified": "待核对效果类别"
     }
   }

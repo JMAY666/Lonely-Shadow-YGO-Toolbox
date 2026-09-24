@@ -6,7 +6,7 @@
   "verified_against": {
     "cards.cdb": "5f13245de4e665450858f66ef2f736a3d2f48cc7f0036961373a96a650cb6797"
   },
-  "note": "首批样本覆盖：多效果编号、效果内分支、共享／互斥次数限制、灵摆双文本区、召唤条件与素材规则文本、通常怪兽（无效果）、无效／除外／破坏／检索／回收／封锁等机制。每个效果的 tags 只表达共性能力；来源区域、数量、费用、对象与限制等差异记录在 structure 中，共用标签不代表可互相替代。",
+  "note": "首批样本覆盖：多效果编号、效果内分支、共享／互斥次数限制、灵摆双文本区、召唤条件与素材规则文本、通常怪兽（无效果）、无效／除外／破坏／检索／回收／封锁等机制。每个效果的 tags 只表达共性能力；来源区域、数量、费用、对象与限制等差异记录在 structure 中，共用标签不代表可互相替代。 第二批（2026-09-24）：按引擎审计清单补全 AUDITED_EFFECTS 其余 35 张，效果类别以官方 FAQ 補足情報为准；新增 no_chain_effect、spell_effect 效果类别与 set_card、attach_material 处理、banish、send_grave_cost、detach_material 费用受控取值。",
   "cards": {
     "89631139": {
       "code": 89631139,
@@ -1433,7 +1433,5604 @@
           "format": "OCG"
         }
       ]
+    },
+    "6128460": {
+      "code": 6128460,
+      "text_digest": "d2ae487bcad5f0f78e4bfadb15457af3a1717db638a6e32722d3a34a55813f25",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "次数限制文本：仅③受同名共享限制；限制关系记录在 relations。",
+              "source_refs": [
+                "konami-15726"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [],
+          "structure": {},
+          "effect_type": "no_chain_effect",
+          "notes": [
+            {
+              "text": "官方裁定：不属于起动／诱发／诱发即时／永续任一类（不产生连锁块）。在墓地当作「白骨」使用，不当作「白骨烤王」。",
+              "source_refs": [
+                "konami-15726"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:protect"
+          ],
+          "effect_type": "no_chain_effect",
+          "structure": {
+            "processing": [
+              {
+                "action": "protect",
+                "selector": {
+                  "text": "自己场上3星以下的不死族怪兽"
+                },
+                "restrictions": [
+                  "被战斗·效果破坏的场合，可以作为代替把手卡的这张卡丢弃",
+                  "代替战斗破坏时在伤害计算时决定适用、伤害计算后丢弃",
+                  "多只同时被效果破坏也可以只丢弃这一张代替"
+                ]
+              }
+            ]
+          },
+          "notes": [
+            {
+              "text": "官方裁定：不属于四类中任一类；代替适用不属于效果发动。",
+              "source_refs": [
+                "konami-15726"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m3",
+          "kind": "numbered",
+          "number": 3,
+          "tags": [
+            "etag:add-hand",
+            "etag:send-grave"
+          ],
+          "effect_type": "trigger",
+          "structure": {
+            "activation": {
+              "timing": "condition_text",
+              "zones": [
+                "grave"
+              ],
+              "conditions": [
+                "这张卡被送去墓地的场合（伤害步骤也能发动；不取对象）"
+              ],
+              "fast_effect": false
+            },
+            "processing": [
+              {
+                "action": "add_hand",
+                "count": "2",
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "hand"
+                ],
+                "selector": {
+                  "text": "「白骨」及「白骨烤王」以外的有「白骨」卡名记述的怪兽 合计2只（同名卡最多1张）"
+                },
+                "then": [
+                  {
+                    "action": "send_grave",
+                    "count": "1",
+                    "from_zones": [
+                      "hand"
+                    ],
+                    "selector": {
+                      "text": "1张手卡（处理后另行丢弃）"
+                    }
+                  }
+                ]
+              }
+            ],
+            "usage": [
+              "name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "加入手卡与丢弃手卡是顺序处理，不同时；「有『白骨』卡名记述的怪兽」指卡文中以特定卡名记载「白骨」的怪兽。",
+              "source_refs": [
+                "konami-15726"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "shared_limit",
+          "effects": [
+            "m3"
+          ],
+          "text": "这个卡名的③的效果1回合只能使用1次。",
+          "scope": "同名卡共享"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "这个卡名的③的效果1回合只能使用1次。\r\n①：这张卡的卡名只要在墓地存在当作「白骨」使用。\r\n②：自己场上的3星以下的不死族怪兽被战斗·效果破坏的场合，可以作为代替把手卡的这张卡丢弃。\r\n③：这张卡被送去墓地的场合才能发动。从卡组把以下怪兽合计2只加入手卡（同名卡最多1张）。那之后，选1张手卡丢弃。\r\n●「白骨」\r\n●「白骨烤王」以外的有「白骨」的卡名记述的怪兽",
+      "sources": [
+        {
+          "id": "konami-15726",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=15726&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "8240199": {
+      "code": 8240199,
+      "text_digest": "6b1821b44d4c4c4313752ef133f6f96ad08c65111c7874d56e4f51c08ba5d291",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "次数限制文本：仅②受同名共享限制；限制关系记录在 relations。",
+              "source_refs": [
+                "konami-12292"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:add-hand"
+          ],
+          "effect_type": "trigger",
+          "structure": {
+            "activation": {
+              "timing": "on_normal_summon",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "这张卡召唤时（召唤成功直后）"
+              ],
+              "fast_effect": false
+            },
+            "processing": [
+              {
+                "action": "add_hand",
+                "count": "1",
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "hand"
+                ],
+                "selector": {
+                  "text": "「青色眼睛的贤士」以外的1只光属性·1星调整"
+                }
+              }
+            ],
+            "usage": []
+          },
+          "notes": [
+            {
+              "text": "召唤成功后若隔有其他处理（连锁2以后的效果处理导致召唤）则不能再发动。",
+              "source_refs": [
+                "konami-12292"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:send-grave",
+            "etag:special-summon"
+          ],
+          "effect_type": "ignition",
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "hand"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [
+              {
+                "kind": "discard_self",
+                "text": "把这张卡从手卡丢弃"
+              }
+            ],
+            "targeting": [
+              {
+                "count": 1,
+                "filter": "自己场上1只效果怪兽"
+              }
+            ],
+            "processing": [
+              {
+                "action": "send_grave",
+                "count": "1",
+                "from_zones": [
+                  "monster"
+                ],
+                "to_zones": [
+                  "grave"
+                ],
+                "selector": {
+                  "text": "对象怪兽"
+                }
+              },
+              {
+                "action": "special_summon",
+                "count": "1",
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "monster"
+                ],
+                "selector": {
+                  "text": "1只「青眼」怪兽"
+                },
+                "condition": "送墓成功后处理，与送墓视为同时处理"
+              }
+            ],
+            "usage": [
+              "name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "手卡发动的起动效果；对象怪兽送墓与「青眼」特殊召唤视为同时处理。",
+              "source_refs": [
+                "konami-12292"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "shared_limit",
+          "effects": [
+            "m2"
+          ],
+          "text": "这个卡名的②的效果1回合只能使用1次。",
+          "scope": "同名卡共享"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "这个卡名的②的效果1回合只能使用1次。\r\n①：这张卡召唤时才能发动。从卡组把「青色眼睛的贤士」以外的1只光属性·1星调整加入手卡。\r\n②：把这张卡从手卡丢弃，以自己场上1只效果怪兽为对象才能发动。那只怪兽送去墓地，从卡组把1只「青眼」怪兽特殊召唤。",
+      "sources": [
+        {
+          "id": "konami-12292",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=12292&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "14442329": {
+      "code": 14442329,
+      "text_digest": "55abc8981ce5f4ca0d0cfab7b91874c4f11056daa4c6c78f642400723f6faf16",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "次数限制文本：仅③受同名共享限制；限制关系记录在 relations。",
+              "source_refs": [
+                "konami-21962"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:normal-summon"
+          ],
+          "effect_type": "no_chain_effect",
+          "structure": {
+            "processing": [
+              {
+                "action": "normal_summon",
+                "count": "1",
+                "from_zones": [
+                  "hand"
+                ],
+                "to_zones": [
+                  "monster"
+                ],
+                "selector": {
+                  "text": "1只调整（可上级召唤，不能盖放）"
+                },
+                "restrictions": [
+                  "在通常召唤外加上1回合仅1次，自己主要阶段进行",
+                  "与其他『通常召唤外加上召唤』效果每回合合计只能适用其一",
+                  "进行该召唤时不产生连锁块，须告知对方"
+                ]
+              }
+            ]
+          },
+          "notes": [
+            {
+              "text": "官方裁定：场地区表侧表示的这张卡适用的不产生连锁块的效果；先通常召唤或先用本效果均可。",
+              "source_refs": [
+                "konami-21962"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:stat-change"
+          ],
+          "effect_type": "no_chain_effect",
+          "structure": {
+            "processing": [
+              {
+                "action": "stat_change",
+                "count": "1",
+                "selector": {
+                  "text": "自己场上的「杀手级调整曲响度战争」"
+                },
+                "restrictions": [
+                  "攻击力上升3300"
+                ],
+                "condition": "对方的场上或墓地有调整存在期间适用"
+              }
+            ]
+          },
+          "notes": [
+            {
+              "text": "官方裁定：不产生连锁块的效果；对方场上表侧或墓地有调整即适用。",
+              "source_refs": [
+                "konami-21962"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m3",
+          "kind": "numbered",
+          "number": 3,
+          "tags": [
+            "etag:add-hand",
+            "etag:special-summon",
+            "etag:lock"
+          ],
+          "effect_type": "ignition",
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "spell"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [
+              {
+                "kind": "tribute",
+                "text": "把自己场上1只调整解放（含里侧守备表示）"
+              }
+            ],
+            "processing": [
+              {
+                "action": "add_hand",
+                "count": "1",
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "hand"
+                ],
+                "selector": {
+                  "text": "1只「杀手级调整曲」怪兽",
+                  "series": [
+                    "set:1d5"
+                  ]
+                },
+                "branches": [
+                  {
+                    "condition": "或改为特殊召唤",
+                    "actions": [
+                      {
+                        "action": "special_summon",
+                        "count": "1",
+                        "from_zones": [
+                          "deck"
+                        ],
+                        "to_zones": [
+                          "monster"
+                        ],
+                        "selector": {
+                          "text": "1只「杀手级调整曲」怪兽",
+                          "series": [
+                            "set:1d5"
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "restrictions": [
+                  "本效果发动未被无效时，处理后至回合结束自己只能特殊召唤调整（无论加入手卡或特殊召唤是否成功）"
+                ]
+              }
+            ],
+            "usage": [
+              "name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "场地区发动的起动效果（自己主要阶段、产生连锁块）；从卡组选1只同名系列怪兽，加入手卡或特殊召唤二选一。",
+              "source_refs": [
+                "konami-21962"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "shared_limit",
+          "effects": [
+            "m3"
+          ],
+          "text": "这个卡名的③的效果1回合只能使用1次。",
+          "scope": "同名卡共享"
+        },
+        {
+          "kind": "choose_branch",
+          "effects": [
+            "m3"
+          ],
+          "text": "从卡组把1只「杀手级调整曲」怪兽加入手卡或特殊召唤。"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "这个卡名的③的效果1回合只能使用1次。\r\n①：自己在通常召唤外加上只有1次，自己主要阶段可以把1只调整召唤。\r\n②：只要对方的场上或墓地有调整存在，自己场上的「杀手级调整曲响度战争」的攻击力上升3300。\r\n③：把自己场上1只调整解放才能发动。从卡组选1只「杀手级调整曲」怪兽加入手卡或特殊召唤。这个效果的发动后，直到回合结束时自己不是调整不能特殊召唤。",
+      "sources": [
+        {
+          "id": "konami-21962",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=21962&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "14812471": {
+      "code": 14812471,
+      "text_digest": "fbc44ac288d5b1819facb518f01ff3eaf208cae0b5fb22a3f249d939b11fb7ed",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "连接素材文本与次数限制文本；限制关系记录在 relations。",
+              "source_refs": [
+                "konami-14249"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:add-hand"
+          ],
+          "effect_type": "trigger",
+          "structure": {
+            "activation": {
+              "timing": "on_summon",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "这张卡连接召唤的场合"
+              ],
+              "fast_effect": false
+            },
+            "processing": [
+              {
+                "action": "add_hand",
+                "count": "1",
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "hand"
+                ],
+                "selector": {
+                  "text": "1张「转生炎兽的圣域」"
+                }
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "连接召唤成功的场合的诱发效果。",
+              "source_refs": [
+                "konami-14249"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:protect"
+          ],
+          "effect_type": "no_chain_effect",
+          "structure": {
+            "processing": [
+              {
+                "action": "protect",
+                "selector": {
+                  "text": "自己场上的「转生炎兽」卡"
+                },
+                "restrictions": [
+                  "被战斗·效果破坏的场合，可以作为代替把墓地的这张卡除外",
+                  "代替战斗破坏时在伤害计算时决定适用、伤害计算后除外",
+                  "多张同时被效果破坏也可以只除外这一张代替"
+                ]
+              }
+            ]
+          },
+          "notes": [
+            {
+              "text": "官方裁定：不属于四类中任一类；墓地适用型代替破坏。",
+              "source_refs": [
+                "konami-14249"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "material_rule",
+          "effects": [],
+          "text": "4星以下的电子界族怪兽1只。"
+        },
+        {
+          "kind": "usage_limit_group",
+          "effects": [
+            "m1",
+            "m2"
+          ],
+          "text": "这个卡名的①②的效果1回合各能使用1次。",
+          "scope": "同名卡共享、各编号独立"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "4星以下的电子界族怪兽1只\r\n这个卡名的①②的效果1回合各能使用1次。\r\n①：这张卡连接召唤的场合才能发动。从卡组把1张「转生炎兽的圣域」加入手卡。\r\n②：自己场上的「转生炎兽」卡被战斗·效果破坏的场合，可以作为代替把墓地的这张卡除外。",
+      "sources": [
+        {
+          "id": "konami-14249",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14249&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "20001443": {
+      "code": 20001443,
+      "text_digest": "55a283ef674ce04076e0ddcae2c7e9ca6f97d290f27730d51b4f98b4364b4f72",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "次数限制文本：①②各编号受同名共享限制；限制关系记录在 relations。",
+              "source_refs": [
+                "konami-16489"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:special-summon",
+            "etag:lock"
+          ],
+          "effect_type": "trigger",
+          "structure": {
+            "activation": {
+              "timing": "on_summon",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "这张卡召唤·特殊召唤的场合（伤害步骤也能发动）"
+              ],
+              "fast_effect": false
+            },
+            "cost": [
+              {
+                "kind": "reveal",
+                "text": "把手卡1张「相剑」卡或1只幻龙族怪兽给对方观看"
+              }
+            ],
+            "processing": [
+              {
+                "action": "special_summon",
+                "count": "1",
+                "to_zones": [
+                  "monster"
+                ],
+                "selector": {
+                  "text": "1只「相剑衍生物」（幻龙族·调整·水·4星·攻/守0）"
+                },
+                "restrictions": [
+                  "这个效果特殊召唤的衍生物在自己·对方怪兽区存在期间，自己不是同调怪兽不能从额外卡组特殊召唤"
+                ]
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "展示手卡是发动条件的一部分（观看后留在手卡）；自锁适用期间以衍生物仍在场上为准。",
+              "source_refs": [
+                "konami-16489"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:draw"
+          ],
+          "effect_type": "trigger",
+          "structure": {
+            "activation": {
+              "timing": "on_material_sent",
+              "zones": [
+                "grave"
+              ],
+              "conditions": [
+                "这张卡作为同调素材送去墓地的场合"
+              ],
+              "fast_effect": false
+            },
+            "processing": [
+              {
+                "action": "draw",
+                "count": "1",
+                "to_zones": [
+                  "hand"
+                ]
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "墓地发动的诱发效果；这次同调召唤被无效的场合不能发动。",
+              "source_refs": [
+                "konami-16489"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "usage_limit_group",
+          "effects": [
+            "m1",
+            "m2"
+          ],
+          "text": "这个卡名的①②的效果1回合各能使用1次。",
+          "scope": "同名卡共享、各编号独立"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "这个卡名的①②的效果1回合各能使用1次。\r\n①：这张卡召唤·特殊召唤的场合，把手卡1张「相剑」卡或者1只幻龙族怪兽给对方观看才能发动。在自己场上把1只「相剑衍生物」（幻龙族·调整·水·4星·攻/守0）特殊召唤。只要这个效果特殊召唤的衍生物存在，自己不是同调怪兽不能从额外卡组特殊召唤。\r\n②：这张卡作为同调素材送去墓地的场合才能发动。自己抽1张。",
+      "sources": [
+        {
+          "id": "konami-16489",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=16489&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "20612097": {
+      "code": 20612097,
+      "text_digest": "90d48c191cd1b6fb0f2d37031edbefd9d0fe48ecd5e1e4bfb4d2b049309e50d1",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "互斥次数限制文本：①②合计每回合仅可使用其一；限制关系记录在 relations。",
+              "source_refs": [
+                "konami-15127"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:special-summon",
+            "etag:lock"
+          ],
+          "effect_type": "spell_activation",
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "spell"
+              ],
+              "conditions": [
+                "通常魔法：从手卡放置到魔法陷阱区发动或已盖放状态发动；伤害步骤不能发动"
+              ],
+              "fast_effect": false
+            },
+            "processing": [
+              {
+                "action": "special_summon",
+                "count": "1",
+                "from_zones": [
+                  "deck",
+                  "grave"
+                ],
+                "to_zones": [
+                  "monster"
+                ],
+                "selector": {
+                  "text": "1只不死族怪兽",
+                  "condition": "处理时自己场上没有「黄金国巫妖」怪兽表侧存在的场合，只能特殊召唤「黄金国巫妖」怪兽"
+                },
+                "restrictions": [
+                  "这张卡的发动后至回合结束，自己不是不死族怪兽不能特殊召唤（发动未被无效即适用，与特召是否成功无关）"
+                ]
+              }
+            ],
+            "usage": [
+              "shared_name_once"
+            ]
+          },
+          "notes": [
+            {
+              "text": "特殊召唤来源为自己的卡组或墓地；不死族限定自锁从发动后开始适用。",
+              "source_refs": [
+                "konami-15127"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [],
+          "effect_type": "spell_effect",
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "grave"
+              ],
+              "conditions": [
+                "墓地发动的魔法效果；伤害步骤不能发动"
+              ],
+              "fast_effect": false
+            },
+            "cost": [
+              {
+                "kind": "banish_self_from_grave",
+                "text": "把墓地的这张卡除外"
+              }
+            ],
+            "processing": [
+              {
+                "action": "set_card",
+                "count": "1",
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "spell"
+                ],
+                "selector": {
+                  "text": "1张「黄金乡」魔法·陷阱卡（盖放到自己场上）"
+                }
+              }
+            ],
+            "usage": [
+              "shared_name_once"
+            ]
+          },
+          "notes": [
+            {
+              "text": "墓地发动的魔法效果（非这张卡的放置发动）；把「黄金乡」魔法·陷阱盖放到自己场上。",
+              "source_refs": [
+                "konami-15127"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "exclusive_choice",
+          "effects": [
+            "m1",
+            "m2"
+          ],
+          "text": "这个卡名的①②的效果1回合只能有1次使用其中任意1个。",
+          "scope": "同名卡共享且互斥"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "这个卡名的①②的效果1回合只能有1次使用其中任意1个。\r\n①：从自己的卡组·墓地把1只不死族怪兽特殊召唤。自己场上没有「黄金国巫妖」怪兽存在的场合，这个效果不是「黄金国巫妖」怪兽不能特殊召唤。这张卡的发动后，直到回合结束时自己不是不死族怪兽不能特殊召唤。\r\n②：把墓地的这张卡除外才能发动。从卡组把1张「黄金乡」魔法·陷阱卡在自己场上盖放。",
+      "sources": [
+        {
+          "id": "konami-15127",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=15127&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "20618081": {
+      "code": 20618081,
+      "text_digest": "3d662e65faf2657bc64ad4b8388aa64808c1cc95dffa49b45602ad409de3a48c",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "互斥次数限制文本：①②合计每回合仅可使用其一；限制关系记录在 relations。",
+              "source_refs": [
+                "konami-13891"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [],
+          "effect_type": "trigger",
+          "structure": {
+            "activation": {
+              "timing": "condition_text",
+              "zones": [
+                "grave"
+              ],
+              "conditions": [
+                "这张卡被送去墓地的场合（伤害步骤也能发动）"
+              ],
+              "fast_effect": false
+            },
+            "targeting": [
+              {
+                "count": 1,
+                "filter": "自己墓地1张「转生炎兽」魔法·陷阱卡"
+              }
+            ],
+            "processing": [
+              {
+                "action": "set_card",
+                "count": "1",
+                "from_zones": [
+                  "grave"
+                ],
+                "to_zones": [
+                  "spell"
+                ],
+                "selector": {
+                  "text": "对象魔法·陷阱卡（盖放到自己场上）"
+                }
+              }
+            ],
+            "usage": [
+              "shared_name_once"
+            ]
+          },
+          "notes": [
+            {
+              "text": "墓地发动的诱发效果；取对象。",
+              "source_refs": [
+                "konami-13891"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:add-hand",
+            "etag:special-summon"
+          ],
+          "effect_type": "ignition",
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "grave"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "targeting": [
+              {
+                "count": 1,
+                "filter": "「转生炎兽 猎鹰」以外的自己场上1只「转生炎兽」怪兽"
+              }
+            ],
+            "processing": [
+              {
+                "action": "add_hand",
+                "count": "1",
+                "from_zones": [
+                  "monster"
+                ],
+                "to_zones": [
+                  "hand"
+                ],
+                "selector": {
+                  "text": "对象怪兽（回到持有者手卡）"
+                }
+              },
+              {
+                "action": "special_summon",
+                "count": "1",
+                "from_zones": [
+                  "grave"
+                ],
+                "to_zones": [
+                  "monster"
+                ],
+                "selector": {
+                  "text": "墓地的这张卡"
+                },
+                "condition": "与回手处理同时进行"
+              }
+            ],
+            "usage": [
+              "shared_name_once"
+            ]
+          },
+          "notes": [
+            {
+              "text": "墓地发动的起动效果；对象怪兽回到持有者手卡与这张卡从墓地特殊召唤视为同时处理。",
+              "source_refs": [
+                "konami-13891"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "exclusive_choice",
+          "effects": [
+            "m1",
+            "m2"
+          ],
+          "text": "这个卡名的①②的效果1回合只能有1次使用其中任意1个。",
+          "scope": "同名卡共享且互斥"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "这个卡名的①②的效果1回合只能有1次使用其中任意1个。\r\n①：这张卡被送去墓地的场合，以自己墓地1张「转生炎兽」魔法·陷阱卡为对象才能发动。那张卡在自己场上盖放。\r\n②：这张卡在墓地存在的场合，以「转生炎兽 猎鹰」以外的自己场上1只「转生炎兽」怪兽为对象才能发动。那只怪兽回到持有者手卡，这张卡从墓地特殊召唤。",
+      "sources": [
+        {
+          "id": "konami-13891",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=13891&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "26889158": {
+      "code": 26889158,
+      "text_digest": "0a8336205e3f014b7f54ab718f3ee53f6719fff8c74189c3f2c7e812b6301577",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "次数限制文本：①②各编号受同名共享限制；限制关系记录在 relations。",
+              "source_refs": [
+                "konami-14240"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:special-summon"
+          ],
+          "effect_type": "trigger",
+          "structure": {
+            "activation": {
+              "timing": "condition_text",
+              "zones": [
+                "hand"
+              ],
+              "conditions": [
+                "「转生炎兽 羚羊」以外的「转生炎兽」怪兽被送去自己墓地的场合（伤害步骤不能发动）"
+              ],
+              "fast_effect": false
+            },
+            "processing": [
+              {
+                "action": "special_summon",
+                "count": "1",
+                "from_zones": [
+                  "hand"
+                ],
+                "to_zones": [
+                  "monster"
+                ],
+                "selector": {
+                  "text": "手卡的这张卡"
+                }
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "手卡发动的诱发效果；不是特殊召唤手续而是效果。",
+              "source_refs": [
+                "konami-14240"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:send-grave"
+          ],
+          "effect_type": "trigger",
+          "structure": {
+            "activation": {
+              "timing": "on_summon",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "这张卡召唤·特殊召唤的场合（伤害步骤也能发动）"
+              ],
+              "fast_effect": false
+            },
+            "processing": [
+              {
+                "action": "send_grave",
+                "count": "1",
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "grave"
+                ],
+                "selector": {
+                  "text": "「转生炎兽 羚羊」以外的1张「转生炎兽」卡"
+                }
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "从卡组送墓是效果处理；与破坏、素材行为无关。",
+              "source_refs": [
+                "konami-14240"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "usage_limit_group",
+          "effects": [
+            "m1",
+            "m2"
+          ],
+          "text": "这个卡名的①②的效果1回合各能使用1次。",
+          "scope": "同名卡共享、各编号独立"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "这个卡名的①②的效果1回合各能使用1次。\r\n①：「转生炎兽 羚羊」以外的「转生炎兽」怪兽被送去自己墓地的场合才能发动。这张卡从手卡特殊召唤。\r\n②：这张卡召唤·特殊召唤的场合才能发动。从卡组把「转生炎兽 羚羊」以外的1张「转生炎兽」卡送去墓地。",
+      "sources": [
+        {
+          "id": "konami-14240",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14240&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "36577931": {
+      "code": 36577931,
+      "text_digest": "130d23c808bcec7a4adf042a512f1cdea306e09bb718264bb932108db7ecb54b",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "互斥次数限制文本：①②合计每回合仅可使用其一；限制关系记录在 relations。",
+              "source_refs": [
+                "konami-16194"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:add-hand"
+          ],
+          "effect_type": "trigger",
+          "structure": {
+            "activation": {
+              "timing": "condition_text",
+              "zones": [
+                "grave",
+                "banished"
+              ],
+              "conditions": [
+                "这张卡被效果送去墓地的场合或被效果除外的场合（伤害步骤也能发动；表侧除外状态可发动）"
+              ],
+              "fast_effect": false
+            },
+            "processing": [
+              {
+                "action": "add_hand",
+                "count": "1",
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "hand"
+                ],
+                "selector": {
+                  "text": "「悲剧之死狱乡演员」以外的1只「死狱乡」怪兽"
+                }
+              }
+            ],
+            "usage": [
+              "shared_name_once"
+            ]
+          },
+          "notes": [
+            {
+              "text": "发动位置为墓地或表侧除外状态；被效果除外后也能发动。",
+              "source_refs": [
+                "konami-16194"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [],
+          "effect_type": "ignition",
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "grave"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [
+              {
+                "kind": "banish_self_from_grave",
+                "text": "把墓地的这张卡除外"
+              }
+            ],
+            "targeting": [
+              {
+                "count": 1,
+                "filter": "自己墓地1张「烙印」魔法·陷阱卡"
+              }
+            ],
+            "processing": [
+              {
+                "action": "set_card",
+                "count": "1",
+                "from_zones": [
+                  "grave"
+                ],
+                "to_zones": [
+                  "spell"
+                ],
+                "selector": {
+                  "text": "对象魔法·陷阱卡（盖放到自己场上）"
+                }
+              }
+            ],
+            "usage": [
+              "shared_name_once"
+            ]
+          },
+          "notes": [
+            {
+              "text": "墓地发动的起动效果；墓地自身除外是费用。",
+              "source_refs": [
+                "konami-16194"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "exclusive_choice",
+          "effects": [
+            "m1",
+            "m2"
+          ],
+          "text": "这个卡名的①②的效果1回合只能有1次使用其中任意1个。",
+          "scope": "同名卡共享且互斥"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "这个卡名的①②的效果1回合只能有1次使用其中任意1个。\r\n①：这张卡被效果送去墓地的场合或者被效果除外的场合才能发动。从卡组把「悲剧之死狱乡演员」以外的1只「死狱乡」怪兽加入手卡。\r\n②：把墓地的这张卡除外，以自己墓地1张「烙印」魔法·陷阱卡为对象才能发动。那张卡在自己场上盖放。",
+      "sources": [
+        {
+          "id": "konami-16194",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=16194&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "38517737": {
+      "code": 38517737,
+      "text_digest": "43fc7deae16f5f55694952698ced64fc8a7756d32bf8af9d019b8017273d1efa",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "特殊召唤手续与同名次数限制：展示手卡「青眼白龙」的特殊召唤方法不是效果；此法1回合1次亦非效果。手卡被公开时不能展示故不能以此法特殊召唤；此法特召被无效的场合同回合可再次以该法特召。",
+              "source_refs": [
+                "konami-12253"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [],
+          "structure": {},
+          "effect_type": "no_chain_effect",
+          "notes": [
+            {
+              "text": "官方裁定：不属于四类中任一类；在场·墓地当作「青眼白龙」使用。以该法特殊召唤后送去墓地或表侧除外的场合可被其他卡的效果特殊召唤。",
+              "source_refs": [
+                "konami-12253"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:destroy"
+          ],
+          "effect_type": "ignition",
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "targeting": [
+              {
+                "count": 1,
+                "filter": "对方场上1只怪兽"
+              }
+            ],
+            "processing": [
+              {
+                "action": "destroy",
+                "count": "1",
+                "selector": {
+                  "text": "对象怪兽"
+                }
+              }
+            ],
+            "usage": [
+              "soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "攻击限制与发动互锁：已攻击过的回合不能发动；发动时点起本回合这张卡不能攻击（发动被无效则恢复）。主要阶段2特殊召唤的场合也能发动。",
+              "source_refs": [
+                "konami-12253"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "summon_condition",
+          "effects": [],
+          "text": "这张卡不能通常召唤。把手卡1只「青眼白龙」给对方观看的场合可以特殊召唤。这个方法的特殊召唤1回合只能有1次。"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "这张卡不能通常召唤。把手卡1只「青眼白龙」给对方观看的场合可以特殊召唤。这个方法的「青眼亚白龙」的特殊召唤1回合只能有1次。\r\n①：这张卡的卡名只要在场上·墓地存在当作「青眼白龙」使用。\r\n②：1回合1次，以对方场上1只怪兽为对象才能发动（这个效果发动的回合，这张卡不能攻击）。那只怪兽破坏。",
+      "sources": [
+        {
+          "id": "konami-12253",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=12253&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "41999284": {
+      "code": 41999284,
+      "text_digest": "76ddd4089e5965554a265d178ee1711b75e5844fdc02f1a562b1f32d566897c8",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "连接素材文本与次数限制文本；限制关系记录在 relations。",
+              "source_refs": [
+                "konami-13346"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:stat-change"
+          ],
+          "effect_type": "trigger",
+          "structure": {
+            "activation": {
+              "timing": "condition_text",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "对方怪兽的攻击宣言时"
+              ],
+              "fast_effect": false
+            },
+            "cost": [
+              {
+                "kind": "tribute",
+                "text": "把这张卡解放"
+              }
+            ],
+            "processing": [
+              {
+                "action": "stat_change",
+                "count": "1",
+                "selector": {
+                  "text": "那只对方怪兽"
+                },
+                "restrictions": [
+                  "攻击力直到回合结束时变成0"
+                ]
+              }
+            ],
+            "usage": []
+          },
+          "notes": [
+            {
+              "text": "攻击宣言时的诱发效果；解放自身是费用。",
+              "source_refs": [
+                "konami-13346"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:special-summon"
+          ],
+          "effect_type": "quick",
+          "structure": {
+            "activation": {
+              "timing": "fast_window",
+              "zones": [
+                "grave"
+              ],
+              "conditions": [
+                "自己·对方回合，这张卡在墓地存在的场合（伤害步骤不能发动）"
+              ],
+              "fast_effect": true
+            },
+            "cost": [
+              {
+                "kind": "tribute",
+                "text": "把自己场上1只1星怪兽解放（含里侧守备表示）"
+              }
+            ],
+            "processing": [
+              {
+                "action": "special_summon",
+                "count": "1",
+                "from_zones": [
+                  "grave"
+                ],
+                "to_zones": [
+                  "monster"
+                ],
+                "selector": {
+                  "text": "这张卡"
+                }
+              }
+            ],
+            "usage": [
+              "name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "墓地发动的诱发即时效果；解放1星怪兽是费用。",
+              "source_refs": [
+                "konami-13346"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "material_rule",
+          "effects": [],
+          "text": "1星怪兽1只。"
+        },
+        {
+          "kind": "shared_limit",
+          "effects": [
+            "m2"
+          ],
+          "text": "这个卡名的②的效果1回合只能使用1次。",
+          "scope": "同名卡共享"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "1星怪兽1只\r\n这个卡名的②的效果1回合只能使用1次。\r\n①：对方怪兽的攻击宣言时，把这张卡解放才能发动。那只对方怪兽的攻击力直到回合结束时变成0。\r\n②：自己·对方回合，这张卡在墓地存在的场合，把自己场上1只1星怪兽解放才能发动。这张卡特殊召唤。",
+      "sources": [
+        {
+          "id": "konami-13346",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=13346&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "42741437": {
+      "code": 42741437,
+      "text_digest": "9af896d3091b95cfb9be47f9a6b4f3ca89e688f1a3e727b934272d67eaaeaff4",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "超量素材文本与次数限制文本（仅①③各1次）；限制关系记录在 relations。",
+              "source_refs": [
+                "konami-16740"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:banish"
+          ],
+          "effect_type": "quick",
+          "structure": {
+            "activation": {
+              "timing": "on_summon",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "用「救祓少女」怪兽为素材作超量召唤的自己·对方回合（伤害步骤不能发动）"
+              ],
+              "fast_effect": true
+            },
+            "targeting": [
+              {
+                "count": 1,
+                "filter": "对方的场上·墓地1张卡"
+              }
+            ],
+            "processing": [
+              {
+                "action": "banish",
+                "count": "1",
+                "from_zones": [
+                  "field",
+                  "opponent_grave"
+                ],
+                "to_zones": [
+                  "banished"
+                ],
+                "selector": {
+                  "text": "对象卡"
+                }
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "诱发即时效果：无论自己或对方回合超量召唤都作为诱发即时效果处理。",
+              "source_refs": [
+                "konami-16740"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:protect"
+          ],
+          "effect_type": "continuous",
+          "structure": {
+            "processing": [
+              {
+                "action": "protect",
+                "selector": {
+                  "text": "这张卡"
+                },
+                "restrictions": [
+                  "不会被和从墓地特殊召唤的怪兽的战斗破坏"
+                ],
+                "duration": "怪兽区表侧表示存在期间"
+              }
+            ]
+          },
+          "notes": [
+            {
+              "text": "永续效果（怪兽区适用）。",
+              "source_refs": [
+                "konami-16740"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m3",
+          "kind": "numbered",
+          "number": 3,
+          "tags": [
+            "etag:add-hand"
+          ],
+          "effect_type": "ignition",
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [
+              {
+                "kind": "detach_material",
+                "text": "把这张卡1个超量素材取除"
+              }
+            ],
+            "processing": [
+              {
+                "action": "add_hand",
+                "count": "1",
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "hand"
+                ],
+                "selector": {
+                  "text": "1张「救祓少女」魔法·陷阱卡"
+                }
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "取除超量素材是费用。",
+              "source_refs": [
+                "konami-16740"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "material_rule",
+          "effects": [],
+          "text": "4星怪兽×2。"
+        },
+        {
+          "kind": "usage_limit_group",
+          "effects": [
+            "m1",
+            "m3"
+          ],
+          "text": "这个卡名的①③的效果1回合各能使用1次。",
+          "scope": "同名卡共享、各编号独立"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "4星怪兽×2\r\n这个卡名的①③的效果1回合各能使用1次。\r\n①：这张卡用「救祓少女」怪兽为素材作超量召唤的自己·对方回合，以对方的场上·墓地1张卡为对象才能发动。那张卡除外。\r\n②：这张卡不会被和从墓地特殊召唤的怪兽的战斗破坏。\r\n③：把这张卡1个超量素材取除才能发动。从卡组把1张「救祓少女」魔法·陷阱卡加入手卡。",
+      "sources": [
+        {
+          "id": "konami-16740",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=16740&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "42781164": {
+      "code": 42781164,
+      "text_digest": "3d65f3edd0339188217396b809bf17027f3a684c6846691efe67e9d1a5630b5e",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [
+            "etag:material-rule"
+          ],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "同调素材规则文本与次数限制文本；效果无效化的状况下手卡调整仍可作素材。限制关系记录在 relations。",
+              "source_refs": [
+                "konami-21957"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:add-hand"
+          ],
+          "effect_type": "trigger",
+          "structure": {
+            "activation": {
+              "timing": "on_summon",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "这张卡特殊召唤的场合（伤害步骤也能发动）"
+              ],
+              "fast_effect": false
+            },
+            "processing": [
+              {
+                "action": "add_hand",
+                "count": "1",
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "hand"
+                ],
+                "selector": {
+                  "text": "1张「杀手级调整曲」卡",
+                  "series": [
+                    "set:1d5"
+                  ]
+                }
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "检索对象为任意「杀手级调整曲」卡（含魔法·陷阱）。",
+              "source_refs": [
+                "konami-21957"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:add-hand"
+          ],
+          "effect_type": "trigger",
+          "structure": {
+            "activation": {
+              "timing": "on_material_sent",
+              "zones": [
+                "grave"
+              ],
+              "conditions": [
+                "这张卡作为同调素材送去墓地且同调召唤成功的场合"
+              ],
+              "fast_effect": false
+            },
+            "processing": [
+              {
+                "action": "add_hand",
+                "count": "1",
+                "from_zones": [
+                  "field"
+                ],
+                "to_zones": [
+                  "hand"
+                ],
+                "selector": {
+                  "text": "对方场上1张卡（回到持有者手卡）"
+                }
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "同调召唤被无效的场合不视为送去墓地成功；弹回对象是对方场上的卡。",
+              "source_refs": [
+                "konami-21957"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "material_rule",
+          "effects": [],
+          "text": "场上的这张卡为素材作同调召唤的场合，手卡1只调整也能作为同调素材。"
+        },
+        {
+          "kind": "usage_limit_group",
+          "effects": [
+            "m1",
+            "m2"
+          ],
+          "text": "这个卡名的①②的效果1回合各能使用1次。",
+          "scope": "同名卡共享、各编号独立"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "「杀手级调整曲」调整＋调整1只以上\r\n场上的这张卡为素材作同调召唤的场合，手卡1只调整也能作为同调素材。这个卡名的①②的效果1回合各能使用1次。\r\n①：这张卡特殊召唤的场合才能发动。从卡组把1张「杀手级调整曲」卡加入手卡。\r\n②：这张卡作为同调素材送去墓地的场合才能发动。对方场上1张卡回到手卡。",
+      "sources": [
+        {
+          "id": "konami-21957",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=21957&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "44146295": {
+      "code": 44146295,
+      "text_digest": "bec757496a9fdc5ba6e4880f4d519695e6527aeec4bcc17d388b6b971b73233d",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [
+            "etag:material-rule"
+          ],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "融合素材文本；限制关系记录在 relations。",
+              "source_refs": [
+                "konami-17069"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [],
+          "structure": {},
+          "effect_type": "no_chain_effect",
+          "notes": [
+            {
+              "text": "官方裁定：不属于四类中任一类；同名卡在自己场上只能有1张表侧表示，也不能把表侧这张卡作为融合素材融合召唤同名卡。",
+              "source_refs": [
+                "konami-17069"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:banish"
+          ],
+          "effect_type": "quick",
+          "structure": {
+            "activation": {
+              "timing": "fast_window",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "自己·对方回合1次（伤害步骤不能发动）"
+              ],
+              "fast_effect": true
+            },
+            "cost": [
+              {
+                "kind": "send_grave_cost",
+                "text": "把以「阿不思的落胤」为融合素材的1只融合怪兽从额外卡组送去墓地"
+              }
+            ],
+            "processing": [
+              {
+                "action": "banish",
+                "count": "1",
+                "from_zones": [
+                  "field"
+                ],
+                "to_zones": [
+                  "banished"
+                ],
+                "selector": {
+                  "text": "场上1只怪兽"
+                },
+                "restrictions": [
+                  "下个回合这张卡不能再使用这个效果（发动或效果被无效的场合不适用）"
+                ]
+              }
+            ],
+            "usage": []
+          },
+          "notes": [
+            {
+              "text": "诱发即时效果；从额外卡组送墓是费用；除外处理是否成功不影响下回合限制（只要发动与效果未被无效）。",
+              "source_refs": [
+                "konami-17069"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m3",
+          "kind": "numbered",
+          "number": 3,
+          "tags": [
+            "etag:destroy"
+          ],
+          "effect_type": "trigger",
+          "structure": {
+            "activation": {
+              "timing": "condition_text",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "融合召唤的这张卡因对方从场上离开的场合（被送去墓地或表侧除外；回到额外卡组、里侧除外、控制权转移的场合不发动）"
+              ],
+              "fast_effect": false
+            },
+            "processing": [
+              {
+                "action": "destroy",
+                "count": "all",
+                "from_zones": [
+                  "opponent_monster"
+                ],
+                "selector": {
+                  "text": "对方场上的怪兽全部"
+                },
+                "condition": "这个回合的结束阶段进行处理",
+                "restrictions": [
+                  "结束阶段的破坏处理不产生连锁块",
+                  "该处理进行时这张卡不需要仍在原位置"
+                ]
+              }
+            ],
+            "usage": []
+          },
+          "notes": [
+            {
+              "text": "伤害步骤中满足条件也能发动；结束阶段处理时这张卡已离场也照常破坏。",
+              "source_refs": [
+                "konami-17069"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "material_rule",
+          "effects": [],
+          "text": "「阿不思的落胤」＋融合·同调·超量·连接怪兽。"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "「阿不思的落胤」＋融合·同调·超量·连接怪兽\r\n①：「冰剑龙 幻冰龙」在自己场上只能有1张表侧表示存在。\r\n②：自己·对方回合1次，把以「阿不思的落胤」为融合素材的1只融合怪兽从额外卡组送去墓地才能发动。场上1只怪兽除外。下个回合，这张卡不能使用这个效果。\r\n③：融合召唤的这张卡因对方从场上离开的场合才能发动。这个回合的结束阶段，对方场上的怪兽全部破坏。",
+      "sources": [
+        {
+          "id": "konami-17069",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=17069&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "49959355": {
+      "code": 49959355,
+      "text_digest": "5b47170262c009d57a053fc97d49f9e87670252ae22daf9efdd16cea6baf9f34",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "次数限制文本：①②各编号受同名共享限制；限制关系记录在 relations。",
+              "source_refs": [
+                "konami-11560"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:send-grave",
+            "etag:stat-change"
+          ],
+          "effect_type": "ignition",
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "targeting": [
+              {
+                "count": 1,
+                "filter": "场上1只表侧表示怪兽（含这张卡自己）"
+              }
+            ],
+            "processing": [
+              {
+                "action": "send_grave",
+                "count": "1",
+                "from_zones": [
+                  "hand"
+                ],
+                "to_zones": [
+                  "grave"
+                ],
+                "selector": {
+                  "text": "1张手卡（处理时丢弃，非费用）"
+                }
+              },
+              {
+                "action": "stat_change",
+                "count": "1",
+                "selector": {
+                  "text": "对象怪兽"
+                },
+                "restrictions": [
+                  "等级上升1星"
+                ],
+                "condition": "与丢卡视为同时处理；对象不在场上时只进行丢卡"
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "丢手卡是处理（结算时）而非费用；处理时对象不在场上的话丢卡照常进行。",
+              "source_refs": [
+                "konami-11560"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:send-grave",
+            "etag:stat-change",
+            "etag:lock"
+          ],
+          "effect_type": "ignition",
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "targeting": [
+              {
+                "count": 1,
+                "filter": "场上1只表侧表示怪兽（含这张卡自己）"
+              }
+            ],
+            "processing": [
+              {
+                "action": "send_grave",
+                "count": "1",
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "grave"
+                ],
+                "selector": {
+                  "text": "1只不死族怪兽"
+                }
+              },
+              {
+                "action": "stat_change",
+                "count": "1",
+                "selector": {
+                  "text": "对象怪兽"
+                },
+                "restrictions": [
+                  "等级上升1星",
+                  "处理后至回合结束，不死族以外的自己怪兽不能攻击"
+                ],
+                "condition": "送墓与升级视为同时处理；对象不在场上时送墓照常、升级不处理、攻击限制仍适用"
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "攻击限制从处理后立即适用，此前的攻击不受追溯。",
+              "source_refs": [
+                "konami-11560"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "usage_limit_group",
+          "effects": [
+            "m1",
+            "m2"
+          ],
+          "text": "这个卡名的①②的效果1回合各能使用1次。",
+          "scope": "同名卡共享、各编号独立"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "这个卡名的①②的效果1回合各能使用1次。\r\n①：以场上1只表侧表示怪兽为对象才能发动。丢弃1张手卡，作为对象的怪兽的等级上升1星。\r\n②：以场上1只表侧表示怪兽为对象才能发动。从卡组把1只不死族怪兽送去墓地，作为对象的怪兽的等级上升1星。这个效果的发动后，直到回合结束时不死族以外的自己怪兽不能攻击。",
+      "sources": [
+        {
+          "id": "konami-11560",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=11560&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "51124303": {
+      "code": 51124303,
+      "text_digest": "9678558b2a44d4bd947bc9e230e07a4eb97f1ca8be5060e2476ba05634bdb9bf",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "次数限制文本：仅①受同名共享限制（发动被无效的回合不能再发动第二张）；限制关系记录在 relations。",
+              "source_refs": [
+                "konami-11491"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:special-summon"
+          ],
+          "effect_type": "spell_activation",
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "spell"
+              ],
+              "conditions": [
+                "仪式魔法：从手卡放置到魔法陷阱区发动或已盖放状态发动"
+              ],
+              "fast_effect": false
+            },
+            "processing": [
+              {
+                "action": "special_summon",
+                "from_zones": [
+                  "hand"
+                ],
+                "to_zones": [
+                  "monster"
+                ],
+                "selector": {
+                  "text": "「影灵衣」仪式怪兽 任意数量（同时特殊召唤）"
+                },
+                "restrictions": [
+                  "须等级合计与仪式召唤的怪兽相同：解放自己手卡·场上1只怪兽，或作为代替把额外卡组1只怪兽送去墓地（二选一，不可并用）",
+                  "多只仪式怪兽同时特殊召唤"
+                ]
+              }
+            ],
+            "usage": [
+              "name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "解放与仪式召唤是顺序处理；解放手卡·场上怪兽与从额外卡组代替送墓不可组合使用。",
+              "source_refs": [
+                "konami-11491"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:add-hand"
+          ],
+          "effect_type": "spell_effect",
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "grave"
+              ],
+              "conditions": [
+                "自己场上没有怪兽存在的场合，从墓地发动"
+              ],
+              "fast_effect": false
+            },
+            "cost": [
+              {
+                "kind": "banish_self_from_grave",
+                "text": "从自己墓地把这张卡除外"
+              },
+              {
+                "kind": "banish",
+                "text": "从自己墓地把1只「影灵衣」怪兽除外"
+              }
+            ],
+            "processing": [
+              {
+                "action": "add_hand",
+                "count": "1",
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "hand"
+                ],
+                "selector": {
+                  "text": "1张「影灵衣」魔法卡"
+                }
+              }
+            ],
+            "usage": []
+          },
+          "notes": [
+            {
+              "text": "墓地发动的魔法效果（自己主要阶段、产生连锁块）。",
+              "source_refs": [
+                "konami-11491"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "shared_limit",
+          "effects": [
+            "m1"
+          ],
+          "text": "这个卡名的①的效果1回合只能使用1次。",
+          "scope": "同名卡共享"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "这个卡名的①的效果1回合只能使用1次。\r\n①：等级合计直到变成和仪式召唤的怪兽相同为止，把自己的手卡·场上1只怪兽解放或者作为解放的代替而把额外卡组1只怪兽送去墓地，从手卡把「影灵衣」仪式怪兽任意数量仪式召唤。\r\n②：自己场上没有怪兽存在的场合，从自己墓地把1只「影灵衣」怪兽和这张卡除外才能发动。从卡组把1张「影灵衣」魔法卡加入手卡。",
+      "sources": [
+        {
+          "id": "konami-11491",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=11491&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "51339637": {
+      "code": 51339637,
+      "text_digest": "f1f777a040bcc1428119e430663abc322604f0719efac19b883dd61f260aa5c5",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "互斥次数限制文本：①②合计每回合仅可使用其一；限制关系记录在 relations。",
+              "source_refs": [
+                "konami-14247"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:negate-activation",
+            "etag:destroy"
+          ],
+          "effect_type": "trap_activation",
+          "structure": {
+            "activation": {
+              "timing": "on_card_or_monster_effect",
+              "zones": [
+                "spell"
+              ],
+              "conditions": [
+                "自己场上有「转生炎兽」连接怪兽存在",
+                "直接连锁怪兽效果·魔法·陷阱卡的发动（伤害步骤也能发动）"
+              ],
+              "fast_effect": true
+            },
+            "processing": [
+              {
+                "action": "negate_activation",
+                "count": "1",
+                "selector": {
+                  "text": "发动中的怪兽效果·魔法·陷阱卡"
+                }
+              },
+              {
+                "action": "destroy",
+                "count": "1",
+                "selector": {
+                  "text": "被无效发动的那张卡"
+                },
+                "condition": "与无效同时处理"
+              }
+            ],
+            "usage": [
+              "shared_name_once"
+            ]
+          },
+          "notes": [
+            {
+              "text": "反击陷阱（咒语速度3）。",
+              "source_refs": [
+                "konami-14247"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [],
+          "effect_type": "trap_effect",
+          "structure": {
+            "activation": {
+              "timing": "condition_text",
+              "zones": [
+                "grave"
+              ],
+              "conditions": [
+                "这张卡在墓地存在的状态，用和自身同名的怪兽作为素材把「转生炎兽」连接怪兽在自己场上连接召唤的场合"
+              ],
+              "fast_effect": true
+            },
+            "processing": [
+              {
+                "action": "set_card",
+                "count": "1",
+                "from_zones": [
+                  "grave"
+                ],
+                "to_zones": [
+                  "spell"
+                ],
+                "selector": {
+                  "text": "这张卡（盖放到自己场上）"
+                },
+                "restrictions": [
+                  "这个效果盖放的这张卡从场上离开的场合除外（盖放后立即进入该状态）"
+                ]
+              }
+            ],
+            "usage": [
+              "shared_name_once"
+            ]
+          },
+          "notes": [
+            {
+              "text": "墓地发动的陷阱效果（咒语速度2）。",
+              "source_refs": [
+                "konami-14247"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "exclusive_choice",
+          "effects": [
+            "m1",
+            "m2"
+          ],
+          "text": "这个卡名的①②的效果1回合只能有1次使用其中任意1个。",
+          "scope": "同名卡共享且互斥"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "这个卡名的①②的效果1回合只能有1次使用其中任意1个。\r\n①：自己场上有「转生炎兽」连接怪兽存在，怪兽的效果·魔法·陷阱卡发动时才能发动。那个发动无效并破坏。\r\n②：这张卡在墓地存在的状态，和自身同名的怪兽作为素材让「转生炎兽」连接怪兽在自己场上连接召唤的场合才能发动。这张卡在自己场上盖放。这个效果盖放的这张卡从场上离开的场合除外。",
+      "sources": [
+        {
+          "id": "konami-14247",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14247&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "52277807": {
+      "code": 52277807,
+      "text_digest": "58280e8b955c84c1e78323a3d3679690a5e0598307863140ddfe323977f9e6a9",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "次数限制文本：①②各编号受同名共享限制；限制关系记录在 relations。",
+              "source_refs": [
+                "konami-14241"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:stat-change"
+          ],
+          "effect_type": "ignition",
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "hand"
+              ],
+              "conditions": [
+                "自己场上有「转生炎兽」卡存在的场合"
+              ],
+              "fast_effect": false
+            },
+            "cost": [
+              {
+                "kind": "discard_self",
+                "text": "把这张卡从手卡丢弃"
+              }
+            ],
+            "targeting": [
+              {
+                "count": 1,
+                "filter": "场上1只表侧表示怪兽"
+              }
+            ],
+            "processing": [
+              {
+                "action": "stat_change",
+                "count": "1",
+                "selector": {
+                  "text": "对象怪兽"
+                },
+                "restrictions": [
+                  "攻击力直到回合结束时上升500"
+                ]
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "手卡发动的起动效果；丢自身是费用。",
+              "source_refs": [
+                "konami-14241"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:special-summon"
+          ],
+          "effect_type": "ignition",
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "grave"
+              ],
+              "conditions": [
+                "自己场上有「转生炎兽 犰狳蜥」以外的「转生炎兽」怪兽存在的场合"
+              ],
+              "fast_effect": false
+            },
+            "processing": [
+              {
+                "action": "special_summon",
+                "count": "1",
+                "from_zones": [
+                  "grave"
+                ],
+                "to_zones": [
+                  "monster"
+                ],
+                "selector": {
+                  "text": "这张卡"
+                },
+                "restrictions": [
+                  "这个效果特殊召唤的这张卡从场上离开的场合除外（表侧表示存在期间适用）"
+                ]
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "墓地发动的起动效果。",
+              "source_refs": [
+                "konami-14241"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "usage_limit_group",
+          "effects": [
+            "m1",
+            "m2"
+          ],
+          "text": "这个卡名的①②的效果1回合各能使用1次。",
+          "scope": "同名卡共享、各编号独立"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "这个卡名的①②的效果1回合各能使用1次。\r\n①：自己场上有「转生炎兽」卡存在的场合，把这张卡从手卡丢弃，以场上1只表侧表示怪兽为对象才能发动。那只怪兽的攻击力直到回合结束时上升500。\r\n②：自己场上有「转生炎兽 犰狳蜥」以外的「转生炎兽」怪兽存在的场合才能发动。这张卡从墓地特殊召唤。这个效果特殊召唤的这张卡从场上离开的场合除外。",
+      "sources": [
+        {
+          "id": "konami-14241",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14241&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "53932291": {
+      "code": 53932291,
+      "text_digest": "51434c196c74b6f2065d177d5fc534f4308ccf481255842db81ba769c5851ab2",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "特殊召唤方法限制文本（同名每回合1次），非效果；限制关系记录在 relations。",
+              "source_refs": [
+                "konami-12052"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:special-summon"
+          ],
+          "effect_type": "no_chain_effect",
+          "structure": {
+            "processing": [
+              {
+                "action": "special_summon",
+                "count": "1",
+                "from_zones": [
+                  "hand"
+                ],
+                "to_zones": [
+                  "monster"
+                ],
+                "selector": {
+                  "text": "这张卡"
+                },
+                "restrictions": [
+                  "自己场上有风属性怪兽存在的场合才能这样特殊召唤",
+                  "以此法特殊召唤不产生连锁块"
+                ]
+              }
+            ]
+          },
+          "notes": [
+            {
+              "text": "官方裁定：不属于四类中任一类的效果（无连锁块的特殊召唤方法）。",
+              "source_refs": [
+                "konami-12052"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:special-summon",
+            "etag:lock"
+          ],
+          "effect_type": "ignition",
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [
+              {
+                "kind": "tribute",
+                "text": "把这张卡解放"
+              }
+            ],
+            "processing": [
+              {
+                "action": "special_summon",
+                "count": "1",
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "monster"
+                ],
+                "selector": {
+                  "text": "1只「疾行机人」调整"
+                },
+                "restrictions": [
+                  "本效果的发动后至回合结束，自己不是风属性怪兽不能特殊召唤（特殊召唤完成即适用）"
+                ]
+              }
+            ],
+            "usage": []
+          },
+          "notes": [
+            {
+              "text": "场上发动的起动效果；解放自身是费用。",
+              "source_refs": [
+                "konami-12052"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "summon_condition",
+          "effects": [],
+          "text": "自己对「疾行机人 竹蜻蜓电子人」1回合只能有1次特殊召唤。"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "自己对「疾行机人 竹蜻蜓电子人」1回合只能有1次特殊召唤。\r\n①：自己场上有风属性怪兽存在的场合，这张卡可以从手卡特殊召唤。\r\n②：把这张卡解放才能发动。从卡组把1只「疾行机人」调整特殊召唤。这个效果的发动后，直到回合结束时自己不是风属性怪兽不能特殊召唤。",
+      "sources": [
+        {
+          "id": "konami-12052",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=12052&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "56003780": {
+      "code": 56003780,
+      "text_digest": "9a7287f6b8a480b9e970ed3993361425cb2e6a1ff987d539e0ffba6e309fab8b",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "次数限制文本：仅②受同名共享限制；限制关系记录在 relations。",
+              "source_refs": [
+                "konami-13892"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [],
+          "effect_type": "continuous",
+          "structure": {
+            "processing": [
+              {
+                "action": "damage_modify",
+                "selector": {
+                  "text": "向守备表示怪兽攻击时给与攻击力超过那个守备力的数值的战斗伤害（贯通）"
+                },
+                "duration": "怪兽区表侧表示存在期间"
+              }
+            ]
+          },
+          "notes": [
+            {
+              "text": "永续效果（贯通伤害）。",
+              "source_refs": [
+                "konami-13892"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:return-deck",
+            "etag:special-summon"
+          ],
+          "effect_type": "ignition",
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "grave"
+              ],
+              "conditions": [
+                "这张卡在墓地存在，且自己场上有「转生炎兽」连接怪兽存在的场合"
+              ],
+              "fast_effect": false
+            },
+            "targeting": [
+              {
+                "count": 1,
+                "filter": "「转生炎兽 灯火美洲豹」以外的自己墓地1只「转生炎兽」怪兽"
+              }
+            ],
+            "processing": [
+              {
+                "action": "return_deck",
+                "count": "1",
+                "from_zones": [
+                  "grave"
+                ],
+                "to_zones": [
+                  "deck"
+                ],
+                "selector": {
+                  "text": "对象怪兽（融合·同调等多体怪兽回到额外卡组）"
+                }
+              },
+              {
+                "action": "special_summon",
+                "count": "1",
+                "from_zones": [
+                  "grave"
+                ],
+                "to_zones": [
+                  "monster"
+                ],
+                "selector": {
+                  "text": "墓地的这张卡"
+                },
+                "position": "自己场上作为自己的「转生炎兽」连接怪兽所连接区的位置",
+                "condition": "对象成功回到卡组（额外卡组）后才处理；与回卡组视为同时处理"
+              }
+            ],
+            "usage": [
+              "name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "墓地发动的起动效果；特殊召唤位置限于自己「转生炎兽」连接怪兽的连接区。",
+              "source_refs": [
+                "konami-13892"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "shared_limit",
+          "effects": [
+            "m2"
+          ],
+          "text": "这个卡名的②的效果1回合只能使用1次。",
+          "scope": "同名卡共享"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "这个卡名的②的效果1回合只能使用1次。\r\n①：这张卡向守备表示怪兽攻击的场合，给与攻击力超过那个守备力的数值的战斗伤害。\r\n②：这张卡在墓地存在，自己场上有「转生炎兽」连接怪兽存在的场合，以「转生炎兽 灯火美洲豹」以外的自己墓地1只「转生炎兽」怪兽为对象才能发动。那只怪兽回到卡组，墓地的这张卡在作为自己的「转生炎兽」连接怪兽所连接区的自己场上特殊召唤。",
+      "sources": [
+        {
+          "id": "konami-13892",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=13892&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "57473560": {
+      "code": 57473560,
+      "text_digest": "4a854d782bde6e564a211c5a28cce49757f88c57eccf29cff93341055e506f50",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [],
+          "structure": {},
+          "effect_type": "no_chain_effect",
+          "notes": [
+            {
+              "text": "官方裁定：不属于四类中任一类；在墓地当作「白骨」使用。",
+              "source_refs": [
+                "konami-11256"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:send-grave"
+          ],
+          "effect_type": "trigger",
+          "structure": {
+            "activation": {
+              "timing": "condition_text",
+              "zones": [
+                "grave"
+              ],
+              "conditions": [
+                "这张卡被送去墓地的场合（伤害步骤也能发动）"
+              ],
+              "fast_effect": false
+            },
+            "processing": [
+              {
+                "action": "send_grave",
+                "count": "2",
+                "from_zones": [
+                  "hand",
+                  "deck"
+                ],
+                "to_zones": [
+                  "grave"
+                ],
+                "selector": {
+                  "text": "「白骨」「白骨夫人」各1只"
+                }
+              }
+            ],
+            "usage": []
+          },
+          "notes": [
+            {
+              "text": "从手卡·卡组把指定的两只怪兽各1只送去墓地。",
+              "source_refs": [
+                "konami-11256"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m3",
+          "kind": "numbered",
+          "number": 3,
+          "tags": [
+            "etag:special-summon"
+          ],
+          "effect_type": "ignition",
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "grave"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [
+              {
+                "kind": "banish_self_from_grave",
+                "text": "从自己墓地把这张卡除外"
+              },
+              {
+                "kind": "banish",
+                "text": "从自己墓地把其他的2只「白骨」除外"
+              }
+            ],
+            "processing": [
+              {
+                "action": "special_summon",
+                "count": "1",
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "monster"
+                ],
+                "selector": {
+                  "text": "1只「白骨王」"
+                }
+              }
+            ],
+            "usage": []
+          },
+          "notes": [
+            {
+              "text": "墓地发动的起动效果；除外自身与其他2只「白骨」是费用。",
+              "source_refs": [
+                "konami-11256"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [],
+      "notes": [],
+      "frozen_text": "①：这张卡的卡名只要在墓地存在当作「白骨」使用。\r\n②：这张卡被送去墓地的场合才能发动。「白骨」「白骨夫人」各1只从手卡·卡组送去墓地。\r\n③：从自己墓地把2只其他的「白骨」和这张卡除外才能发动。从卡组把1只「白骨王」特殊召唤。",
+      "sources": [
+        {
+          "id": "konami-11256",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=11256&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "62962630": {
+      "code": 62962630,
+      "text_digest": "0e90e1c8b4c6778b8c6ac041fde36619e33656d5b83ae94040652fb955647237",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "互斥次数限制文本：①②合计每回合仅可使用其一；限制关系记录在 relations。",
+              "source_refs": [
+                "konami-16195"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:add-hand"
+          ],
+          "effect_type": "trigger",
+          "structure": {
+            "activation": {
+              "timing": "on_summon",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "这张卡召唤·特殊召唤的场合（伤害步骤也能发动）"
+              ],
+              "fast_effect": false
+            },
+            "processing": [
+              {
+                "action": "add_hand",
+                "count": "1",
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "hand"
+                ],
+                "selector": {
+                  "text": "1张「烙印」魔法·陷阱卡"
+                }
+              }
+            ],
+            "usage": [
+              "shared_name_once"
+            ]
+          },
+          "notes": [
+            {
+              "text": "检索来源仅卡组。",
+              "source_refs": [
+                "konami-16195"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:special-summon",
+            "etag:negate-effect"
+          ],
+          "effect_type": "trigger",
+          "structure": {
+            "activation": {
+              "timing": "condition_text",
+              "zones": [
+                "grave"
+              ],
+              "conditions": [
+                "这张卡在墓地存在的状态，自己场上表侧表示的融合怪兽因对方的效果从场上离开的场合或被战斗破坏的场合（伤害步骤也能发动）"
+              ],
+              "fast_effect": false
+            },
+            "targeting": [
+              {
+                "count": 1,
+                "filter": "对方场上1只效果怪兽（不能选已处于效果无效状态的怪兽）"
+              }
+            ],
+            "processing": [
+              {
+                "action": "special_summon",
+                "count": "1",
+                "from_zones": [
+                  "grave"
+                ],
+                "to_zones": [
+                  "monster"
+                ],
+                "selector": {
+                  "text": "这张卡"
+                }
+              },
+              {
+                "action": "negate_effect",
+                "count": "1",
+                "selector": {
+                  "text": "对象怪兽"
+                },
+                "duration": "直到回合结束时",
+                "condition": "特殊召唤成功后处理，与特殊召唤视为同时处理"
+              }
+            ],
+            "usage": [
+              "shared_name_once"
+            ]
+          },
+          "notes": [
+            {
+              "text": "诱发时机以融合怪兽离场时点（或战斗破坏的伤害步骤结束时点）这张卡已在墓地为前提。",
+              "source_refs": [
+                "konami-16195"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "exclusive_choice",
+          "effects": [
+            "m1",
+            "m2"
+          ],
+          "text": "这个卡名的①②的效果1回合只能有1次使用其中任意1个。",
+          "scope": "同名卡共享且互斥"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "这个卡名的①②的效果1回合只能有1次使用其中任意1个。\r\n①：这张卡召唤·特殊召唤的场合才能发动。从卡组把1张「烙印」魔法·陷阱卡加入手卡。\r\n②：这张卡在墓地存在的状态，自己场上的表侧表示的融合怪兽因对方的效果从场上离开的场合或者被战斗破坏的场合，以对方场上1只效果怪兽为对象才能发动。这张卡特殊召唤，作为对象的怪兽的效果直到回合结束时无效。",
+      "sources": [
+        {
+          "id": "konami-16195",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=16195&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "65518099": {
+      "code": 65518099,
+      "text_digest": "c06b86700b031c27f253d34934c2b25cc586de9a47cd0caa0e0197a31724f585",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "p1",
+          "kind": "numbered",
+          "number": 1,
+          "block": "pendulum",
+          "tags": [
+            "etag:lock"
+          ],
+          "effect_type": "no_chain_effect",
+          "structure": {
+            "processing": [
+              {
+                "action": "lock",
+                "selector": {
+                  "text": "自己（双方玩家中仅自己）"
+                },
+                "restrictions": [
+                  "不是「机壳」怪兽不能特殊召唤",
+                  "这个效果不会被无效化"
+                ],
+                "duration": "灵摆区表侧表示存在期间"
+              }
+            ]
+          },
+          "notes": [
+            {
+              "text": "官方裁定：不产生连锁块的灵摆效果。",
+              "source_refs": [
+                "konami-11353"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "p2",
+          "kind": "numbered",
+          "number": 2,
+          "block": "pendulum",
+          "tags": [
+            "etag:add-hand"
+          ],
+          "effect_type": "pendulum_activation",
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "pendulum"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [
+              {
+                "kind": "lp",
+                "text": "支付800基本分"
+              }
+            ],
+            "processing": [
+              {
+                "action": "add_hand",
+                "count": "1",
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "hand"
+                ],
+                "selector": {
+                  "text": "「机壳工具 丑恶」以外的1张「机壳」卡"
+                }
+              }
+            ],
+            "usage": [
+              "soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "灵摆区发动的灵摆效果（不取对象，自己主要阶段任意发动）。",
+              "source_refs": [
+                "konami-11353"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m-all",
+          "kind": "unnumbered",
+          "number": null,
+          "block": "monster",
+          "tags": [],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "官方裁定：无怪兽效果的灵摆怪兽（＝通常怪兽），怪兽区文本为描述文本。",
+              "source_refs": [
+                "konami-11353"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [],
+      "notes": [
+        {
+          "text": "灵摆双区样本：p* 为灵摆区文本，怪兽区为描述文本；两侧独立标注。",
+          "source_refs": [
+            "konami-11353"
+          ]
+        }
+      ],
+      "frozen_text": "←9 【灵摆】 9→\r\n①：自己不是「机壳」怪兽不能特殊召唤。这个效果不会被无效化。\r\n②：1回合1次，支付800基本分才能发动。从卡组把「机壳工具 丑恶」以外的1张「机壳」卡加入手卡。\r\n【怪兽描述】\r\n正在准备以副本模式启动系统...\r\nC:\\sophia\\sefiroth.exe 执行中发生错误。\r\n正在试图执行来自未知发布者的以下程序。\r\nC:\\tierra\\qliphoth.exe 您想允许执行吗? <Y/N>...[Y]\r\n以自律模式启动系统。",
+      "sources": [
+        {
+          "id": "konami-11353",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=11353&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "69248256": {
+      "code": 69248256,
+      "text_digest": "c534d80ebd8e63c15d28f0c02a110e97d80245ec89ea60549fb7e0000af3bbac",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [
+            "etag:material-rule"
+          ],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "同调素材文本与互斥次数限制文本；限制关系记录在 relations。",
+              "source_refs": [
+                "konami-16527"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:add-hand",
+            "etag:banish"
+          ],
+          "effect_type": "trigger",
+          "structure": {
+            "activation": {
+              "timing": "on_summon",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "这张卡同调召唤的场合"
+              ],
+              "fast_effect": false
+            },
+            "processing": [
+              {
+                "action": "add_hand",
+                "count": "1",
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "hand"
+                ],
+                "selector": {
+                  "text": "1张「相剑」卡"
+                },
+                "branches": [
+                  {
+                    "condition": "或改为除外",
+                    "actions": [
+                      {
+                        "action": "banish",
+                        "count": "1",
+                        "from_zones": [
+                          "deck"
+                        ],
+                        "to_zones": [
+                          "banished"
+                        ],
+                        "selector": {
+                          "text": "1张「相剑」卡"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "usage": [
+              "shared_name_once"
+            ]
+          },
+          "notes": [
+            {
+              "text": "从卡组选1张「相剑」卡，加入手卡或除外二选一。",
+              "source_refs": [
+                "konami-16527"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:negate-effect"
+          ],
+          "effect_type": "quick",
+          "structure": {
+            "activation": {
+              "timing": "fast_window",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "自己·对方回合（伤害步骤不能发动）"
+              ],
+              "fast_effect": true
+            },
+            "cost": [
+              {
+                "kind": "banish",
+                "text": "从自己的手卡·墓地除外1张「相剑」卡或1只幻龙族怪兽"
+              }
+            ],
+            "targeting": [
+              {
+                "count": 1,
+                "filter": "场上1只其他的效果怪兽"
+              }
+            ],
+            "processing": [
+              {
+                "action": "negate_effect",
+                "count": "1",
+                "selector": {
+                  "text": "对象怪兽"
+                },
+                "duration": "直到回合结束时"
+              }
+            ],
+            "usage": [
+              "shared_name_once"
+            ]
+          },
+          "notes": [
+            {
+              "text": "诱发即时效果；除外费用可从手卡或墓地支付。",
+              "source_refs": [
+                "konami-16527"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "material_rule",
+          "effects": [],
+          "text": "调整＋调整以外的幻龙族怪兽1只以上。"
+        },
+        {
+          "kind": "exclusive_choice",
+          "effects": [
+            "m1",
+            "m2"
+          ],
+          "text": "这个卡名的①②的效果1回合只能有1次使用其中任意1个。",
+          "scope": "同名卡共享且互斥"
+        },
+        {
+          "kind": "choose_branch",
+          "effects": [
+            "m1"
+          ],
+          "text": "从卡组选1张「相剑」卡加入手卡或除外。"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "调整＋调整以外的幻龙族怪兽1只以上\r\n这个卡名的①②的效果1回合只能有1次使用其中任意1个。\r\n①：这张卡同调召唤的场合才能发动。从卡组选1张「相剑」卡加入手卡或除外。\r\n②：自己·对方回合，从自己的手卡·墓地把1张「相剑」卡或者1只幻龙族怪兽除外，以场上1只其他的效果怪兽为对象才能发动。那只怪兽的效果直到回合结束时无效。",
+      "sources": [
+        {
+          "id": "konami-16527",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=16527&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "71039903": {
+      "code": 71039903,
+      "text_digest": "29c2545cdad9537ecfd1b0615e2bfd5f96df864da7e2980c0381dcb7f80f91a7",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "次数限制文本：仅②受同名共享限制；限制关系记录在 relations。",
+              "source_refs": [
+                "konami-12294"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:special-summon"
+          ],
+          "effect_type": "trigger",
+          "structure": {
+            "activation": {
+              "timing": "condition_text",
+              "zones": [
+                "grave"
+              ],
+              "conditions": [
+                "这张卡被送去墓地的回合的结束阶段（此后持续在墓地；结束阶段送墓的场合该结束阶段即可发动）"
+              ],
+              "fast_effect": false
+            },
+            "processing": [
+              {
+                "action": "special_summon",
+                "count": "1",
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "monster"
+                ],
+                "selector": {
+                  "text": "1只「青眼」怪兽"
+                }
+              }
+            ],
+            "usage": []
+          },
+          "notes": [
+            {
+              "text": "墓地发动的诱发效果（结束阶段）。",
+              "source_refs": [
+                "konami-12294"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:add-hand"
+          ],
+          "effect_type": "ignition",
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "grave"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [
+              {
+                "kind": "banish_self_from_grave",
+                "text": "把墓地的这张卡除外"
+              }
+            ],
+            "targeting": [
+              {
+                "count": 1,
+                "filter": "自己墓地1只「青眼」怪兽（含融合·同调怪兽）"
+              }
+            ],
+            "processing": [
+              {
+                "action": "add_hand",
+                "count": "1",
+                "from_zones": [
+                  "grave"
+                ],
+                "to_zones": [
+                  "hand"
+                ],
+                "selector": {
+                  "text": "对象怪兽（融合·同调怪兽改为回到额外卡组）"
+                }
+              }
+            ],
+            "usage": [
+              "name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "墓地发动的起动效果；对象是融合·同调怪兽时回到额外卡组而非加入手卡。",
+              "source_refs": [
+                "konami-12294"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "shared_limit",
+          "effects": [
+            "m2"
+          ],
+          "text": "这个卡名的②的效果1回合只能使用1次。",
+          "scope": "同名卡共享"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "这个卡名的②的效果1回合只能使用1次。\r\n①：这张卡被送去墓地的回合的结束阶段才能发动。从卡组把1只「青眼」怪兽特殊召唤。\r\n②：把墓地的这张卡除外，以自己墓地1只「青眼」怪兽为对象才能发动。那只怪兽加入手卡。",
+      "sources": [
+        {
+          "id": "konami-12294",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=12294&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "71166481": {
+      "code": 71166481,
+      "text_digest": "8a83b8614f7830eaa50f02ffe851f004997fe36569a28833e21700da6d01e868",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "超量素材文本与次数限制文本（仅②）；限制关系记录在 relations。",
+              "source_refs": [
+                "konami-13825"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:draw"
+          ],
+          "effect_type": "quick",
+          "structure": {
+            "activation": {
+              "timing": "on_opponent_effect",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "对方把怪兽的效果发动时（直接连锁；伤害步骤不能发动；自己或对方卡组0张时不能发动）"
+              ],
+              "fast_effect": true
+            },
+            "cost": [
+              {
+                "kind": "detach_material",
+                "text": "把这张卡2个超量素材取除"
+              }
+            ],
+            "processing": [
+              {
+                "action": "draw",
+                "count": "1",
+                "selector": {
+                  "text": "双方各自抽1张（原效果替换为此处理）"
+                },
+                "restrictions": [
+                  "对方怪兽效果的处理替换为『双方各自抽1张』，原效果不适用",
+                  "对不受怪兽效果影响的卡的效果同样适用替换"
+                ]
+              }
+            ],
+            "usage": [
+              "soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "诱发即时效果：不无效发动，而是把效果内容替换为双方各抽1张。",
+              "source_refs": [
+                "konami-13825"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [],
+          "effect_type": "ignition",
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "targeting": [
+              {
+                "count": 1,
+                "filter": "自己场上1只其他的「No.」超量怪兽"
+              }
+            ],
+            "processing": [
+              {
+                "action": "attach_material",
+                "count": "1",
+                "selector": {
+                  "text": "这张卡（这张卡持有的超量素材也全部随之转移）"
+                }
+              }
+            ],
+            "usage": [
+              "name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "把自己连同其超量素材转移为对象「No.」超量怪兽的超量素材。",
+              "source_refs": [
+                "konami-13825"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "material_rule",
+          "effects": [],
+          "text": "3星怪兽×2只以上。"
+        },
+        {
+          "kind": "shared_limit",
+          "effects": [
+            "m2"
+          ],
+          "text": "这个卡名的②的效果1回合只能使用1次。",
+          "scope": "同名卡共享"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "3星怪兽×2只以上\r\n这个卡名的②的效果1回合只能使用1次。\r\n①：1回合1次，对方把怪兽的效果发动时，把这张卡2个超量素材取除才能发动。那个效果变成「双方各自抽1张」。\r\n②：以自己场上1只其他的「No.」超量怪兽为对象才能发动。把这张卡作为那只怪兽的超量素材（这张卡持有超量素材的场合，那些也全部作为超量素材）。",
+      "sources": [
+        {
+          "id": "konami-13825",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=13825&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "79606837": {
+      "code": 79606837,
+      "text_digest": "08f66bb7a99a3e5f6571708b96a137358a0c2ffb617ccd8046264a9cf490141b",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [
+            "etag:material-rule"
+          ],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "同调素材文本；限制关系记录在 relations。",
+              "source_refs": [
+                "konami-11384"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:banish"
+          ],
+          "effect_type": "continuous",
+          "structure": {
+            "processing": [
+              {
+                "action": "banish",
+                "count": "all",
+                "from_zones": [
+                  "hand",
+                  "deck",
+                  "opponent_hand",
+                  "opponent_deck"
+                ],
+                "to_zones": [
+                  "banished"
+                ],
+                "selector": {
+                  "text": "双方从手卡·卡组送去墓地的怪兽"
+                },
+                "restrictions": [
+                  "不去墓地而除外",
+                  "从额外卡组送去墓地的怪兽不除外、照常送去墓地"
+                ],
+                "duration": "这张卡在怪兽区存在期间"
+              }
+            ]
+          },
+          "notes": [
+            {
+              "text": "永续效果：适用对象限定从手卡·卡组送去墓地的怪兽。",
+              "source_refs": [
+                "konami-11384"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:negate-activation",
+            "etag:destroy"
+          ],
+          "effect_type": "quick",
+          "structure": {
+            "activation": {
+              "timing": "on_card_or_monster_effect",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "怪兽的效果·魔法·陷阱卡发动时（直接连锁；不能对应不伴随卡片发动的魔法·陷阱效果；伤害步骤中满足条件也能发动）"
+              ],
+              "fast_effect": true
+            },
+            "cost": [
+              {
+                "kind": "tribute",
+                "text": "把这张卡解放"
+              }
+            ],
+            "processing": [
+              {
+                "action": "negate_activation",
+                "count": "1",
+                "selector": {
+                  "text": "发动中的怪兽效果·魔法·陷阱卡"
+                }
+              },
+              {
+                "action": "destroy",
+                "count": "1",
+                "selector": {
+                  "text": "被无效发动的那张卡"
+                },
+                "condition": "与无效同时处理"
+              }
+            ],
+            "usage": []
+          },
+          "notes": [
+            {
+              "text": "诱发即时效果；解放自身是费用。",
+              "source_refs": [
+                "konami-11384"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m3",
+          "kind": "numbered",
+          "number": 3,
+          "tags": [
+            "etag:add-hand"
+          ],
+          "effect_type": "trigger",
+          "structure": {
+            "activation": {
+              "timing": "condition_text",
+              "zones": [
+                "grave"
+              ],
+              "conditions": [
+                "这张卡被送去墓地的场合（伤害步骤中满足条件也能发动）"
+              ],
+              "fast_effect": false
+            },
+            "processing": [
+              {
+                "action": "add_hand",
+                "count": "1",
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "hand"
+                ],
+                "selector": {
+                  "text": "1只仪式怪兽或1张仪式魔法卡"
+                }
+              }
+            ],
+            "usage": []
+          },
+          "notes": [
+            {
+              "text": "墓地发动的诱发效果。",
+              "source_refs": [
+                "konami-11384"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "material_rule",
+          "effects": [],
+          "text": "调整＋调整以外的怪兽1只以上。"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "调整＋调整以外的怪兽1只以上\r\n①：只要这张卡在怪兽区域存在，从双方的手卡·卡组送去墓地的怪兽不去墓地而除外。\r\n②：怪兽的效果·魔法·陷阱卡发动时，把这张卡解放才能发动。那个发动无效并破坏。\r\n③：这张卡被送去墓地的场合才能发动。从卡组把1只仪式怪兽或者1张仪式魔法卡加入手卡。",
+      "sources": [
+        {
+          "id": "konami-11384",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=11384&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "81275020": {
+      "code": 81275020,
+      "text_digest": "01d18acef99f90dcaddf32ff9604f0981808fcb370508f96b616ae927452cbe2",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "次数限制文本：仅②受同名共享限制；限制关系记录在 relations。",
+              "source_refs": [
+                "konami-12047"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:special-summon"
+          ],
+          "effect_type": "no_chain_effect",
+          "structure": {
+            "processing": [
+              {
+                "action": "special_summon",
+                "count": "1",
+                "from_zones": [
+                  "hand"
+                ],
+                "to_zones": [
+                  "monster"
+                ],
+                "selector": {
+                  "text": "这张卡"
+                },
+                "restrictions": [
+                  "自己场上没有怪兽存在的场合才能这样特殊召唤",
+                  "以此法特殊召唤不产生连锁块"
+                ]
+              }
+            ]
+          },
+          "notes": [
+            {
+              "text": "官方裁定：不属于四类中任一类的效果（无连锁块的特殊召唤方法）。",
+              "source_refs": [
+                "konami-12047"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:add-hand"
+          ],
+          "effect_type": "trigger",
+          "structure": {
+            "activation": {
+              "timing": "on_summon",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "这张卡召唤·特殊召唤成功时（直后才能发动；伤害步骤也能发动）"
+              ],
+              "fast_effect": false
+            },
+            "processing": [
+              {
+                "action": "add_hand",
+                "count": "1",
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "hand"
+                ],
+                "selector": {
+                  "text": "「疾行机人 贝陀螺集合体」以外的1只「疾行机人」怪兽"
+                }
+              }
+            ],
+            "usage": [
+              "name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "召唤·特召后隔有其他处理的场合不能再发动。",
+              "source_refs": [
+                "konami-12047"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "shared_limit",
+          "effects": [
+            "m2"
+          ],
+          "text": "这个卡名的②的效果1回合只能使用1次。",
+          "scope": "同名卡共享"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "这个卡名的②的效果1回合只能使用1次。\r\n①：自己场上没有怪兽存在的场合，这张卡可以从手卡特殊召唤。\r\n②：这张卡召唤·特殊召唤成功时才能发动。从卡组把「疾行机人 贝陀螺集合体」以外的1只「疾行机人」怪兽加入手卡。",
+      "sources": [
+        {
+          "id": "konami-12047",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=12047&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "84815190": {
+      "code": 84815190,
+      "text_digest": "b229a6d40674cd5f79e2c11a1f87f108523b528632eca5d57d6c78e2291f6c14",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [
+            "etag:material-rule"
+          ],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "同调素材文本与次数限制文本（仅②）；限制关系记录在 relations。",
+              "source_refs": [
+                "konami-16386"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:destroy"
+          ],
+          "effect_type": "ignition",
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "targeting": [
+              {
+                "count": 1,
+                "filter": "场上1张卡"
+              }
+            ],
+            "processing": [
+              {
+                "action": "destroy",
+                "count": "1",
+                "selector": {
+                  "text": "对象卡"
+                }
+              }
+            ],
+            "usage": [
+              "soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "起动效果；每张表侧这张卡1回合1次。",
+              "source_refs": [
+                "konami-16386"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:negate-activation",
+            "etag:destroy"
+          ],
+          "effect_type": "quick",
+          "structure": {
+            "activation": {
+              "timing": "on_any_effect",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "魔法·陷阱·怪兽的效果发动时（直接连锁；伤害步骤中满足条件也能发动）"
+              ],
+              "fast_effect": true
+            },
+            "processing": [
+              {
+                "action": "negate_activation",
+                "count": "1",
+                "selector": {
+                  "text": "发动中的魔法·陷阱·怪兽效果"
+                }
+              },
+              {
+                "action": "destroy",
+                "count": "1",
+                "selector": {
+                  "text": "被无效发动的那张卡"
+                },
+                "condition": "与无效同时处理"
+              }
+            ],
+            "usage": [
+              "field_once"
+            ]
+          },
+          "notes": [
+            {
+              "text": "只在这张卡表侧表示存在期间合计1次；发动次数限制独立于①。",
+              "source_refs": [
+                "konami-16386"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m3",
+          "kind": "numbered",
+          "number": 3,
+          "tags": [
+            "etag:special-summon"
+          ],
+          "effect_type": "trigger",
+          "structure": {
+            "activation": {
+              "timing": "standby",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "自己·对方的准备阶段"
+              ],
+              "fast_effect": false
+            },
+            "targeting": [
+              {
+                "count": 1,
+                "filter": "自己墓地1只9星以下的怪兽"
+              }
+            ],
+            "processing": [
+              {
+                "action": "return_deck",
+                "count": "1",
+                "from_zones": [
+                  "monster"
+                ],
+                "to_zones": [
+                  "extra"
+                ],
+                "selector": {
+                  "text": "这张卡（回到持有者额外卡组）"
+                }
+              },
+              {
+                "action": "special_summon",
+                "count": "1",
+                "from_zones": [
+                  "grave"
+                ],
+                "to_zones": [
+                  "monster"
+                ],
+                "selector": {
+                  "text": "对象怪兽"
+                },
+                "condition": "成功回到额外卡组后才处理；与回额外视为同时处理"
+              }
+            ],
+            "usage": []
+          },
+          "notes": [
+            {
+              "text": "回到额外卡组与特殊召唤视为同时处理。",
+              "source_refs": [
+                "konami-16386"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "material_rule",
+          "effects": [],
+          "text": "调整＋调整以外的怪兽1只以上。"
+        },
+        {
+          "kind": "shared_limit",
+          "effects": [
+            "m2"
+          ],
+          "text": "这个卡名的②的效果1回合只能使用1次。",
+          "scope": "同名卡共享"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "调整＋调整以外的怪兽1只以上\r\n这个卡名的②的效果1回合只能使用1次。\r\n①：1回合1次，以场上1张卡为对象才能发动。那张卡破坏。\r\n②：只在这张卡表侧表示存在才有1次，魔法·陷阱·怪兽的效果发动时才能发动。那个发动无效并破坏。\r\n③：自己·对方的准备阶段，以自己墓地1只9星以下的怪兽为对象才能发动。这张卡回到额外卡组，作为对象的怪兽特殊召唤。",
+      "sources": [
+        {
+          "id": "konami-16386",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=16386&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "87327776": {
+      "code": 87327776,
+      "text_digest": "881d63d3a1263586c4408bda1a1f3a6e4351cd380a94779758d78cdc0546755e",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "超量素材文本与次数限制文本；限制关系记录在 relations。",
+              "source_refs": [
+                "konami-14248"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:special-summon",
+            "etag:lock"
+          ],
+          "effect_type": "ignition",
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [
+              {
+                "kind": "detach_material",
+                "text": "把这张卡1个超量素材取除"
+              }
+            ],
+            "processing": [
+              {
+                "action": "special_summon",
+                "count": "1",
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "monster"
+                ],
+                "selector": {
+                  "text": "1只「转生炎兽」怪兽"
+                },
+                "position": "守备表示",
+                "restrictions": [
+                  "本效果的发动后至回合结束，自己不能把炎属性以外的怪兽的效果发动（特殊召唤处理后立即适用）"
+                ]
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "取除超量素材是费用；效果发动封锁只限自己怪兽的效果发动。",
+              "source_refs": [
+                "konami-14248"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:add-hand"
+          ],
+          "effect_type": "trigger",
+          "structure": {
+            "activation": {
+              "timing": "condition_text",
+              "zones": [
+                "grave"
+              ],
+              "conditions": [
+                "超量召唤的这张卡作为「转生炎兽」连接怪兽的连接素材送去墓地且该连接召唤成功的场合"
+              ],
+              "fast_effect": false
+            },
+            "targeting": [
+              {
+                "count": 1,
+                "filter": "场上1只怪兽"
+              }
+            ],
+            "processing": [
+              {
+                "action": "add_hand",
+                "count": "1",
+                "from_zones": [
+                  "field"
+                ],
+                "to_zones": [
+                  "hand"
+                ],
+                "selector": {
+                  "text": "对象怪兽（回到持有者手卡）"
+                }
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "弹回对象为场上怪兽，回到持有者手卡。",
+              "source_refs": [
+                "konami-14248"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "material_rule",
+          "effects": [],
+          "text": "3星怪兽×2。"
+        },
+        {
+          "kind": "usage_limit_group",
+          "effects": [
+            "m1",
+            "m2"
+          ],
+          "text": "这个卡名的①②的效果1回合各能使用1次。",
+          "scope": "同名卡共享、各编号独立"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "3星怪兽×2\r\n这个卡名的①②的效果1回合各能使用1次。\r\n①：把这张卡1个超量素材取除才能发动。从卡组把1只「转生炎兽」怪兽守备表示特殊召唤。这个效果的发动后，直到回合结束时自己不能把炎属性以外的怪兽的效果发动。\r\n②：超量召唤的这张卡作为「转生炎兽」连接怪兽的连接素材送去墓地的场合，以场上1只怪兽为对象才能发动。那只怪兽回到手卡。",
+      "sources": [
+        {
+          "id": "konami-14248",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14248&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "87871125": {
+      "code": 87871125,
+      "text_digest": "b9169646cd3c0dfc79c85c8d1613800aceb59b46485b938185a4419c0126b81d",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "连接素材文本与次数限制文本；限制关系记录在 relations。",
+              "source_refs": [
+                "konami-14125"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:add-hand"
+          ],
+          "effect_type": "trigger",
+          "structure": {
+            "activation": {
+              "timing": "on_summon",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "这张卡所连接区有怪兽召唤·特殊召唤的场合（伤害步骤不能发动）"
+              ],
+              "fast_effect": false
+            },
+            "processing": [
+              {
+                "action": "add_hand",
+                "count": "1",
+                "from_zones": [
+                  "grave"
+                ],
+                "to_zones": [
+                  "hand"
+                ],
+                "selector": {
+                  "text": "自己墓地1只炎属性怪兽（融合·同调·超量·连接怪兽改为加入额外卡组）"
+                },
+                "restrictions": [
+                  "这个回合，自己不能把这个效果加入手卡的怪兽以及那些同名怪兽通常召唤·特殊召唤",
+                  "加入额外卡组的场合该召唤限制不适用"
+                ]
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "回收来源为墓地；选额外卡组系怪兽时改为加入额外卡组。",
+              "source_refs": [
+                "konami-14125"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:add-hand"
+          ],
+          "effect_type": "ignition",
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "这张卡是已用「转生炎兽 日光狼」为素材作连接召唤的场合"
+              ],
+              "fast_effect": false
+            },
+            "processing": [
+              {
+                "action": "add_hand",
+                "count": "1",
+                "from_zones": [
+                  "grave"
+                ],
+                "to_zones": [
+                  "hand"
+                ],
+                "selector": {
+                  "text": "自己墓地1张「转生炎兽」魔法·陷阱卡"
+                }
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "回收来源为墓地的魔法·陷阱卡；与①的怪兽回收分别记录。",
+              "source_refs": [
+                "konami-14125"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "material_rule",
+          "effects": [],
+          "text": "炎属性效果怪兽2只。"
+        },
+        {
+          "kind": "usage_limit_group",
+          "effects": [
+            "m1",
+            "m2"
+          ],
+          "text": "这个卡名的①②的效果1回合各能使用1次。",
+          "scope": "同名卡共享、各编号独立"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "炎属性效果怪兽2只\r\n这个卡名的①②的效果1回合各能使用1次。\r\n①：这张卡所连接区有怪兽召唤·特殊召唤的场合才能发动。从自己墓地把1只炎属性怪兽加入手卡。这个回合，自己不能把这个效果加入手卡的怪兽以及那些同名怪兽通常召唤·特殊召唤。\r\n②：这张卡是已用「转生炎兽 日光狼」为素材作连接召唤的场合才能发动。从自己墓地把1张「转生炎兽」魔法·陷阱卡加入手卡。",
+      "sources": [
+        {
+          "id": "konami-14125",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14125&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "89392810": {
+      "code": 89392810,
+      "text_digest": "2763ce892fcba9ed45d41e2d943c9f2eb0de9e976411352678c894781bcd2e2f",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [
+            "etag:material-rule"
+          ],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "同调素材规则文本与次数限制文本；效果无效化的状况下手卡调整仍可作素材。限制关系记录在 relations。",
+              "source_refs": [
+                "konami-21955"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:add-hand"
+          ],
+          "effect_type": "trigger",
+          "structure": {
+            "activation": {
+              "timing": "on_summon",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "这张卡召唤·特殊召唤的场合（伤害步骤也能发动）"
+              ],
+              "fast_effect": false
+            },
+            "processing": [
+              {
+                "action": "add_hand",
+                "count": "1",
+                "from_zones": [
+                  "deck",
+                  "grave"
+                ],
+                "to_zones": [
+                  "hand"
+                ],
+                "selector": {
+                  "text": "3星怪兽以外的1只「杀手级调整曲」怪兽",
+                  "series": [
+                    "set:1d5"
+                  ],
+                  "exclude": "3星（等级3）怪兽"
+                }
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "检索来源为卡组·墓地；排除3星怪兽。",
+              "source_refs": [
+                "konami-21955"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:destroy"
+          ],
+          "effect_type": "trigger",
+          "structure": {
+            "activation": {
+              "timing": "on_material_sent",
+              "zones": [
+                "grave"
+              ],
+              "conditions": [
+                "这张卡作为同调素材送去墓地且同调召唤成功的场合"
+              ],
+              "fast_effect": false
+            },
+            "targeting": [
+              {
+                "count": 1,
+                "filter": "对方场上1张魔法·陷阱卡"
+              }
+            ],
+            "processing": [
+              {
+                "action": "destroy",
+                "count": "1",
+                "selector": {
+                  "text": "对象卡"
+                }
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "对象限定对方的魔法·陷阱卡。",
+              "source_refs": [
+                "konami-21955"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "material_rule",
+          "effects": [],
+          "text": "场上的这张卡为素材作同调召唤的场合，手卡1只调整也能作为同调素材。"
+        },
+        {
+          "kind": "usage_limit_group",
+          "effects": [
+            "m1",
+            "m2"
+          ],
+          "text": "这个卡名的①②的效果1回合各能使用1次。",
+          "scope": "同名卡共享、各编号独立"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "场上的这张卡为素材作同调召唤的场合，手卡1只调整也能作为同调素材。这个卡名的①②的效果1回合各能使用1次。\r\n①：这张卡召唤·特殊召唤的场合才能发动。从自己的卡组·墓地把3星怪兽以外的1只「杀手级调整曲」怪兽加入手卡。\r\n②：这张卡作为同调素材送去墓地的场合，以对方场上1张魔法·陷阱卡为对象才能发动。那张卡破坏。",
+      "sources": [
+        {
+          "id": "konami-21955",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=21955&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "93490856": {
+      "code": 93490856,
+      "text_digest": "cfdb1755fd1aab4350e9c03720b04df77700109ed75b23f4b76792308c5e8eb1",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "次数限制文本：①②各编号受同名共享限制；限制关系记录在 relations。",
+              "source_refs": [
+                "konami-16491"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:special-summon",
+            "etag:lock"
+          ],
+          "effect_type": "ignition",
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "hand"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [
+              {
+                "kind": "discard",
+                "text": "把手卡其他的1张「相剑」卡或1只幻龙族怪兽丢弃"
+              }
+            ],
+            "processing": [
+              {
+                "action": "special_summon",
+                "count": "1",
+                "from_zones": [
+                  "hand"
+                ],
+                "to_zones": [
+                  "monster"
+                ],
+                "selector": {
+                  "text": "这张卡"
+                }
+              },
+              {
+                "action": "special_summon",
+                "count": "1",
+                "to_zones": [
+                  "monster"
+                ],
+                "selector": {
+                  "text": "1只「相剑衍生物」（幻龙族·调整·水·4星·攻/守0）"
+                },
+                "optional": true,
+                "condition": "特殊召唤这张卡成功后可选用；与特召自身不同时处理",
+                "restrictions": [
+                  "这个效果特殊召唤的衍生物在自己·对方怪兽区存在期间，自己不是同调怪兽不能从额外卡组特殊召唤"
+                ]
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "手卡发动的起动效果；两次特殊召唤为顺序处理，衍生物可选用。",
+              "source_refs": [
+                "konami-16491"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:effect-damage"
+          ],
+          "effect_type": "trigger",
+          "structure": {
+            "activation": {
+              "timing": "on_material_sent",
+              "zones": [
+                "grave"
+              ],
+              "conditions": [
+                "这张卡作为同调素材送去墓地的场合（同调召唤被无效则不发动）"
+              ],
+              "fast_effect": false
+            },
+            "processing": [
+              {
+                "action": "burn",
+                "count": "1",
+                "selector": {
+                  "text": "对方受到1200伤害"
+                }
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "效果伤害1200点。",
+              "source_refs": [
+                "konami-16491"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "usage_limit_group",
+          "effects": [
+            "m1",
+            "m2"
+          ],
+          "text": "这个卡名的①②的效果1回合各能使用1次。",
+          "scope": "同名卡共享、各编号独立"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "这个卡名的①②的效果1回合各能使用1次。\r\n①：把手卡其他的1张「相剑」卡或者1只幻龙族怪兽丢弃才能发动。这张卡从手卡特殊召唤。那之后，可以在自己场上把1只「相剑衍生物」（幻龙族·调整·水·4星·攻/守0）特殊召唤。只要这个效果特殊召唤的衍生物存在，自己不是同调怪兽不能从额外卡组特殊召唤。\r\n②：这张卡作为同调素材送去墓地的场合才能发动。给与对方1200伤害。",
+      "sources": [
+        {
+          "id": "konami-16491",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=16491&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "94620082": {
+      "code": 94620082,
+      "text_digest": "7905baed076beed060931d91c0279c95e2284e10ec84e38ccf8646ea9d8ea0a0",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "互斥次数限制文本：①②合计每回合仅可使用其一；限制关系记录在 relations。",
+              "source_refs": [
+                "konami-13890"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:deck-look",
+            "etag:add-hand",
+            "etag:return-deck"
+          ],
+          "effect_type": "trigger",
+          "structure": {
+            "activation": {
+              "timing": "on_normal_summon",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "这张卡召唤成功时"
+              ],
+              "fast_effect": false
+            },
+            "processing": [
+              {
+                "action": "deck_reveal",
+                "count": "3",
+                "from_zones": [
+                  "deck_top"
+                ],
+                "selector": {
+                  "text": "自己卡组上面3张"
+                }
+              },
+              {
+                "action": "add_hand",
+                "count": "up_to_1",
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "hand"
+                ],
+                "selector": {
+                  "text": "翻开的3张中的1张「转生炎兽」卡"
+                },
+                "optional": true,
+                "condition": "可以不选，此时全部放回"
+              },
+              {
+                "action": "return_deck",
+                "count": "2",
+                "from_zones": [
+                  "deck"
+                ],
+                "selector": {
+                  "text": "剩下的卡（回到卡组并洗切）"
+                }
+              }
+            ],
+            "usage": [
+              "shared_name_once"
+            ]
+          },
+          "notes": [
+            {
+              "text": "翻开的卡中可以不选「转生炎兽」卡而全部放回卡组。",
+              "source_refs": [
+                "konami-13890"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:special-summon",
+            "etag:destroy"
+          ],
+          "effect_type": "ignition",
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "grave"
+              ],
+              "conditions": [
+                "这张卡在墓地存在，场上有表侧表示的魔法·陷阱卡存在的场合"
+              ],
+              "fast_effect": false
+            },
+            "cost": [
+              {
+                "kind": "discard",
+                "text": "从手卡丢弃1张「转生炎兽」卡"
+              }
+            ],
+            "processing": [
+              {
+                "action": "special_summon",
+                "count": "1",
+                "from_zones": [
+                  "grave"
+                ],
+                "to_zones": [
+                  "monster"
+                ],
+                "selector": {
+                  "text": "这张卡"
+                }
+              },
+              {
+                "action": "destroy",
+                "count": "1",
+                "from_zones": [
+                  "spell"
+                ],
+                "selector": {
+                  "text": "场上1张表侧表示的魔法·陷阱卡"
+                },
+                "optional": true,
+                "condition": "特殊召唤成功后可选用；与特殊召唤不同时处理"
+              }
+            ],
+            "usage": [
+              "shared_name_once"
+            ]
+          },
+          "notes": [
+            {
+              "text": "丢弃「转生炎兽」卡是费用；破坏处理可选用且与特召不同时。",
+              "source_refs": [
+                "konami-13890"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "exclusive_choice",
+          "effects": [
+            "m1",
+            "m2"
+          ],
+          "text": "这个卡名的①②的效果1回合只能有1次使用其中任意1个。",
+          "scope": "同名卡共享且互斥"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "这个卡名的①②的效果1回合只能有1次使用其中任意1个。\r\n①：这张卡召唤成功时才能发动。从自己卡组上面把3张卡翻开。可以从那之中选1张「转生炎兽」卡加入手卡。剩下的卡回到卡组。\r\n②：这张卡在墓地存在，场上有表侧表示的魔法·陷阱卡存在的场合，从手卡丢弃1张「转生炎兽」卡才能发动。这张卡特殊召唤。那之后，可以选场上1张表侧表示的魔法·陷阱卡破坏。",
+      "sources": [
+        {
+          "id": "konami-13890",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=13890&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
+    },
+    "95440946": {
+      "code": 95440946,
+      "text_digest": "783c32bf37c24e31885800d9c06ef82a01b419fd4fd034b4e129be5eb276e008",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-24",
+        "basis": "本地卡文与 KONAMI 官方 OCG 条目对照；具体分类以所列来源为依据。脚本字段仅表示效果编号映射。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "kind": "unnumbered",
+          "number": null,
+          "tags": [],
+          "structure": {},
+          "effect_type": "non_effect",
+          "notes": [
+            {
+              "text": "次数限制文本：①②各编号受同名共享限制；限制关系记录在 relations。",
+              "source_refs": [
+                "konami-15123"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "kind": "numbered",
+          "number": 1,
+          "tags": [
+            "etag:send-grave"
+          ],
+          "effect_type": "ignition",
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "hand"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [
+              {
+                "kind": "send_grave_self",
+                "text": "从手卡把这张卡送去墓地"
+              },
+              {
+                "kind": "send_grave_cost",
+                "text": "从手卡把1张魔法·陷阱卡送去墓地"
+              }
+            ],
+            "targeting": [
+              {
+                "count": 1,
+                "filter": "场上1张卡"
+              }
+            ],
+            "processing": [
+              {
+                "action": "send_grave",
+                "count": "1",
+                "from_zones": [
+                  "field"
+                ],
+                "to_zones": [
+                  "grave"
+                ],
+                "selector": {
+                  "text": "对象卡（不破坏，直接送去墓地）"
+                }
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "手卡发动的起动效果；费用为手卡的这张卡与1张魔法·陷阱卡送去墓地。",
+              "source_refs": [
+                "konami-15123"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "kind": "numbered",
+          "number": 2,
+          "tags": [
+            "etag:add-hand",
+            "etag:special-summon",
+            "etag:stat-change",
+            "etag:protect"
+          ],
+          "effect_type": "ignition",
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "grave"
+              ],
+              "conditions": [
+                "这张卡在墓地存在的场合"
+              ],
+              "fast_effect": false
+            },
+            "cost": [
+              {
+                "kind": "send_grave_cost",
+                "text": "把自己场上1张魔法·陷阱卡送去墓地"
+              }
+            ],
+            "processing": [
+              {
+                "action": "add_hand",
+                "count": "1",
+                "from_zones": [
+                  "grave"
+                ],
+                "to_zones": [
+                  "hand"
+                ],
+                "selector": {
+                  "text": "这张卡"
+                }
+              },
+              {
+                "action": "special_summon",
+                "count": "1",
+                "from_zones": [
+                  "hand"
+                ],
+                "to_zones": [
+                  "monster"
+                ],
+                "selector": {
+                  "text": "手卡1只不死族怪兽"
+                },
+                "optional": true,
+                "condition": "加入手卡成功后可选用；与加入手卡不同时处理",
+                "then": [
+                  {
+                    "action": "stat_change",
+                    "selector": {
+                      "text": "该特殊召唤的怪兽"
+                    },
+                    "restrictions": [
+                      "攻击力·守备力上升1000"
+                    ],
+                    "duration": "直到对方回合结束时"
+                  },
+                  {
+                    "action": "protect",
+                    "selector": {
+                      "text": "该特殊召唤的怪兽"
+                    },
+                    "restrictions": [
+                      "不会被效果破坏"
+                    ],
+                    "duration": "直到对方回合结束时（离场或变为里侧表示后不再适用）"
+                  }
+                ]
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "墓地发动的起动效果；把自己场上魔法·陷阱送去墓地是费用；加手、特召、赋予权限为顺序处理。",
+              "source_refs": [
+                "konami-15123"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [
+        {
+          "kind": "usage_limit_group",
+          "effects": [
+            "m1",
+            "m2"
+          ],
+          "text": "这个卡名的①②的效果1回合各能使用1次。",
+          "scope": "同名卡共享、各编号独立"
+        }
+      ],
+      "notes": [],
+      "frozen_text": "这个卡名的①②的效果1回合各能使用1次。\r\n①：从手卡把这张卡和1张魔法·陷阱卡送去墓地，以场上1张卡为对象才能发动。那张卡送去墓地。\r\n②：这张卡在墓地存在的场合，把自己场上1张魔法·陷阱卡送去墓地才能发动。这张卡加入手卡。那之后，可以从手卡把1只不死族怪兽特殊召唤。这个效果特殊召唤的怪兽直到对方回合结束时攻击力·守备力上升1000，不会被效果破坏。",
+      "sources": [
+        {
+          "id": "konami-15123",
+          "title": "KONAMI 官方卡文与补充说明",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=15123&ope=4&request_locale=ja",
+          "checked_on": "2026-09-24",
+          "format": "OCG"
+        }
+      ]
     }
   },
-  "revision": 2
+  "revision": 3
 }
