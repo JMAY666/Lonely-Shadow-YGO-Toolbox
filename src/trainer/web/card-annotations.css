@@ -32,6 +32,12 @@
 .anno-page [data-tone="jade"]{--anno-tone:#92d7bd}
 .anno-page [data-tone="violet"]{--anno-tone:#c6b5ff}
 .anno-page [data-tone="pink"]{--anno-tone:#f0aed0}
+.anno-page [data-tone="steel"]{--anno-tone:#a2b6ca}
+.anno-page [data-tone="crimson"]{--anno-tone:#f29a9e}
+.anno-page [data-tone="gold"]{--anno-tone:#e6c67c}
+.anno-page [data-tone="indigo"]{--anno-tone:#a3a8ea}
+.anno-page [data-tone="amber"]{--anno-tone:#d9b48e}
+.anno-page [data-tone="cyan"]{--anno-tone:#8fd4dd}
 .anno-page [data-tone="neutral"]{--anno-tone:#b1c4cf}
 .anno-effect-tag{color:var(--anno-tone);border-color:color-mix(in srgb,var(--anno-tone) 42%,transparent);background:color-mix(in srgb,var(--anno-tone) 9%,var(--panel));border-left:3px solid var(--anno-tone)}
 .anno-tag.anno-effect-tag[aria-pressed="true"]{color:var(--anno-tone);border-color:var(--anno-tone);background:color-mix(in srgb,var(--anno-tone) 23%,var(--panel));box-shadow:inset 0 0 0 1px var(--anno-tone)}

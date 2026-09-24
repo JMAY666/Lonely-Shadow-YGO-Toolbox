@@ -93,6 +93,18 @@ module.exports = async ({page, application, root, evidence, pass}) => {
   await page.waitForFunction(()=>annoUI.mode==='folders'&&document.querySelector('#anno-folders').offsetHeight>0);
   assert.equal(await page.locator('#anno-q').inputValue(),'救祓少女');
   await reset();
+  // Batch two: a Japanese old alias still finds the newly curated official Chinese folder.
+  await search('ブラックフェザー');
+  await page.locator('.anno-folder[data-anno-folder="set:33"]').waitFor();
+  assert.match(await page.locator('.anno-folder[data-anno-folder="set:33"]').textContent(),/黑羽/);
+  assert.equal(await page.locator('.anno-folder[data-anno-folder="set:33"]').getAttribute('data-tone'),'steel');
+  await page.locator('.anno-folder[data-anno-folder="set:33"]').click();
+  await selectCard(2009101);
+  assert.match(await page.locator('#anno-detail .anno-detail-series').textContent(),/黑羽/);
+  assert.match(await page.locator('#anno-detail .anno-monster[data-kind="tuner"]').textContent(),/♪调整/);
+  await page.locator('#anno-back').click();
+  await page.waitForFunction(()=>annoUI.mode==='folders'&&!annoUI.busy);
+  await reset();
   // Each extra-deck type, plus a hybrid synchro/tuner, is read from card type bits.
   for (const [code,kind] of [[23995346,'fusion'],[14812471,'link'],[69248256,'synchro'],[42781164,'tuner']]) {
     await selectCard(code);

@@ -15,8 +15,10 @@ from plan_tags import matches_set, normalized
 from card_release_dates import ReleaseDates
 
 UNASSIGNED = 'unassigned'
-EMBLEMS = {'dragon-eye', 'flame', 'swords', 'halo', 'wave'}
-TONES = {'ice', 'flame', 'jade', 'violet', 'pink'}
+EMBLEMS = {'dragon-eye', 'flame', 'swords', 'halo', 'wave', 'feather', 'slit-eye', 'photon',
+           'galaxy', 'snowflake', 'star', 'odd-eyes', 'wizard-hat', 'wrench', 'dice', 'chip',
+           'chaos', 'crown', 'kabuto', 'swoosh'}
+TONES = {'ice', 'flame', 'jade', 'violet', 'pink', 'steel', 'crimson', 'gold', 'indigo', 'amber', 'cyan'}
 
 
 def load_presentation(path=None):

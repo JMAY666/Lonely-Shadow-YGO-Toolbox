@@ -1,59 +1,864 @@
 {
   "version": 1,
   "checked_on": "2026-09-24",
-  "note": "五个系列、七张代表卡的展示样例。徽记为本项目设计的识别图形，不是官方标志。归属始终读取当前卡库 setcode；来源核对不等于完整效果或全系列逐卡审核。",
+  "note": "二十个系列、三十五张代表卡的展示样例。徽记为本项目设计的识别图形，不是官方标志。归属始终读取当前卡库 setcode；来源核对不等于完整效果或全系列逐卡审核。",
   "series": [
     {
-      "id": "set:dd", "setcode": 221, "name": "青眼",
-      "aliases": ["青眼白龙", "青眼白龍", "Blue-Eyes", "ブルーアイズ"],
-      "emblem": "dragon-eye", "tone": "ice", "cover_code": 89631139,
+      "id": "set:dd",
+      "setcode": 221,
+      "name": "青眼",
+      "aliases": [
+        "青眼白龙",
+        "青眼白龍",
+        "Blue-Eyes",
+        "ブルーアイズ"
+      ],
+      "emblem": "dragon-eye",
+      "tone": "ice",
+      "cover_code": 89631139,
       "sources": [
-        {"id": "blue-eyes-cn", "title": "KONAMI · 青眼白龙", "format": "OCG 简体中文", "checked_on": "2026-09-24", "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=4007&ope=2&request_locale=cn"},
-        {"id": "ultimate-cn", "title": "KONAMI · 青眼究极龙", "format": "OCG 简体中文", "checked_on": "2026-09-24", "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=4386&ope=2&request_locale=cn"}
+        {
+          "id": "blue-eyes-cn",
+          "title": "KONAMI · 青眼白龙",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=4007&ope=2&request_locale=cn"
+        },
+        {
+          "id": "ultimate-cn",
+          "title": "KONAMI · 青眼究极龙",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=4386&ope=2&request_locale=cn"
+        }
       ],
       "samples": [
-        {"code": 89631139, "type": 17, "setcode": 221, "source_refs": ["blue-eyes-cn"]},
-        {"code": 23995346, "type": 65, "setcode": 221, "source_refs": ["ultimate-cn"]}
+        {
+          "code": 89631139,
+          "type": 17,
+          "setcode": 221,
+          "source_refs": [
+            "blue-eyes-cn"
+          ]
+        },
+        {
+          "code": 23995346,
+          "type": 65,
+          "setcode": 221,
+          "source_refs": [
+            "ultimate-cn"
+          ]
+        }
       ]
     },
     {
-      "id": "set:119", "setcode": 281, "name": "转生炎兽",
-      "aliases": ["轉生炎獸", "転生炎獣", "Salamangreat"],
-      "emblem": "flame", "tone": "flame", "cover_code": 14812471,
-      "sources": [
-        {"id": "balelynx-cn", "title": "KONAMI · 转生炎兽 烽火猞猁", "format": "OCG 简体中文", "checked_on": "2026-09-24", "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=14249&ope=2&request_locale=cn"}
+      "id": "set:119",
+      "setcode": 281,
+      "name": "转生炎兽",
+      "aliases": [
+        "轉生炎獸",
+        "転生炎獣",
+        "Salamangreat"
       ],
-      "samples": [{"code": 14812471, "type": 67108897, "setcode": 281, "source_refs": ["balelynx-cn"]}]
-    },
-    {
-      "id": "set:16b", "setcode": 363, "name": "相剑",
-      "aliases": ["相劍", "相剣", "Swordsoul"],
-      "emblem": "swords", "tone": "jade", "cover_code": 69248256,
+      "emblem": "flame",
+      "tone": "flame",
+      "cover_code": 14812471,
       "sources": [
-        {"id": "chixiao-cn", "title": "KONAMI · 相剑大师－赤霄", "format": "OCG 简体中文", "checked_on": "2026-09-24", "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=16527&ope=2&request_locale=cn"}
-      ],
-      "samples": [{"code": 69248256, "type": 8225, "setcode": 363, "source_refs": ["chixiao-cn"]}]
-    },
-    {
-      "id": "set:172", "setcode": 370, "name": "驱魔姐妹",
-      "aliases": ["救祓少女", "Exosister", "エクソシスター"],
-      "emblem": "halo", "tone": "violet", "cover_code": 42741437,
-      "sources": [
-        {"id": "mikailis-cn", "title": "KONAMI · 驱魔姐妹・米迦以利斯", "format": "OCG 简体中文", "checked_on": "2026-09-24", "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=16740&ope=2&request_locale=cn"}
-      ],
-      "samples": [{"code": 42741437, "type": 8388641, "setcode": 370, "source_refs": ["mikailis-cn"]}]
-    },
-    {
-      "id": "set:1d5", "setcode": 469, "name": "杀手旋律",
-      "aliases": ["杀手级调整曲", "殺手級調整曲", "Kewl Tune", "キラーチューン"],
-      "emblem": "wave", "tone": "pink", "cover_code": 16387555,
-      "sources": [
-        {"id": "cue-cn", "title": "KONAMI · 杀手旋律・绮悠", "format": "OCG 简体中文", "checked_on": "2026-09-24", "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=21956&ope=2&request_locale=cn"},
-        {"id": "trackmaker-ja", "title": "KONAMI · キラーチューン・トラックメイカー", "format": "OCG 日文", "checked_on": "2026-09-24", "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=21957&ope=2&request_locale=ja"}
+        {
+          "id": "balelynx-cn",
+          "title": "KONAMI · 转生炎兽 烽火猞猁",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=14249&ope=2&request_locale=cn"
+        }
       ],
       "samples": [
-        {"code": 16387555, "type": 4129, "setcode": 469, "source_refs": ["cue-cn"]},
-        {"code": 42781164, "type": 12321, "setcode": 469, "source_refs": ["trackmaker-ja"]}
+        {
+          "code": 14812471,
+          "type": 67108897,
+          "setcode": 281,
+          "source_refs": [
+            "balelynx-cn"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set:16b",
+      "setcode": 363,
+      "name": "相剑",
+      "aliases": [
+        "相劍",
+        "相剣",
+        "Swordsoul"
+      ],
+      "emblem": "swords",
+      "tone": "jade",
+      "cover_code": 69248256,
+      "sources": [
+        {
+          "id": "chixiao-cn",
+          "title": "KONAMI · 相剑大师－赤霄",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=16527&ope=2&request_locale=cn"
+        }
+      ],
+      "samples": [
+        {
+          "code": 69248256,
+          "type": 8225,
+          "setcode": 363,
+          "source_refs": [
+            "chixiao-cn"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set:172",
+      "setcode": 370,
+      "name": "驱魔姐妹",
+      "aliases": [
+        "救祓少女",
+        "Exosister",
+        "エクソシスター"
+      ],
+      "emblem": "halo",
+      "tone": "violet",
+      "cover_code": 42741437,
+      "sources": [
+        {
+          "id": "mikailis-cn",
+          "title": "KONAMI · 驱魔姐妹・米迦以利斯",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=16740&ope=2&request_locale=cn"
+        }
+      ],
+      "samples": [
+        {
+          "code": 42741437,
+          "type": 8388641,
+          "setcode": 370,
+          "source_refs": [
+            "mikailis-cn"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set:1d5",
+      "setcode": 469,
+      "name": "杀手旋律",
+      "aliases": [
+        "杀手级调整曲",
+        "殺手級調整曲",
+        "Kewl Tune",
+        "キラーチューン"
+      ],
+      "emblem": "wave",
+      "tone": "pink",
+      "cover_code": 16387555,
+      "sources": [
+        {
+          "id": "cue-cn",
+          "title": "KONAMI · 杀手旋律・绮悠",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=21956&ope=2&request_locale=cn"
+        },
+        {
+          "id": "trackmaker-ja",
+          "title": "KONAMI · キラーチューン・トラックメイカー",
+          "format": "OCG 日文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=21957&ope=2&request_locale=ja"
+        }
+      ],
+      "samples": [
+        {
+          "code": 16387555,
+          "type": 4129,
+          "setcode": 469,
+          "source_refs": [
+            "cue-cn"
+          ]
+        },
+        {
+          "code": 42781164,
+          "type": 12321,
+          "setcode": 469,
+          "source_refs": [
+            "trackmaker-ja"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set:2f",
+      "setcode": 47,
+      "name": "冰结界",
+      "aliases": [
+        "Ice Barrier",
+        "氷結界"
+      ],
+      "emblem": "snowflake",
+      "tone": "ice",
+      "cover_code": 52687916,
+      "sources": [
+        {
+          "id": "trishula-cn",
+          "title": "KONAMI · 冰结界之龙 三叉龙",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=8732&ope=2&request_locale=cn"
+        }
+      ],
+      "samples": [
+        {
+          "code": 52687916,
+          "type": 8225,
+          "setcode": 47,
+          "source_refs": [
+            "trishula-cn"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set:33",
+      "setcode": 51,
+      "name": "黑羽",
+      "aliases": [
+        "Blackwing",
+        "BF",
+        "ブラックフェザー"
+      ],
+      "emblem": "feather",
+      "tone": "steel",
+      "cover_code": 2009101,
+      "sources": [
+        {
+          "id": "gale-cn",
+          "title": "KONAMI · 黑羽－疾风之盖尔",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=8011&ope=2&request_locale=cn"
+        },
+        {
+          "id": "armor-master-cn",
+          "title": "KONAMI · 黑羽－装甲之翼",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=8036&ope=2&request_locale=cn"
+        }
+      ],
+      "samples": [
+        {
+          "code": 2009101,
+          "type": 4129,
+          "setcode": 51,
+          "source_refs": [
+            "gale-cn"
+          ]
+        },
+        {
+          "code": 69031175,
+          "type": 8225,
+          "setcode": 51,
+          "source_refs": [
+            "armor-master-cn"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set:3b",
+      "setcode": 59,
+      "name": "真红眼",
+      "aliases": [
+        "真紅眼",
+        "Red-Eyes",
+        "レッドアイズ"
+      ],
+      "emblem": "slit-eye",
+      "tone": "crimson",
+      "cover_code": 74677422,
+      "sources": [
+        {
+          "id": "red-eyes-black-cn",
+          "title": "KONAMI · 真红眼黑龙",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=4088&ope=2&request_locale=cn"
+        },
+        {
+          "id": "red-eyes-slash-cn",
+          "title": "KONAMI · 真红眼黑刃龙",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=13170&ope=2&request_locale=cn"
+        }
+      ],
+      "samples": [
+        {
+          "code": 74677422,
+          "type": 17,
+          "setcode": 59,
+          "source_refs": [
+            "red-eyes-black-cn"
+          ]
+        },
+        {
+          "code": 21140872,
+          "type": 97,
+          "setcode": 59,
+          "source_refs": [
+            "red-eyes-slash-cn"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set:43",
+      "setcode": 67,
+      "name": "废品",
+      "aliases": [
+        "Junk",
+        "ジャンク"
+      ],
+      "emblem": "wrench",
+      "tone": "amber",
+      "cover_code": 63977008,
+      "sources": [
+        {
+          "id": "junk-synchron-cn",
+          "title": "KONAMI · 废品同步士",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=7687&ope=2&request_locale=cn"
+        },
+        {
+          "id": "junk-warrior-cn",
+          "title": "KONAMI · 废品战士",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=7696&ope=2&request_locale=cn"
+        }
+      ],
+      "samples": [
+        {
+          "code": 63977008,
+          "type": 4129,
+          "setcode": 269942851,
+          "source_refs": [
+            "junk-synchron-cn"
+          ]
+        },
+        {
+          "code": 60800381,
+          "type": 8225,
+          "setcode": 4391014,
+          "source_refs": [
+            "junk-warrior-cn"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set:54",
+      "setcode": 84,
+      "name": "我我我",
+      "aliases": [
+        "Gagaga",
+        "ガガガ"
+      ],
+      "emblem": "wizard-hat",
+      "tone": "indigo",
+      "cover_code": 26082117,
+      "sources": [
+        {
+          "id": "gagaga-magician-cn",
+          "title": "KONAMI · 我我我魔术师",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=9618&ope=2&request_locale=cn"
+        },
+        {
+          "id": "gagaga-cowboy-cn",
+          "title": "KONAMI · 我我我枪手",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=10263&ope=2&request_locale=cn"
+        }
+      ],
+      "samples": [
+        {
+          "code": 26082117,
+          "type": 33,
+          "setcode": 84,
+          "source_refs": [
+            "gagaga-magician-cn"
+          ]
+        },
+        {
+          "code": 12014404,
+          "type": 8388641,
+          "setcode": 84,
+          "source_refs": [
+            "gagaga-cowboy-cn"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set:55",
+      "setcode": 85,
+      "name": "光子",
+      "aliases": [
+        "Photon",
+        "フォトン"
+      ],
+      "emblem": "photon",
+      "tone": "gold",
+      "cover_code": 93717133,
+      "sources": [
+        {
+          "id": "photon-dragon-cn",
+          "title": "KONAMI · 银河眼光子龙",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=9729&ope=2&request_locale=cn"
+        },
+        {
+          "id": "prime-photon-cn",
+          "title": "KONAMI · 编号62 银河眼光子龙皇",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=11069&ope=2&request_locale=cn"
+        }
+      ],
+      "samples": [
+        {
+          "code": 93717133,
+          "type": 33,
+          "setcode": 276496469,
+          "source_refs": [
+            "photon-dragon-cn"
+          ]
+        },
+        {
+          "code": 31801517,
+          "type": 8388641,
+          "setcode": 365348716616,
+          "source_refs": [
+            "prime-photon-cn"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set:7b",
+      "setcode": 123,
+      "name": "银河",
+      "aliases": [
+        "银河眼",
+        "Galaxy",
+        "ギャラクシー"
+      ],
+      "emblem": "galaxy",
+      "tone": "indigo",
+      "cover_code": 63767246,
+      "sources": [
+        {
+          "id": "hope-harbinger-cn",
+          "title": "KONAMI · 编号38 希望魁龙 泰坦银河",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=12260&ope=2&request_locale=cn"
+        },
+        {
+          "id": "cipher-dragon-cn",
+          "title": "KONAMI · 银河眼光波龙",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=12552&ope=2&request_locale=cn"
+        }
+      ],
+      "samples": [
+        {
+          "code": 63767246,
+          "type": 8388641,
+          "setcode": 8061000,
+          "source_refs": [
+            "hope-harbinger-cn"
+          ]
+        },
+        {
+          "code": 18963306,
+          "type": 8388641,
+          "setcode": 283447419,
+          "source_refs": [
+            "cipher-dragon-cn"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set:93",
+      "setcode": 147,
+      "name": "电子",
+      "aliases": [
+        "Cyber",
+        "サイバー",
+        "电子界"
+      ],
+      "emblem": "chip",
+      "tone": "cyan",
+      "cover_code": 70095154,
+      "sources": [
+        {
+          "id": "cyber-dragon-cn",
+          "title": "KONAMI · 电子龙",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=6390&ope=2&request_locale=cn"
+        },
+        {
+          "id": "cyber-end-cn",
+          "title": "KONAMI · 电子终极龙",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=6397&ope=2&request_locale=cn"
+        }
+      ],
+      "samples": [
+        {
+          "code": 70095154,
+          "type": 33,
+          "setcode": 4243,
+          "source_refs": [
+            "cyber-dragon-cn"
+          ]
+        },
+        {
+          "code": 1546123,
+          "type": 97,
+          "setcode": 147,
+          "source_refs": [
+            "cyber-end-cn"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set:99",
+      "setcode": 153,
+      "name": "异色眼",
+      "aliases": [
+        "Odd-Eyes",
+        "オッドアイズ"
+      ],
+      "emblem": "odd-eyes",
+      "tone": "violet",
+      "cover_code": 16178681,
+      "sources": [
+        {
+          "id": "odd-pendulum-cn",
+          "title": "KONAMI · 异色眼灵摆龙",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=11213&ope=2&request_locale=cn"
+        },
+        {
+          "id": "odd-rebellion-cn",
+          "title": "KONAMI · 霸王黑龙 异色眼反叛龙",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=11835&ope=2&request_locale=cn"
+        }
+      ],
+      "samples": [
+        {
+          "code": 16178681,
+          "type": 16777249,
+          "setcode": 284295321,
+          "source_refs": [
+            "odd-pendulum-cn"
+          ]
+        },
+        {
+          "code": 45627618,
+          "type": 25165857,
+          "setcode": 20643993,
+          "source_refs": [
+            "odd-rebellion-cn"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set:9a",
+      "setcode": 154,
+      "name": "超重武者",
+      "aliases": [
+        "Superheavy Samurai"
+      ],
+      "emblem": "kabuto",
+      "tone": "amber",
+      "cover_code": 3117804,
+      "sources": [
+        {
+          "id": "benkei-cn",
+          "title": "KONAMI · 超重武者 大弁庆－K",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=11222&ope=2&request_locale=cn"
+        }
+      ],
+      "samples": [
+        {
+          "code": 3117804,
+          "type": 33,
+          "setcode": 154,
+          "source_refs": [
+            "benkei-cn"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set:9f",
+      "setcode": 159,
+      "name": "娱乐伙伴",
+      "aliases": [
+        "EM",
+        "エンタメイト",
+        "Performapal"
+      ],
+      "emblem": "star",
+      "tone": "flame",
+      "cover_code": 47075569,
+      "sources": [
+        {
+          "id": "pendulum-sorcerer-cn",
+          "title": "KONAMI · 娱乐伙伴 灵摆魔术士",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=11615&ope=2&request_locale=cn"
+        },
+        {
+          "id": "skullcrobat-cn",
+          "title": "KONAMI · 娱乐伙伴 骷髅杂技小丑",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=11938&ope=2&request_locale=cn"
+        }
+      ],
+      "samples": [
+        {
+          "code": 47075569,
+          "type": 16777249,
+          "setcode": 15859871,
+          "source_refs": [
+            "pendulum-sorcerer-cn"
+          ]
+        },
+        {
+          "code": 40318957,
+          "type": 16777249,
+          "setcode": 159,
+          "source_refs": [
+            "skullcrobat-cn"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set:ba",
+      "setcode": 186,
+      "name": "急袭猛禽",
+      "aliases": [
+        "Raidraptor",
+        "RAID RAPTOR",
+        "レイド・ラプターズ"
+      ],
+      "emblem": "swoosh",
+      "tone": "steel",
+      "cover_code": 86221741,
+      "sources": [
+        {
+          "id": "fuzzy-lanius-cn",
+          "title": "KONAMI · 急袭猛禽－绒雏伯劳",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=11797&ope=2&request_locale=cn"
+        },
+        {
+          "id": "ultimate-falcon-cn",
+          "title": "KONAMI · 急袭猛禽－究极猎鹰",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=12325&ope=2&request_locale=cn"
+        }
+      ],
+      "samples": [
+        {
+          "code": 5929801,
+          "type": 33,
+          "setcode": 186,
+          "source_refs": [
+            "fuzzy-lanius-cn"
+          ]
+        },
+        {
+          "code": 86221741,
+          "type": 8388641,
+          "setcode": 186,
+          "source_refs": [
+            "ultimate-falcon-cn"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set:cf",
+      "setcode": 207,
+      "name": "混沌",
+      "aliases": [
+        "Chaos",
+        "カオス"
+      ],
+      "emblem": "chaos",
+      "tone": "violet",
+      "cover_code": 82301904,
+      "sources": [
+        {
+          "id": "chaos-emperor-cn",
+          "title": "KONAMI · 混沌帝龙 －终焉的使者－",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=5860&ope=2&request_locale=cn"
+        },
+        {
+          "id": "chaos-sorcerer-cn",
+          "title": "KONAMI · 混沌巫师",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=5833&ope=2&request_locale=cn"
+        }
+      ],
+      "samples": [
+        {
+          "code": 82301904,
+          "type": 33554465,
+          "setcode": 207,
+          "source_refs": [
+            "chaos-emperor-cn"
+          ]
+        },
+        {
+          "code": 9596126,
+          "type": 33554465,
+          "setcode": 207,
+          "source_refs": [
+            "chaos-sorcerer-cn"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set:10af",
+      "setcode": 4271,
+      "name": "DDD",
+      "aliases": [
+        "D/D/D",
+        "ディーディーディー"
+      ],
+      "emblem": "crown",
+      "tone": "crimson",
+      "cover_code": 987311,
+      "sources": [
+        {
+          "id": "alexander-cn",
+          "title": "KONAMI · DDD 疾风王亚历山大",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=11445&ope=2&request_locale=cn"
+        },
+        {
+          "id": "caesar-cn",
+          "title": "KONAMI · DDD 怒涛王凯撒",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=11457&ope=2&request_locale=cn"
+        }
+      ],
+      "samples": [
+        {
+          "code": 987311,
+          "type": 8225,
+          "setcode": 4271,
+          "source_refs": [
+            "alexander-cn"
+          ]
+        },
+        {
+          "code": 3758046,
+          "type": 8388641,
+          "setcode": 4271,
+          "source_refs": [
+            "caesar-cn"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set:2016",
+      "setcode": 8214,
+      "name": "疾行机人",
+      "aliases": [
+        "Speedroid",
+        "スピードロイド",
+        "SR"
+      ],
+      "emblem": "dice",
+      "tone": "crimson",
+      "cover_code": 23792058,
+      "sources": [
+        {
+          "id": "hexasaucer-ja",
+          "title": "KONAMI · SRヘキサソーサー",
+          "format": "OCG 日文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=14340&ope=2&request_locale=ja"
+        },
+        {
+          "id": "clearwing-cn",
+          "title": "KONAMI · 四天之龙 清透翼同步龙",
+          "format": "OCG 简体中文",
+          "checked_on": "2026-09-24",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=22729&ope=2&request_locale=cn"
+        }
+      ],
+      "samples": [
+        {
+          "code": 23792058,
+          "type": 16777249,
+          "setcode": 8214,
+          "source_refs": [
+            "hexasaucer-ja"
+          ]
+        },
+        {
+          "code": 54603525,
+          "type": 8225,
+          "setcode": 35279399747839,
+          "source_refs": [
+            "clearwing-cn"
+          ]
+        }
       ]
     }
   ]

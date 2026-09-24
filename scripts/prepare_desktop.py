@@ -4,12 +4,31 @@ import json
 from pathlib import Path
 import shutil
 import sys
-from urllib.request import urlopen
+from urllib.error import URLError
+from urllib.parse import urlparse
+from urllib.request import Request, build_opener, HTTPRedirectHandler
 import zipfile
 
 WORKSPACE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(WORKSPACE / 'src/trainer'))
 from desktop_runtime import digest, resource_allowed
+
+# 固定只允许从官方主机经 https 下载锁文件声明的构建输入；禁止跟随重定向。
+DOWNLOAD_HOSTS = {'www.python.org'}
+
+
+class _NoRedirect(HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise URLError(f'redirect blocked: {newurl}')
+
+
+def guarded_download(url, destination):
+    parsed = urlparse(url)
+    if parsed.scheme != 'https' or parsed.hostname not in DOWNLOAD_HOSTS:
+        raise ValueError(f'构建输入下载地址不在白名单内: {url}')
+    opener = build_opener(_NoRedirect)
+    with opener.open(Request(url, headers={'User-Agent': 'desktop-bundle-prepare/1.0'}), timeout=60) as response, destination.open('wb') as output:
+        shutil.copyfileobj(response, output)
 
 
 def main():
@@ -22,8 +41,7 @@ def main():
     archive = downloads / lock['url'].rsplit('/', 1)[-1]
     if not archive.exists():
         temporary = archive.with_suffix('.download')
-        with urlopen(lock['url'], timeout=60) as response, temporary.open('wb') as output:
-            shutil.copyfileobj(response, output)
+        guarded_download(lock['url'], temporary)
         if digest(temporary) != lock['sha256']:
             raise ValueError('Python 下载校验失败')
         temporary.replace(archive)
@@ -79,7 +97,7 @@ def main():
                      'docs/verification-1.44.0.md', 'docs/verification-1.45.0.md', 'docs/card-annotation-system.md',
                      'docs/verification-1.46.0.md', 'docs/card-annotation-agent-guide.md',
                      'docs/verification-1.47.0.md', 'docs/card-series-production-guide.md',
-                     'docs/verification-1.47.1.md',
+                     'docs/verification-1.47.1.md', 'docs/verification-1.47.2.md',
                      'licenses/YGOPro-GPL-2.0.txt', 'scripts/source-lock.json', 'scripts/desktop-lock.json'):
         destination = notices / relative
         destination.parent.mkdir(parents=True, exist_ok=True)
