@@ -196,6 +196,20 @@ def _check_processing(items, registry, where):
                 _check_text(branch.get('condition', '分支'), f'{where}分支条件', 400)
                 _check_processing(branch.get('actions', []), registry, f'{where}分支')
                 if branch.get('then') is not None: _check_processing(branch['then'], registry, f'{where}分支后续')
+        if item.get('action') == 'choose_branch':
+            branches = item.get('branches') or []
+            if len(branches) < 2 or any(not branch.get('actions') for branch in branches):
+                raise ValueError(f'{where}互斥分支必须至少有两个非空选项')
+        if item.get('action') == 'use_as_fusion_material':
+            if not item.get('from_zones') or not any(next_action.get('action') == 'special_summon'
+                                                      for next_action in item.get('then', [])):
+                raise ValueError(f'{where}融合素材处理须登记来源和后续融合召唤')
+        if item.get('action') == 'use_as_ritual_material':
+            if not item.get('from_zones') or not any(next_action.get('action') == 'special_summon'
+                                                      for next_action in item.get('then', [])):
+                raise ValueError(f'{where}仪式素材处理须登记来源和后续仪式召唤')
+        if item.get('action') == 'grant_effect' and not item.get('then'):
+            raise ValueError(f'{where}赋予效果须登记未来处理')
         for restriction in item.get('restrictions', []):
             _check_text(restriction, f'{where}限制', 400)
 

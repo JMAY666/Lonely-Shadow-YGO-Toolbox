@@ -1,6 +1,6 @@
 # 卡片标注交接指南
 
-适用版本：1.47.3。供后续智能体在现有 108 张效果参考样本上逐批扩充。先读项目 `AGENTS.md` 与[体系规范](card-annotation-system.md)。下一批 12 张的独立指示见[补卡提示词](card-annotation-next-batch.md)。本轮只维护静态卡片知识，不启动已封存的 AI 学习计划。系列中文名、徽记与封面是独立展示资料，按[系列标识制作流程](card-series-production-guide.md)补充，不把系列样例核对计入完整效果标注数量。
+适用版本：1.47.4。供后续智能体在现有 208 张内置效果参考样本上继续扩充。先读项目 `AGENTS.md` 与[体系规范](card-annotation-system.md)；上一轮优先清单已完成，现作为历史记录保留在[补卡提示词](card-annotation-next-batch.md)。只维护静态卡片知识，不启动已封存的 AI 学习计划。系列中文名、徽记与封面是独立展示资料，按[系列标识制作流程](card-series-production-guide.md)补充，不把系列样例核对计入完整效果标注数量。
 
 ## 文件与交付范围
 
@@ -28,6 +28,7 @@
 
 ```powershell
 python scripts/check_card_annotations.py --runtime .local/YGOPro-Lite
+python scripts/check_annotation_series.py --runtime .local/YGOPro-Lite
 python -m unittest discover -s tests -p test_card_annotations.py -q
 node --test tests/card_annotations_view.test.cjs
 ```
@@ -81,7 +82,13 @@ node --test tests/card_annotations_view.test.cjs
 
 ## 2026-09-24 第三批：手坑／解场 staples 62 张
 
-按缺口分析建议②补全 `staples.json` 64 张中除灰流丽、无限泡影（首批已核对）外的全部 62 张（研究快照 `.local/anno-batch3-research/`，构建脚本 `.local/anno-batch3-*.py`）。逐卡以官方 FAQ 页「補足情報」为效果类别与处理时序依据；Dominus 四张与颉颃胜负按官方裁定区分为「盖放发动的通常陷阱＋非效果的手卡发动权」，坏兽①②③与深渊之兽①按「不属于四类（不产生连锁块）／条件性诱发即时」裁定标注。新增受控取值（三个：`actions.set_position`、`actions.take_control`、`cost_kinds.remove_counter`）的定义与正反例见[体系规范 §4](card-annotation-system.md)。仍待逐条消化的个别裁定：闭锁世界的冥神①「效果无效化」卡文未写结束时点，官方补充说明未单列持续时间，结构按无时限记录并保留待核对标记；接触的G②的素材封锁、超量素材等特殊离场情形未在官方补充说明中展开。下一批建议见缺口分析③（按系列 TAG 逐系列推进）。
+按缺口分析建议②补全 `staples.json` 64 张中除灰流丽、无限泡影（首批已核对）外的全部 62 张（研究快照 `.local/anno-batch3-research/`，构建脚本 `.local/anno-batch3-*.py`）。逐卡以官方 FAQ 页「補足情報」为效果类别与处理时序依据；Dominus 四张与颉颃胜负按官方裁定区分为「盖放发动的通常陷阱＋非效果的手卡发动权」，坏兽①②③与深渊之兽①按「不属于四类（不产生连锁块）／条件性诱发即时」裁定标注。新增受控取值（三个：`actions.set_position`、`actions.take_control`、`cost_kinds.remove_counter`）的定义与正反例见[体系规范 §4](card-annotation-system.md)。仍待逐条消化的个别裁定：闭锁世界的冥神①「效果无效化」卡文未写结束时点，官方补充说明未单列持续时间，结构按无时限记录并保留待核对标记；接触的G②的素材封锁、超量素材等特殊离场情形未在官方补充说明中展开。
+
+## 2026-09-25 第四批：完整系列与实战辅助 100 张
+
+先按[候选与交付清单](card-annotation-batch-2026-09-25.csv)核对当前卡库 `name/type/desc` 与 108 张旧条目，最终新增杀手旋律／杀手级调整曲 8、旧文档四张辅助卡 4、相剑 14、驱魔姐妹 18、转生炎兽 39、天威 17 张；原有 19 张同系列条目复核后跳过，五个系列在这份卡库中的成员均已覆盖。包含两张无效果天威连接怪兽的素材规则和三张独立异画卡号；基础卡号和异画卡号保持独立，官方 cid 仅供来源追溯。
+
+每张新增条目引用 KONAMI 官方 OCG 卡片页及 FAQ，卡文和补足情報原始页面保留在 `.local/anno-batch4-research/`；原有 19 张的当期复核快照在其 `existing/` 子目录。按约 20 张完成一次实际 runtime 校验、全段与来源审查，并运行 `python scripts/check_annotation_batch4.py --runtime .local/YGOPro-Lite --expected 100 --require-snapshots` 核对本机来源快照及费用／处理、发动／效果无效、互斥分支和来源区域的正反查询。换机没有本地快照时可省略 `--require-snapshots` 做其他只读回归，但不能声称重新完成来源复核。`actions.choose_branch` 表示互斥结构，现有查询仍只保证同一效果，不证明同一分支可同时满足多个条件。词表新增值的定义与反例见[体系规范 §4](card-annotation-system.md)，整轮验证见[1.47.4 记录](verification-1.47.4.md)。
 
 ## 可直接交给下一个智能体的任务
 

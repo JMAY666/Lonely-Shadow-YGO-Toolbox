@@ -127,6 +127,34 @@ class CardAnnotationTests(unittest.TestCase):
         only_none = self.service.search({'etags': ['etag:add-hand'], 'status': ['none']})
         self.assertEqual(only_none['total'], 0)
 
+    def test_new_branch_and_material_actions_require_complete_structure(self):
+        registry = self.service.registry
+        branch = {'action': 'choose_branch', 'selector': {'text': '回手或特召二选一'},
+                  'branches': [
+                      {'condition': '回手', 'actions': [{'action': 'add_hand', 'selector': {'text': '对象卡'},
+                                                     'from_zones': ['grave'], 'to_zones': ['hand']}]},
+                      {'condition': '特召', 'actions': [{'action': 'special_summon', 'selector': {'text': '对象卡'},
+                                                     'from_zones': ['grave'], 'to_zones': ['monster']}]}]}
+        effect = simple_effect('m1', 1, ['etag:add-hand', 'etag:special-summon'], [branch])
+        effect['effect_type'] = 'spell_activation'
+        entry = make_entry(20000001, SEARCHER, [effect])
+        validate_entry(entry, registry, {'m1'}, card_type=2)
+        broken = deepcopy(entry)
+        broken['effects'][0]['structure']['processing'][0]['branches'].pop()
+        with self.assertRaisesRegex(ValueError, '互斥分支'):
+            validate_entry(broken, registry, {'m1'}, card_type=2)
+
+        material = {'action': 'use_as_fusion_material', 'selector': {'text': '处理时选融合素材'},
+                    'from_zones': ['hand', 'deck'],
+                    'then': [{'action': 'special_summon', 'selector': {'text': '融合怪兽'},
+                              'from_zones': ['extra'], 'to_zones': ['monster']}]}
+        entry['effects'][0]['tags'] = ['etag:special-summon']
+        entry['effects'][0]['structure']['processing'] = [material]
+        validate_entry(entry, registry, {'m1'}, card_type=2)
+        entry['effects'][0]['structure']['processing'][0]['then'] = []
+        with self.assertRaisesRegex(ValueError, '融合素材处理'):
+            validate_entry(entry, registry, {'m1'}, card_type=2)
+
     def test_usage_and_action_filters(self):
         locked = self.service.search({'etags': ['etag:special-summon'], 'usage': 'per_effect_name_soft_opt'})
         self.assertEqual([c['code'] for c in locked['cards']], [20000003])

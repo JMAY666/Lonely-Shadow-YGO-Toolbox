@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "updated_on": "2026-09-24",
-  "note": "通用效果 TAG 与受控词表。TAG 表达卡片间的共性能力；每张卡的具体参数（来源区域、数量、费用、限制）记录在标注结构里，不因共用 TAG 而可互相替代。同义词仅用于检索匹配提示，不改变定义。 第三批（2026-09-24）新增 actions.set_position、actions.take_control 处理与 cost_kinds.remove_counter 费用受控取值（定义与正反例见 docs/card-annotation-system.md §4）。",
+  "updated_on": "2026-09-25",
+  "note": "通用效果 TAG 与受控词表。TAG 表达卡片间的共性能力；每张卡的具体参数（来源区域、数量、费用、限制）记录在标注结构里，不因共用 TAG 而可互相替代。同义词仅用于检索匹配提示，不改变定义。 第三批（2026-09-24）新增 actions.set_position、actions.take_control 处理与 cost_kinds.remove_counter 费用受控取值（定义与正反例见 docs/card-annotation-system.md §4）。 第四批按官方裁定新增分支、素材处理、复制效果、装备、LP损失、额外素材区等受控取值；不变更既有TAG ID，正反例与兼容规则见 docs/card-annotation-system.md §4。",
   "tags": [
     {
       "id": "etag:add-hand",
@@ -253,7 +253,8 @@
       "pendulum": "灵摆区域",
       "opponent_deck_top": "对方卡组最上面",
       "opponent_deck_bottom": "对方卡组最下面",
-      "field_spell": "场地区"
+      "field_spell": "场地区",
+      "xyz_material": "超量素材（附在场上超量怪兽下，不是墓地或怪兽区）"
     },
     "actions": {
       "add_hand": "加入手卡",
@@ -277,7 +278,22 @@
       "set_card": "把魔法·陷阱卡盖放到场上",
       "attach_material": "把这张卡转移为对象怪兽的超量素材",
       "set_position": "变更场上怪兽的表示形式（表侧/里侧·攻击/守备）",
-      "take_control": "得到对方怪兽的控制权（时限见结构说明）"
+      "take_control": "得到对方怪兽的控制权（时限见结构说明）",
+      "apply_trigger_effect": "适用另一张卡本应在作为同调素材送墓时发动的效果（内容依所选卡而定）",
+      "grant_extra_attack": "赋予怪兽在同一战斗阶段追加攻击次数",
+      "choose_branch": "同一次处理中只选择其下 branches 的一个互斥分支，本身不代表能力",
+      "use_as_fusion_material": "效果处理使所选怪兽成为融合素材，实际去向受其他效果影响",
+      "negate_attack": "使一次已宣言的攻击无效（与发动无效、效果无效区分）",
+      "discard_hand": "在效果处理时选择并丢弃手卡；不是发动费用",
+      "detach_material": "在效果处理时取除超量素材；不是发动费用",
+      "change_effect": "把对方发动的效果改写为另一段指定处理，而非无效其发动或效果",
+      "grant_effect": "给怪兽赋予以后满足条件时才发动或适用的效果",
+      "use_as_ritual_material": "仪式魔法处理时使用解放或指定替代方式的素材，之后进行仪式召唤",
+      "modify_summon_material": "改变某种召唤可使用的素材数量或方式，本身不是特殊召唤处理",
+      "equip_card": "把当前魔法卡装备到指定场上怪兽",
+      "grant_piercing": "赋予装备怪兽对守备怪兽攻击时造成贯通战斗伤害的规则",
+      "lose_lp": "由效果处理使自己失去基本分，不等同效果伤害或发动费用",
+      "place_field_spell": "从指定来源把场地魔法表侧放置到场地区域（非盖放）"
     },
     "cost_kinds": {
       "discard_self": "把这张卡从手卡丢弃",
@@ -292,7 +308,8 @@
       "send_grave_cost": "把卡送去墓地（费用，具体来源区域见文字说明）",
       "detach_material": "把这张卡的超量素材取除（费用）",
       "material_as_cost": "素材手续（旧取值，新增标注请使用规则文本）",
-      "remove_counter": "把场上指示物取除作为费用（种类与数量见文字说明）"
+      "remove_counter": "把场上指示物取除作为费用（种类与数量见文字说明）",
+      "return_deck": "把手卡送回卡组作为发动费用（顶底及洗牌位置见文字说明）"
     },
     "usage_limits": {
       "soft_opt": "每张表侧卡片每回合1次（具体措辞以原文为准）",
@@ -315,7 +332,8 @@
       "manual": "依卡片种类与规则确定时点",
       "condition_text": "条件文本（见条件说明）",
       "on_card_or_monster_effect": "魔法·陷阱卡的发动或怪兽效果发动时",
-      "fast_window": "满足规则的快速效果时点"
+      "fast_window": "满足规则的快速效果时点",
+      "end_phase": "结束阶段"
     },
     "effect_types": {
       "ignition": "起动效果",

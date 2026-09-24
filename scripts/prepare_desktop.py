@@ -98,7 +98,8 @@ def main():
                      'docs/verification-1.46.0.md', 'docs/card-annotation-agent-guide.md',
                      'docs/verification-1.47.0.md', 'docs/card-series-production-guide.md',
                      'docs/verification-1.47.1.md', 'docs/verification-1.47.2.md',
-                     'docs/verification-1.47.3.md', 'docs/card-annotation-next-batch.md',
+                     'docs/verification-1.47.3.md', 'docs/verification-1.47.4.md',
+                     'docs/card-annotation-next-batch.md', 'docs/card-annotation-batch-2026-09-25.csv',
                      'licenses/YGOPro-GPL-2.0.txt', 'scripts/source-lock.json', 'scripts/desktop-lock.json'):
         destination = notices / relative
         destination.parent.mkdir(parents=True, exist_ok=True)
