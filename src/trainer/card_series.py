@@ -12,6 +12,7 @@ import re
 from urllib.parse import urlparse
 
 from plan_tags import matches_set, normalized
+from card_release_dates import ReleaseDates
 
 UNASSIGNED = 'unassigned'
 EMBLEMS = {'dragon-eye', 'flame', 'swords', 'halo', 'wave'}
@@ -59,7 +60,7 @@ def load_presentation(path=None):
 
 
 class CardSeries:
-    def __init__(self, catalog, builtins, presentation=None):
+    def __init__(self, catalog, builtins, presentation=None, releases=None):
         self.cards = catalog.cards
         document = presentation if presentation is not None else load_presentation()
         self.curated = {item['id']: deepcopy(item) for item in document['series']}
@@ -108,6 +109,10 @@ class CardSeries:
             if not keys: keys.add(UNASSIGNED)
             self.memberships[code] = sorted(keys)
             for key in keys: self.members[key].add(code)
+        dates = releases if releases is not None else ReleaseDates()
+        # Series debut is based on its entire membership, independent of the
+        # currently visible query results, selected cover or annotation count.
+        self.releases = {key: dates.first(codes) for key, codes in self.members.items() if key != UNASSIGNED}
 
     def metadata(self, identifier):
         item = self.definitions[identifier]
@@ -143,6 +148,7 @@ class CardSeries:
             if cover not in codes:
                 cover = next((entry['code'] for entry in entries if entry['status'] != 'none'), entries[0]['code'])
             meta.update(count=len(entries), annotated=sum(entry['status'] != 'none' for entry in entries),
-                        cover_code=cover, designed=identifier in self.curated)
+                        cover_code=cover, designed=identifier in self.curated,
+                        release=deepcopy(self.releases.get(identifier, {})))
             folders.append(meta)
         return folders

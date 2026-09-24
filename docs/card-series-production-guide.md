@@ -1,6 +1,6 @@
 # 系列标识制作流程与智能体交接
 
-适用版本：1.47.0；首次样例核对：2026-09-24。先读项目 `AGENTS.md`。本任务维护静态展示资料；已有 46 张效果标注保持独立，原卡库、个人 TAG、备注和备份均保留。
+适用版本：1.47.1；首次样例核对：2026-09-24。先读项目 `AGENTS.md`。本任务维护静态展示资料；已有 46 张效果标注保持独立，原卡库、个人 TAG、备注和备份均保留。
 
 ## 已完成的样例
 
@@ -24,7 +24,7 @@
 6. 复用五种基础色之一或补充有对比度的新色。需要新徽记时，在 `src/trainer/web/card-annotations.js` 的 `annoEmblems` 添加 24×24 的本地 SVG 路径，并在 `card_series.py` 的 `EMBLEMS` 登记；新色同步登记 `TONES` 和 CSS。徽记在 18px 和 34px 下仍应清晰，不能只靠颜色区别。来源数据不得携带任意 SVG/HTML，禁止嵌入脚本、外链图片或事件属性。
 7. 封面走现有本地 `/pics/<卡号>.jpg` 服务，普通文件夹自动选代表图。原图缺失显示应用卡背，加载失败保留文件夹图形。不要把本机完整卡图集、下载缓存、测试截图或个人资料提交到 Git；本批没有另行下载卡图。未来新增外部素材时，先记录其来源与允许的用途。
 8. 不为每张卡重复编写效果颜色或怪兽类型。效果 TAG 颜色由既有八类 `category` 决定；保留标签 ID、文字、定义。类型直接读取 `type`：`0x40` 融合 `∞`，`0x2000` 同调 `✧`，`0x800000` 超量 `◎`，`0x4000000` 连接 `↗`；`0x1000000` 灵摆 `◈`、`0x1000` 调整 `♪` 为附加标识，`0x80` 仪式 `◇` 不算额外卡组类型。魔法／陷阱不能显示怪兽类型符号。
-9. 运行下面的校验，再在后台桌面测试中查一次旧译名、打开一个系列、展开／收起原图、验证符号与效果颜色，检查 760px 窄窗口。按项目约定审核、提交并推送；交付完成卡号、系列、来源和未解决差异。
+9. 运行下面的校验，再在后台桌面测试中查一次旧译名、打开一个系列、点击右上角原图浮层并关闭、验证缩略图、符号与效果颜色，检查 760px 窄窗口。按项目约定审核、提交并推送；交付完成卡号、系列、来源和未解决差异。
 
 ```powershell
 python scripts/check_annotation_series.py --runtime .local/YGOPro-Lite
@@ -32,6 +32,7 @@ python scripts/check_card_annotations.py --runtime .local/YGOPro-Lite
 python -m unittest discover -s tests -p test_card_series.py -q
 python -m unittest discover -s tests -p test_card_annotations.py -q
 node --test tests/card_annotations_view.test.cjs
+python -m unittest discover -s tests -p test_card_release_dates.py -q
 npm run test:desktop -- --annotations-only
 # 更改打包资源后先构建当前版本，再验收包内页面：
 npm run build:dir
@@ -39,6 +40,16 @@ npm run test:packaged -- --annotations-only
 ```
 
 只读校验器检查字段、来源引用、徽记登记、封面与当前卡库类型／归属一致；不会替代人工阅读官方来源。数据库重载会重建目录。扩充样例后同步更新 README 与批次记录；不能删除失败断言来掩盖资料差异。
+
+## 发售时间资料与更新
+
+系列排序口径为：当前完整系列成员中，所有已知 OCG／TCG 实体卡首发日期的最小值。区域也随日期记录；这不是数字版上线时间、最近一次再版时间或系列编号的大小，也不保证等于该系列名称被正式定义的日期。两地区取较早者可保留海外先发系列的首次出现时间。未查到日期的系列标记「日期待补」并置后，不以卡号或系列编号代替。未来日期显示「预定」。
+
+2026-09-24 从 [YGOPRODeck 公共 API](https://db.ygoprodeck.com/api/v7/cardinfo.php?misc=yes)取得快照，[字段定义](https://ygoprodeck.com/api-guide/)中的 `ocg_date`、`tcg_date` 表示各地区原始发售日期。本项目只打包 14,487 张卡的日期与 4,086 个来源明确的临时卡号／异画卡号映射（约 0.78 MB），没有复制卡文、图片或价格。原始响应仅留在 `.local/series-release-research/`；SHA256 保存在精简资料的 `source` 中。依赖来源记录，未逐张进行官方审核；日期覆盖率及来源日期可以在文件夹日期提示里查看。
+
+抽查与 KONAMI 日文卡页收录日期一致：[杀手旋律·提示员 2025-08-23](https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=21956&ope=2&request_locale=ja)、[驱魔姐妹·米迦以利斯 2021-08-28](https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=16740&ope=2&request_locale=ja)、[转生炎兽 狐狸 2018-07-14](https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=13890&ope=2&request_locale=ja)。这些仅是抽查，不把全库日期声明为官方逐卡复核完成。
+
+更新时遵守 API 限流，将完整响应缓存到 `.local/`，不要在正常应用启动或每次点击时访问网络。运行 `python scripts/build_card_release_dates.py --input <本地响应.json> --retrieved-on YYYY-MM-DD`，只在数据非空、日期格式合法且无同卡冲突时生成资料。`cards` 各行的两个值依次为 OCG／TCG 日期，空字符串表示该地区未知；`aliases` 只采信来源显式的 `beta_id` 和异画 `card_images[].id`，歧义映射丢弃。不能根据相似卡名、CDB 名称等价或整数接近猜测日期。提交前比较记录数量、检查异常日期、跑日期与系列测试，补充覆盖与缺口记录。
 
 ## 可直接交给下一位智能体
 

@@ -13,7 +13,8 @@ const annoStatusMeta = {
 const annoStatusOrder = ['reviewed', 'confirmed', 'auto', 'partial', 'pending', 'stale', 'none'];
 const annoUI = {data: null, registry: null, tags: new Set(), libraryTags: [], statuses: new Set(annoStatusOrder),
   results: null, detail: null, revision: null, busy: false, querySerial: 0, detailSerial: 0, editing: false, noteDrafts: new Map(),
-  mode: 'folders', folder: null, folders: [], folderResult: null, folderOffset: 0, folderQuery: '', artOpen: false};
+  mode: 'folders', folder: null, folders: [], folderResult: null, folderOffset: 0, folderQuery: '', folderSort: 'newest'};
+const annoFolderPageSize = 48;
 // Project-designed identification marks, not official series logos. See the handoff guide.
 const annoEmblems = {
   'dragon-eye': '<path d="M3 13 8 5l5 3 8-4-3 9 3 5-8-1-6 4 1-6Z"/><path d="m8 12 5-2 3 2-3 3Z"/>',
@@ -40,18 +41,66 @@ function annoMonsterBadgesHTML(type) {
   const extra = Boolean(type & (0x40 | 0x2000 | 0x800000 | 0x4000000));
   return `${extra ? '<span class="anno-badge anno-extra">额外卡组</span>' : ''}${types.filter(([bit])=>type&bit).map(([,kind,symbol,label])=>`<span class="anno-monster" data-kind="${kind}" title="${label}${kind==='pendulum'?'；灵摆本身不代表额外卡组怪兽':''}"><b aria-hidden="true">${symbol}</b>${label}</span>`).join('')}`;
 }
-function annoFoldersHTML(result, offset = 0) {
+function annoSortedFolders(folders, order = annoUI.folderSort) {
   const compare = new Intl.Collator('zh-Hans-CN', {numeric:true}).compare;
-  const folders = [...result.folders].sort((a,b)=>(a.id==='unassigned')-(b.id==='unassigned') || compare(a.name,b.name) || compare(a.id,b.id));
+  return [...folders].sort((a,b)=>{
+    const unassigned=(a.id==='unassigned')-(b.id==='unassigned');
+    if(unassigned)return unassigned;
+    if(order!=='name'){
+      const ad=a.release?.date||'',bd=b.release?.date||'';
+      const missing=Number(!ad)-Number(!bd);
+      if(missing)return missing;
+      if(ad!==bd)return order==='oldest'?ad.localeCompare(bd):bd.localeCompare(ad);
+    }
+    return compare(a.name,b.name)||compare(a.id,b.id);
+  });
+}
+function annoFolderDateHTML(item) {
+  const release=item.release||{};
+  if(item.id==='unassigned')return '<small class="anno-folder-date">当前卡库未登记系列</small>';
+  if(!release.date)return '<small class="anno-folder-date is-unknown">日期待补</small>';
+  const title=`${release.region} 最早已知实体发售 · 日期覆盖 ${release.known_cards}/${release.total_cards} 张 · ${release.source} · 资料 ${release.retrieved_on}`;
+  return `<small class="anno-folder-date" title="${escape(title)}">${release.scheduled?'预定':'首发'} <time datetime="${escape(release.date)}">${escape(release.date)}</time></small>`;
+}
+function annoFoldersHTML(result, offset = 0) {
+  const folders = annoSortedFolders(result.folders);
   annoUI.folders = folders;
   annoUI.folderOffset = offset;
   const unassigned=folders.find(item=>item.id==='unassigned');
-  return `<div class="anno-folder-heading"><h2>系列卡牌夹 <small>${folders.length}</small></h2><p>按中文名称排列 · 共 ${result.total.toLocaleString()} 张卡 · 多系列卡可出现在多个夹中</p>${unassigned?`<button type="button" data-anno-folder="unassigned">无系列归属 · ${unassigned.count}</button>`:''}</div>
-    <div class="anno-folder-grid">${folders.slice(offset,offset+24).map(item=>`<button type="button" class="anno-folder" data-anno-folder="${escape(item.id)}" data-tone="${escape(item.tone)}" title="${escape(item.name_basis)}">
+  return `<div class="anno-folder-heading"><h2>系列卡牌夹 <small>${folders.length}</small></h2><p>共 ${result.total.toLocaleString()} 张卡 · 首发日期取 OCG/TCG 最早已知日期</p><div class="anno-folder-controls"><select id="anno-folder-sort" aria-label="系列排序">${[['newest','发售：由新到旧'],['oldest','发售：由旧到新'],['name','中文名称']].map(([value,label])=>`<option value="${value}" ${annoUI.folderSort===value?'selected':''}>${label}</option>`).join('')}</select>${unassigned?`<button type="button" data-anno-folder="unassigned">无系列归属 · ${unassigned.count}</button>`:''}</div></div>
+    <div class="anno-folder-grid">${folders.slice(offset,offset+annoFolderPageSize).map(item=>`<button type="button" class="anno-folder" data-anno-folder="${escape(item.id)}" data-tone="${escape(item.tone)}" title="${escape(item.name)}${item.aliases?.length?' · '+escape(item.aliases.join(' / ')):''} · ${escape(item.name_basis)}">
       <span class="anno-folder-cover"><span class="anno-folder-watermark">${annoEmblemHTML(item.emblem)}</span><img src="/pics/${Number(item.cover_code)}.jpg" alt="" loading="lazy"><span class="anno-folder-seal">${annoEmblemHTML(item.emblem)}</span>${item.designed?'<span class="anno-folder-designed">徽记样例</span>':''}</span>
-      <span class="anno-folder-info"><strong>${escape(item.name)}</strong><span>${item.count} 张卡 <small>· 已标注 ${item.annotated}</small></span>${item.aliases?.length?`<small class="anno-folder-alias">${escape(item.aliases.slice(0,2).join(' / '))}</small>`:'<small class="anno-folder-alias">'+escape(item.name_basis)+'</small>'}</span>
+      <span class="anno-folder-info"><strong>${escape(item.name)}</strong><span>${item.count} 张 <small>· 标注 ${item.annotated}</small></span>${annoFolderDateHTML(item)}</span>
     </button>`).join('') || '<p class="anno-empty">没有符合条件的卡牌夹。试试系列别名，或清除筛选。</p>'}</div>
-    ${folders.length>24?`<div class="anno-folder-pager"><button type="button" data-anno-folder-page="${Math.max(0,offset-24)}" ${offset?'':'disabled'}>上一页</button><span>${Math.floor(offset/24)+1} / ${Math.ceil(folders.length/24)}</span><button type="button" data-anno-folder-page="${offset+24}" ${offset+24<folders.length?'':'disabled'}>下一页</button></div>`:''}`;
+    ${folders.length>annoFolderPageSize?`<div class="anno-folder-pager"><button type="button" data-anno-folder-page="${Math.max(0,offset-annoFolderPageSize)}" ${offset?'':'disabled'}>上一页</button><span>${Math.floor(offset/annoFolderPageSize)+1} / ${Math.ceil(folders.length/annoFolderPageSize)}</span><button type="button" data-anno-folder-page="${offset+annoFolderPageSize}" ${offset+annoFolderPageSize<folders.length?'':'disabled'}>下一页</button></div>`:''}`;
+}
+
+function annoArtPopoverHTML() {
+  return '<div id="anno-art-popover" class="anno-art-popover" popover="auto" role="dialog" aria-label="原卡图"><button type="button" id="anno-art-close" aria-label="关闭卡图">×</button><img id="anno-art-image" width="240" height="345" alt=""></div>';
+}
+function annoCloseArt() {
+  const popover=$('#anno-art-popover');
+  if(popover?.matches(':popover-open'))popover.hidePopover();
+}
+function annoArtPosition(x,y,width,height,viewportWidth,viewportHeight) {
+  const gap=10,edge=12;
+  return {left:Math.max(edge,Math.min(x+gap,viewportWidth-width-edge)),
+    top:Math.max(edge,Math.min(y+gap,viewportHeight-height-edge))};
+}
+function annoToggleArt(event,button) {
+  // Keep the native invoker relationship for light-dismiss, while positioning
+  // and toggling explicitly. Otherwise pointer-down can close then re-open it.
+  event.preventDefault();
+  const popover=$('#anno-art-popover');
+  if(!popover||!annoUI.detail)return;
+  if(popover.matches(':popover-open')){popover.hidePopover();return;}
+  const image=$('#anno-art-image');
+  image.src=`/pics/${annoUI.detail.code}.jpg`;image.alt=`${annoUI.detail.name}原卡图`;
+  popover.showPopover({source:button});
+  const rect=button.getBoundingClientRect();
+  const x=event.detail?event.clientX:rect.right,y=event.detail?event.clientY:rect.bottom;
+  const pos=annoArtPosition(x,y,popover.offsetWidth,popover.offsetHeight,innerWidth,innerHeight);
+  popover.style.left=pos.left+'px';popover.style.top=pos.top+'px';
 }
 
 function annoEffectLabel(effect) {
@@ -144,10 +193,10 @@ function annoResultsHTML(result) {
   const body = result.cards.map(entry=>{
     const tags = [...new Set(entry.hits.flatMap(hit=>hit.tags || []))];
     return `<button type="button" class="anno-card" data-anno-card="${entry.code}" aria-pressed="${annoUI.detail?.code === entry.code}">
-      <span class="anno-card-title">${escape(entry.name)}</span><span class="anno-card-meta">${escape(annoCardKind(entry.type))} · ${entry.code}</span>
+      <img class="anno-card-thumb" src="/pics/${entry.code}.jpg" alt="" loading="lazy"><span class="anno-card-copy"><span class="anno-card-title">${escape(entry.name)}</span><span class="anno-card-meta">${escape(annoCardKind(entry.type))} · ${entry.code}</span>
       <span class="anno-card-labels">${annoMonsterBadgesHTML(entry.type)}${annoStatusBadge(entry.status)}${entry.cross_effects ? '<span class="anno-badge is-auto">跨效果命中</span>' : ''}</span>
       <span class="anno-card-labels">${annoSeriesBadgesHTML(entry.series)}</span>
-      <span class="anno-card-summary">${entry.no_effect ? '无效果卡' : tags.length ? tags.slice(0,4).map(tag=>annoTagBadgeHTML(tag,annoUI.registry)).join(' ')+(tags.length>4 ? ` +${tags.length-4}` : '') : entry.status === 'none' ? '尚未标注，能力未知' : '查看规则与效果'}</span>
+      <span class="anno-card-summary">${entry.no_effect ? '无效果卡' : tags.length ? tags.slice(0,4).map(tag=>annoTagBadgeHTML(tag,annoUI.registry)).join(' ')+(tags.length>4 ? ` +${tags.length-4}` : '') : entry.status === 'none' ? '尚未标注，能力未知' : '查看规则与效果'}</span></span>
     </button>`;
   }).join('');
   return head+body+`<div class="anno-pager"><button type="button" data-anno-page="${Math.max(0,result.offset-30)}" ${result.offset?'':'disabled'}>上一页</button><button type="button" data-anno-page="${result.offset+30}" ${result.offset+30<result.total?'':'disabled'}>下一页</button></div>`;
@@ -185,10 +234,10 @@ function annoDetailHTML(view, registry) {
     }
   }
   return `<div class="anno-panel anno-detail"><div class="anno-detail-heading"><div><p class="anno-card-meta">${escape(annoCardKind(view.type))} · ${view.code}</p><h2>${escape(view.name)}</h2><div class="anno-card-labels">${annoMonsterBadgesHTML(view.type)}${annoStatusBadge(view.status)}${view.no_effect?'<span class="anno-badge">无效果</span>':''}</div><div class="anno-detail-series">${annoSeriesBadgesHTML(view.series)}</div></div>
-    <button type="button" id="anno-edit-toggle" aria-pressed="${annoUI.editing}" ${view.digest_ok?'':'disabled'}>${annoUI.editing?'完成修正':'个人修正'}</button></div>
+    <div class="anno-detail-actions"><button type="button" id="anno-art-toggle" aria-controls="anno-art-popover" aria-expanded="false" popovertarget="anno-art-popover">查看卡图</button><button type="button" id="anno-edit-toggle" aria-pressed="${annoUI.editing}" ${view.digest_ok?'':'disabled'}>${annoUI.editing?'完成修正':'个人修正'}</button></div></div>
     ${!view.digest_ok ? '<p class="anno-warning">卡库卡文已变化。以下为旧版标注，不参与能力查询；个人资料保留，等待复核。</p>' : ''}
     ${annoUI.editing ? '<p class="anno-edit-hint">修改保存在本机。结构化标注由资料文件维护；自动草稿须逐段复核后才能作为参考。</p>' : ''}
-    <div class="anno-detail-body"><details id="anno-art" class="anno-art" ${annoUI.artOpen?'open':''}><summary>查看原卡图</summary><img ${annoUI.artOpen?'src':'data-anno-art-src'}="/pics/${view.code}.jpg" alt="${escape(view.name)}原卡图"><small>本地卡图；资源缺失时显示卡背。</small></details>
+    <div class="anno-detail-body">
     ${view.no_effect ? `<div class="anno-empty">${escape(annoCardKind(view.type))} · 无效果文本</div><blockquote>${escape(view.effects.map(e=>e.text).join('\n') || (view.digest_ok ? view.current_text : '旧卡文未保存'))}</blockquote>` :
       `${rules.length ? `<details class="anno-rules"><summary>规则与次数限制 <small>${rules.length} 段</small></summary>${rules.map(effect=>annoEffectHTML(effect,registry,editable,view.code)).join('')}</details>` : ''}
       ${effects.map(effect=>annoEffectHTML(effect,registry,editable,view.code)).join('') || '<p class="anno-empty">暂无可展示效果。</p>'}`}
@@ -223,7 +272,7 @@ function annoRenderShell() {
         <label>条件范围<select id="anno-scope"><option value="effect">同一效果内满足</option><option value="card">允许跨效果满足</option></select></label><label>标签组合<select id="anno-etag-mode"><option value="all">全部符合</option><option value="any">任一符合</option></select></label></div>
         <div id="anno-tagpool" class="anno-tagpool"></div><p class="anno-help">颜色对应效果分类。能力条件仅检索已标注内容；未标注不代表没有能力。多个效果或可选分支不代表可以同时使用。</p><button type="submit">应用筛选</button></details></form></div>
     <div id="anno-location"></div><div id="anno-folders" aria-live="polite"></div>
-    <div class="anno-layout" id="anno-card-layout" hidden><div class="anno-panel anno-results" id="anno-results"></div><div id="anno-detail" aria-live="polite"></div></div>`;
+    <div class="anno-layout" id="anno-card-layout" hidden><div class="anno-panel anno-results" id="anno-results"></div><div id="anno-detail" aria-live="polite"></div></div>${annoArtPopoverHTML()}`;
 }
 function annoFillSelects(registry, libraryTags) {
   const fill=(id,vocabulary)=>{const select=$('#'+id),value=select.value;select.innerHTML='<option value="">全部</option>'+Object.entries(vocabulary).map(([value,name])=>`<option value="${escape(value)}">${escape(name)}</option>`).join('');select.value=value;};
@@ -231,6 +280,7 @@ function annoFillSelects(registry, libraryTags) {
   $('#anno-tagpool').innerHTML=annoTagChipsHTML(registry);
 }
 function annoRenderDetail() {
+  annoCloseArt();
   $('#anno-detail').innerHTML=annoUI.detail?annoDetailHTML(annoUI.detail,annoUI.registry):'<div class="anno-panel anno-empty">选择一张卡片查看标注。</div>';
   document.querySelectorAll('[data-anno-card]').forEach(node=>node.setAttribute('aria-pressed',String(Number(node.dataset.annoCard)===annoUI.detail?.code)));
 }
@@ -240,7 +290,7 @@ async function annoLoadDetail(code) {
   try {
     const view=await api('/api/annotations',{op:'card',code});
     if(serial!==annoUI.detailSerial)return;
-    if(annoUI.detail?.code!==code){annoUI.editing=false;annoUI.artOpen=false;}
+    if(annoUI.detail?.code!==code)annoUI.editing=false;
     annoUI.detail=view;annoRenderDetail();
   } finally {if(serial===annoUI.detailSerial)$('#anno-detail').setAttribute('aria-busy','false');}
 }
@@ -265,7 +315,7 @@ async function annoRunQuery(offset=0) {
   document.querySelectorAll('[data-anno-mode]').forEach(node=>node.setAttribute('aria-pressed',String(node.dataset.annoMode===activeMode)));
   $('#anno-location').innerHTML=folders?'':`<button type="button" id="anno-back">← 系列卡牌夹</button><span>${annoUI.folder?annoSeriesBadgesHTML([annoUI.folder]):'全部卡片'}</span>`;
   annoUpdateFilterCount();
-  if(folders){annoUI.folderResult=result;annoUI.results=null;annoUI.detail=null;annoUI.editing=false;annoUI.artOpen=false;$('#anno-folders').innerHTML=annoFoldersHTML(result,offset);annoRenderDetail();return;}
+  if(folders){annoUI.folderResult=result;annoUI.results=null;annoUI.detail=null;annoUI.editing=false;$('#anno-folders').innerHTML=annoFoldersHTML(result,offset);annoRenderDetail();return;}
   annoUI.results=result;$('#anno-results').innerHTML=annoResultsHTML(result);
   const code=result.cards.find(card=>card.code===annoUI.detail?.code)?.code||result.cards[0]?.code;
   if(code)await annoLoadDetail(code);else {annoUI.detail=null;annoUI.editing=false;annoRenderDetail();}
@@ -291,6 +341,9 @@ $('#card-annotations').addEventListener('click',run(async event=>{
   const reference=event.target.closest('[data-anno-source]');
   if(reference&&window.trainerDesktop?.openReferenceLink){event.preventDefault();await window.trainerDesktop.openReferenceLink(reference.href);return;}
   if(annoUI.busy)return;
+  const art=event.target.closest('#anno-art-toggle');
+  if(art){annoToggleArt(event,art);return;}
+  if(event.target.id==='anno-art-close'){annoCloseArt();$('#anno-art-toggle')?.focus();return;}
   if(event.target.id==='anno-refresh')return await enterCardAnnotations();
   if(event.target.id==='anno-reset'){annoUI.tags.clear();annoUI.editing=false;annoUI.mode='folders';annoUI.folder=null;annoUI.folderQuery='';annoRenderShell();return await enterCardAnnotations();}
   const mode=event.target.closest('[data-anno-mode]');
@@ -316,6 +369,11 @@ $('#card-annotations').addEventListener('click',run(async event=>{
   if(op)return await annoRunOp({op:op.dataset.annoOp,code:annoUI.detail.code,value:op.dataset.value||null,revision:annoUI.revision},'已更新标注状态');
 }));
 $('#card-annotations').addEventListener('change',run(async event=>{
+  if(event.target.id==='anno-folder-sort'){
+    annoUI.folderSort=event.target.value;
+    if(annoUI.folderResult)$('#anno-folders').innerHTML=annoFoldersHTML(annoUI.folderResult);
+    $('#anno-folder-sort')?.focus();return;
+  }
   const add=event.target.closest('[data-anno-tag-add]');
   if(add?.value&&!annoUI.busy)return await annoRunOp({op:'set-tags',code:annoUI.detail.code,key:add.dataset.annoTagAdd,add:[add.value],remove:[],revision:annoUI.revision},'已保存个人标签修正');
   if(event.target.id==='anno-status-filter'&&event.target.value==='none')$('#anno-catalog-scope').value='all';
@@ -328,11 +386,10 @@ $('#card-annotations').addEventListener('input',event=>{
   if(event.target.matches('[data-anno-note-input]')&&annoUI.detail)annoUI.noteDrafts.set(`${annoUI.detail.code}:${event.target.dataset.annoNoteInput}`,event.target.value);
 });
 $('#card-annotations').addEventListener('toggle',event=>{
-  if(event.target.id!=='anno-art')return;
-  annoUI.artOpen=event.target.open;
-  const image=event.target.querySelector('img[data-anno-art-src]');
-  if(annoUI.artOpen&&image){image.src=image.dataset.annoArtSrc;delete image.dataset.annoArtSrc;}
+  if(event.target.id==='anno-art-popover')$('#anno-art-toggle')?.setAttribute('aria-expanded',String(event.target.matches(':popover-open')));
 },true);
 $('#card-annotations').addEventListener('error',event=>{
   if(event.target.matches('.anno-folder-cover img'))event.target.hidden=true;
 },true);
+window.addEventListener('resize',annoCloseArt);
+window.addEventListener('scroll',annoCloseArt,true);

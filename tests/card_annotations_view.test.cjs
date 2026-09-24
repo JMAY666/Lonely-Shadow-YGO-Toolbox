@@ -17,7 +17,7 @@ function setup() {
     notice() {}, run: fn => fn,
     api: async () => ({})});
   vm.runInContext(source.slice(0, source.indexOf("$('#card-annotations').addEventListener"))
-    + '\nglobalThis.e={annoUI,annoEffectLabel,annoCardKind,annoEvidenceItems,annoProcessingLines,annoStructureLines,annoOverviewHTML,annoResultsHTML,annoDetailHTML,annoRelationLabel,annoMonsterBadgesHTML,annoSeriesBadgesHTML,annoFoldersHTML,annoTagBadgeHTML,annoRenderShell};', context);
+    + '\nglobalThis.e={annoUI,annoEffectLabel,annoCardKind,annoEvidenceItems,annoProcessingLines,annoStructureLines,annoOverviewHTML,annoResultsHTML,annoDetailHTML,annoRelationLabel,annoMonsterBadgesHTML,annoSeriesBadgesHTML,annoFoldersHTML,annoTagBadgeHTML,annoRenderShell,annoSortedFolders,annoArtPosition,annoArtPopoverHTML};', context);
   return {context, $, ...context.e};
 }
 
@@ -172,7 +172,7 @@ test('effect colours are category-based and keep escaped labels and definitions'
   assert.doesNotMatch(e.annoSeriesBadgesHTML([{name:'x',emblem:'<svg onload=x>'}]),/onload/);
 });
 
-test('folder homepage sorts Chinese names, exposes local covers and defaults filters and art to collapsed', () => {
+test('folder homepage exposes local covers, Chinese tie-breaks and a closed art popover', () => {
   const e = setup();
   const folders = ['转生炎兽','相剑','青眼','驱魔姐妹','杀手旋律'].map((name,i)=>({id:'set:'+i,name,cover_code:i+1,count:2,annotated:1}));
   const html = e.annoFoldersHTML({total:10,folders});
@@ -185,6 +185,33 @@ test('folder homepage sorts Chinese names, exposes local covers and defaults fil
   assert.equal(e.annoUI.mode,'folders');
   const view={code:1,name:'卡',type:0x21,digest_ok:true,effects:[]};
   const detail=e.annoDetailHTML(view,registry);
-  assert.match(detail,/data-anno-art-src="\/pics\/1.jpg"/);
+  assert.match(detail,/id="anno-art-toggle" aria-controls="anno-art-popover" aria-expanded="false"/);
   assert.doesNotMatch(detail,/<img src=/);
+  assert.match(e.annoArtPopoverHTML(),/popover="auto"/);
+  assert.doesNotMatch(e.annoArtPopoverHTML(),/src=/);
+});
+
+test('series release sorting handles both directions, ties, unknown dates and unassigned cards', () => {
+  const e=setup();
+  const input=[{id:'unassigned',name:'无系列归属'}, {id:'unknown',name:'日期未知'},
+    {id:'old',name:'旧系列',release:{date:'2001-01-01'}},
+    {id:'new-b',name:'相剑',release:{date:'2025-01-01'}},
+    {id:'new-a',name:'青眼',release:{date:'2025-01-01'}}];
+  assert.deepEqual([...e.annoSortedFolders(input,'newest')].map(f=>f.id),['new-a','new-b','old','unknown','unassigned']);
+  assert.deepEqual([...e.annoSortedFolders(input,'oldest')].map(f=>f.id),['old','new-a','new-b','unknown','unassigned']);
+});
+
+test('each card result has a small picture beside its metadata', () => {
+  const e=setup();
+  const html=e.annoResultsHTML({total:1,offset:0,cards:[{code:123,name:'测试',type:0x21,status:'none',hits:[]}]});
+  assert.match(html,/<img class="anno-card-thumb" src="\/pics\/123.jpg" alt="" loading="lazy"><span class="anno-card-copy">/);
+});
+
+test('art popover stays inside viewport near right and bottom edges', () => {
+  const e=setup();
+  for (const [x,y] of [[800,600],[5,5],[400,590]]) {
+    const p=e.annoArtPosition(x,y,258,385,820,620);
+    assert.ok(p.left>=12&&p.top>=12);
+    assert.ok(p.left+258<=808&&p.top+385<=608);
+  }
 });
