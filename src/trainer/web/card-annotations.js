@@ -12,7 +12,47 @@ const annoStatusMeta = {
 };
 const annoStatusOrder = ['reviewed', 'confirmed', 'auto', 'partial', 'pending', 'stale', 'none'];
 const annoUI = {data: null, registry: null, tags: new Set(), libraryTags: [], statuses: new Set(annoStatusOrder),
-  results: null, detail: null, revision: null, busy: false, querySerial: 0, detailSerial: 0, editing: false, noteDrafts: new Map()};
+  results: null, detail: null, revision: null, busy: false, querySerial: 0, detailSerial: 0, editing: false, noteDrafts: new Map(),
+  mode: 'folders', folder: null, folders: [], folderResult: null, folderOffset: 0, folderQuery: '', artOpen: false};
+// Project-designed identification marks, not official series logos. See the handoff guide.
+const annoEmblems = {
+  'dragon-eye': '<path d="M3 13 8 5l5 3 8-4-3 9 3 5-8-1-6 4 1-6Z"/><path d="m8 12 5-2 3 2-3 3Z"/>',
+  flame: '<path d="M13 3c2 6 7 7 7 12a8 8 0 0 1-16 0c0-3 2-5 4-7 0 4 2 4 2 4s4-5 3-9Z"/><path d="M12 13c-4 4-2 7 1 7s4-4-1-7Z"/>',
+  swords: '<path d="m4 3 5 2 9 12-2 2L4 7ZM20 3l-5 2L6 17l2 2L20 7ZM4 15l6 6m4-6 6 6M5 20l-2 2m16-2 2 2"/>',
+  halo: '<ellipse cx="12" cy="5" rx="7" ry="3"/><path d="M12 9v12M7 14h10M4 10l3 9 5 3 5-3 3-9"/>',
+  wave: '<path d="M3 10v4m4-8v12m5-15v18m5-15v12m4-8v4"/>',
+  folder: '<path d="M3 6h7l2 3h9v11H3Z"/>',
+};
+function annoEmblemHTML(emblem) {
+  return `<svg class="anno-emblem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${annoEmblems[emblem] || annoEmblems.folder}</svg>`;
+}
+function annoTagBadgeHTML(tag, registry, remove = '') {
+  const meta = registry?.tags[tag];
+  return `<span class="anno-badge anno-effect-tag" data-category="${escape(meta?.category || 'unknown')}" title="${escape(meta?.definition || '')}">${escape(meta?.name || tag)}${remove}</span>`;
+}
+function annoSeriesBadgesHTML(series = []) {
+  return series.map(item=>`<span class="anno-series-badge" data-tone="${escape(item.tone)}" title="${escape(item.name_basis)}${item.aliases?.length ? ' · 别名：'+escape(item.aliases.join('、')) : ''}">${annoEmblemHTML(item.emblem)}${escape(item.name)}</span>`).join('');
+}
+function annoMonsterBadgesHTML(type) {
+  if (!(type & 1)) return '';
+  const types = [[0x40,'fusion','∞','融合'],[0x2000,'synchro','✧','同调'],[0x800000,'xyz','◎','超量'],[0x4000000,'link','↗','连接'],
+    [0x80,'ritual','◇','仪式'],[0x1000000,'pendulum','◈','灵摆'],[0x1000,'tuner','♪','调整']];
+  const extra = Boolean(type & (0x40 | 0x2000 | 0x800000 | 0x4000000));
+  return `${extra ? '<span class="anno-badge anno-extra">额外卡组</span>' : ''}${types.filter(([bit])=>type&bit).map(([,kind,symbol,label])=>`<span class="anno-monster" data-kind="${kind}" title="${label}${kind==='pendulum'?'；灵摆本身不代表额外卡组怪兽':''}"><b aria-hidden="true">${symbol}</b>${label}</span>`).join('')}`;
+}
+function annoFoldersHTML(result, offset = 0) {
+  const compare = new Intl.Collator('zh-Hans-CN', {numeric:true}).compare;
+  const folders = [...result.folders].sort((a,b)=>(a.id==='unassigned')-(b.id==='unassigned') || compare(a.name,b.name) || compare(a.id,b.id));
+  annoUI.folders = folders;
+  annoUI.folderOffset = offset;
+  const unassigned=folders.find(item=>item.id==='unassigned');
+  return `<div class="anno-folder-heading"><h2>系列卡牌夹 <small>${folders.length}</small></h2><p>按中文名称排列 · 共 ${result.total.toLocaleString()} 张卡 · 多系列卡可出现在多个夹中</p>${unassigned?`<button type="button" data-anno-folder="unassigned">无系列归属 · ${unassigned.count}</button>`:''}</div>
+    <div class="anno-folder-grid">${folders.slice(offset,offset+24).map(item=>`<button type="button" class="anno-folder" data-anno-folder="${escape(item.id)}" data-tone="${escape(item.tone)}" title="${escape(item.name_basis)}">
+      <span class="anno-folder-cover"><span class="anno-folder-watermark">${annoEmblemHTML(item.emblem)}</span><img src="/pics/${Number(item.cover_code)}.jpg" alt="" loading="lazy"><span class="anno-folder-seal">${annoEmblemHTML(item.emblem)}</span>${item.designed?'<span class="anno-folder-designed">徽记样例</span>':''}</span>
+      <span class="anno-folder-info"><strong>${escape(item.name)}</strong><span>${item.count} 张卡 <small>· 已标注 ${item.annotated}</small></span>${item.aliases?.length?`<small class="anno-folder-alias">${escape(item.aliases.slice(0,2).join(' / '))}</small>`:'<small class="anno-folder-alias">'+escape(item.name_basis)+'</small>'}</span>
+    </button>`).join('') || '<p class="anno-empty">没有符合条件的卡牌夹。试试系列别名，或清除筛选。</p>'}</div>
+    ${folders.length>24?`<div class="anno-folder-pager"><button type="button" data-anno-folder-page="${Math.max(0,offset-24)}" ${offset?'':'disabled'}>上一页</button><span>${Math.floor(offset/24)+1} / ${Math.ceil(folders.length/24)}</span><button type="button" data-anno-folder-page="${offset+24}" ${offset+24<folders.length?'':'disabled'}>下一页</button></div>`:''}`;
+}
 
 function annoEffectLabel(effect) {
   const prefix = effect.block === 'p' ? '灵摆·' : '';
@@ -105,15 +145,16 @@ function annoResultsHTML(result) {
     const tags = [...new Set(entry.hits.flatMap(hit=>hit.tags || []))];
     return `<button type="button" class="anno-card" data-anno-card="${entry.code}" aria-pressed="${annoUI.detail?.code === entry.code}">
       <span class="anno-card-title">${escape(entry.name)}</span><span class="anno-card-meta">${escape(annoCardKind(entry.type))} · ${entry.code}</span>
-      <span class="anno-card-labels">${annoStatusBadge(entry.status)}${entry.cross_effects ? '<span class="anno-badge is-auto">跨效果命中</span>' : ''}</span>
-      <span class="anno-card-summary">${entry.no_effect ? '无效果卡' : tags.length ? escape(tags.slice(0,4).map(annoTagName).join(' · '))+(tags.length>4 ? ` +${tags.length-4}` : '') : entry.status === 'none' ? '尚未标注，能力未知' : '查看规则与效果'}</span>
+      <span class="anno-card-labels">${annoMonsterBadgesHTML(entry.type)}${annoStatusBadge(entry.status)}${entry.cross_effects ? '<span class="anno-badge is-auto">跨效果命中</span>' : ''}</span>
+      <span class="anno-card-labels">${annoSeriesBadgesHTML(entry.series)}</span>
+      <span class="anno-card-summary">${entry.no_effect ? '无效果卡' : tags.length ? tags.slice(0,4).map(tag=>annoTagBadgeHTML(tag,annoUI.registry)).join(' ')+(tags.length>4 ? ` +${tags.length-4}` : '') : entry.status === 'none' ? '尚未标注，能力未知' : '查看规则与效果'}</span>
     </button>`;
   }).join('');
   return head+body+`<div class="anno-pager"><button type="button" data-anno-page="${Math.max(0,result.offset-30)}" ${result.offset?'':'disabled'}>上一页</button><button type="button" data-anno-page="${result.offset+30}" ${result.offset+30<result.total?'':'disabled'}>下一页</button></div>`;
 }
 function annoEffectHTML(effect, registry, editable, code) {
   const structure = annoStructureLines(effect,registry);
-  const tags = (effect.tags || []).map(tag=>`<span class="anno-badge" title="${escape(registry.tags[tag]?.definition || '')}">${escape(registry.tags[tag]?.name || tag)}${editable&&effect.annotated ? ` <button type="button" data-anno-tag-remove="${escape(effect.key)}" data-anno-tag="${escape(tag)}" aria-label="移除${escape(registry.tags[tag]?.name || tag)}">×</button>` : ''}</span>`).join(' ');
+  const tags = (effect.tags || []).map(tag=>annoTagBadgeHTML(tag,registry,editable&&effect.annotated ? ` <button type="button" data-anno-tag-remove="${escape(effect.key)}" data-anno-tag="${escape(tag)}" aria-label="移除${escape(registry.tags[tag]?.name || tag)}">×</button>` : '')).join(' ');
   const hit = annoUI.results?.cards.find(card=>card.code===annoUI.detail?.code)?.hits.find(hit=>hit.key===effect.key);
   return `<article class="anno-effect"><header><strong>${escape(annoEffectLabel(effect))}</strong><span class="anno-effect-kind">${escape(registry.effect_types?.[effect.effect_type] || (effect.annotated?'':'尚未标注'))}</span></header>
     <blockquote>${escape(effect.text || '')}</blockquote><div class="anno-tags">${tags}</div>
@@ -143,15 +184,17 @@ function annoDetailHTML(view, registry) {
       buttons.push('<button type="button" data-anno-op="set-review" data-value="">撤销个人核对标记</button>');
     }
   }
-  return `<div class="anno-panel anno-detail"><div class="anno-detail-heading"><div><p class="anno-card-meta">${escape(annoCardKind(view.type))} · ${view.code}</p><h2>${escape(view.name)}</h2><div class="anno-card-labels">${annoStatusBadge(view.status)}${view.no_effect?'<span class="anno-badge">无效果</span>':''}</div></div>
+  return `<div class="anno-panel anno-detail"><div class="anno-detail-heading"><div><p class="anno-card-meta">${escape(annoCardKind(view.type))} · ${view.code}</p><h2>${escape(view.name)}</h2><div class="anno-card-labels">${annoMonsterBadgesHTML(view.type)}${annoStatusBadge(view.status)}${view.no_effect?'<span class="anno-badge">无效果</span>':''}</div><div class="anno-detail-series">${annoSeriesBadgesHTML(view.series)}</div></div>
     <button type="button" id="anno-edit-toggle" aria-pressed="${annoUI.editing}" ${view.digest_ok?'':'disabled'}>${annoUI.editing?'完成修正':'个人修正'}</button></div>
     ${!view.digest_ok ? '<p class="anno-warning">卡库卡文已变化。以下为旧版标注，不参与能力查询；个人资料保留，等待复核。</p>' : ''}
     ${annoUI.editing ? '<p class="anno-edit-hint">修改保存在本机。结构化标注由资料文件维护；自动草稿须逐段复核后才能作为参考。</p>' : ''}
-    <div class="anno-detail-body">${view.no_effect ? `<div class="anno-empty">${escape(annoCardKind(view.type))} · 无效果文本</div><blockquote>${escape(view.effects.map(e=>e.text).join('\n') || (view.digest_ok ? view.current_text : '旧卡文未保存'))}</blockquote>` :
+    <div class="anno-detail-body"><details id="anno-art" class="anno-art" ${annoUI.artOpen?'open':''}><summary>查看原卡图</summary><img ${annoUI.artOpen?'src':'data-anno-art-src'}="/pics/${view.code}.jpg" alt="${escape(view.name)}原卡图"><small>本地卡图；资源缺失时显示卡背。</small></details>
+    ${view.no_effect ? `<div class="anno-empty">${escape(annoCardKind(view.type))} · 无效果文本</div><blockquote>${escape(view.effects.map(e=>e.text).join('\n') || (view.digest_ok ? view.current_text : '旧卡文未保存'))}</blockquote>` :
       `${rules.length ? `<details class="anno-rules"><summary>规则与次数限制 <small>${rules.length} 段</small></summary>${rules.map(effect=>annoEffectHTML(effect,registry,editable,view.code)).join('')}</details>` : ''}
       ${effects.map(effect=>annoEffectHTML(effect,registry,editable,view.code)).join('') || '<p class="anno-empty">暂无可展示效果。</p>'}`}
     ${view.relations?.length ? `<details class="anno-more"><summary>效果之间的关系</summary>${view.relations.map(relation=>`<p><b>${escape(annoRelationLabel(relation.kind))}</b> · ${escape((relation.effects||[]).map(key=>annoEffectLabel(view.effects.find(effect=>effect.key===key)||{key})).join('、'))}<br>${escape(relation.text)}</p>`).join('')}</details>` : ''}
     <details class="anno-more anno-provenance"><summary>资料来源与核对信息</summary>
+      ${(view.series||[]).map(item=>`<section class="anno-series-source"><b>${escape(item.name)}</b><p>${escape(item.name_basis)}。${item.sample_review==='checked'?'本卡系列归属与类型已作为代表样本核对。':item.sample_review==='changed'?'样本的系列编号或类型已变化，待重新核对。':'本卡归属来自当前卡库，未逐卡联网核对。'}</p>${(item.sources||[]).map(source=>`<p>${annoSourceHTML(source)}</p>`).join('')}</section>`).join('')}
       ${(view.sources||[]).map(source=>`<p>${annoSourceHTML(source)}</p>`).join('') || '<p>尚未补充外部来源。</p>'}
       <p>${escape(view.review?.basis || '尚未人工核对。')}</p>
       ${view.effects.some(effect=>effect.engine) ? '<p>脚本映射已核对：仅表示效果编号与本地脚本的对应，不表示完整裁定或当前局面可发动。</p>' : ''}
@@ -160,25 +203,27 @@ function annoDetailHTML(view, registry) {
     </details><div class="anno-buttons">${buttons.join('')}</div></div></div>`;
 }
 function annoQueryBody(offset=0) {
-  return {op:'query',offset,q:$('#anno-q')?.value||'',kind:$('#anno-kind')?.value||'',catalog_scope:$('#anno-catalog-scope')?.value||'annotated',
+  return {op:'query',offset,q:$('#anno-q')?.value||'',kind:$('#anno-kind')?.value||'',catalog_scope:$('#anno-catalog-scope')?.value||'all',
+    group_by:annoUI.mode==='folders'?'series':'',series:annoUI.mode==='cards'?annoUI.folder?.id||'':'',
     tag:$('#anno-tag')?.value||'',action:$('#anno-action')?.value||'',from_zone:$('#anno-from')?.value||'',to_zone:$('#anno-to')?.value||'',usage:$('#anno-usage')?.value||'',cost_kind:$('#anno-cost')?.value||'',timing:$('#anno-timing')?.value||'',scope:$('#anno-scope')?.value||'effect',
     etags:[...annoUI.tags],etag_mode:$('#anno-etag-mode')?.value||'all',status:$('#anno-status-filter')?.value?[$('#anno-status-filter').value]:annoStatusOrder};
 }
 function annoTagChipsHTML(registry) {
-  return Object.entries(registry.categories).map(([category,name])=>`<fieldset class="anno-tag-group"><legend>${escape(name)}</legend>${Object.values(registry.tags).filter(tag=>tag.category===category&&!tag.deprecated).map(tag=>`<button type="button" class="anno-tag" data-anno-etag="${escape(tag.id)}" aria-pressed="${annoUI.tags.has(tag.id)}" title="${escape(tag.definition)}">${escape(tag.name)}</button>`).join('')}</fieldset>`).join('');
+  return Object.entries(registry.categories).map(([category,name])=>`<fieldset class="anno-tag-group"><legend>${escape(name)}</legend>${Object.values(registry.tags).filter(tag=>tag.category===category&&!tag.deprecated).map(tag=>`<button type="button" class="anno-tag anno-effect-tag" data-category="${escape(category)}" data-anno-etag="${escape(tag.id)}" aria-pressed="${annoUI.tags.has(tag.id)}" title="${escape(tag.definition)}">${escape(tag.name)}</button>`).join('')}</fieldset>`).join('');
 }
 function annoRenderShell() {
   $('#card-annotations').innerHTML=`<header class="anno-heading"><div><div class="eyebrow">CARD ANNOTATIONS</div><h1>卡片标注</h1><p>查阅效果，理解条件，积累可靠的卡片资料。</p></div><button type="button" id="anno-refresh">刷新资料</button></header>
     <div id="anno-overview"></div><div class="anno-panel anno-search-panel"><form id="anno-form">
-      <div class="anno-search-row"><label class="anno-search-keyword">搜索卡片<input type="search" id="anno-q" placeholder="卡名、卡文或卡号" maxlength="120"></label>
-      <label>卡片范围<select id="anno-catalog-scope"><option value="annotated">已标注卡片</option><option value="all">全部卡片</option></select></label>
-      <label>类型<select id="anno-kind"><option value="">全部类型</option><option value="monster">怪兽</option><option value="spell">魔法</option><option value="trap">陷阱</option><option value="extra">额外卡组</option></select></label><button type="submit" class="primary">查询</button><button type="button" id="anno-reset">重置</button></div>
-      <details id="anno-advanced" class="anno-more"><summary>效果与高级筛选 <span id="anno-filter-count"></span></summary><div id="anno-tagpool" class="anno-tagpool"></div><div class="anno-query">
+      <div class="anno-search-row"><div class="anno-view-switch" aria-label="浏览方式"><button type="button" data-anno-mode="folders">系列卡牌夹</button><button type="button" data-anno-mode="cards">全部卡片</button></div><label class="anno-search-keyword"><input type="search" id="anno-q" aria-label="搜索系列或卡片" placeholder="系列中文名、别名、卡名或卡号" maxlength="120"></label><button type="submit" class="primary">搜索</button><button type="button" id="anno-reset">重置</button></div>
+      <details id="anno-advanced" class="anno-more"><summary>筛选 <span id="anno-filter-count"></span></summary><div class="anno-query">
+        <label>卡片范围<select id="anno-catalog-scope"><option value="all">全部卡片</option><option value="annotated">已标注卡片</option></select></label>
+        <label>类型<select id="anno-kind"><option value="">全部类型</option><option value="monster">怪兽</option><option value="spell">魔法</option><option value="trap">陷阱</option><option value="extra">额外卡组</option></select></label>
         <label>关联标签<select id="anno-tag"></select></label><label>处理动作<select id="anno-action"></select></label><label>来源区域<select id="anno-from"></select></label><label>去向区域<select id="anno-to"></select></label><label>次数限制<select id="anno-usage"></select></label><label>费用<select id="anno-cost"></select></label><label>发动时点<select id="anno-timing"></select></label>
         <label>核对状态<select id="anno-status-filter"><option value="">全部状态</option>${annoStatusOrder.map(status=>`<option value="${status}">${annoStatusMeta[status].label}</option>`).join('')}</select></label>
         <label>条件范围<select id="anno-scope"><option value="effect">同一效果内满足</option><option value="card">允许跨效果满足</option></select></label><label>标签组合<select id="anno-etag-mode"><option value="all">全部符合</option><option value="any">任一符合</option></select></label></div>
-        <p class="anno-help">能力条件仅检索已标注内容。不同效果或可选分支不代表可以同时使用。</p><button type="submit">应用筛选</button></details></form></div>
-    <div class="anno-layout"><div class="anno-panel anno-results" id="anno-results"></div><div id="anno-detail" aria-live="polite"></div></div>`;
+        <div id="anno-tagpool" class="anno-tagpool"></div><p class="anno-help">颜色对应效果分类。能力条件仅检索已标注内容；未标注不代表没有能力。多个效果或可选分支不代表可以同时使用。</p><button type="submit">应用筛选</button></details></form></div>
+    <div id="anno-location"></div><div id="anno-folders" aria-live="polite"></div>
+    <div class="anno-layout" id="anno-card-layout" hidden><div class="anno-panel anno-results" id="anno-results"></div><div id="anno-detail" aria-live="polite"></div></div>`;
 }
 function annoFillSelects(registry, libraryTags) {
   const fill=(id,vocabulary)=>{const select=$('#'+id),value=select.value;select.innerHTML='<option value="">全部</option>'+Object.entries(vocabulary).map(([value,name])=>`<option value="${escape(value)}">${escape(name)}</option>`).join('');select.value=value;};
@@ -195,7 +240,7 @@ async function annoLoadDetail(code) {
   try {
     const view=await api('/api/annotations',{op:'card',code});
     if(serial!==annoUI.detailSerial)return;
-    if(annoUI.detail?.code!==code)annoUI.editing=false;
+    if(annoUI.detail?.code!==code){annoUI.editing=false;annoUI.artOpen=false;}
     annoUI.detail=view;annoRenderDetail();
   } finally {if(serial===annoUI.detailSerial)$('#anno-detail').setAttribute('aria-busy','false');}
 }
@@ -214,13 +259,20 @@ async function annoRunQuery(offset=0) {
   ++annoUI.detailSerial;
   const result=await api('/api/annotations',annoQueryBody(offset));
   if(serial!==annoUI.querySerial)return;
+  const folders=annoUI.mode==='folders';
+  $('#anno-folders').hidden=!folders;$('#anno-card-layout').hidden=folders;
+  const activeMode=annoUI.folder?'folders':annoUI.mode;
+  document.querySelectorAll('[data-anno-mode]').forEach(node=>node.setAttribute('aria-pressed',String(node.dataset.annoMode===activeMode)));
+  $('#anno-location').innerHTML=folders?'':`<button type="button" id="anno-back">← 系列卡牌夹</button><span>${annoUI.folder?annoSeriesBadgesHTML([annoUI.folder]):'全部卡片'}</span>`;
+  annoUpdateFilterCount();
+  if(folders){annoUI.folderResult=result;annoUI.results=null;annoUI.detail=null;annoUI.editing=false;annoUI.artOpen=false;$('#anno-folders').innerHTML=annoFoldersHTML(result,offset);annoRenderDetail();return;}
   annoUI.results=result;$('#anno-results').innerHTML=annoResultsHTML(result);
   const code=result.cards.find(card=>card.code===annoUI.detail?.code)?.code||result.cards[0]?.code;
   if(code)await annoLoadDetail(code);else {annoUI.detail=null;annoUI.editing=false;annoRenderDetail();}
 }
 function annoUpdateFilterCount() {
   const body=annoQueryBody();
-  const count=annoUI.tags.size+['tag','action','from_zone','to_zone','usage','cost_kind','timing'].filter(key=>body[key]).length+($('#anno-status-filter').value?1:0)+(body.scope==='card'?1:0)+(body.etag_mode==='any'?1:0);
+  const count=annoUI.tags.size+['tag','action','from_zone','to_zone','usage','cost_kind','timing','kind'].filter(key=>body[key]).length+($('#anno-status-filter').value?1:0)+(body.catalog_scope==='annotated'?1:0)+(body.scope==='card'?1:0)+(body.etag_mode==='any'?1:0);
   $('#anno-filter-count').textContent=count?`· 已选 ${count} 项`:'';
 }
 async function annoRunOp(body,message) {
@@ -240,7 +292,17 @@ $('#card-annotations').addEventListener('click',run(async event=>{
   if(reference&&window.trainerDesktop?.openReferenceLink){event.preventDefault();await window.trainerDesktop.openReferenceLink(reference.href);return;}
   if(annoUI.busy)return;
   if(event.target.id==='anno-refresh')return await enterCardAnnotations();
-  if(event.target.id==='anno-reset'){annoUI.tags.clear();annoUI.editing=false;annoRenderShell();return await enterCardAnnotations();}
+  if(event.target.id==='anno-reset'){annoUI.tags.clear();annoUI.editing=false;annoUI.mode='folders';annoUI.folder=null;annoUI.folderQuery='';annoRenderShell();return await enterCardAnnotations();}
+  const mode=event.target.closest('[data-anno-mode]');
+  if(mode||event.target.id==='anno-back'){
+    annoUI.mode=mode?.dataset.annoMode||'folders';annoUI.folder=null;
+    $('#anno-q').value=annoUI.mode==='folders'?annoUI.folderQuery:'';
+    return await annoRunQuery();
+  }
+  const folderPage=event.target.closest('[data-anno-folder-page]');
+  if(folderPage&&!folderPage.disabled){$('#anno-folders').innerHTML=annoFoldersHTML(annoUI.folderResult,Number(folderPage.dataset.annoFolderPage));$('#anno-folders').scrollIntoView({block:'start'});return;}
+  const folder=event.target.closest('[data-anno-folder]');
+  if(folder){annoUI.folder=annoUI.folders.find(item=>item.id===folder.dataset.annoFolder);annoUI.folderQuery=$('#anno-q').value;annoUI.mode='cards';$('#anno-q').value='';return await annoRunQuery();}
   if(event.target.id==='anno-edit-toggle'){annoUI.editing=!annoUI.editing;annoRenderDetail();return;}
   const etag=event.target.closest('[data-anno-etag]');
   if(etag){const id=etag.dataset.annoEtag;annoUI.tags.has(id)?annoUI.tags.delete(id):annoUI.tags.add(id);etag.setAttribute('aria-pressed',String(annoUI.tags.has(id)));annoUpdateFilterCount();return;}
@@ -265,3 +327,12 @@ $('#card-annotations').addEventListener('submit',run(async event=>{
 $('#card-annotations').addEventListener('input',event=>{
   if(event.target.matches('[data-anno-note-input]')&&annoUI.detail)annoUI.noteDrafts.set(`${annoUI.detail.code}:${event.target.dataset.annoNoteInput}`,event.target.value);
 });
+$('#card-annotations').addEventListener('toggle',event=>{
+  if(event.target.id!=='anno-art')return;
+  annoUI.artOpen=event.target.open;
+  const image=event.target.querySelector('img[data-anno-art-src]');
+  if(annoUI.artOpen&&image){image.src=image.dataset.annoArtSrc;delete image.dataset.annoArtSrc;}
+},true);
+$('#card-annotations').addEventListener('error',event=>{
+  if(event.target.matches('.anno-folder-cover img'))event.target.hidden=true;
+},true);

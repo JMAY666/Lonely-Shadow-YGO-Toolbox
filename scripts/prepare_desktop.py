@@ -78,6 +78,7 @@ def main():
                      'docs/mdpro3-recognition.md', 'docs/mdpro3-live-follow.md', 'docs/duel-temporary-plans.md',
                      'docs/verification-1.44.0.md', 'docs/verification-1.45.0.md', 'docs/card-annotation-system.md',
                      'docs/verification-1.46.0.md', 'docs/card-annotation-agent-guide.md',
+                     'docs/verification-1.47.0.md', 'docs/card-series-production-guide.md',
                      'licenses/YGOPro-GPL-2.0.txt', 'scripts/source-lock.json', 'scripts/desktop-lock.json'):
         destination = notices / relative
         destination.parent.mkdir(parents=True, exist_ok=True)

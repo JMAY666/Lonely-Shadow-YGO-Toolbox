@@ -256,6 +256,32 @@ class CardAnnotationTests(unittest.TestCase):
         self.assertIn('etag:destroy', keys['m2']['tags'])
         self.assertTrue(keys['m1']['structure']['processing'][0].get('evidence'))
 
+    def test_folders_apply_effect_filters_and_card_counts_without_changing_personal_data(self):
+        before = json.dumps(self.service.document, sort_keys=True)
+        query = {'catalog_scope': 'all', 'etags': ['etag:add-hand'], 'from_zone': 'grave'}
+        flat = self.service.search(query)
+        grouped = self.service.search({**query, 'group_by': 'series'})
+        self.assertEqual(grouped['total'], flat['total'])
+        for folder in grouped['folders']:
+            cards = self.service.search({**query, 'series': folder['id']})
+            self.assertEqual(cards['total'], folder['count'])
+            self.assertIn(folder['cover_code'], [c['code'] for c in cards['cards']])
+        self.assertEqual(json.dumps(self.service.document, sort_keys=True), before)
+
+    def test_unknown_folder_is_rejected_and_catalog_reload_updates_membership(self):
+        with self.assertRaises(ValueError):
+            self.service.search({'series': 'set:missing'})
+        with self.assertRaises(ValueError):
+            self.service.search({'series': ['set:dd']})
+        with closing(sqlite3.connect(self.root / 'cards.cdb')) as db:
+            db.execute('UPDATE datas SET setcode=? WHERE id=?', (0x172, 20000001))
+            db.commit()
+        self.store.reload_resources()
+        self.service.reload()
+        view = self.service.view(20000001)
+        self.assertEqual(view['series'][0]['name'], '驱魔姐妹')
+        self.assertEqual(self.service.search({'q': '救祓少女'})['cards'][0]['code'], 20000001)
+
 
 if __name__ == '__main__':
     unittest.main()

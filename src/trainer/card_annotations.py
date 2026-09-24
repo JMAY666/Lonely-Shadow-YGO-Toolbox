@@ -18,6 +18,7 @@ import re
 from urllib.parse import urlparse
 
 from card_semantics import AUDITED_EFFECTS, CIRCLED
+from card_series import CardSeries
 
 CLAUSE = re.compile(r'(?m)(?:^|(?<=[。]))[ \t]*([' + CIRCLED + r'])\s*[:：]')
 PENDULUM_MONSTER_MARKER = re.compile(r'【怪兽(?:效果|描述)】')
@@ -281,6 +282,7 @@ class CardAnnotations:
         self.curated = self._load_curated()
         self.document = self._load_user()
         self._views = {}
+        self.series = CardSeries(store.catalog, store.library.builtins)
 
     def _load_curated(self):
         document = json.loads(self.curated_path.read_text(encoding='utf-8'))
@@ -312,6 +314,7 @@ class CardAnnotations:
         self.curated = self._load_curated()
         self.document = self._load_user()
         self._views = {}
+        self.series = CardSeries(self.store.catalog, self.store.library.builtins)
 
     # ---- assembly -------------------------------------------------------
 
@@ -381,6 +384,7 @@ class CardAnnotations:
         if status in ('reviewed', 'confirmed') and not full: status = 'partial'
         result = {'code': code, 'name': card.get('name', str(code)), 'type': card.get('type', 0),
                   'setcode': card.get('setcode'), 'status': status,
+                  'series': self.series.card_series(code),
                   'full': full,
                   'origin': base['review'].get('origin') if base else None,
                   'no_effect': bool((base or {}).get('no_effect')), 'missing_keys': [] if (base or {}).get('no_effect') else missing,
@@ -500,7 +504,7 @@ class CardAnnotations:
         return singles
 
     def search(self, body):
-        from plan_tags import contains_card, member_ids, normalized
+        from plan_tags import member_ids, normalized
         query = normalized(body.get('q', ''))
         if len(body.get('q', '')) > 120: raise ValueError('搜索文字最多 120 个字符')
         statuses = body.get('status', list(STATUSES))
@@ -512,7 +516,12 @@ class CardAnnotations:
         scope = body.get('scope') or 'effect'
         if scope not in ('effect', 'card'): raise ValueError('查询范围无效')
         offset = body.get('offset') or 0
-        if not isinstance(offset, int) or not 0 <= offset <= 10_000: raise ValueError('分页参数无效')
+        if not isinstance(offset, int) or not 0 <= offset <= max(10_000, len(self.store.catalog.cards)): raise ValueError('分页参数无效')
+        series_filter = body.get('series') or ''
+        if not isinstance(series_filter, str) or (series_filter and series_filter not in self.series.definitions):
+            raise ValueError('系列不存在，请刷新资料')
+        group_by = body.get('group_by') or ''
+        if group_by not in ('', 'series'): raise ValueError('卡片分组方式无效')
         member_filter = None
         if body.get('tag'):
             tags = self.store.library.all_tags()
@@ -534,8 +543,9 @@ class CardAnnotations:
             if kind == 'trap' and not card.get('type', 0) & 4: continue
             if kind == 'extra' and not card.get('extra'): continue
             if member_filter is not None and code not in member_filter: continue
+            if series_filter and series_filter not in self.series.memberships.get(code, []): continue
             if query and query not in normalized(card.get('name', '')) and query != str(code) \
-                    and query not in normalized(card.get('desc') or ''):
+                    and query not in normalized(card.get('desc') or '') and not self.series.matches_query(code, query):
                 continue
             view = self.view(code)
             if view['status'] not in statuses: continue
@@ -580,12 +590,14 @@ class CardAnnotations:
             keys = sorted({hit['key'] for hit in hits})
             matched.append({'code': code, 'name': view['name'], 'type': card.get('type', 0),
                             'status': view['status'], 'full': view['full'], 'origin': view['origin'],
-                            'hits': hits, 'no_effect': view['no_effect'],
+                            'hits': hits, 'no_effect': view['no_effect'], 'series': view['series'],
                             'cross_effects': scope == 'card' and bool(condition_names) and not any(
                                 self._effect_conditions(effect, body) is not None
                                 for effect in view['effects'] if effect.get('annotated')),
                             'hit_keys': keys})
         matched.sort(key=lambda item: (item['name'], item['code']))
+        if group_by == 'series':
+            return {'total': len(matched), 'folders': self.series.folders(matched)}
         return {'total': len(matched), 'offset': offset, 'scope': scope,
                 'annotated_total': len(self.annotated_codes()),
                 'catalog_total': len(self.store.catalog.cards),

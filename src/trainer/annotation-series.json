@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "checked_on": "2026-09-24",
+  "note": "五个系列、七张代表卡的展示样例。徽记为本项目设计的识别图形，不是官方标志。归属始终读取当前卡库 setcode；来源核对不等于完整效果或全系列逐卡审核。",
+  "series": [
+    {
+      "id": "set:dd", "setcode": 221, "name": "青眼",
+      "aliases": ["青眼白龙", "青眼白龍", "Blue-Eyes", "ブルーアイズ"],
+      "emblem": "dragon-eye", "tone": "ice", "cover_code": 89631139,
+      "sources": [
+        {"id": "blue-eyes-cn", "title": "KONAMI · 青眼白龙", "format": "OCG 简体中文", "checked_on": "2026-09-24", "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=4007&ope=2&request_locale=cn"},
+        {"id": "ultimate-cn", "title": "KONAMI · 青眼究极龙", "format": "OCG 简体中文", "checked_on": "2026-09-24", "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=4386&ope=2&request_locale=cn"}
+      ],
+      "samples": [
+        {"code": 89631139, "type": 17, "setcode": 221, "source_refs": ["blue-eyes-cn"]},
+        {"code": 23995346, "type": 65, "setcode": 221, "source_refs": ["ultimate-cn"]}
+      ]
+    },
+    {
+      "id": "set:119", "setcode": 281, "name": "转生炎兽",
+      "aliases": ["轉生炎獸", "転生炎獣", "Salamangreat"],
+      "emblem": "flame", "tone": "flame", "cover_code": 14812471,
+      "sources": [
+        {"id": "balelynx-cn", "title": "KONAMI · 转生炎兽 烽火猞猁", "format": "OCG 简体中文", "checked_on": "2026-09-24", "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=14249&ope=2&request_locale=cn"}
+      ],
+      "samples": [{"code": 14812471, "type": 67108897, "setcode": 281, "source_refs": ["balelynx-cn"]}]
+    },
+    {
+      "id": "set:16b", "setcode": 363, "name": "相剑",
+      "aliases": ["相劍", "相剣", "Swordsoul"],
+      "emblem": "swords", "tone": "jade", "cover_code": 69248256,
+      "sources": [
+        {"id": "chixiao-cn", "title": "KONAMI · 相剑大师－赤霄", "format": "OCG 简体中文", "checked_on": "2026-09-24", "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=16527&ope=2&request_locale=cn"}
+      ],
+      "samples": [{"code": 69248256, "type": 8225, "setcode": 363, "source_refs": ["chixiao-cn"]}]
+    },
+    {
+      "id": "set:172", "setcode": 370, "name": "驱魔姐妹",
+      "aliases": ["救祓少女", "Exosister", "エクソシスター"],
+      "emblem": "halo", "tone": "violet", "cover_code": 42741437,
+      "sources": [
+        {"id": "mikailis-cn", "title": "KONAMI · 驱魔姐妹・米迦以利斯", "format": "OCG 简体中文", "checked_on": "2026-09-24", "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=16740&ope=2&request_locale=cn"}
+      ],
+      "samples": [{"code": 42741437, "type": 8388641, "setcode": 370, "source_refs": ["mikailis-cn"]}]
+    },
+    {
+      "id": "set:1d5", "setcode": 469, "name": "杀手旋律",
+      "aliases": ["杀手级调整曲", "殺手級調整曲", "Kewl Tune", "キラーチューン"],
+      "emblem": "wave", "tone": "pink", "cover_code": 16387555,
+      "sources": [
+        {"id": "cue-cn", "title": "KONAMI · 杀手旋律・绮悠", "format": "OCG 简体中文", "checked_on": "2026-09-24", "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=21956&ope=2&request_locale=cn"},
+        {"id": "trackmaker-ja", "title": "KONAMI · キラーチューン・トラックメイカー", "format": "OCG 日文", "checked_on": "2026-09-24", "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=21957&ope=2&request_locale=ja"}
+      ],
+      "samples": [
+        {"code": 16387555, "type": 4129, "setcode": 469, "source_refs": ["cue-cn"]},
+        {"code": 42781164, "type": 12321, "setcode": 469, "source_refs": ["trackmaker-ja"]}
+      ]
+    }
+  ]
+}

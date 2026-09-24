@@ -17,7 +17,7 @@ function setup() {
     notice() {}, run: fn => fn,
     api: async () => ({})});
   vm.runInContext(source.slice(0, source.indexOf("$('#card-annotations').addEventListener"))
-    + '\nglobalThis.e={annoUI,annoEffectLabel,annoCardKind,annoEvidenceItems,annoProcessingLines,annoStructureLines,annoOverviewHTML,annoResultsHTML,annoDetailHTML,annoRelationLabel};', context);
+    + '\nglobalThis.e={annoUI,annoEffectLabel,annoCardKind,annoEvidenceItems,annoProcessingLines,annoStructureLines,annoOverviewHTML,annoResultsHTML,annoDetailHTML,annoRelationLabel,annoMonsterBadgesHTML,annoSeriesBadgesHTML,annoFoldersHTML,annoTagBadgeHTML,annoRenderShell};', context);
   return {context, $, ...context.e};
 }
 
@@ -151,4 +151,40 @@ test('stale no-effect cards keep old flavor separate from the current text', () 
   assert.match(reading,/旧版描述/);
   assert.doesNotMatch(reading,/新版原文/);
   assert.match(html,/当前卡库原文（未套用旧标注）/);
+});
+
+test('monster symbols retain hybrid types without calling every pendulum or ritual an extra monster', () => {
+  const e = setup();
+  const hybrid = e.annoMonsterBadgesHTML(0x1002041);
+  assert.match(hybrid,/额外卡组/);assert.match(hybrid,/∞/);assert.match(hybrid,/✧/);assert.match(hybrid,/◈/);
+  assert.doesNotMatch(e.annoMonsterBadgesHTML(0x1000021),/class="anno-badge anno-extra"/);
+  assert.doesNotMatch(e.annoMonsterBadgesHTML(0x81),/额外卡组/);
+  assert.equal(e.annoMonsterBadgesHTML(0x82),'','ritual spells are not monsters');
+  assert.match(e.annoMonsterBadgesHTML(0x800021),/◎/);
+  assert.match(e.annoMonsterBadgesHTML(0x4000021),/↗/);
+});
+
+test('effect colours are category-based and keep escaped labels and definitions', () => {
+  const e = setup();
+  assert.match(e.annoTagBadgeHTML('etag:add-hand',registry),/data-category="resource"/);
+  assert.match(e.annoTagBadgeHTML('etag:banish',registry),/data-category="removal"/);
+  assert.match(e.annoSeriesBadgesHTML([{name:'<test>',emblem:'<svg onload=x>',tone:'ice',name_basis:'依据'}]),/&lt;test&gt;/);
+  assert.doesNotMatch(e.annoSeriesBadgesHTML([{name:'x',emblem:'<svg onload=x>'}]),/onload/);
+});
+
+test('folder homepage sorts Chinese names, exposes local covers and defaults filters and art to collapsed', () => {
+  const e = setup();
+  const folders = ['转生炎兽','相剑','青眼','驱魔姐妹','杀手旋律'].map((name,i)=>({id:'set:'+i,name,cover_code:i+1,count:2,annotated:1}));
+  const html = e.annoFoldersHTML({total:10,folders});
+  const names = [...e.annoUI.folders].map(f=>f.name);
+  assert.deepEqual(names,['青眼','驱魔姐妹','杀手旋律','相剑','转生炎兽']);
+  assert.match(html,/src="\/pics\/3.jpg"/);
+  assert.match(html,/data-anno-folder/);
+  e.annoRenderShell();
+  assert.match(e.$('#card-annotations').innerHTML,/<details id="anno-advanced" class="anno-more">/);
+  assert.equal(e.annoUI.mode,'folders');
+  const view={code:1,name:'卡',type:0x21,digest_ok:true,effects:[]};
+  const detail=e.annoDetailHTML(view,registry);
+  assert.match(detail,/data-anno-art-src="\/pics\/1.jpg"/);
+  assert.doesNotMatch(detail,/<img src=/);
 });
