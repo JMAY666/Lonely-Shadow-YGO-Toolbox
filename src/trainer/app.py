@@ -40,6 +40,7 @@ from automatic_duel import AutomaticDuels
 from ygopro_smart import SmartRecognition
 from intelligence import Intelligence, main_card
 from opening_workspace import OpeningWorkspace
+from live_duel import LiveDuel
 
 WORKSPACE = Path(__file__).resolve().parents[2]
 RUNTIME = WORKSPACE / '.local/YGOPro-Lite'
@@ -186,6 +187,7 @@ class Store:
         self.library = PlanLibrary(self, read_json, atomic_json, now)
         self.intelligence = Intelligence(self)
         self.opening_workspace = OpeningWorkspace(self, read_json, atomic_json, now)
+        self.live_duel = LiveDuel(self, read_json, atomic_json, now)
         self.compromise = Compromise(self, read_json, atomic_json, atomic_bytes)
         from modular import Modular
         self.modular = Modular(self, read_json, atomic_json, atomic_bytes)
@@ -1009,6 +1011,7 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/intelligence': return self.send(store.intelligence.command(body))
                 if path == '/api/opening/analyze': return self.send(store.opening_workspace.analyze(body))
                 if path == '/api/opening/save': return self.send(store.opening_workspace.command(body))
+                if path == '/api/duel/live': return self.send(store.live_duel.command(body))
                 if path == '/api/intelligence/opponents': raise ValueError('对手卡组仅供预览，不支持修改')
                 if path == '/api/tags/related': return self.send(store.library.related(body))
                 if path == '/api/plans/classify': return self.send(store.library.save_selection(body))
@@ -1174,6 +1177,7 @@ class Handler(BaseHTTPRequestHandler):
                 files['/scrollbars.css'] = 'scrollbars.css'
                 files.update({'/intelligence.js': 'intelligence.js', '/intelligence.css': 'intelligence.css'})
                 files.update({'/going-second.js': 'going-second.js', '/going-second.css': 'going-second.css', '/opening-summary.js': 'opening-summary.js'})
+                files.update({'/live-duel.js': 'live-duel.js', '/live-duel.css': 'live-duel.css'})
                 files.update({f'/{name}': name for name in ('intelligence-matchups.js', 'intelligence-matchups.css')})
                 files.update({f'/{name}': name for name in ('intelligence-opponents.js', 'intelligence-opponents.css')})
                 for art in ('first', 'second', 'bo1', 'bo3', 'manual', 'automatic', 'ygopro', 'ygopro2', 'mdpro3', 'masterduel'):

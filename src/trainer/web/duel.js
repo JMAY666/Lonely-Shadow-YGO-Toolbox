@@ -399,7 +399,7 @@ function renderDuel() {
     if(automatic&&s.automatic.order?.frame?.confirmed?.order==='second'&&DuelOpening.ready(s.automatic.order.frame)){body=secondOpeningPage();footer=duelButton('order-return','返回先后攻监测');}
     else if(automatic&&s.automatic.smartRun){body=smartOpeningPage();}
     else if(automatic){body=duelAutomaticOpeningPage();if(DuelOpening.first(s.automatic.order?.frame))footer=duelButton('confirm-opening','确认起手，下一步',!DuelOpening.ready(s.automatic.order?.frame),true);}
-    else {body=duelHandPage()+(s.first?'':secondOpeningPage());if(s.first)footer=duelButton('match','方案选择',!!DuelModel.handError(s.deck.deck,s.count,s.hand),true);}
+    else {body=(!s.first&&typeof liveAssistanceActive==='function'&&liveAssistanceActive()?'':duelHandPage())+(s.first?'':secondOpeningPage());if(s.first)footer=duelButton('match','方案选择',!!DuelModel.handError(s.deck.deck,s.count,s.hand),true);}
   } else if(s.stage===duelStages.plans) body=automatic?autoDuelWorkspacePage():duelMatchesPage();
   else if(s.stage===duelStages.tutorial) {
     if(automatic){body=autoDuelWorkspacePage();footer=autoDuelFooter();}

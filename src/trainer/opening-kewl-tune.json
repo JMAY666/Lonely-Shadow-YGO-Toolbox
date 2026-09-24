@@ -18,12 +18,13 @@
       "details": [
         "可从手牌、卡组或墓地选择提示员以外的调整。",
         "作为场上的同调素材时，可再使用手牌的一只调整。",
-        "①要求遵守本回合只特召调整的限制；②的翻牌结果不能提前假定。"
+        "①未被无效并处理后，直到回合结束只能特召调整；此前已特召非调整不因此禁止发动。②的翻牌结果不能提前假定。"
       ],
       "source": {
         "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=21956&ope=2&request_locale=ja",
-        "checked_on": "2026-09-23",
-        "kind": "official_card_text"
+        "checked_on": "2026-09-24",
+        "kind": "official_card_text",
+        "ruling_url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=21956&ope=4&request_locale=ja"
       }
     },
     {
@@ -144,13 +145,14 @@
       "summary": "提供额外一次调整通常召唤，并把场上调整转为本家资源。",
       "details": [
         "③要解放自己场上一只调整，之后从卡组选本家怪兽加手或特召。",
-        "③发动后只可特召调整；额外通常召唤的适用与发动次数分开核对。",
+        "③未被无效并处理后，只可特召调整；额外通常召唤的适用与发动次数分开核对。",
         "对方场上或墓地有调整时，才会为响度战争增加3300攻击力。"
       ],
       "source": {
         "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=21962&ope=2&request_locale=ja",
-        "checked_on": "2026-09-23",
-        "kind": "official_card_text"
+        "checked_on": "2026-09-24",
+        "kind": "official_card_text",
+        "ruling_url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=21962&ope=4&request_locale=ja"
       }
     },
     {
@@ -167,12 +169,13 @@
       "details": [
         "不能检索自身；同名卡每回合最多发动两张。",
         "后续同调需要现有合法素材，不能把检索直接当作完成展开。",
-        "发动后只可特召调整。"
+        "本卡未被无效并处理后，直到回合结束只可特召调整。"
       ],
       "source": {
         "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=21961&ope=2&request_locale=ja",
-        "checked_on": "2026-09-23",
-        "kind": "official_card_text"
+        "checked_on": "2026-09-24",
+        "kind": "official_card_text",
+        "ruling_url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=21961&ope=4&request_locale=ja"
       }
     },
     {

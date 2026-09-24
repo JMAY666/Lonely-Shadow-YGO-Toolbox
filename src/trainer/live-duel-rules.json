@@ -1,0 +1,697 @@
+{
+  "schema": 1,
+  "format": "OCG",
+  "scope": "限定卡文与结构化事实下的规则参考；不宣称完整引擎复原或未知响应不存在。",
+  "cards": [
+    {
+      "code": 14558127,
+      "name": "灰流丽",
+      "text": "这个卡名的效果1回合只能使用1次。\r\n①：包含以下其中任意种效果的魔法·陷阱·怪兽的效果发动时，把这张卡从手卡丢弃才能发动。那个效果无效。\r\n●从卡组把卡加入手卡的效果\r\n●从卡组把怪兽特殊召唤的效果\r\n●从卡组把卡送去墓地的效果",
+      "type": 4129,
+      "source": {
+        "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=12950&request_locale=ja",
+        "checked_on": "2026-09-24"
+      },
+      "effects": {
+        "1": {
+          "label": "无效紧邻的卡组资源效果",
+          "response": "ash",
+          "limit": 1,
+          "cost": "discard_self",
+          "flags": [
+            "negate_effect"
+          ]
+        }
+      },
+      "level": 3
+    },
+    {
+      "code": 97268402,
+      "name": "效果遮蒙者",
+      "text": "①：对方主要阶段，把这张卡从手卡送去墓地，以对方场上1只效果怪兽为对象才能发动。那只对方怪兽的效果直到回合结束时无效。",
+      "type": 4129,
+      "source": {
+        "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=8933&request_locale=ja",
+        "checked_on": "2026-09-24"
+      },
+      "effects": {
+        "1": {
+          "label": "对方主要阶段无效表侧怪兽",
+          "response": "veiler",
+          "cost": "send_self",
+          "flags": [
+            "negate_effect"
+          ]
+        }
+      },
+      "level": 1
+    },
+    {
+      "code": 10045474,
+      "name": "无限泡影",
+      "text": "自己场上没有卡存在的场合，这张卡的发动从手卡也能用。\r\n①：以对方场上1只表侧表示怪兽为对象才能发动。那只怪兽的效果直到回合结束时无效。盖放的这张卡发动的场合，再在这个回合中让和这张卡相同纵列的其他的魔法·陷阱卡的效果无效化。",
+      "type": 4,
+      "source": {
+        "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=13631&request_locale=ja",
+        "checked_on": "2026-09-24"
+      },
+      "effects": {
+        "1": {
+          "label": "手牌发动，取对象无效表侧怪兽",
+          "response": "imperm",
+          "flags": [
+            "negate_effect"
+          ]
+        }
+      },
+      "level": 0
+    },
+    {
+      "code": 73642296,
+      "name": "屋敷童",
+      "text": "这个卡名的效果1回合只能使用1次。\r\n①：包含以下其中任意种效果的魔法·陷阱·怪兽的效果发动时，把这张卡从手卡丢弃才能发动。那个发动无效。\r\n●从墓地把卡加入手卡·卡组·额外卡组的效果\r\n●从墓地把怪兽特殊召唤的效果\r\n●从墓地把卡除外的效果",
+      "type": 4129,
+      "source": {
+        "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=13587&request_locale=ja",
+        "checked_on": "2026-09-24"
+      },
+      "effects": {
+        "1": {
+          "label": "无效紧邻的墓地资源效果发动",
+          "response": "belle",
+          "limit": 1,
+          "cost": "discard_self",
+          "flags": [
+            "negate_activation"
+          ]
+        }
+      },
+      "level": 3
+    },
+    {
+      "code": 23434538,
+      "name": "增殖的G",
+      "text": "这个卡名的效果1回合只能使用1次。\r\n①：自己·对方回合，把这张卡从手卡送去墓地才能发动。这个回合中，以下效果适用。\r\n●每次对方把怪兽特殊召唤，自己抽1张。",
+      "type": 33,
+      "source": {
+        "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=9455&request_locale=ja",
+        "checked_on": "2026-09-24"
+      },
+      "effects": {
+        "1": {
+          "label": "对方特召时抽牌的资源效果",
+          "response": "maxx",
+          "limit": 1,
+          "cost": "send_self",
+          "locks": [
+            "draw_on_special"
+          ],
+          "both": false,
+          "flags": [
+            "deck_add"
+          ]
+        }
+      },
+      "level": 2
+    },
+    {
+      "code": 94145021,
+      "name": "小丑与锁鸟",
+      "text": "①：自己·对方回合，对方在抽卡阶段以外从卡组把卡加入手卡的场合，把这张卡从手卡送去墓地才能发动。这个回合，双方不能从卡组把卡加入手卡。",
+      "type": 33,
+      "source": {
+        "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=9279&request_locale=ja",
+        "checked_on": "2026-09-24"
+      },
+      "effects": {
+        "1": {
+          "label": "实际卡组加手后的限制",
+          "response": "droll",
+          "cost": "send_self",
+          "locks": [
+            "no_deck_add"
+          ],
+          "both": true,
+          "flags": []
+        }
+      },
+      "level": 1
+    },
+    {
+      "code": 91800273,
+      "name": "次元吸引者",
+      "text": "①：自己·对方回合，自己墓地没有卡存在的场合，把这张卡从手卡送去墓地才能发动。直到下个回合的结束时，被送去墓地的卡不去墓地而除外。",
+      "type": 33,
+      "source": {
+        "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=14740&request_locale=ja",
+        "checked_on": "2026-09-24"
+      },
+      "effects": {
+        "1": {
+          "label": "双方送墓改除外",
+          "response": "shifter",
+          "cost": "send_self",
+          "locks": [
+            "banish_instead"
+          ],
+          "both": true,
+          "duration": 1,
+          "flags": []
+        }
+      },
+      "level": 6
+    },
+    {
+      "code": 54693926,
+      "name": "冥王结界波",
+      "text": "不能对应这张卡的发动让怪兽的效果发动。\r\n①：对方场上的全部表侧表示怪兽的效果直到回合结束时无效化。这张卡的发动后，直到回合结束时对方受到的全部伤害变成0。",
+      "type": 2,
+      "source": {
+        "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=14742&request_locale=ja",
+        "checked_on": "2026-09-24",
+        "ruling_url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14742&ope=4&request_locale=ja"
+      },
+      "effects": {
+        "1": {
+          "label": "无效对方表侧怪兽，本回合对方受伤害为零",
+          "breaker": "dark_ruler",
+          "locks": [
+            "no_damage"
+          ],
+          "flags": [
+            "negate_effect"
+          ],
+          "lock_mode": "resolution",
+          "lock_on_no_result": true,
+          "no_monster_response": true
+        }
+      },
+      "level": 0
+    },
+    {
+      "code": 24224830,
+      "name": "墓穴的指名者",
+      "text": "①：以对方墓地1只怪兽为对象才能发动。那只怪兽除外。直到下个回合的结束时，这个效果除外的怪兽以及原本卡名和那只怪兽相同的怪兽的效果无效化。",
+      "type": 65538,
+      "source": {
+        "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=13619&request_locale=ja",
+        "checked_on": "2026-09-24"
+      },
+      "effects": {
+        "1": {
+          "label": "墓地目标与同原本卡名无效",
+          "protection": true,
+          "locks": [
+            "named_negation"
+          ],
+          "both": true,
+          "duration": 1,
+          "flags": [
+            "grave_banish"
+          ]
+        }
+      },
+      "level": 0
+    },
+    {
+      "code": 65681983,
+      "name": "抹杀之指名者",
+      "text": "这个卡名的卡在1回合只能发动1张。\r\n①：宣言1个卡名才能发动。宣言的1张卡从卡组除外。这个回合中，这个效果除外的卡以及原本卡名和那张卡相同的卡的效果无效化。",
+      "type": 65538,
+      "source": {
+        "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=14627&request_locale=ja",
+        "checked_on": "2026-09-24"
+      },
+      "effects": {
+        "1": {
+          "label": "需卡组中对应宣言卡的护航",
+          "protection": true,
+          "limit": 1,
+          "locks": [
+            "named_negation"
+          ],
+          "both": true,
+          "duration": 0,
+          "flags": []
+        }
+      },
+      "level": 0
+    },
+    {
+      "code": 16387555,
+      "name": "杀手级调整曲·提示员",
+      "text": "场上的这张卡为素材作同调召唤的场合，手卡1只调整也能作为同调素材。这个卡名的①②的效果1回合各能使用1次。\r\n①：这张卡召唤的场合才能发动。从自己的手卡·卡组·墓地把「杀手级调整曲·提示员」以外的1只调整特殊召唤。这个回合，自己不是调整不能特殊召唤。\r\n②：这张卡作为同调素材送去墓地的场合才能发动。从对方卡组上面把2张卡翻开，从那之中把1张除外，另1张回到卡组最上面或最下面。",
+      "type": 4129,
+      "source": {
+        "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=21956&ope=2&request_locale=ja",
+        "checked_on": "2026-09-24",
+        "ruling_url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=21956&ope=4&request_locale=ja"
+      },
+      "effects": {
+        "1": {
+          "label": "通常召唤后取得另一只调整",
+          "flags": [
+            "deck_special",
+            "grave_special"
+          ],
+          "limit": 1,
+          "locks": [
+            "tuner_only"
+          ],
+          "resource_change": true,
+          "lock_mode": "resolution",
+          "lock_on_no_result": true
+        },
+        "2": {
+          "label": "翻牌并选择除外",
+          "limit": 1,
+          "resource_change": true,
+          "flags": []
+        }
+      },
+      "level": 3
+    },
+    {
+      "code": 16509007,
+      "name": "杀手级调整曲·混音手",
+      "text": "场上的这张卡为素材作同调召唤的场合，手卡1只调整也能作为同调素材。这个卡名的①②的效果1回合各能使用1次。\r\n①：这张卡召唤·特殊召唤的场合才能发动。从自己的卡组·墓地把2星怪兽以外的1只「杀手级调整曲」怪兽加入手卡。\r\n②：这张卡作为同调素材送去墓地的场合，以对方场上1只怪兽为对象才能发动。那只怪兽破坏。",
+      "type": 4129,
+      "source": {
+        "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=21953&ope=2&request_locale=ja",
+        "checked_on": "2026-09-24"
+      },
+      "effects": {
+        "1": {
+          "label": "非2星本家检索或回收",
+          "flags": [
+            "deck_add",
+            "grave_add"
+          ],
+          "limit": 1,
+          "resource_change": true
+        },
+        "2": {
+          "label": "素材送墓后取对象破坏怪兽",
+          "flags": [
+            "destroy_monster"
+          ],
+          "limit": 1
+        }
+      },
+      "level": 2
+    },
+    {
+      "code": 89392810,
+      "name": "杀手级调整曲·唱片师",
+      "text": "场上的这张卡为素材作同调召唤的场合，手卡1只调整也能作为同调素材。这个卡名的①②的效果1回合各能使用1次。\r\n①：这张卡召唤·特殊召唤的场合才能发动。从自己的卡组·墓地把3星怪兽以外的1只「杀手级调整曲」怪兽加入手卡。\r\n②：这张卡作为同调素材送去墓地的场合，以对方场上1张魔法·陷阱卡为对象才能发动。那张卡破坏。",
+      "type": 4129,
+      "source": {
+        "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=21955&ope=2&request_locale=ja",
+        "checked_on": "2026-09-24"
+      },
+      "effects": {
+        "1": {
+          "label": "非3星本家检索或回收",
+          "flags": [
+            "deck_add",
+            "grave_add"
+          ],
+          "limit": 1,
+          "resource_change": true
+        },
+        "2": {
+          "label": "素材送墓后取对象破坏魔陷",
+          "limit": 1,
+          "flags": []
+        }
+      },
+      "level": 3
+    },
+    {
+      "code": 17209452,
+      "name": "杀手级调整曲·旋钮手",
+      "text": "场上的这张卡为素材作同调召唤的场合，手卡1只调整也能作为同调素材。这个卡名的①②的效果1回合各能使用1次。\r\n①：把手卡的这张卡和手卡1只调整给对方观看才能发动。进行1只调整的召唤。\r\n②：这张卡作为同调素材送去墓地的场合，可以从以下效果选择1个发动。\r\n●从对方墓地让1张卡回到卡组最下面。\r\n●对方手卡全部确认。那之后，可以从卡组把1张「杀手级调整曲」魔法·陷阱卡加入手卡。",
+      "type": 4129,
+      "source": {
+        "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=22531&ope=2&request_locale=ja",
+        "checked_on": "2026-09-24"
+      },
+      "effects": {
+        "1": {
+          "label": "展示手牌调整以增加召唤",
+          "limit": 1,
+          "resource_change": true,
+          "flags": []
+        },
+        "2": {
+          "label": "素材送墓后选择一个处理分支",
+          "limit": 1,
+          "resource_change": true
+        }
+      },
+      "level": 1
+    },
+    {
+      "code": 43904702,
+      "name": "杀手级调整曲·削波手",
+      "text": "场上的这张卡为素材作同调召唤的场合，手卡1只调整也能作为同调素材。这个卡名的①②的效果1回合各能使用1次。\r\n①：这张卡在手卡存在的场合，对方主要阶段才能发动。这张卡特殊召唤。那之后，可以进行1只同调怪兽调整的同调召唤。\r\n②：这张卡作为同调素材送去墓地的场合才能发动。对方的额外卡组的里侧的卡随机1张除外。",
+      "type": 4129,
+      "source": {
+        "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=21954&ope=2&request_locale=ja",
+        "checked_on": "2026-09-24"
+      },
+      "effects": {
+        "1": {
+          "label": "对方回合特召并按条件同调",
+          "limit": 1,
+          "resource_change": true,
+          "flags": []
+        },
+        "2": {
+          "label": "随机除外对方额外",
+          "limit": 1,
+          "flags": []
+        }
+      },
+      "level": 2
+    },
+    {
+      "code": 42781164,
+      "name": "杀手级调整曲·音轨制作人",
+      "text": "「杀手级调整曲」调整＋调整1只以上\r\n场上的这张卡为素材作同调召唤的场合，手卡1只调整也能作为同调素材。这个卡名的①②的效果1回合各能使用1次。\r\n①：这张卡特殊召唤的场合才能发动。从卡组把1张「杀手级调整曲」卡加入手卡。\r\n②：这张卡作为同调素材送去墓地的场合才能发动。对方场上1张卡回到手卡。",
+      "type": 12321,
+      "source": {
+        "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=21957&ope=2&request_locale=ja",
+        "checked_on": "2026-09-24"
+      },
+      "effects": {
+        "1": {
+          "label": "特殊召唤后本家检索",
+          "flags": [
+            "deck_add"
+          ],
+          "limit": 1,
+          "resource_change": true
+        },
+        "2": {
+          "label": "素材送墓后让对方卡回手",
+          "limit": 1,
+          "flags": []
+        }
+      },
+      "level": 4
+    },
+    {
+      "code": 14442329,
+      "name": "点唱机酒吧“杀手级调整曲”",
+      "text": "这个卡名的③的效果1回合只能使用1次。\r\n①：自己在通常召唤外加上只有1次，自己主要阶段可以把1只调整召唤。\r\n②：只要对方的场上或墓地有调整存在，自己场上的「杀手级调整曲响度战争」的攻击力上升3300。\r\n③：把自己场上1只调整解放才能发动。从卡组选1只「杀手级调整曲」怪兽加入手卡或特殊召唤。这个效果的发动后，直到回合结束时自己不是调整不能特殊召唤。",
+      "type": 524290,
+      "source": {
+        "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=21962&ope=2&request_locale=ja",
+        "checked_on": "2026-09-24",
+        "ruling_url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=21962&ope=4&request_locale=ja"
+      },
+      "effects": {
+        "0": {
+          "label": "发动场地魔法",
+          "flags": []
+        },
+        "1": {
+          "label": "增加一次调整通常召唤",
+          "continuous": true,
+          "flags": []
+        },
+        "3": {
+          "label": "解放调整，卡组本家加手或特召",
+          "flags": [
+            "deck_add",
+            "deck_special"
+          ],
+          "limit": 1,
+          "locks": [
+            "tuner_only"
+          ],
+          "resource_change": true,
+          "lock_mode": "resolution",
+          "lock_on_no_result": true
+        }
+      },
+      "level": 0
+    },
+    {
+      "code": 78058681,
+      "name": "杀手级调整曲同调",
+      "text": "这个卡名的卡在1回合可以发动最多2张。\r\n①：从卡组把「杀手级调整曲同调」以外的1张「杀手级调整曲」卡加入手卡。那之后，可以进行1只同调怪兽调整的同调召唤。这张卡的发动后，直到回合结束时自己不是调整不能特殊召唤。",
+      "type": 65538,
+      "source": {
+        "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=21961&ope=2&request_locale=ja",
+        "checked_on": "2026-09-24",
+        "ruling_url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=21961&ope=4&request_locale=ja"
+      },
+      "effects": {
+        "1": {
+          "label": "本家检索与可选同调",
+          "flags": [
+            "deck_add"
+          ],
+          "limit": 2,
+          "count_mode": "activation",
+          "locks": [
+            "tuner_only"
+          ],
+          "resource_change": true,
+          "lock_mode": "resolution",
+          "lock_on_no_result": true
+        }
+      },
+      "level": 0
+    },
+    {
+      "code": 88170262,
+      "name": "杀手级调整曲·再混音手",
+      "text": "「杀手级调整曲·混音手」＋调整1只以上\r\n这个卡名的②的效果1回合只能使用1次。\r\n①：只要对方的场上或墓地有调整存在，这张卡的攻击力上升1500。\r\n②：对方回合，把这张卡解放才能发动。从自己墓地选同调怪兽以外的2只调整，那之内的1只加入手卡，另1只特殊召唤。那之后，可以进行1只同调怪兽调整的同调召唤。",
+      "type": 12321,
+      "source": {
+        "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=21958&ope=2&request_locale=ja",
+        "checked_on": "2026-09-24"
+      },
+      "effects": {
+        "2": {
+          "label": "解放自身，以墓地两只调整续接",
+          "flags": [
+            "grave_add",
+            "grave_special"
+          ],
+          "limit": 1,
+          "threat": "followup",
+          "resource_change": true
+        }
+      },
+      "level": 5
+    },
+    {
+      "code": 15665977,
+      "name": "杀手级调整曲·红印鉴唱片师",
+      "text": "「杀手级调整曲·唱片师」＋调整1只以上\r\n这个卡名的③的效果1回合只能使用1次。\r\n①：这张卡的攻击力上升双方墓地的调整数量×300。\r\n②：原本攻击力是1700以下的对方场上的怪兽的等级上升1星。\r\n③：自己·对方的主要阶段，从自己墓地把1只调整除外，以对方场上1张表侧表示卡为对象才能发动。那张卡的效果直到回合结束时无效。",
+      "type": 12321,
+      "source": {
+        "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=21959&ope=2&request_locale=ja",
+        "checked_on": "2026-09-24"
+      },
+      "effects": {
+        "3": {
+          "label": "除外墓地调整，无效对方表侧卡",
+          "limit": 1,
+          "threat": "negate",
+          "flags": [
+            "negate_effect"
+          ]
+        }
+      },
+      "level": 5
+    },
+    {
+      "code": 41069676,
+      "name": "杀手级调整曲响度战争",
+      "text": "调整＋调整1只以上\r\n这个卡名的②的效果1回合只能使用1次。\r\n①：只要这张卡在怪兽区域存在，自己场上的其他调整不会被效果破坏，对方不能把那些作为效果的对象。\r\n②：对方把效果发动时，从自己墓地把1只「杀手级调整曲」怪兽除外才能发动。除外的怪兽的自身作为同调素材送去墓地的场合发动的效果适用。",
+      "type": 12321,
+      "source": {
+        "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=21960&ope=2&request_locale=ja",
+        "checked_on": "2026-09-24"
+      },
+      "effects": {
+        "1": {
+          "label": "保护其他调整免于取对象及效果破坏",
+          "continuous": true,
+          "threat": "protection",
+          "flags": []
+        },
+        "2": {
+          "label": "除外墓地本家，转用素材送墓效果",
+          "limit": 1,
+          "threat": "interaction"
+        }
+      },
+      "level": 6
+    },
+    {
+      "code": 65961304,
+      "name": "杀手级调整曲 B2B",
+      "text": "调整＋同调怪兽1只以上\r\n这个卡名的③的效果1回合可以使用最多2次。\r\n①：对方场上的怪兽的等级上升2星。\r\n②：自己的调整在同1次的战斗阶段中可以作2次攻击。\r\n③：对方把怪兽的效果发动时，以10星以外的自己的墓地·除外状态的1只调整为对象才能发动。那只怪兽加入手卡或特殊召唤。那之后，可以进行1只同调怪兽的同调召唤。",
+      "type": 12321,
+      "source": {
+        "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=22551&ope=2&request_locale=ja",
+        "checked_on": "2026-09-24"
+      },
+      "effects": {
+        "2": {
+          "label": "调整可以攻击两次",
+          "continuous": true,
+          "threat": "damage",
+          "flags": []
+        },
+        "3": {
+          "label": "响应怪兽效果，回收或特召调整并续接",
+          "flags": [
+            "grave_add",
+            "grave_special"
+          ],
+          "limit": 2,
+          "threat": "followup",
+          "resource_change": true,
+          "grave_target_scope": true
+        }
+      },
+      "level": 10
+    },
+    {
+      "code": 61049315,
+      "name": "自然蔷薇鞭",
+      "text": "只要这张卡在场上表侧表示存在，对方玩家1回合魔法·陷阱卡只能发动1次。",
+      "type": 4129,
+      "source": {
+        "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=8102&ope=2&request_locale=ja",
+        "checked_on": "2026-09-24"
+      },
+      "effects": {
+        "0": {
+          "label": "对方每回合最多发动一次魔陷卡",
+          "continuous": true,
+          "threat": "restriction",
+          "flags": []
+        }
+      },
+      "level": 3
+    },
+    {
+      "code": 99243014,
+      "name": "同调超车",
+      "text": "这个卡名的卡在1回合只能发动1张，这张卡发动的回合，自己不是同调怪兽不能从额外卡组特殊召唤。\r\n①：把额外卡组1只同调怪兽给对方观看，从自己的卡组·墓地选那只怪兽有卡名记述的1只同调素材怪兽加入手卡或特殊召唤。",
+      "type": 2,
+      "source": {
+        "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=16256&ope=2&request_locale=ja",
+        "checked_on": "2026-09-24",
+        "ruling_url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=16256&ope=4&request_locale=ja"
+      },
+      "effects": {
+        "1": {
+          "label": "从卡组或墓地取得具名同调素材",
+          "flags": [
+            "deck_add",
+            "deck_special",
+            "grave_add",
+            "grave_special"
+          ],
+          "limit": 1,
+          "count_mode": "activation",
+          "locks": [
+            "synchro_extra_only"
+          ],
+          "resource_change": true,
+          "lock_mode": "activation"
+        }
+      },
+      "level": 0
+    },
+    {
+      "code": 44362883,
+      "name": "烙印融合",
+      "text": "这个卡名的卡在1回合只能发动1张，这张卡发动的回合，自己不是融合怪兽不能从额外卡组特殊召唤。\r\n①：自己的手卡·卡组·场上的怪兽2只作为融合素材，把以「阿不思的落胤」为融合素材的1只融合怪兽融合召唤。",
+      "type": 2,
+      "source": {
+        "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=17066&request_locale=ja",
+        "checked_on": "2026-09-24"
+      },
+      "effects": {
+        "1": {
+          "label": "用手牌、场上或卡组素材融合",
+          "flags": [
+            "deck_send"
+          ],
+          "limit": 1,
+          "count_mode": "activation",
+          "locks": [
+            "fusion_extra_only"
+          ],
+          "resource_change": true,
+          "lock_mode": "activation"
+        }
+      },
+      "level": 0
+    },
+    {
+      "code": 62962630,
+      "name": "死狱乡的导化 阿鲁伯",
+      "text": "这个卡名的①②的效果1回合只能有1次使用其中任意1个。\r\n①：这张卡召唤·特殊召唤的场合才能发动。从卡组把1张「烙印」魔法·陷阱卡加入手卡。\r\n②：这张卡在墓地存在的状态，自己场上的表侧表示的融合怪兽因对方的效果从场上离开的场合或者被战斗破坏的场合，以对方场上1只效果怪兽为对象才能发动。这张卡特殊召唤，作为对象的怪兽的效果直到回合结束时无效。",
+      "type": 33,
+      "source": {
+        "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=16195&request_locale=ja",
+        "checked_on": "2026-09-24"
+      },
+      "effects": {
+        "1": {
+          "label": "检索烙印魔陷",
+          "flags": [
+            "deck_add"
+          ],
+          "limit": 1,
+          "shared": "aluber",
+          "resource_change": true
+        },
+        "2": {
+          "label": "墓地特殊召唤并无效",
+          "flags": [
+            "grave_special"
+          ],
+          "limit": 1,
+          "shared": "aluber",
+          "resource_change": true
+        }
+      },
+      "level": 4
+    },
+    {
+      "code": 44146295,
+      "name": "冰剑龙 幻冰龙",
+      "text": "「阿不思的落胤」＋融合·同调·超量·连接怪兽\r\n①：「冰剑龙 幻冰龙」在自己场上只能有1张表侧表示存在。\r\n②：自己·对方回合1次，把以「阿不思的落胤」为融合素材的1只融合怪兽从额外卡组送去墓地才能发动。场上1只怪兽除外。下个回合，这张卡不能使用这个效果。\r\n③：融合召唤的这张卡因对方从场上离开的场合才能发动。这个回合的结束阶段，对方场上的怪兽全部破坏。",
+      "type": 97,
+      "source": {
+        "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=17069&request_locale=ja",
+        "checked_on": "2026-09-24"
+      },
+      "effects": {
+        "2": {
+          "label": "付额外送墓费用，除外场上怪兽",
+          "threat": "removal",
+          "flags": []
+        },
+        "3": {
+          "label": "离场后的结束阶段破坏",
+          "threat": "followup",
+          "flags": []
+        }
+      },
+      "level": 8
+    }
+  ]
+}

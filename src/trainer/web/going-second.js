@@ -26,6 +26,7 @@ function openingKey(scope){
   return JSON.stringify([openingInput(scope),scope==='intel'?intelUI.tab:[s.session,s.stage,s.operationMode,openingIsSecond(),s.automatic.smartRun?.cycle,s.automatic.smartRun?.value?.reading_error],moduleUI.current]);
 }
 function clearSecondOpening(){
+  if(typeof clearLiveAssistance==='function')clearLiveAssistance();
   if(!duelState().secondOpening)return;
   OpeningView.invalidate(duelState().secondOpening);duelState().secondOpening.supplemental=[];
 }
@@ -52,12 +53,13 @@ function openingNote(key,result,editable){
   return editable?`<form data-opening-form="note" data-key="${escape(key)}"><label>局部备注（只供阅读，不参与计算）<textarea name="note" maxlength="4000">${escape(note?.text||'')}</textarea></label>${note&&note.version!==result.source_version?'<p>备注来源版本已变化，请重新核对。</p>':''}<button type="submit">保存备注</button></form>`:note?`<p>个人备注：${escape(note.text)}</p>`:'';
 }
 function secondOpeningPage(){
+  if(typeof liveAssistanceActive==='function'&&liveAssistanceActive())return liveAssistancePage();
   const s=duelState(),state=openingDuelState(),automatic=s.operationMode==='automatic',frame=s.automatic.order?.frame;
   const frozen=automatic?frame?.opening?.cards||[]:s.hand;
   const deck=automatic?s.automatic.deck?.deck:s.deck?.deck;
   const ready=automatic?DuelOpening.ready(frame):!DuelModel.handError(deck,s.count,s.hand);
   if(state.result&&state.inputKey!==openingKey('duel'))OpeningView.invalidate(state);
-  return `<section class="opening-workspace" data-opening-scope="duel"><div class="opening-toolbar"><h2>后攻起手分析</h2><button class="primary" data-opening-analyze ${!ready||state.busy?'disabled':''}>${state.busy?'正在本地分析…':state.result?'重新分析':'分析后攻起手'}</button></div>${automatic?`<div class="duel-opening-panel">${duelOpeningCards(frame)}<p>本局冻结起手</p></div>`:!state.result?'<p class="opening-muted">选好上方手牌后开始分析，修改手牌会清除旧结果。</p>':''}
+  return `<section class="opening-workspace" data-opening-scope="duel"><div class="opening-toolbar"><h2>后攻起手分析</h2><div><button data-live-start ${!ready||state.busy?'disabled':''}>进入实战辅助 · OCG</button><button class="primary" data-opening-analyze ${!ready||state.busy?'disabled':''}>${state.busy?'正在本地分析…':state.result?'重新分析':'分析后攻起手'}</button></div></div>${automatic?`<div class="duel-opening-panel">${duelOpeningCards(frame)}<p>本局冻结起手</p></div>`:!state.result?'<p class="opening-muted">选好上方手牌后开始分析，修改手牌会清除旧结果。</p>':''}
     <details class="opening-resource-tools"><summary>人工补充资源 · ${state.supplemental.length} 张</summary><p>用于额外已知手牌的资源评估，不自动扣除已经用掉的牌，也不修改初始快照。</p><div class="opening-supplement">${state.supplemental.map((code,i)=>`<span>${escape(openingName(code))}<button data-opening-remove="${i}" aria-label="移除补充的${escape(openingName(code))}">×</button></span>`).join('')}</div><select aria-label="人工补充卡牌" data-opening-supplement>${[...new Set(deck?.main||[])].map(code=>`<option value="${code}">${escape(openingName(code))}</option>`).join('')}</select><button data-opening-add ${!ready?'disabled':''}>添加已知手牌</button></details><p role="alert" class="opening-error">${escape(state.error)}</p>${state.result?openingResult(state.result):''}</section>`;
 }
 async function openingIntelLoad(){
