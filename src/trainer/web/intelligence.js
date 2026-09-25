@@ -22,11 +22,13 @@ async function intelDiscard(){return !intelUI.dirty||await confirmFlow('放弃�
 function intelTagOptions(value=''){return `<option value="">全部 TAG</option>`+(intelUI.data?.tags||[]).map(t=>`<option value="${escape(t.id)}" ${t.id===value?'selected':''}>${escape(t.name)}${t.kind==='purpose'?' · 用途':''}</option>`).join('');}
 function intelFilters(prefix,{records=false}={}){
   const fields=records?'':['kind','attribute','race','level'].map(key=>`<label class="intel-filter">${{kind:'卡牌类型',attribute:'属性',race:'种族',level:'等级／阶级／LINK'}[key]}<select id="${prefix}-${key}" aria-label="${{kind:'卡牌类型',attribute:'属性',race:'种族',level:'等级／阶级／LINK'}[key]}">${$(key==='kind'?'#filter':'#filter-'+key).innerHTML}</select></label>`).join('');
-  const advanced=prefix==='intel-filter'&&!records?`<details class="intel-filter-more"><summary>卡牌筛选<span id="intel-filter-active"></span></summary><div class="intel-filter-grid">${fields}</div></details>`:fields;
+  const abilities=records?'':`<label class="intel-filter">效果能力<select id="${prefix}-effect_tag">${capabilityFilterOptions()}</select></label>`;
+  const candidates=prefix==='intel-pick'&&['handtraps','breakers','endboards'].includes(intelUI.tab)?`<label class="intel-filter">用途候选<select id="${prefix}-purpose_candidate"><option value="">全部卡牌</option><option value="${intelUI.tab}">按标注查找${intelNames[intelUI.tab]}候选</option></select><small>候选需人工确认，未标注卡可在全部卡牌中选择。</small></label>`:'';
+  const advanced=prefix==='intel-filter'&&!records?`<details class="intel-filter-more"><summary>卡牌筛选<span id="intel-filter-active"></span></summary><div class="intel-filter-grid">${fields}${abilities}</div></details>`:fields+abilities+candidates;
   return `<div class="intel-filters" id="${prefix}-filters"><label class="intel-filter intel-filter-search">${records?'搜索断点':'搜索卡牌'}<input type="search" id="${prefix}-q" aria-label="${records?'搜索断点':'搜索卡名或卡号'}" placeholder="${records?'标题、主题、概要、卡名／卡号':'卡名／卡号'}"></label><label class="intel-filter intel-filter-tag">TAG<select id="${prefix}-tag" aria-label="TAG 筛选">${intelTagOptions()}</select></label>${advanced}<button type="button" class="intel-filter-reset" data-intel-clear="${prefix}">清空筛选</button></div>`;
 }
-function intelFilterValues(prefix){const values=Object.fromEntries(['q','tag','kind','attribute','race','level'].map(k=>[k,$(`#${prefix}-${k}`)?.value||'']));if(prefix==='intel-filter'&&intelUI.tab==='records')values.format=intelUI.topicFormat;return values;}
-function intelMatchesCard(code,f){const c=intelCard(code),q=tagSearchKey(f.q);return (!q||tagSearchKey(c.name).includes(q)||String(code).includes(q))&&(!f.tag||intelUI.data.card_tags?.[code]?.includes(f.tag))&&(!f.kind||({monster:c.type&1,spell:c.type&2,trap:c.type&4,extra:c.extra})[f.kind])&&(!f.attribute||c.attribute===Number(f.attribute))&&(!f.race||c.race===Number(f.race))&&(f.level===''||!!(c.type&1)&&(c.level&255)===Number(f.level));}
+function intelFilterValues(prefix){const values=Object.fromEntries(['q','tag','kind','attribute','race','level','effect_tag','purpose_candidate'].map(k=>[k,$(`#${prefix}-${k}`)?.value||'']));if(prefix==='intel-filter'&&intelUI.tab==='records')values.format=intelUI.topicFormat;return values;}
+function intelMatchesCard(code,f){const c=intelCard(code),q=tagSearchKey(f.q);return (!f.effect_tag||intelUI.data.capabilities?.[code]?.trusted&&intelUI.data.capabilities[code].tags.some(t=>t.id===f.effect_tag))&&(!q||tagSearchKey(c.name).includes(q)||String(code).includes(q))&&(!f.tag||intelUI.data.card_tags?.[code]?.includes(f.tag))&&(!f.kind||({monster:c.type&1,spell:c.type&2,trap:c.type&4,extra:c.extra})[f.kind])&&(!f.attribute||c.attribute===Number(f.attribute))&&(!f.race||c.race===Number(f.race))&&(f.level===''||!!(c.type&1)&&(c.level&255)===Number(f.level));}
 function intelShell(){
   $('#intelligence').innerHTML=`<header class="intel-heading"><div><div class="eyebrow">PERSONAL KNOWLEDGE</div><h1>情报站</h1></div><button id="intel-refresh">刷新资料</button></header><div class="intel-topbar"><nav class="intel-tabs" aria-label="情报站分类">${Object.entries(intelNames).map(([key,name])=>`<button data-intel-tab="${key}" aria-pressed="${intelUI.tab===key}"><span>${name}</span><small data-intel-count="${key}">0</small></button>`).join('')}</nav><div id="intel-actions" class="intel-actions"></div></div><p id="intel-status" class="intel-status" role="status"></p><section id="intel-picker" class="intel-picker" aria-label="选择卡牌" hidden></section><section id="intel-sources" class="intel-sources" aria-label="方案标记来源" hidden></section><div class="intel-layout"><aside class="intel-library" aria-label="资料检索"><div id="intel-controls"></div><section id="intel-list" class="intel-list" aria-label="资料列表"></section></aside><section id="intel-editor" class="intel-editor" aria-label="资料编辑"></section></div>`;
   if(intelUI.tab==='opening'){void openingIntelLoad();return;}
@@ -37,7 +39,12 @@ function intelShell(){
   intelEditor();
 }
 async function enterIntelligence(){
-  if(intelUI.dirty){intelStatus('当前未保存内容已保留。其他入口如有更新，保存时会提示核对。');return;}
+  if(intelUI.dirty){
+    try{const data=await api('/api/intelligence');intelUI.data.capabilities=data.capabilities;
+      if(['endboards','handtraps','breakers','records'].includes(intelUI.tab))intelList();
+    }catch(error){notice(error.message);}
+    intelStatus('当前未保存内容已保留。能力参考已刷新；其他资料更新将在保存时提示核对。');return;
+  }
   const serial=++intelUI.serial;
   try{const [value,decks]=await Promise.all([api('/api/intelligence'),api('/api/decks')]);if(serial!==intelUI.serial)return;intelUI.data=value;intelUI.decks=decks;intelUI.draft=null;intelUI.kind=null;intelShell();}
   catch(e){if(!$('#intel-status'))intelShell();intelStatus(`读取失败：${e.message}。可点击刷新重试。`,true);}
@@ -107,6 +114,20 @@ function intelEditor(){
   }
   const actions=recordRead?`<button class="primary" data-intel-action="record-edit">编辑资料</button>${intelUI.dirty?'<button data-intel-action="save">保存资料</button><span class="intel-reading-dirty">正在预览未保存的修改</span>':''}`:`<button class="primary" data-intel-action="save">保存${kind==='folder'?'文件夹':kind==='topic'?'主题':'资料'}</button>${kind==='records'?'<button data-intel-action="record-read">阅读</button>':''}<button data-intel-action="cancel">取消编辑</button>${kind!=='folder'&&(draft.id||d[kind]?.[draft.code])?`<button class="danger" data-intel-action="remove">${intelIsLibrary(kind)?`移除${intelLibraryName(kind)}标记`:kind==='endboards'?'移除通用标注':'删除'}</button>`:''}`;
   $('#intel-editor').innerHTML=`<div class="intel-editor-body">${html}${kind==='records'?intelMatchupReferenceCopy(draft):''}</div><div class="intel-editor-actions">${actions}</div>`;
+  if(kind==='endboards'||intelIsLibrary(kind)){
+    const host=document.createElement('div');$('#intel-editor .intel-editor-body').prepend(host);
+    void mountCapabilities(host,draft.code,{text:draft.desc,purpose:kind,adopt:true,onSelect:key=>{
+      if(intelUI.draft!==draft||intelUI.busy)return;
+      draft.effects[key]??={note:'',notes:[]};
+      if(kind==='endboards')draft.candidate=true;
+      intelDirty();intelEditor();
+    }});
+  }else if(kind==='records'){
+    const codes=[...new Set([...(draft.steps||[]).flatMap(step=>[step.opponent,...(step.responses||[]).flatMap(r=>r.cards||[])]),...(draft.research?.walkthrough?.sequence||[]).map(step=>step.card)].filter(Number.isInteger))];
+    const related=document.createElement('details');related.innerHTML='<summary>相关卡片的当前能力资料</summary><p class="capability-filter-note">用于核对条件，不自动认定断点策略有效。</p><div class="capability-grid"></div>';
+    $('#intel-editor .intel-editor-body').append(related);
+    related.addEventListener('toggle',()=>{if(related.open&&!related.dataset.loaded){related.dataset.loaded='1';for(const code of codes){const item=document.createElement('article');item.innerHTML=`<strong>${escape(intelCard(code).name)}</strong><div></div>`;related.querySelector('.capability-grid').append(item);void mountCapabilities(item.lastElementChild,code);}}});
+  }
   if(sameEntry)$('#intel-editor .intel-editor-body').scrollTop=scrollTop;
   if(kind==='endboards')document.querySelectorAll('#intel-editor details .intel-source').forEach((el,i)=>el.insertAdjacentHTML('beforeend',`<button data-intel-source-plan="${escape(draft.sources[i].plan_id)}">打开来源方案</button>`));
   if(intelIsLibrary(kind)&&draft.folder_id&&!d.folders[draft.folder_id]){

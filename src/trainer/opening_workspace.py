@@ -159,6 +159,7 @@ class OpeningWorkspace:
             codes = set(deck['main'] + deck['extra'])
             effects = [value for value in knowledge.values() if value['code'] in codes]
             counts = Counter(hand)
+            capabilities = {str(code): self.store.card_capabilities.card(code) for code in sorted(codes)}
             cards = []
             for code, count in counts.items():
                 entries = [e for e in effects if e['code'] == code]
@@ -173,12 +174,13 @@ class OpeningWorkspace:
             warnings = self.conflicts(counts, knowledge, routes['routes']) + guide['warnings']
             version = digest({'deck': deck, 'tags': tags, 'plans': [digest(p) for p in plans],
                               'catalog': self.store.catalog.sources, 'knowledge': {k: v['version'] for k, v in knowledge.items()},
-                              'guide': guide['version']})
+                              'guide': guide['version'], 'capabilities': {k: v['version'] for k, v in capabilities.items()}})
             result = {'schema': 1, 'revision': document['revision'], 'source_version': version, 'source': source,
                 'frozen': frozen, 'supplemental': supplemental, 'hand_count': len(hand), 'cards': cards,
                 'handtrap_count': sum(c['count'] for c in cards if 'handtrap' in c['roles']),
                 'concentration': concentration(deck, tags, self.store.catalog.cards, document['settings']),
                 'knowledge': effects, 'role_names': ROLE_NAMES, 'analysis': routes, 'warnings': warnings, 'guide': guide,
+                'capabilities': capabilities,
                 'notes': document['notes'], 'settings': document['settings'],
                 'boundary': '仅分析已知起手资源；持有不等于已经发动。手坑张数不等于可用次数，未知对手场面不作补全。',
                 'direction': '现有终场效果可供比较；斩杀与长盘收益待真实场面核对，不提供保证值。'}

@@ -1,5 +1,6 @@
 """Project explicit source end-board marks onto a different, verified duel."""
 from copy import deepcopy
+from card_capabilities import marked_capabilities
 
 
 def attach_terminal_marks(source, report):
@@ -12,7 +13,8 @@ def attach_terminal_marks(source, report):
         # These are source instances, not a list inferred from card text or zones.
         edge['terminal_marks'] = [
             {'card': deepcopy(card), 'mark': deepcopy(edits['final_marks'][str(card['instance_id'])]),
-             'note': (edits.get('cards') or {}).get(str(card['instance_id']), '')}
+             'note': (edits.get('cards') or {}).get(str(card['instance_id']), ''),
+             'capabilities': deepcopy(report.get('annotation_snapshot', {}).get(str(card['code'])))}
             for card in cards if card.get('code') and
             (edits.get('final_marks') or {}).get(str(card.get('instance_id')), {}).get('marked')]
     return source
@@ -33,7 +35,8 @@ def marked_terminal(edge, state, precise=False):
         eligible.sort(key=lambda c: (c.get('sequence') != source.get('sequence'), c['instance_id']))
         if not eligible: continue
         card = eligible[0]; used.add(card['instance_id'])
-        targets.append({'card': deepcopy(card), 'mark': deepcopy(entry['mark']), 'note': entry['note']})
+        targets.append({'card': deepcopy(card), 'mark': deepcopy(entry['mark']), 'note': entry['note'],
+                        'capabilities': deepcopy(entry.get('capabilities'))})
     return {'terminal_targets': targets, 'terminal_mark_count': len(marks),
             'terminal_mark_status': 'unmarked' if not marks else 'complete' if len(targets) == len(marks) else 'partial'}
 
@@ -43,6 +46,7 @@ def marked_evaluation(terminal):
     return {'marked_cards': len(active),
             'marked_effects': sum(sum(bool(v) for v in t['mark'].get('effects', {}).values()) for t in active),
             'mark_status': terminal['terminal_mark_status'],
+            'capabilities': marked_capabilities(active),
             'basis': '终场只按来源标记且匹配当前区域的卡牌数、标记效果数比较；未标记资源不计分，标记效果不等于可用阻抗次数'}
 
 

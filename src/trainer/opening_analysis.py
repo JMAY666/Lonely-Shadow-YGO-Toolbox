@@ -1,5 +1,6 @@
 """Read-only, source-bound opening resource analysis. Never executes a route."""
 from collections import Counter, defaultdict
+from copy import deepcopy
 import hashlib
 import json
 
@@ -107,6 +108,10 @@ def terminal(report, catalog):
                 'note': '来源标记；共享次数、费用、触发与下回合状态尚未完整验证，不折算阻抗次数'})
             row['copies'].append({'instance': card.get('instance_id'), 'location': card.get('location'),
                                   'disabled': bool(card.get('disabled'))})
+            snapshot = report.get('annotation_snapshot', {}).get(str(code), {})
+            if snapshot.get('trusted'):
+                detail = next((e for e in snapshot['effects'] if e.get('legacy_key') == effect), None)
+                if detail: row['capability'] = deepcopy(detail)
     for row in rows.values():
         if all(c['disabled'] for c in row['copies']): row['status'] = '不可用'
     return list(rows.values())

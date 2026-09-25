@@ -11,7 +11,7 @@ function captureEditor() {
   return {state:structuredClone(Object.fromEntries(editorKeys.map(key=>[key,app[key]]))),
     name:$('#deck-name').value,
     query:$('#search').value, filter:$('#filter').value, libraryOpen:!$('#card-library').hidden,
-    filters:['attribute','race','level'].map(key=>$(`#filter-${key}`).value),
+    filters:['attribute','race','level','effect'].map(key=>$(`#filter-${key}`).value),
     detail:$('#card-detail').innerHTML, scroll:$('#deck-cards').scrollTop};
 }
 function emptyEditor(owner) {
@@ -95,7 +95,7 @@ async function switchModule(target) {
       Object.assign(app, structuredClone(buffer.state));
       $('#deck-name').value = buffer.name;
       $('#search').value = buffer.query; $('#filter').value = buffer.filter;
-      ['attribute','race','level'].forEach((key,index)=>{$(`#filter-${key}`).value=buffer.filters?.[index] || '';});
+      ['attribute','race','level','effect'].forEach((key,index)=>{$(`#filter-${key}`).value=buffer.filters?.[index] || '';});
       $('#card-detail').innerHTML = buffer.detail;
     }
     const view = target==='expansion' ? moduleUI.expansionView : target;
@@ -109,6 +109,7 @@ async function switchModule(target) {
       // A failed list refresh never rolls back or discards an editor workspace.
       await deckList().catch(error=>notice(error.message));
       await search().catch(error=>notice(error.message));
+      if(app.selected)await showCard(app.selected,app.targetZone).catch(error=>notice(error.message));
       if (view==='decks') {
         setLibraryOpen(!!buffer?.libraryOpen, false);
         $('#deck-cards').scrollTop = buffer?.scroll || 0;
@@ -119,6 +120,7 @@ async function switchModule(target) {
     if (target==='modular') await enterModular();
     if (target==='intelligence') await enterIntelligence();
     if (target==='cardanno') await enterCardAnnotations();
+    if(typeof refreshCapabilities==='function')refreshCapabilities();
     window.scrollTo(0,moduleUI.scroll[target]);
     await syncNativeHost();
     if (app.active && previous==='expansion') notice('展开继续记录中。返回“展开”可继续操作。');

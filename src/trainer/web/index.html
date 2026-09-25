@@ -134,6 +134,7 @@
         <div class="search-tools">
           <div class="search-row"><input id="search" type="search" placeholder="按卡牌名称搜索" aria-label="搜索卡牌"><button id="search-button">搜索</button><button id="clear-search" title="清除名称搜索" aria-label="清除搜索">×</button></div>
           <div class="deck-filters"><label>类型<select id="filter" aria-label="卡牌类型"><option value="">全部类型</option><option value="monster">怪兽</option><option value="spell">魔法</option><option value="trap">陷阱</option><option value="extra">额外卡组</option></select></label><label>属性<select id="filter-attribute"><option value="">全部属性</option></select></label><label>种族<select id="filter-race"><option value="">全部种族</option></select></label><label>等级／阶级／LINK<select id="filter-level"><option value="">全部数值</option></select></label></div>
+          <label class="capability-filter-note">效果能力 <select id="filter-effect"><option value="">全部效果能力</option></select> · 仅筛选已核对分段，未标注不代表没有能力</label>
           <div class="filter-summary"><span id="search-count" role="status"></span><button id="reset-filters">重置筛选</button></div>
         </div>
         <div id="search-results" class="card-grid" role="tabpanel" aria-labelledby="library-all" aria-label="搜索结果" aria-busy="false"></div>
@@ -260,7 +261,7 @@
           <div class="tag-related-filters"><input id="tag-related-query" type="search" maxlength="120" placeholder="筛选关联卡名或卡号" aria-label="筛选关联卡片"><select id="tag-related-kind" aria-label="关联依据"><option value="">全部关联依据</option><option value="text_series">效果提及系列</option><option value="text_card">效果点名卡片</option><option value="script_series">脚本引用系列</option><option value="script_card">脚本引用卡片</option><option value="series">同系列</option><option value="alias">同名卡关系</option></select></div>
           <p id="tag-related-status" role="status"></p><div id="tag-related-cards" class="tag-card-grid" aria-busy="false"></div><button id="tag-related-more" type="button" hidden>加载更多关联卡片</button>
         </section>
-        <section class="tag-add-section"><h3>添加卡牌</h3><label>搜索卡名、卡号或效果<input id="tag-add-search" type="search" placeholder="输入卡牌信息查找"></label><p id="tag-add-status" role="status"></p><div id="tag-add-results" class="tag-card-grid"></div><button id="tag-add-more" type="button" hidden>加载更多</button></section>
+        <section class="tag-add-section"><h3>添加卡牌</h3><label>搜索卡名、卡号或效果<input id="tag-add-search" type="search" placeholder="输入卡牌信息查找"></label><label>效果能力<select id="tag-add-effect"><option value="">全部效果能力</option></select></label><small>仅筛选已核对的效果分段。</small><p id="tag-add-status" role="status"></p><div id="tag-add-results" class="tag-card-grid"></div><button id="tag-add-more" type="button" hidden>加载更多</button></section>
       </form></article></div>
   </section>
 <section id="compromise-design" class="compromise-design" hidden aria-label="妥协场构建前置"></section>
@@ -330,6 +331,7 @@
 <link rel="stylesheet" href="/condition-cards.css">
 <script src="/deck-tag-view.js"></script><script src="/activation.js"></script><script src="/report-view.js"></script><script src="/deck-manager.js"></script><script src="/app.js"></script><script src="/opening-rules.js"></script><script src="/expansion.js"></script><script src="/condition-editor.js"></script><script src="/timeline.js"></script><script src="/review.js"></script><script src="/plan-tutorial.js"></script><script src="/plan-library.js"></script><script src="/tag-manager.js"></script><script src="/compromise.js"></script><script src="/compromise-tutorial.js"></script>
 <link rel="stylesheet" href="/modular.css">
+<link rel="stylesheet" href="/card-capabilities.css"><script src="/card-capabilities.js"></script>
 <script src="/intelligence-matchups.js"></script><script src="/intelligence-opponents.js"></script><script src="/intelligence.js"></script><script src="/card-annotations.js"></script><script src="/modular.js"></script><script src="/deck-selection.js"></script><script src="/modules.js"></script>
 <script src="/deck-tags.js"></script>
 <script src="/deck-appearance.js"></script><script src="/duel-model.js"></script><script src="/tutorial-bindings.js"></script><script src="/duel-automatic.js"></script><script src="/duel-order.js"></script><script src="/duel-opening.js"></script><script src="/duel.js"></script><script src="/duel-forecast.js"></script><script src="/superpre.js"></script>

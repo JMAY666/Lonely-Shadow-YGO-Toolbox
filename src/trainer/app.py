@@ -43,6 +43,7 @@ from intelligence import Intelligence, main_card
 from opening_workspace import OpeningWorkspace
 from live_duel import LiveDuel
 from card_annotations import CardAnnotations
+from card_capabilities import CardCapabilities
 
 WORKSPACE = Path(__file__).resolve().parents[2]
 RUNTIME = WORKSPACE / '.local/YGOPro-Lite'
@@ -189,6 +190,7 @@ class Store:
         self.library = PlanLibrary(self, read_json, atomic_json, now)
         self.intelligence = Intelligence(self)
         self.card_annotations = CardAnnotations(self, read_json, atomic_json, now)
+        self.card_capabilities = CardCapabilities(self)
         self.opening_workspace = OpeningWorkspace(self, read_json, atomic_json, now)
         self.live_duel = LiveDuel(self, read_json, atomic_json, now)
         self.compromise = Compromise(self, read_json, atomic_json, atomic_bytes)
@@ -767,6 +769,7 @@ class Store:
             snapshot['requirements'] = requirements(report, annotations)
             snapshot['edit_revision'] = 1
             snapshot['classification'] = self.library.selection(snapshot)
+            self.card_capabilities.freeze_report(snapshot)
             self.modular.library.freeze(snapshot)
             self.modular.sources_changing([snapshot['id']])
             atomic_json(target, snapshot)
@@ -842,6 +845,10 @@ class Store:
             plan['review'] = legacy_review(plan)
             plan['annotations'] = annotations
             plan['requirements'] = requirements(plan, annotations)
+            previous_branches = {(b['id'], b.get('session_id')) for b in plan.get('branches', []) if b.get('report')}
+            for branch in edited.get('branches', []):
+                if branch.get('report') and (branch['id'], branch.get('session_id')) not in previous_branches:
+                    self.card_capabilities.freeze_report(branch['report'])
             plan['branches'] = edited.get('branches', [])
             plan['branches_revision'] = edited.get('branches_revision', 0)
             plan['edit_revision'] = plan.get('edit_revision', 0) + 1
@@ -1015,6 +1022,7 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/tags/save': return self.send(store.library.edit_tag(body))
                 if path == '/api/intelligence': return self.send(store.intelligence.command(body))
                 if path == '/api/annotations': return self.send(store.card_annotations.command(body))
+                if path == '/api/capabilities': return self.send(store.card_capabilities.command(body))
                 if path == '/api/opening/analyze': return self.send(store.opening_workspace.analyze(body))
                 if path == '/api/opening/save': return self.send(store.opening_workspace.command(body))
                 if path == '/api/duel/live': return self.send(store.live_duel.command(body))
@@ -1114,11 +1122,15 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/duel/settings': return self.send(store.duel_settings())
                 if path == '/api/cards':
                     card_ids = None
+                    effect_tag, purpose = query.get('effect_tag', [''])[0], query.get('purpose_candidate', [''])[0]
+                    if effect_tag or purpose:
+                        card_ids = store.card_capabilities.matching_codes(effect_tag, purpose)
                     if query.get('tag', [''])[0]:
                         from plan_tags import member_ids
                         tag = store.library.all_tags().get(query['tag'][0])
                         if not tag: raise ValueError('TAG 不存在，请刷新')
-                        card_ids = set(member_ids(tag, store.catalog.cards))
+                        members = set(member_ids(tag, store.catalog.cards))
+                        card_ids = members if card_ids is None else card_ids & members
                     if query.get('handtraps', [''])[0] == '1':
                         members = set(map(int, store.intelligence.snapshot()['handtraps']))
                         card_ids = members if card_ids is None else card_ids & members
@@ -1129,6 +1141,7 @@ class Handler(BaseHTTPRequestHandler):
                         **{key: query.get(key, [''])[0] for key in ('attribute', 'race', 'level')}))
                 if path.startswith('/api/card/'):
                     code = int(path.rsplit('/', 1)[1]); return self.send(store.catalog.cards[code])
+                if path == '/api/capabilities': return self.send(store.card_capabilities.command({'op': 'options'}))
                 if path == '/api/decks': return self.send(store.list_decks())
                 if path == '/api/decks/export': return self.send(store.export_deck(query['id'][0]))
                 if path == '/api/deck': return self.send(store.get_deck(query['id'][0]))
@@ -1186,6 +1199,7 @@ class Handler(BaseHTTPRequestHandler):
                 files['/scrollbars.css'] = 'scrollbars.css'
                 files.update({'/intelligence.js': 'intelligence.js', '/intelligence.css': 'intelligence.css'})
                 files.update({'/card-annotations.js': 'card-annotations.js', '/card-annotations.css': 'card-annotations.css'})
+                files.update({'/card-capabilities.js': 'card-capabilities.js', '/card-capabilities.css': 'card-capabilities.css'})
                 files.update({'/going-second.js': 'going-second.js', '/going-second.css': 'going-second.css', '/opening-summary.js': 'opening-summary.js'})
                 files.update({'/live-duel.js': 'live-duel.js', '/live-duel.css': 'live-duel.css'})
                 files.update({f'/{name}': name for name in ('intelligence-matchups.js', 'intelligence-matchups.css')})

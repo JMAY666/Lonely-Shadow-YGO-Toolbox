@@ -337,9 +337,10 @@ function initDeckManager() {
     const tab = event.key === 'Home' ? 'all' : event.key === 'End' ? 'favorites' : app.libraryTab === 'favorites' ? 'all' : 'favorites';
     $(`#library-${tab}`).focus(); await selectLibraryTab(tab);
   });
-  for (const id of ['filter-attribute','filter-race','filter-level']) $(`#${id}`).onchange = run(submitSearch);
+  for (const id of ['filter-attribute','filter-race','filter-level','filter-effect']) $(`#${id}`).onchange = run(submitSearch);
+  if(typeof initCapabilityFilters==='function')void initCapabilityFilters().catch(error=>notice(error.message));
   $('#clear-search').onclick = run(async () => { $('#search').value = ''; await submitSearch(); });
-  $('#reset-filters').onclick = run(async () => { for (const id of ['filter','filter-attribute','filter-race','filter-level']) $(`#${id}`).value = ''; await submitSearch(); });
+  $('#reset-filters').onclick = run(async () => { for (const id of ['filter','filter-attribute','filter-race','filter-level','filter-effect']) $(`#${id}`).value = ''; await submitSearch(); });
   $('#deck-boxes').onclick = run(async event => {
     const tile = event.target.closest('button');
     if (!tile || tile.disabled) return;

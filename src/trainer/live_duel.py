@@ -75,6 +75,10 @@ class LiveDuel:
             current['state']['window'] = None
         result = analyze(current, knowledge, self.store.catalog.cards, self.now())
         result['references'] = self.plan_references(current, knowledge)
+        capability_service = getattr(self.store, 'card_capabilities', None)
+        result['capabilities'] = {str(code): capability_service.card(code)
+                                  for code in sorted({c['code'] for c in current['state']['cards']
+                                                      if c.get('code') and not c.get('unknown')})} if capability_service else {}
         # Mutation guards use monotonic revisions; wall-clock expiry is only an
         # additional presentation fence for manually confirmed response windows.
         cards = current['state']['cards']

@@ -181,7 +181,8 @@ function temporaryDuelPlan(data,candidate) {
   for(const target of candidate.terminal_targets||[]){const id=String(target.card.instance_id);annotations.final_marks[id]=structuredClone(target.mark);annotations.cards[id]=target.note||'';}
   return {id:'temporary-'+data.route,name:'本局临时方案',temporary:true,forecastRoute:data.route,forecastOffset:prefix.length,
     confirmed:groups.filter(g=>g.end<prefix.length).length,pendingObservation:!!candidate.observation_required,forecastCandidate:candidate.id,
-    catalog,terminalMarkStatus:candidate.terminal_mark_status||'unmarked',terminalMarkCount:candidate.terminal_mark_count||0,
+    catalog,annotation_snapshot:Object.fromEntries((candidate.terminal_targets||[]).filter(t=>t.capabilities).map(t=>[t.card.code,t.capabilities])),
+    terminalMarkStatus:candidate.terminal_mark_status||'unmarked',terminalMarkCount:candidate.terminal_mark_count||0,
     initial_hand:nodes[0].state.cards.filter(c=>c.controller===0&&c.location===2),final_state:nodes.at(-1).state,
     review:{nodes},annotations,actions:[],events:[],branches:[],requirements:{opening:duelState().hand.map(code=>({code,count:1}))}};
 }
@@ -275,6 +276,7 @@ function forecastCandidatesHtml(f,preferenceLabel,adoptAttribute) {
     <button class="forecast-route-choice" ${adoptAttribute}="${escape(c.id)}" aria-label="采用路线 ${i+1} 并进入下一步" ${f.busy?'disabled':''}>
     <strong>路线 ${i+1} · ${c.remaining} 次剩余决策</strong>
     ${i===0&&!f.busy?`<span class="modular-badge">${preferenceLabel}当前推荐</span>`:''}
+    ${typeof CapabilityView!=='undefined'?CapabilityView.comparison(c.evaluation.capabilities):''}
     <small>终场 ${c.evaluation.marked_cards||0} 张 · 效果 ${c.evaluation.marked_effects||0} 项${f.preference==='balanced'?` · 平均 ${c.ranking?.average??0}`:''}</small>
     ${forecastCandidateTerminal(c,true)}
     <small>${escape(forecastCostText(c))}</small>

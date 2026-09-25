@@ -942,6 +942,7 @@ class Modular:
                             terminal = visible_terminal
                             ev = evaluation(terminal, self.store.catalog.cards)
                             if forecast: ev.update(marked_evaluation(marked))
+                            else: ev['capabilities'] = marked_evaluation(marked)['capabilities']
                             actual = Counter(c.get('code') for c in terminal['cards'] if c.get('controller') == 0 and c.get('location') in (4, 8))
                             candidate = {'id': digest([expected, extended, goal_edge['id']]) if forecast else digest([expected, [s['edge'] for s in route]]), 'steps': route,
                                 'terminal_goal_id': goal_edge['id'], 'terminal_source':goal_edge['source'], 'terminal_if':goal_edge.get('if_condition'),

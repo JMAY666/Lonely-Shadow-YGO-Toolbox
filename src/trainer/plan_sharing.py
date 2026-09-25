@@ -16,6 +16,10 @@ def portable(plan):
     if 'modular_source' in result:
         result['modular_source'].pop('engine', None)
         result['modular_source'].pop('scripts', None)
+        # Global annotation notes stay local; a share contains only the notes
+        # explicitly selected for this plan, not the new local reference snapshot.
+        for edge in result['modular_source'].get('edges', []):
+            for mark in edge.get('terminal_marks', []): mark.pop('capabilities', None)
     result['expansion'] = {key: value for key, value in result.get('expansion', {}).items() if key in EXPANSION_FIELDS}
     opponent = result['expansion'].get('opponent_config')
     if opponent:

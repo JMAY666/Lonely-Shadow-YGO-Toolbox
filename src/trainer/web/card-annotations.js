@@ -220,7 +220,7 @@ function annoEffectHTML(effect, registry, editable, code) {
   const structure = annoStructureLines(effect,registry);
   const tags = (effect.tags || []).map(tag=>annoTagBadgeHTML(tag,registry,editable&&effect.annotated ? ` <button type="button" data-anno-tag-remove="${escape(effect.key)}" data-anno-tag="${escape(tag)}" aria-label="移除${escape(registry.tags[tag]?.name || tag)}">×</button>` : '')).join(' ');
   const hit = annoUI.results?.cards.find(card=>card.code===annoUI.detail?.code)?.hits.find(hit=>hit.key===effect.key);
-  return `<article class="anno-effect"><header><strong>${escape(annoEffectLabel(effect))}</strong><span class="anno-effect-kind">${escape(registry.effect_types?.[effect.effect_type] || (effect.annotated?'':'尚未标注'))}</span></header>
+  return `<article class="anno-effect" data-effect-key="${escape(effect.key)}"><header><strong>${escape(annoEffectLabel(effect))}</strong><span class="anno-effect-kind">${escape(registry.effect_types?.[effect.effect_type] || (effect.annotated?'':'尚未标注'))}</span></header>
     <blockquote>${escape(effect.text || '')}</blockquote><div class="anno-tags">${tags}</div>
     ${structure.length || effect.notes?.length || hit?.evidence?.length ? `<details class="anno-more"><summary>处理、费用与说明</summary><div class="anno-struct">${structure.map(line=>`<p>${escape(line)}</p>`).join('')}</div>${hit?.evidence?.length ? `<ul class="anno-evidence">${annoEvidenceItems(hit)}</ul>` : ''}${annoNotesHTML(effect.notes)}</details>` : ''}
     ${editable&&effect.annotated ? `<div class="anno-edit-fields"><label>补充效果标签<select data-anno-tag-add="${escape(effect.key)}"><option value="">选择标签…</option>${Object.values(registry.tags).filter(tag=>!tag.deprecated&&!(effect.tags||[]).includes(tag.id)).map(tag=>`<option value="${escape(tag.id)}">${escape(tag.name)}</option>`).join('')}</select></label>
@@ -359,6 +359,7 @@ async function annoRunOp(body,message) {
   annoUI.busy=true;
   try {
     const result=await api('/api/annotations',body);if(result.revision!==undefined)annoUI.revision=result.revision;
+    document.dispatchEvent(new CustomEvent('card-annotations-changed',{detail:{code:body.code}}));
     if(body.op==='add-note'&&annoUI.noteDrafts.get(`${body.code}:${body.key}`)?.trim()===body.text)annoUI.noteDrafts.delete(`${body.code}:${body.key}`);
     notice(message);$('#anno-overview').innerHTML=annoOverviewHTML(await api('/api/annotations',{op:'overview'}));await annoRunQuery(annoUI.results?.offset||0);
   } catch(error) {

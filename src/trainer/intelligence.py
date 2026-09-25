@@ -96,7 +96,13 @@ class Intelligence:
             codes = set(map(int, knowledge['endboards'])) | set(map(int, knowledge['handtraps'])) | set(map(int, knowledge['breakers']))
             for record in knowledge['records'].values(): codes.update(self.record_codes(record))
             tags = self.library.all_tags()
+            capabilities = {}
+            service = getattr(self.store, 'card_capabilities', None)
+            for code in codes if service else ():
+                value = service.card(code)
+                capabilities[str(code)] = {key: value[key] for key in ('trusted', 'tags', 'status', 'version')}
             return {**knowledge, 'revision': document['revision'],
+                    'capabilities': capabilities,
                     'cards': {str(code): self.card(code) for code in codes},
                     'card_tags': {str(code): [key for key, tag in tags.items() if contains_card(tag, code, self.store.catalog.cards.get(code, {}))] for code in codes},
                     'tags': list(tags.values())}

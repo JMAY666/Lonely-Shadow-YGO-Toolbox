@@ -100,7 +100,7 @@ def main():
                      'docs/verification-1.47.1.md', 'docs/verification-1.47.2.md',
                      'docs/verification-1.47.3.md', 'docs/verification-1.47.4.md',
                      'docs/verification-1.47.5.md', 'docs/verification-1.47.6.md',
-                     'docs/verification-1.47.7.md',
+                     'docs/verification-1.47.7.md', 'docs/verification-1.48.0.md', 'docs/card-capability-integration.md',
                      'docs/card-annotation-next-batch.md',
                      'docs/card-annotation-batch-2026-09-25.csv',
                      'docs/card-annotation-batch-2026-09-25-phase2.csv',

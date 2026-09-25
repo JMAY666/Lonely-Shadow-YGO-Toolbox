@@ -34,7 +34,7 @@ async function selectManagedTag(id=null) {
   $('#tag-manager-status').textContent='卡牌范围供卡组与方案共用；已保存的卡组标签和手动方案标签会保留。';
   if(value.tag.kind==='purpose')$('#tag-manager-status').textContent=value.tag.purpose==='handtrap'?'手坑用途 TAG：仅允许主卡组卡牌；与情报站同步，不参与卡组／方案系列自动识别。移除会同时解除手坑资料和文件夹归属。':value.tag.purpose==='boardbreaker'?'解场用途 TAG：包含主卡组与额外卡组卡牌；成员与情报站解场资料同步，不参与系列自动识别。':'效果用途 TAG：用于效果筛选，不参与卡组／方案系列自动识别。';
   renderTagManagerList();renderTagMembers();
-  $('#tag-add-search').value='';tagManagerUI.results=[];tagManagerUI.total=0;tagManagerUI.searchSerial++;renderTagSearchResults();
+  $('#tag-add-search').value='';$('#tag-add-effect').value='';tagManagerUI.results=[];tagManagerUI.total=0;tagManagerUI.searchSerial++;renderTagSearchResults();
   renderTagExcluded();void searchTagRelations();
 }
 function markTagDirty() {
@@ -58,11 +58,11 @@ function renderTagSearchResults() {
   pruneReviewCards();
 }
 async function searchTagCards(more=false) {
-  const q=$('#tag-add-search').value.trim();if(!q){tagManagerUI.results=[];tagManagerUI.total=0;renderTagSearchResults();return;}
+  const q=$('#tag-add-search').value.trim();if(!q&&!$('#tag-add-effect').value){tagManagerUI.results=[];tagManagerUI.total=0;renderTagSearchResults();return;}
   const serial=++tagManagerUI.searchSerial,selected=tagManagerUI.serial,offset=more?tagManagerUI.results.length:0;
   $('#tag-add-status').textContent='正在查找卡牌…';$('#tag-add-more').disabled=true;
   try {
-    const result=await api(`/api/cards?q=${encodeURIComponent(q)}&offset=${offset}&main_only=${tagManagerUI.draft?.purpose==='handtrap'?'1':'0'}`);
+    const result=await api(`/api/cards?q=${encodeURIComponent(q)}&offset=${offset}&main_only=${tagManagerUI.draft?.purpose==='handtrap'?'1':'0'}&effect_tag=${encodeURIComponent($('#tag-add-effect').value)}`);
     if(serial!==tagManagerUI.searchSerial||selected!==tagManagerUI.serial)return;
     tagManagerUI.results=more?[...tagManagerUI.results,...result.cards]:result.cards;tagManagerUI.total=result.total;renderTagSearchResults();
   } catch(e){if(serial===tagManagerUI.searchSerial)$('#tag-add-status').textContent=e.message;}
@@ -90,6 +90,7 @@ $('#tag-manager-search').oninput=renderTagManagerList;$('#tag-member-filter').on
 $('#tag-members-more').onclick=()=>{tagManagerUI.memberVisible+=60;renderTagMembers();};
 $('#tag-manager-name').oninput=$('#tag-manager-aliases').oninput=markTagDirty;$('#tag-manager-form').onsubmit=saveManagedTag;
 $('#tag-add-search').oninput=()=>{clearTimeout(tagManagerUI.searchTimer);tagManagerUI.searchSerial++;tagManagerUI.searchTimer=setTimeout(()=>searchTagCards(),250);};
+$('#tag-add-effect').onchange=()=>searchTagCards();
 $('#tag-add-more').onclick=()=>searchTagCards(true);
 function renderTagExcluded() {
   const cards=[...tagManagerUI.excluded.values()].filter(c=>!tagManagerUI.members.has(c.id));

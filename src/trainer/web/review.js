@@ -286,6 +286,11 @@ function renderReviewDetail() {
   if($('#review-material-tab'))$('#review-material-tab').onclick=()=>{reviewUI.materialTab=true;renderReviewDetail();};
   if($('#review-card-detail .card-provenance'))$('#review-card-detail .card-provenance').hidden=n.kind==='catalog';
   bindReviewMarks(c,edits,editable);
+  if(known&&!reviewUI.materialTab&&typeof mountCapabilities==='function'){
+    const host=document.createElement('div');$('#review-card-detail .detail-card-copy').append(host);
+    const historical=n.kind!=='catalog'&&(r.plan_stage==='saved'||!!r.saved_ms||!!r.annotation_snapshot);
+    if(typeof mountCapabilities==='function')void mountCapabilities(host,c.code,{text:d.desc??'',historical,snapshot:r.annotation_snapshot?.[c.code]});
+  }
   if(annotation!==null&&known&&typeof mountIntelReview==='function')void mountIntelReview(c,d,edits,editable);
   else if($('#intel-review-template'))$('#intel-review-template').hidden=true;
   if($('#review-card-note')&&editable)$('#review-card-note').oninput=e=>{edits.cards[String(c.instance_id)]=e.target.value;reviewUI.pending=null;refreshFinalMarks();};

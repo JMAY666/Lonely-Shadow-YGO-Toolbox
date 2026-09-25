@@ -389,10 +389,12 @@ async function showCard(code, sourceZone) {
     <h3 class="detail-name">${escape(c.name)}</h3>
     <div class="card-type">${escape(cardType(c))}${monster && typeof cardRaces !== 'undefined' && cardRaces.some((_,i)=>c.race === 2**i) ? ` · ${cardRaces.find((_,i)=>c.race === 2**i)}族` : ''}</div>
     <div class="effect" tabindex="0" aria-label="卡片效果">${escape(c.desc || '无效果说明')}</div>
+    <div id="deck-card-capabilities"></div>
     <div class="detail-actions"><button id="favorite-card" aria-pressed="false">☆ 收藏卡牌</button>${c.type & 0x4000 ? '<p class="token-hint">衍生物仅供查看，不能加入构筑。</p>' : ''}<label class="target-zone">操作分区<select id="selected-zone">${zones.map(zone => `<option value="${zone}" ${app.targetZone === zone ? 'selected' : ''}>${zoneNames[zone]}</option>`).join('')}</select></label><small id="selected-zone-count"></small><div class="quantity-control"><button data-add="${code}" data-to="${app.targetZone}">增加一张</button><button data-remove="${code}" data-from="${app.targetZone}">减少一张</button></div></div>`;
   updateFavoriteButton();
   updateSelection();
   updateDetailCounts();
+  if(typeof mountCapabilities==='function')void mountCapabilities($('#deck-card-capabilities'),code,{text:c.desc});
 }
 async function search() {
   const generation = ++app.searchGeneration;
@@ -401,7 +403,7 @@ async function search() {
   $('#search-count').textContent = '搜索中…';
   $('#prev-page').disabled = $('#next-page').disabled = true;
   try {
-    const result = await api(`/api/cards?q=${encodeURIComponent($('#search').value)}&scope=name&kind=${$('#filter').value}&offset=${offset}&favorites=${app.libraryTab === 'favorites' ? '1' : '0'}&attribute=${$('#filter-attribute').value}&race=${$('#filter-race').value}&level=${$('#filter-level').value}`);
+    const result = await api(`/api/cards?q=${encodeURIComponent($('#search').value)}&scope=name&kind=${$('#filter').value}&offset=${offset}&favorites=${app.libraryTab === 'favorites' ? '1' : '0'}&attribute=${$('#filter-attribute').value}&race=${$('#filter-race').value}&level=${$('#filter-level').value}&effect_tag=${encodeURIComponent($('#filter-effect')?.value||'')}`);
     if (generation !== app.searchGeneration) return;
     app.total = result.total;
     result.cards.forEach(c => app.cache.set(c.id, c));
