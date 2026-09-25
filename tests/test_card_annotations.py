@@ -165,6 +165,38 @@ class CardAnnotationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, '表侧放置永续魔陷'):
             validate_entry(entry, registry, {'m1'}, card_type=2)
 
+    def test_synchro_tuner_and_field_return_have_distinct_validation(self):
+        registry = self.service.registry
+        synchro = {'action': 'use_as_synchro_material', 'selector': {'text': '场上怪兽作为素材'},
+                   'from_zones': ['monster'], 'then': [
+                       {'action': 'special_summon', 'selector': {'text': '同调怪兽'},
+                        'from_zones': ['extra'], 'to_zones': ['monster']}]}
+        effect = simple_effect('m1', 1, ['etag:special-summon'], [synchro])
+        effect['effect_type'] = 'spell_effect'
+        entry = make_entry(20000001, SEARCHER, [effect])
+        validate_entry(entry, registry, {'m1'}, card_type=2)
+        broken = deepcopy(entry)
+        broken['effects'][0]['structure']['processing'][0]['then'] = []
+        with self.assertRaisesRegex(ValueError, '同调素材处理'):
+            validate_entry(broken, registry, {'m1'}, card_type=2)
+
+        entry['effects'][0]['tags'] = []
+        entry['effects'][0]['structure']['processing'] = [
+            {'action': 'treat_as_tuner', 'selector': {'text': '对象当调整'}, 'duration': '本回合'}]
+        validate_entry(entry, registry, {'m1'}, card_type=2)
+        del entry['effects'][0]['structure']['processing'][0]['duration']
+        with self.assertRaisesRegex(ValueError, '调整化'):
+            validate_entry(entry, registry, {'m1'}, card_type=2)
+
+        entry['effects'][0]['tags'] = ['etag:add-hand']
+        entry['effects'][0]['structure']['processing'] = [
+            {'action': 'return_hand', 'selector': {'text': '场上对象卡'},
+             'from_zones': ['field'], 'to_zones': ['hand', 'extra']}]
+        validate_entry(entry, registry, {'m1'}, card_type=2)
+        entry['effects'][0]['structure']['processing'][0]['from_zones'] = ['grave']
+        with self.assertRaisesRegex(ValueError, '场上卡回手'):
+            validate_entry(entry, registry, {'m1'}, card_type=2)
+
     def test_usage_and_action_filters(self):
         locked = self.service.search({'etags': ['etag:special-summon'], 'usage': 'per_effect_name_soft_opt'})
         self.assertEqual([c['code'] for c in locked['cards']], [20000003])
@@ -308,6 +340,9 @@ class CardAnnotationTests(unittest.TestCase):
         self.assertFalse(zone_matches('spell', ['field']))
         self.assertFalse(zone_matches('spell', ['opponent_monster']))
         self.assertFalse(zone_matches('grave', ['spell']))
+        self.assertTrue(zone_matches('monster', ['extra_monster_zone']))
+        self.assertTrue(zone_matches('field', ['extra_monster_zone']))
+        self.assertFalse(zone_matches('extra_monster_zone', ['monster']))
 
     def test_curated_samples_query_corrected_capabilities_and_reject_regressions(self):
         path = Path(__file__).resolve().parents[1] / 'src/trainer/card-annotations.json'

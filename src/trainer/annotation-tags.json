@@ -254,7 +254,8 @@
       "opponent_deck_top": "对方卡组最上面",
       "opponent_deck_bottom": "对方卡组最下面",
       "field_spell": "场地区",
-      "xyz_material": "超量素材（附在场上超量怪兽下，不是墓地或怪兽区）"
+      "xyz_material": "超量素材（附在场上超量怪兽下，不是墓地或怪兽区）",
+      "extra_monster_zone": "自己的额外怪兽区域（怪兽区的特定子区域）"
     },
     "actions": {
       "add_hand": "加入手卡",
@@ -297,7 +298,13 @@
       "place_faceup_card": "从指定来源把永续魔法或永续陷阱表侧放置到魔法陷阱区（非盖放）",
       "modify_activation_window": "持续改变指定效果可发动的回合或时点，本身不发动那些效果",
       "allow_direct_attack": "允许指定怪兽按卡文条件直接攻击对方玩家",
-      "require_attack_payment": "每次攻击宣言时必须支付规定基本分；不是效果发动费用"
+      "require_attack_payment": "每次攻击宣言时必须支付规定基本分；不是效果发动费用",
+      "end_battle_phase": "结束当前战斗阶段，区别于仅无效一次攻击",
+      "tribute": "效果结算时解放怪兽；不是发动费用或非效果召唤手续",
+      "attack_in_defense": "允许怪兽以表侧守备表示宣言攻击并按攻击力计算战斗",
+      "treat_as_tuner": "把指定怪兽当作调整使用，记录时限及离区或变里侧的中止条件",
+      "use_as_synchro_material": "效果处理后立即以指定场上怪兽作为同调素材进行同调召唤，素材不是发动费用",
+      "return_hand": "使场上卡回持有者手卡，额外卡组怪兽依规则回额外卡组"
     },
     "cost_kinds": {
       "discard_self": "把这张卡从手卡丢弃",

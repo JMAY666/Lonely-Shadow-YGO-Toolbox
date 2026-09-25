@@ -1,6 +1,6 @@
 # 卡片标注交接指南
 
-适用版本：1.47.5。供后续智能体在现有 302 张内置效果参考样本上继续扩充。先读项目 `AGENTS.md` 与[体系规范](card-annotation-system.md)；旧优先清单已完成，现作为历史记录保留在[补卡提示词](card-annotation-next-batch.md)。只维护静态卡片知识，不启动已封存的 AI 学习计划。系列中文名、徽记与封面是独立展示资料，按[系列标识制作流程](card-series-production-guide.md)补充，不把系列样例核对计入完整效果标注数量。
+适用版本：1.47.6。供后续智能体在现有 402 张内置效果参考样本上继续扩充。先读项目 `AGENTS.md` 与[体系规范](card-annotation-system.md)；旧优先清单已完成，现作为历史记录保留在[补卡提示词](card-annotation-next-batch.md)。只维护静态卡片知识，不启动已封存的 AI 学习计划。系列中文名、徽记与封面是独立展示资料，按[系列标识制作流程](card-series-production-guide.md)补充，不把系列样例核对计入完整效果标注数量。
 
 ## 文件与交付范围
 
@@ -95,6 +95,12 @@ node --test tests/card_annotations_view.test.cjs
 用户要求把当前卡库所有未标注卡分阶段处理。本阶段先建立[100 个本地卡号的候选及交付清单](card-annotation-batch-2026-09-25-phase2.csv)：四个完整系列合计新增 94 张，原有 6 张复核后保留。青眼白龙、青眼究极龙等本地异画卡号保持独立；无法直接由辅助映射查到 cid 的 17 个卡号，先逐个比对同名、同 `type`、同完整卡文指纹的基础卡，再以官方 OCG 卡页和 FAQ 核对。21 张新条目明确无怪兽效果，保存通常怪兽描述或融合素材文本，不生成机械效果 TAG。
 
 每张新卡的官方页面快照在 `.local/anno-batch5-research/`，原有 6 张的当期复核快照在 `existing/`；来源快照仅本地保留。累计 20／40／60／80／94 张时以实际 runtime 校验并运行 `python scripts/check_annotation_batch5.py --runtime .local/YGOPro-Lite --expected 94 --require-snapshots` 的逐卡来源、完整分段和关键机制正反查询。新增受控动作 `place_faceup_card`、`modify_activation_window`、`allow_direct_attack` 与 `require_attack_payment` 的定义和反例见[体系规范 §4](card-annotation-system.md)。详细结果见[1.47.5 验证记录](verification-1.47.5.md)。
+
+## 2026-09-25 第六批：影灵衣、召唤兽、珠泪哀歌族、神碑、白森林、星杯 100 张
+
+先从当前 `Catalog` 和 `CardSeries` 重算，保存[101 个系列成员的候选及交付清单](card-annotation-batch-2026-09-25-phase3.csv)：新标 100 张、已有《影灵衣的万华镜》复核后跳过。六系列在当前卡库均达到全员覆盖；四个本地异画编号在姓名、类型、完整卡文指纹与基础卡一致后才共用官方 cid，但各自保留整数卡号。每张新卡的 OCG 卡页和 FAQ 原始 HTML 在 `.local/anno-batch6-research/`，原有条目的当期复核在 `existing/`，只本地保留。
+
+累计 20／40／60／80／100 张时以实际 runtime 跑标注、系列和 `python scripts/check_annotation_batch6.py --runtime .local/YGOPro-Lite --expected 100 --require-snapshots`，后者逐条检查来源、快照、完整卡文指纹／分段以及关键机制查询正反例。官方补足情報给出明确效果类别的 145 个怪兽编号效果与结构分类交叉核对，未见不一致。星杯三张通常怪兽的 FAQ 没有补足条目，依据官方卡片页完整描述显式标为 `no_effect`，不推断效果。新受控动作及额外怪兽区域查询的定义与反例见[体系规范 §4](card-annotation-system.md)，测试范围见[1.47.6 验证记录](verification-1.47.6.md)。
 
 后续阶段继续从当前安装卡库重新计算未覆盖清单，以完整系列为单位推进；不能沿用本阶段的固定数量替代全库目标。每轮只把有足够 OCG 依据、全部分段完成的 `reviewed/manual` 条目计入覆盖。阶段结果和剩余量持续登记于[全库进度账本](card-annotation-progress.md)。
 

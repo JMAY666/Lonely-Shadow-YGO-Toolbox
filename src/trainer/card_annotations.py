@@ -33,9 +33,10 @@ CONDITION_FIELDS = ('action', 'from_zone', 'to_zone', 'usage', 'cost_kind', 'tim
 
 # Only promote explicitly recorded child zones to a broader query. A generic
 # field annotation never proves that a particular child zone is eligible.
-ZONE_GROUPS = {'field': {'monster', 'opponent_monster', 'spell', 'pendulum', 'field_spell'},
-               'monster': {'opponent_monster'}, 'spell': {'pendulum'}}
+ZONE_GROUPS = {'field': {'monster', 'opponent_monster', 'extra_monster_zone', 'spell', 'pendulum', 'field_spell'},
+               'monster': {'opponent_monster', 'extra_monster_zone'}, 'spell': {'pendulum'}}
 ACTION_TAGS = {'add_hand': 'etag:add-hand', 'draw': 'etag:draw', 'return_deck': 'etag:return-deck',
+               'return_hand': 'etag:add-hand',
                'hand_reveal': 'etag:hand-look', 'deck_reveal': 'etag:deck-look',
                'destroy': 'etag:destroy', 'banish': 'etag:banish', 'send_grave': 'etag:send-grave',
                'special_summon': 'etag:special-summon', 'normal_summon': 'etag:normal-summon',
@@ -208,10 +209,20 @@ def _check_processing(items, registry, where):
             if not item.get('from_zones') or not any(next_action.get('action') == 'special_summon'
                                                       for next_action in item.get('then', [])):
                 raise ValueError(f'{where}仪式素材处理须登记来源和后续仪式召唤')
+        if item.get('action') == 'use_as_synchro_material':
+            if 'monster' not in item.get('from_zones', []) or not any(next_action.get('action') == 'special_summon'
+                                                    for next_action in item.get('then', [])):
+                raise ValueError(f'{where}同调素材处理须登记场上来源和后续同调召唤')
+        if item.get('action') == 'treat_as_tuner' and not item.get('duration'):
+            raise ValueError(f'{where}调整化须登记适用时限')
+        if item.get('action') == 'return_hand' and not {'field', 'monster', 'spell'} & set(item.get('from_zones', [])):
+            raise ValueError(f'{where}场上卡回手须登记场上来源')
         if item.get('action') == 'grant_effect' and not item.get('then'):
             raise ValueError(f'{where}赋予效果须登记未来处理')
         if item.get('action') == 'place_faceup_card' and 'spell' not in item.get('to_zones', []):
             raise ValueError(f'{where}表侧放置永续魔陷须登记魔陷区去向')
+        if item.get('action') == 'tribute' and not item.get('from_zones'):
+            raise ValueError(f'{where}处理时解放须登记来源区域')
         for restriction in item.get('restrictions', []):
             _check_text(restriction, f'{where}限制', 400)
 
