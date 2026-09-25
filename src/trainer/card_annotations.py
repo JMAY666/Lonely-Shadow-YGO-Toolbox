@@ -33,8 +33,9 @@ CONDITION_FIELDS = ('action', 'from_zone', 'to_zone', 'usage', 'cost_kind', 'tim
 
 # Only promote explicitly recorded child zones to a broader query. A generic
 # field annotation never proves that a particular child zone is eligible.
-ZONE_GROUPS = {'field': {'monster', 'opponent_monster', 'extra_monster_zone', 'spell', 'pendulum', 'field_spell'},
-               'monster': {'opponent_monster', 'extra_monster_zone'}, 'spell': {'pendulum'}}
+ZONE_GROUPS = {'field': {'monster', 'opponent_monster', 'extra_monster_zone', 'opponent_extra_monster_zone', 'spell', 'pendulum', 'field_spell'},
+               'monster': {'opponent_monster', 'extra_monster_zone', 'opponent_extra_monster_zone'},
+               'opponent_monster': {'opponent_extra_monster_zone'}, 'spell': {'pendulum'}}
 ACTION_TAGS = {'add_hand': 'etag:add-hand', 'draw': 'etag:draw', 'return_deck': 'etag:return-deck',
                'return_hand': 'etag:add-hand',
                'hand_reveal': 'etag:hand-look', 'deck_reveal': 'etag:deck-look',
@@ -213,10 +214,30 @@ def _check_processing(items, registry, where):
             if 'monster' not in item.get('from_zones', []) or not any(next_action.get('action') == 'special_summon'
                                                     for next_action in item.get('then', [])):
                 raise ValueError(f'{where}同调素材处理须登记场上来源和后续同调召唤')
+        if item.get('action') == 'use_as_link_material':
+            if 'monster' not in item.get('from_zones', []) or not any(next_action.get('action') == 'special_summon'
+                                                    for next_action in item.get('then', [])):
+                raise ValueError(f'{where}连接素材处理须登记场上来源和后续连接召唤')
+        if item.get('action') == 'use_as_xyz_material':
+            if 'monster' not in item.get('from_zones', []) or not any(next_action.get('action') == 'special_summon'
+                                                    for next_action in item.get('then', [])):
+                raise ValueError(f'{where}超量素材处理须登记场上来源和后续超量召唤')
         if item.get('action') == 'treat_as_tuner' and not item.get('duration'):
             raise ValueError(f'{where}调整化须登记适用时限')
+        if item.get('action') == 'change_level' and not item.get('duration'):
+            raise ValueError(f'{where}等级变更须登记适用时限')
+        if item.get('action') == 'treat_as_name' and not item.get('from_zones'):
+            raise ValueError(f'{where}名称视作须登记适用区域')
+        if item.get('action') == 'place_counter' and not item.get('count'):
+            raise ValueError(f'{where}放置指示物须登记数量')
+        if item.get('action') == 'give_control' and ('monster' not in item.get('from_zones', []) or 'opponent_monster' not in item.get('to_zones', [])):
+            raise ValueError(f'{where}移交控制权须登记己方怪兽区来源和对方怪兽区去向')
+        if item.get('action') == 'require_lp_payment' and item.get('executor') not in ('self', 'opponent'):
+            raise ValueError(f'{where}支付基本分处理须登记执行者')
         if item.get('action') == 'return_hand' and not {'field', 'monster', 'spell'} & set(item.get('from_zones', [])):
             raise ValueError(f'{where}场上卡回手须登记场上来源')
+        if item.get('action') == 'equip_as_spell' and (not item.get('from_zones') or 'spell' not in item.get('to_zones', [])):
+            raise ValueError(f'{where}怪兽作装备卡须登记来源与魔陷区去向')
         if item.get('action') == 'grant_effect' and not item.get('then'):
             raise ValueError(f'{where}赋予效果须登记未来处理')
         if item.get('action') == 'place_faceup_card' and 'spell' not in item.get('to_zones', []):

@@ -197,6 +197,58 @@ class CardAnnotationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, '场上卡回手'):
             validate_entry(entry, registry, {'m1'}, card_type=2)
 
+    def test_link_xyz_equip_name_and_counter_actions_require_evidence_fields(self):
+        registry = self.service.registry
+        effect = simple_effect('m1', 1, ['etag:special-summon'], [])
+        effect['effect_type'] = 'spell_effect'
+        entry = make_entry(20000001, SEARCHER, [effect])
+        for action, error in (('use_as_link_material', '连接素材处理'),
+                              ('use_as_xyz_material', '超量素材处理')):
+            material = {'action': action, 'selector': {'text': '场上素材'}, 'from_zones': ['monster'],
+                        'then': [{'action': 'special_summon', 'selector': {'text': '额外怪兽'},
+                                  'from_zones': ['extra'], 'to_zones': ['monster']}]}
+            effect['structure']['processing'] = [material]
+            validate_entry(entry, registry, {'m1'}, card_type=2)
+            material['from_zones'] = ['grave']
+            with self.assertRaisesRegex(ValueError, error):
+                validate_entry(entry, registry, {'m1'}, card_type=2)
+
+        effect['tags'] = []
+        equip = {'action': 'equip_as_spell', 'selector': {'text': '怪兽作装备卡'},
+                 'from_zones': ['opponent_monster'], 'to_zones': ['spell']}
+        effect['structure']['processing'] = [equip]
+        validate_entry(entry, registry, {'m1'}, card_type=2)
+        equip['to_zones'] = ['grave']
+        with self.assertRaisesRegex(ValueError, '怪兽作装备卡'):
+            validate_entry(entry, registry, {'m1'}, card_type=2)
+
+        for action, extra, drop, error in (
+                ('change_level', {'duration': '本回合'}, 'duration', '等级变更'),
+                ('treat_as_name', {'from_zones': ['hand']}, 'from_zones', '名称视作'),
+                ('place_counter', {'count': 1}, 'count', '放置指示物')):
+            item = {'action': action, 'selector': {'text': '明确处理'}, **extra}
+            effect['structure']['processing'] = [item]
+            validate_entry(entry, registry, {'m1'}, card_type=2)
+            del item[drop]
+            with self.assertRaisesRegex(ValueError, error):
+                validate_entry(entry, registry, {'m1'}, card_type=2)
+
+        transfer = {'action': 'give_control', 'selector': {'text': '己方怪兽交给对方'},
+                    'from_zones': ['monster'], 'to_zones': ['opponent_monster']}
+        effect['structure']['processing'] = [transfer]
+        validate_entry(entry, registry, {'m1'}, card_type=2)
+        transfer['to_zones'] = ['monster']
+        with self.assertRaisesRegex(ValueError, '移交控制权'):
+            validate_entry(entry, registry, {'m1'}, card_type=2)
+
+        payment = {'action': 'require_lp_payment', 'selector': {'text': '对方支付500基本分'},
+                   'executor': 'opponent'}
+        effect['structure']['processing'] = [payment]
+        validate_entry(entry, registry, {'m1'}, card_type=2)
+        del payment['executor']
+        with self.assertRaisesRegex(ValueError, '支付基本分处理'):
+            validate_entry(entry, registry, {'m1'}, card_type=2)
+
     def test_usage_and_action_filters(self):
         locked = self.service.search({'etags': ['etag:special-summon'], 'usage': 'per_effect_name_soft_opt'})
         self.assertEqual([c['code'] for c in locked['cards']], [20000003])
@@ -343,6 +395,9 @@ class CardAnnotationTests(unittest.TestCase):
         self.assertTrue(zone_matches('monster', ['extra_monster_zone']))
         self.assertTrue(zone_matches('field', ['extra_monster_zone']))
         self.assertFalse(zone_matches('extra_monster_zone', ['monster']))
+        self.assertTrue(zone_matches('opponent_monster', ['opponent_extra_monster_zone']))
+        self.assertTrue(zone_matches('field', ['opponent_extra_monster_zone']))
+        self.assertFalse(zone_matches('extra_monster_zone', ['opponent_extra_monster_zone']))
 
     def test_curated_samples_query_corrected_capabilities_and_reject_regressions(self):
         path = Path(__file__).resolve().parents[1] / 'src/trainer/card-annotations.json'
