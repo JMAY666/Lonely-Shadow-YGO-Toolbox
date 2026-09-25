@@ -249,6 +249,41 @@ class CardAnnotationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, '支付基本分处理'):
             validate_entry(entry, registry, {'m1'}, card_type=2)
 
+    def test_return_and_cost_substitution_actions_keep_zone_boundaries(self):
+        registry = self.service.registry
+        effect = simple_effect('m1', 1, [], [])
+        effect['effect_type'] = 'spell_effect'
+        entry = make_entry(20000001, SEARCHER, [effect])
+        valid = (
+            ({'action': 'return_grave', 'selector': {'text': '除外卡回墓地'},
+              'from_zones': ['banished'], 'to_zones': ['grave']}, 'from_zones', '除外卡回墓地'),
+            ({'action': 'increase_normal_summon_limit', 'selector': {'text': '本回合三次通常召唤'},
+              'duration': '本回合'}, 'duration', '通常召唤次数增加'),
+            ({'action': 'substitute_tribute_cost', 'selector': {'text': '墓地卡替代解放'},
+              'from_zones': ['grave'], 'to_zones': ['banished']}, 'from_zones', '解放费用替代'),
+            ({'action': 'return_unsummoned', 'selector': {'text': '召唤无效回手'},
+              'to_zones': ['hand', 'extra']}, 'to_zones', '被无效召唤怪兽回手'),
+            ({'action': 'substitute_detach_source', 'selector': {'text': '取其他超量怪兽素材'},
+              'from_zones': ['xyz_material']}, 'from_zones', '超量取除来源替代'),
+        )
+        for item, required, error in valid:
+            effect['tags'] = ['etag:add-hand'] if item['action'] == 'return_unsummoned' else []
+            effect['structure']['processing'] = [item]
+            validate_entry(entry, registry, {'m1'}, card_type=2)
+            broken = deepcopy(entry)
+            del broken['effects'][0]['structure']['processing'][0][required]
+            with self.assertRaisesRegex(ValueError, error):
+                validate_entry(broken, registry, {'m1'}, card_type=2)
+
+        effect['tags'] = ['etag:add-hand']
+        effect['structure']['processing'] = [
+            {'action': 'return_hand', 'selector': {'text': '对方场上怪兽回手'},
+             'from_zones': ['opponent_monster'], 'to_zones': ['hand']}]
+        validate_entry(entry, registry, {'m1'}, card_type=2)
+        effect['structure']['processing'][0]['from_zones'] = ['opponent_grave']
+        with self.assertRaisesRegex(ValueError, '场上卡回手'):
+            validate_entry(entry, registry, {'m1'}, card_type=2)
+
     def test_usage_and_action_filters(self):
         locked = self.service.search({'etags': ['etag:special-summon'], 'usage': 'per_effect_name_soft_opt'})
         self.assertEqual([c['code'] for c in locked['cards']], [20000003])

@@ -38,6 +38,7 @@ ZONE_GROUPS = {'field': {'monster', 'opponent_monster', 'extra_monster_zone', 'o
                'opponent_monster': {'opponent_extra_monster_zone'}, 'spell': {'pendulum'}}
 ACTION_TAGS = {'add_hand': 'etag:add-hand', 'draw': 'etag:draw', 'return_deck': 'etag:return-deck',
                'return_hand': 'etag:add-hand',
+               'return_unsummoned': 'etag:add-hand',
                'hand_reveal': 'etag:hand-look', 'deck_reveal': 'etag:deck-look',
                'destroy': 'etag:destroy', 'banish': 'etag:banish', 'send_grave': 'etag:send-grave',
                'special_summon': 'etag:special-summon', 'normal_summon': 'etag:normal-summon',
@@ -234,7 +235,17 @@ def _check_processing(items, registry, where):
             raise ValueError(f'{where}移交控制权须登记己方怪兽区来源和对方怪兽区去向')
         if item.get('action') == 'require_lp_payment' and item.get('executor') not in ('self', 'opponent'):
             raise ValueError(f'{where}支付基本分处理须登记执行者')
-        if item.get('action') == 'return_hand' and not {'field', 'monster', 'spell'} & set(item.get('from_zones', [])):
+        if item.get('action') == 'return_grave' and ('banished' not in item.get('from_zones', []) or 'grave' not in item.get('to_zones', [])):
+            raise ValueError(f'{where}除外卡回墓地须登记除外区来源和墓地去向')
+        if item.get('action') == 'increase_normal_summon_limit' and not item.get('duration'):
+            raise ValueError(f'{where}通常召唤次数增加须登记适用时限')
+        if item.get('action') == 'substitute_tribute_cost' and ('grave' not in item.get('from_zones', []) or 'banished' not in item.get('to_zones', [])):
+            raise ValueError(f'{where}解放费用替代须登记墓地来源及除外去向')
+        if item.get('action') == 'return_unsummoned' and not {'hand', 'extra'} & set(item.get('to_zones', [])):
+            raise ValueError(f'{where}被无效召唤怪兽回手须登记手卡或额外卡组去向')
+        if item.get('action') == 'substitute_detach_source' and 'xyz_material' not in item.get('from_zones', []):
+            raise ValueError(f'{where}超量取除来源替代须登记素材区域')
+        if item.get('action') == 'return_hand' and not {'field', 'monster', 'opponent_monster', 'extra_monster_zone', 'opponent_extra_monster_zone', 'spell', 'field_spell', 'pendulum'} & set(item.get('from_zones', [])):
             raise ValueError(f'{where}场上卡回手须登记场上来源')
         if item.get('action') == 'equip_as_spell' and (not item.get('from_zones') or 'spell' not in item.get('to_zones', [])):
             raise ValueError(f'{where}怪兽作装备卡须登记来源与魔陷区去向')
