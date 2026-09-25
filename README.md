@@ -281,6 +281,7 @@ npm run build
 | 你想了解 | 文档 |
 | --- | --- |
 | 卡片效果标注规范、效果 TAG 与覆盖口径 | [卡片标注体系](docs/card-annotation-system.md) |
+| 把卡片标注交给其他 AI：资料包、候选、审核及可复制提示词 | [外部 AI 标注教程](docs/card-annotation-external-ai-tutorial.md) |
 | 标注体系建立前的现状与缺口盘点 | [标注缺口分析](docs/card-annotation-gap-analysis.md) |
 | 详细操作、更新、构建与恢复 | [使用与开发手册](docs/usage-guide.md) |
 | BO1 方案筛选与教程导航 | [决斗辅助](docs/duel.md) |
