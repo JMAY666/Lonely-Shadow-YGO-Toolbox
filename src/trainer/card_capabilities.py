@@ -100,7 +100,7 @@ class CardCapabilities:
         processing(structure.get('processing'))
         return rows
 
-    def card(self, code, expected_text=None):
+    def card(self, code, expected_text=None, *, classify=True):
         if type(code) is not int or code <= 0: raise ValueError('卡号必须为正整数')
         if expected_text is not None and (not isinstance(expected_text, str) or len(expected_text) > 50000):
             raise ValueError('用于核对的卡文无效')
@@ -140,6 +140,9 @@ class CardCapabilities:
             result['status_label'] = STATUS_NAMES[result['status']]
             # Content version includes personal notes/TAGs and vocabulary, not just a file mtime.
             result['version'] = fingerprint({k: v for k, v in result.items() if k != 'revision'})
+            knowledge = getattr(self.store, 'annotation_knowledge', None)
+            if classify and result['trusted'] and knowledge and knowledge.enabled():
+                knowledge.classify(result)
             return result
 
     def command(self, body):
@@ -157,6 +160,8 @@ class CardCapabilities:
         if tag and tag not in self.annotations.registry.tags: raise ValueError('效果能力筛选无效')
         if role and role not in ROLE_NAMES: raise ValueError('用途候选筛选无效')
         with self.store.lock:
+            knowledge = getattr(self.store, 'annotation_knowledge', None)
+            classified = knowledge.build()['libraries'][role] if role and knowledge and knowledge.enabled() else None
             result = set()
             for code in self.annotations.annotated_codes():
                 view = self.annotations.view(code)
@@ -165,7 +170,10 @@ class CardCapabilities:
                 for effect in view['effects']:
                     if not effect.get('annotated'): continue
                     if tag and tag not in effect.get('tags', []): continue
-                    if role and not any(row['role'] == role for row in purpose_candidates(effect)): continue
+                    if role:
+                        if classified is not None:
+                            if effect['key'] not in classified.get(str(code), {}).get('effect_keys', []): continue
+                        elif not any(row['role'] == role for row in purpose_candidates(effect)): continue
                     result.add(code); break
             return result
 

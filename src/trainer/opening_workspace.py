@@ -87,11 +87,17 @@ class OpeningWorkspace:
         effects = reviewed_effects(self.store.catalog.cards, public)
         protection = json.loads((Path(__file__).parent / 'opening-protection.json').read_text('utf-8'))
         effects.update(reviewed_effects(self.store.catalog.cards, protection))
+        service = getattr(self.store, 'annotation_knowledge', None)
+        if service and service.enabled():
+            compiled = service.build()
+            covered = set(compiled['covered'])
+            effects = {key: value for key, value in effects.items() if value['code'] not in covered}
+            effects.update(deepcopy(compiled['opening']))
         for key, effect in effects.items():
             override = document['overrides'].get(key)
             effect['override'] = override
             effect['override_stale'] = bool(override and (override['version'] != effect['version'] or not effect['reviewed']))
-            if override and not effect['override_stale']: effect.update(deepcopy(override['value']))
+            if override and not effect['override_stale'] and not effect.get('managed_by'): effect.update(deepcopy(override['value']))
             effect['candidate'] = document['candidates'].get(key)
             effect['candidate_stale'] = bool(effect['candidate'] and effect['candidate']['version'] != effect['version'])
         return effects
@@ -143,6 +149,7 @@ class OpeningWorkspace:
     def analyze(self, body):
         deck, frozen, supplemental, source = self.inputs(body)
         with self.store.lock:
+            if hasattr(self.store, 'annotation_knowledge'): self.store.annotation_knowledge.synchronize()
             document = self.document()
             knowledge = self.knowledge(document)
             tags = self.store.library.all_tags()
@@ -239,6 +246,7 @@ class OpeningWorkspace:
                 effects = self.knowledge(document)
                 effect = effects.get(key)
                 if not effect or not effect['reviewed']: raise ValueError('只可编辑已核对的通用效果；局部角色只读')
+                if effect.get('managed_by'): raise ValueError('该效果的用途与条件由统一标注生成，请到卡片标注修改')
                 if body.get('version') != effect['version']: raise ValueError('卡文或效果依据已变化，旧版本不能应用')
                 if action == 'restore': document['overrides'].pop(key, None)
                 elif action == 'suggest':

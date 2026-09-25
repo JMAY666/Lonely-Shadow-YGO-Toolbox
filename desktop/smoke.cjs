@@ -203,12 +203,12 @@ async function activatePot(sid) {
 (async () => {
   await launch(true);
   if(onlyCapabilities){
-    const result=await require('./card-capabilities-smoke.cjs')({page,application,root,evidence,pass});
+    const result=await require('./annotation-knowledge-smoke.cjs')({page,application,root,evidence,pass});
     await close();await launch();
     const opening=await page.evaluate(input=>api('/api/opening/analyze',input),result.input);
     assert.equal(opening.capabilities['14558127'].version,result.version);
-    assert.equal((await page.evaluate(()=>api('/api/intelligence'))).handtraps['14558127'].note,'保留个人用途');
-    pass('Shared annotation references and independent purpose notes survive a real application restart');
+    assert.equal((await page.evaluate(()=>api('/api/intelligence'))).handtraps['14558127'].managed_by,'card-annotations');
+    pass('Canonical purpose libraries and regenerated opening roles survive a real application restart');
     await close();assert.deepEqual(errors,[]);fs.writeFileSync(path.join(evidence,'capabilities-result.json'),JSON.stringify({checks,errors,globalInput:false},null,2));return;
   }
   if(onlyIntelligence){

@@ -33,6 +33,10 @@ async function selectManagedTag(id=null) {
   tagManagerUI.seedId=null;tagManagerUI.seedName='';tagManagerUI.related=[];tagManagerUI.relatedTotal=0;
   $('#tag-manager-status').textContent='卡牌范围供卡组与方案共用；已保存的卡组标签和手动方案标签会保留。';
   if(value.tag.kind==='purpose')$('#tag-manager-status').textContent=value.tag.purpose==='handtrap'?'手坑用途 TAG：仅允许主卡组卡牌；与情报站同步，不参与卡组／方案系列自动识别。移除会同时解除手坑资料和文件夹归属。':value.tag.purpose==='boardbreaker'?'解场用途 TAG：包含主卡组与额外卡组卡牌；成员与情报站解场资料同步，不参与系列自动识别。':'效果用途 TAG：用于效果筛选，不参与卡组／方案系列自动识别。';
+  const managed=value.tag.managed_by==='card-annotations';
+  if(managed)$('#tag-manager-status').textContent='用途成员由统一标注自动生成。请在卡片标注修改事实；独立整理可创建自定义 TAG。';
+  document.querySelectorAll('#tag-manager-form .tag-add-section,#tag-manager-form .tag-related-section').forEach(el=>el.hidden=managed);
+  $('#tag-manager-form button[type="submit"]').disabled=managed;
   renderTagManagerList();renderTagMembers();
   $('#tag-add-search').value='';$('#tag-add-effect').value='';tagManagerUI.results=[];tagManagerUI.total=0;tagManagerUI.searchSerial++;renderTagSearchResults();
   renderTagExcluded();void searchTagRelations();
@@ -47,7 +51,7 @@ function tagCatalogueCard(card) {
 function renderTagMembers() {
   const q=tagSearchKey($('#tag-member-filter').value),kind=$('#tag-member-kind').value,cards=[...tagManagerUI.members.values()].filter(c=>(!kind||c.tag_basis===kind)&&(tagSearchKey(c.name).includes(q)||String(c.id).includes(q)));
   $('#tag-member-count').textContent=`${tagManagerUI.members.size} 张`;
-  $('#tag-member-cards').innerHTML=cards.slice(0,tagManagerUI.memberVisible).map(c=>`<div class="tag-card-tile">${tagCatalogueCard(c)}<span class="tag-card-basis">${escape(c.tag_basis||'手动加入')}</span><button type="button" data-card-related="${c.id}">关联卡片</button><button type="button" data-member-remove="${c.id}">移除</button></div>`).join('')||'<p>没有包含的匹配卡牌，可在下方搜索添加。</p>';
+  $('#tag-member-cards').innerHTML=cards.slice(0,tagManagerUI.memberVisible).map(c=>`<div class="tag-card-tile">${tagCatalogueCard(c)}<span class="tag-card-basis">${escape(c.tag_basis||'手动加入')}</span><button type="button" data-card-related="${c.id}">关联卡片</button><button type="button" data-member-remove="${c.id}" ${tagManagerUI.draft?.managed_by==='card-annotations'?'disabled':''}>移除</button></div>`).join('')||'<p>没有包含的匹配卡牌，可在下方搜索添加。</p>';
   $('#tag-members-more').hidden=tagManagerUI.memberVisible>=cards.length;
   pruneReviewCards();
 }
@@ -80,7 +84,11 @@ async function saveManagedTag(e) {
     if(typeof refreshDeckTagName==='function')refreshDeckTagName(result.tag);
     $('#tag-manager-name').value=result.tag.name;$('#tag-manager-aliases').value=result.tag.aliases.join('\n');$('#tag-manager-title').textContent=result.tag.name;
     tagManagerUI.members=new Map(result.cards.map(c=>[c.id,c]));tagManagerUI.excluded=new Map((result.excluded_cards||[]).map(c=>[c.id,c]));
-    renderTagManagerList();renderTagMembers();renderTagExcluded();void searchTagRelations();$('#tag-manager-status').textContent=result.tag.kind==='purpose'?'已保存用途 TAG 范围；系列自动识别不受影响。':'已保存名称、别名和卡牌范围，自动识别已使用最新设置。';
+    const managed=value.tag.managed_by==='card-annotations';
+  if(managed)$('#tag-manager-status').textContent='用途成员由统一标注自动生成。请在卡片标注修改事实；独立整理可创建自定义 TAG。';
+  document.querySelectorAll('#tag-manager-form .tag-add-section,#tag-manager-form .tag-related-section').forEach(el=>el.hidden=managed);
+  $('#tag-manager-form button[type="submit"]').disabled=managed;
+  renderTagManagerList();renderTagMembers();renderTagExcluded();void searchTagRelations();$('#tag-manager-status').textContent=result.tag.kind==='purpose'?'已保存用途 TAG 范围；系列自动识别不受影响。':'已保存名称、别名和卡牌范围，自动识别已使用最新设置。';
     void refreshPlans().catch(error=>{$('#tag-manager-status').textContent=`TAG 已保存；方案列表刷新失败：${error.message}。可稍后刷新。`;});
   }catch(error){$('#tag-manager-status').textContent=`保存失败：${error.message}。输入与卡牌选择仍保留。`;}
   finally{tagManagerUI.busy=false;$('#tag-manager-form').inert=false;}

@@ -44,6 +44,7 @@ from opening_workspace import OpeningWorkspace
 from live_duel import LiveDuel
 from card_annotations import CardAnnotations
 from card_capabilities import CardCapabilities
+from annotation_knowledge import AnnotationKnowledge
 
 WORKSPACE = Path(__file__).resolve().parents[2]
 RUNTIME = WORKSPACE / '.local/YGOPro-Lite'
@@ -192,6 +193,7 @@ class Store:
         self.card_annotations = CardAnnotations(self, read_json, atomic_json, now)
         self.card_capabilities = CardCapabilities(self)
         self.opening_workspace = OpeningWorkspace(self, read_json, atomic_json, now)
+        self.annotation_knowledge = AnnotationKnowledge(self)
         self.live_duel = LiveDuel(self, read_json, atomic_json, now)
         self.compromise = Compromise(self, read_json, atomic_json, atomic_bytes)
         from modular import Modular
@@ -215,6 +217,7 @@ class Store:
         builtins = builtin_tags(self.runtime)
         self.catalog, self.library.builtins = catalog, builtins
         self.card_annotations.reload()
+        self.annotation_knowledge.synchronize()
         self.modular.precompute.invalidate_all()
         with self.modular.lock:
             for sid in self.modular.sessions: self.modular.planning_cache.discard(sid)
@@ -1021,7 +1024,11 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/modular/auto': return self.send(store.modular.automatic(body))
                 if path == '/api/tags/save': return self.send(store.library.edit_tag(body))
                 if path == '/api/intelligence': return self.send(store.intelligence.command(body))
-                if path == '/api/annotations': return self.send(store.card_annotations.command(body))
+                if path == '/api/annotations':
+                    with store.lock:
+                        result = store.card_annotations.command(body)
+                        store.annotation_knowledge.synchronize()
+                    return self.send(result)
                 if path == '/api/capabilities': return self.send(store.card_capabilities.command(body))
                 if path == '/api/opening/analyze': return self.send(store.opening_workspace.analyze(body))
                 if path == '/api/opening/save': return self.send(store.opening_workspace.command(body))
@@ -1102,7 +1109,9 @@ class Handler(BaseHTTPRequestHandler):
                     store.modular.library.sync()
                     return self.send(store.modular.library.entries[path.rsplit('/', 1)[1]])
                 if path.startswith('/api/modular/state/'): return self.send(store.modular.status(path.rsplit('/', 1)[1]))
-                if path == '/api/bootstrap': return self.send({'token': self.server.token, 'cards': len(store.catalog.cards), 'sources': store.catalog.sources, 'runtime': str(store.runtime), 'embedded': bool(store.host)})
+                if path == '/api/bootstrap':
+                    store.annotation_knowledge.upgrade()
+                    return self.send({'token': self.server.token, 'cards': len(store.catalog.cards), 'sources': store.catalog.sources, 'runtime': str(store.runtime), 'embedded': bool(store.host)})
                 if path == '/api/intelligence': return self.send(store.intelligence.snapshot())
                 if path == '/api/annotations': return self.send(store.card_annotations.snapshot())
                 if path == '/api/intelligence/opponents':
@@ -1125,6 +1134,9 @@ class Handler(BaseHTTPRequestHandler):
                     effect_tag, purpose = query.get('effect_tag', [''])[0], query.get('purpose_candidate', [''])[0]
                     if effect_tag or purpose:
                         card_ids = store.card_capabilities.matching_codes(effect_tag, purpose)
+                    if query.get('annotation_uncovered', [''])[0] == '1':
+                        uncovered = set(store.catalog.cards) - set(store.annotation_knowledge.build()['covered'])
+                        card_ids = uncovered if card_ids is None else card_ids & uncovered
                     if query.get('tag', [''])[0]:
                         from plan_tags import member_ids
                         tag = store.library.all_tags().get(query['tag'][0])

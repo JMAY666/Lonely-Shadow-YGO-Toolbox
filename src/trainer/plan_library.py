@@ -57,6 +57,8 @@ class PlanLibrary:
             vocabulary = tags.vocabulary(self.builtins, document)
             existing = vocabulary.get(body.get('id'), {})
             if existing.get('purpose') in ('handtrap', 'boardbreaker'):
+                if existing.get('managed_by') == 'card-annotations':
+                    raise ValueError('用途 TAG 已由统一标注生成，请修改卡片标注或创建独立自定义 TAG')
                 if body.get('name') != existing['name'] or body.get('aliases', []) != existing.get('aliases', []):
                     raise ValueError('专用用途 TAG 的名称与别名固定；可编辑卡牌范围')
                 kind = 'handtraps' if existing['purpose'] == 'handtrap' else 'breakers'

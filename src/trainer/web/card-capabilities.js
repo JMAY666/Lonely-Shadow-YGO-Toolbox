@@ -2,15 +2,16 @@
 
 const CapabilityView = (() => {
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  function html(value, {frozen=false, purpose='', adopt=false}={}) {
+  function html(value, {frozen=false, purpose='', adopt=false, managed=false}={}) {
     if (!value) return '<p class="capability-empty">这份旧记录没有保存标注版本；原卡文与人工标记保持不变。</p>';
     const code=Number(value.code), effects=value.effects||[];
     const badge=tag=>`<span class="capability-tag">${esc(tag.name)}</span>`;
-    return `<details class="capability-panel" data-capability-card="${code}" ${frozen?'data-capability-frozen="1"':''}><summary><span>${frozen?'保存时的卡片能力':'卡片能力'} · ${esc(value.status_label)}</span><small>${effects.length} 个已标注分段</small></summary><div class="capability-content">
+    return `<details class="capability-panel" ${managed?'open':''} data-capability-card="${code}" ${frozen?'data-capability-frozen="1"':''}><summary><span>${frozen?'保存时的卡片能力':'卡片能力'} · ${esc(value.status_label)}</span><small>${effects.length} 个已标注分段</small></summary><div class="capability-content">
       ${!value.trusted?'<p class="capability-notice">资料尚未核对或当前版本不可用，仅供查阅，不生成用途候选。</p>':''}
       ${effects.length?`<div class="capability-tags">${(value.tags||[]).map(badge).join('')}</div>`:`<p>${value.no_effect&&value.trusted?'已明确标注为无效果卡。':'尚无可用于此版本的效果资料；不代表这张卡没有能力。'}</p>`}
       ${effects.map(effect=>`<details class="capability-effect" data-capability-effect="${esc(effect.key)}"><summary>${esc(effect.label)} ${(effect.tags||[]).map(badge).join('')}</summary><p class="capability-original">${esc(effect.text)}</p><dl>${(effect.facts||[]).map(row=>`<dt>${esc(row.label)}</dt><dd>${esc(row.text)}</dd>`).join('')}</dl>${(effect.notes||[]).map(note=>`<p>${esc(note.text)}</p>`).join('')}
-        ${(effect.candidates||[]).filter(row=>!purpose||row.role===purpose).map(row=>`<p class="capability-candidate"><strong>${esc(row.label)}</strong> · ${esc(row.reason)}</p>`).join('')}
+        ${(effect.roles||[]).map(row=>`<p class="capability-candidate"><strong>${esc(row.name)}</strong> · ${esc(row.basis)}</p>`).join('')}
+        ${(managed||value.roles?[]:effect.candidates||[]).filter(row=>!purpose||row.role===purpose).map(row=>`<p class="capability-candidate"><strong>${esc(row.label)}</strong> · ${esc(row.reason)}</p>`).join('')}
         ${adopt&&value.trusted&&effect.legacy_key!==null&&(effect.candidates||[]).some(row=>row.role===purpose)?`<button type="button" data-capability-select="${esc(effect.legacy_key)}">选中此效果用于${{handtraps:'手坑',breakers:'解场',endboards:'终场'}[purpose]}</button>`:''}
         <button type="button" data-capability-open="${code}" data-capability-key="${esc(effect.key)}">查看完整标注</button></details>`).join('')}
       ${(value.relations||[]).length?`<div class="capability-relations"><strong>共享次数、分支与依赖</strong>${value.relations.map(row=>`<p>${esc(row.text||row.kind)}</p>`).join('')}</div>`:''}
@@ -35,6 +36,7 @@ async function mountCapabilities(host, code, options={}) {
   try {
     const value=await api('/api/capabilities',{op:'card',code:Number(code),...(options.text!==undefined?{text:options.text}:{})});
     if(!host.isConnected||capabilityHosts.get(host)!==token)return;
+    if(options.effectKeys)value.effects=value.effects.filter(effect=>options.effectKeys.includes(effect.key));
     host.innerHTML=CapabilityView.html(value,options);
     if(options.adopt)host.querySelectorAll('[data-capability-select]').forEach(button=>button.addEventListener('click',()=>{
       options.onSelect?.(button.dataset.capabilitySelect);

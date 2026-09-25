@@ -65,8 +65,11 @@ def purpose_tag(document, catalog=None, kind='handtraps'):
     identifier = card_library_id(document, kind)
     previous = document.get('entries', {}).get(identifier, {})
     members = (document.get('intelligence') or {}).get(kind)
-    return {**previous, 'id': identifier, 'name': name, 'aliases': previous.get('aliases', []),
-            'setcode': previous.get('setcode') if members is None else None, 'source': '情报站 · 功能用途', 'kind': 'purpose', 'purpose': purpose,
+    managed = bool(document.get('intelligence', {}).get('annotation_sync'))
+    return {**previous, **({'managed_by': 'card-annotations'} if managed else {}),
+            'id': identifier, 'name': name, 'aliases': previous.get('aliases', []),
+            'setcode': previous.get('setcode') if members is None else None,
+            'source': '卡片标注 · 自动用途分类' if managed else '情报站 · 功能用途', 'kind': 'purpose', 'purpose': purpose,
             'include_cards': sorted(map(int, members)) if members is not None else previous.get('include_cards', []),
             'exclude_cards': previous.get('exclude_cards', []) if members is None else []}
 
@@ -90,6 +93,7 @@ class Intelligence:
 
     def snapshot(self):
         with self.store.lock:
+            if hasattr(self.store, 'annotation_knowledge'): self.store.annotation_knowledge.synchronize()
             from plan_tags import contains_card
             document = self.library.document()
             knowledge = data(document, self.store.catalog.cards)
@@ -232,11 +236,25 @@ class Intelligence:
 
     def command(self, body):
         with self.store.lock:
+            if body.get('op') == 'annotations.sync':
+                if body.get('revision') != self.library.document()['revision']: raise ValueError('资料已更新，请刷新后同步')
+                self.store.annotation_knowledge.synchronize(enable=True, force=True)
+                return self.snapshot()
+            if hasattr(self.store, 'annotation_knowledge'): self.store.annotation_knowledge.synchronize()
             document = self.library.document()
             if body.get('revision') != document['revision']: raise ValueError('资料已在其他入口更新，当前输入保留；请刷新并核对后重试')
             knowledge = data(document, self.store.catalog.cards)
             op, value = body.get('op'), body.get('value', {})
             if not isinstance(value, dict): raise ValueError('资料格式无效')
+            if not isinstance(op, str): raise ValueError('情报站操作无效')
+            if knowledge.get('annotation_sync'):
+                kind = {'handtrap': 'handtraps', 'breaker': 'breakers', 'endboard': 'endboards'}.get(op.split('.')[0])
+                if kind and value.get('code') in set(self.store.annotation_knowledge.build()['covered']):
+                    raise ValueError('该卡用途已由统一标注管理，请到卡片标注修改；局部方案说明仍在方案中编辑')
+                if op in ('staples.import', 'endboard.import', 'endboard.merge-sources'):
+                    raise ValueError('旧资料导入已由统一标注同步替代，请使用重新同步')
+                if op.startswith('folder.') and knowledge['folders'].get(value.get('id'), {}).get('managed_by') == 'card-annotations':
+                    raise ValueError('自动用途分类由标注生成，不能单独改名或删除')
             identifier = value.get('id')
             merged_count = None
             import_result = None
