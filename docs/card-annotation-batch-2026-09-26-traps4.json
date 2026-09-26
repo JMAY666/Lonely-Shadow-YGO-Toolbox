@@ -1,0 +1,2509 @@
+{
+  "version": 1,
+  "checked_on": "2026-09-26",
+  "source_pack": "20260925-catalog-all-14981",
+  "source_manifest_sha256": "3c192fb0eecc3fa7f3283dcd564223e2996491fb71c13d43884bf66ad9720933",
+  "scope": "Continue remaining full catalog; all 100 short-traps-04 inputs processed, 95 accepted, 3 rulings and 2 independent-effect schema gaps pending.",
+  "groups": [
+    {
+      "name": "short-traps-04",
+      "input_count": 100,
+      "accepted_count": 95,
+      "pending_count": 5
+    }
+  ],
+  "cards": [
+    {
+      "code": 981540,
+      "local_name": "半伤不破",
+      "local_type": 4,
+      "text_digest": "62d47d58daaada62c4f5fc0509c60dac20847d3acfd90d14ea5074cb4633740b",
+      "official_cid": 10839,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 1005587,
+      "local_name": "炼狱的落穴",
+      "local_type": 4,
+      "text_digest": "5000cbd735eb1dde88c3b201a67e9645e1d869f17722e91fbb53331a0c6dcd5e",
+      "official_cid": 10206,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 3868277,
+      "local_name": "TGX3-DX2",
+      "local_type": 4,
+      "text_digest": "ebd854c41cb2301608f5558c50fdbf9df19d2af4114955d20cc7016af8804cb7",
+      "official_cid": 9539,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 4433488,
+      "local_name": "电脑网级联",
+      "local_type": 4,
+      "text_digest": "b0262a32b00276bab8567f778daaa5828e7c13d7e9ddcba4cc5c9b8b25c61e93",
+      "official_cid": 14436,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 4450854,
+      "local_name": "隐藏的机壳",
+      "local_type": 4,
+      "text_digest": "688c25a3f185264f485aa62b1301bc314a3c84487914a3b1110ef7f9aec1c17f",
+      "official_cid": 11405,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 4466015,
+      "local_name": "蛇毒飞溅",
+      "local_type": 4,
+      "text_digest": "25f349f65e4c11cf4dd61d6a767382c4c9481df88ec4941741abe0f5f24cc27f",
+      "official_cid": 7227,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 5577649,
+      "local_name": "废铁崩溃",
+      "local_type": 4,
+      "text_digest": "2b521fe265495901539a6ce9ce6610623e7ba98d1181a0efe8420f8c98c231ea",
+      "official_cid": 9150,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 5609226,
+      "local_name": "调整防护罩",
+      "local_type": 4,
+      "text_digest": "15446c043e4def8566d7d1b797364afdb2b31f1addd303e688f6ebdd0588380e",
+      "official_cid": 8583,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 8414337,
+      "local_name": "薰风的风尘",
+      "local_type": 4,
+      "text_digest": "59d958f89d141190aa2518163930253042ff957f6d3d958f821aa74608a51a4a",
+      "official_cid": 9831,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 9201964,
+      "local_name": "D-幸运",
+      "local_type": 4,
+      "text_digest": "cf3bf4ac3371ae8cf6097d32598bf8dfe4da63f4507dfb74f4537e2f3ccdf8a6",
+      "official_cid": 7639,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 13438207,
+      "local_name": "花朵炸弹",
+      "local_type": 4,
+      "text_digest": "bcca7d1f430d89902a100c62bb538b61266374fe62ee9ab3dab9a734e83ed440",
+      "official_cid": 8849,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 16964437,
+      "local_name": "暗黑边界",
+      "local_type": 4,
+      "text_digest": "21961bbdb15cc8c972a4afd94bd3508602e388e1231db40ae90d473548aca92e",
+      "official_cid": 12509,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 17427333,
+      "local_name": "电磁轨道炮",
+      "local_type": 4,
+      "text_digest": "c4b9b3e33abb596d038669a86b01607255c35bd9235e7fc9399ae22f378d8d54",
+      "official_cid": 15769,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 17688543,
+      "local_name": "过深的墓穴",
+      "local_type": 4,
+      "text_digest": "abde2102804658a66c391089420f84f2801e2d41241e587ff25e7da171c8f5c8",
+      "official_cid": 13794,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 18816758,
+      "local_name": "侵略的波动",
+      "local_type": 4,
+      "text_digest": "079a0e57d92f54254901fe0e908f80cabdbc9372954752e27bf8b007a6422027",
+      "official_cid": 9187,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 20638610,
+      "local_name": "龙之转生",
+      "local_type": 4,
+      "text_digest": "4f12892b44d85f04e1e36455c667338f5bec2165097ff364b2f05674ced90381",
+      "official_cid": 9959,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 22020907,
+      "local_name": "英雄标记",
+      "local_type": 4,
+      "text_digest": "5e64643648563e325c5b0215c082aedec77e28014bb0a151f14b0b9b56874b79",
+      "official_cid": 6356,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 22205600,
+      "local_name": "连锁旋风",
+      "local_type": 4,
+      "text_digest": "0e6a37df41947c1f5f20dc29cb6c3d730d5d9c45dd484752656ab71b5cb0a2a9",
+      "official_cid": 9000,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 22869904,
+      "local_name": "魔力诱爆",
+      "local_type": 4,
+      "text_digest": "5873f776ca557fc6493eb8b401fa9f1661cb4df728e0ac6d4d0c264e7a1c450c",
+      "official_cid": 10299,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 23327298,
+      "local_name": "平行选择",
+      "local_type": 4,
+      "text_digest": "c168b9c05ee6c8695c7bda1d7aba9f32ea4ed11de3a4060490f4cc01538030e4",
+      "official_cid": 8997,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 23681456,
+      "local_name": "魔偶甜点佳节",
+      "local_type": 4,
+      "text_digest": "b95872fba773a6953b4d4469675c10107c6785662ad972616cdb78f96354a223",
+      "official_cid": 10296,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 23924608,
+      "local_name": "沙尘之大风暴",
+      "local_type": 4,
+      "text_digest": "a50d03ebf8ee454ddd022de3c135eec295a1310f9f12ae1a3e10a7d358b5fbe6",
+      "official_cid": 13115,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 24425055,
+      "local_name": "诡雷陷阱E",
+      "local_type": 4,
+      "text_digest": "8d873fc67fdb156114820893bfee68a5c615e40b532a90662be6fb5a094cae94",
+      "official_cid": 12208,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 26647858,
+      "local_name": "英雄光环",
+      "local_type": 4,
+      "text_digest": "feb78c782aa5652be70084b60b7bbb4554dd739a62403e8c69e683edd279a633",
+      "official_cid": 6528,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 28378427,
+      "local_name": "伤害电容器",
+      "local_type": 4,
+      "text_digest": "9e564ceee52272db040d2245454d120fe8353f0f98fd26deb151e6daf11dc097",
+      "official_cid": 6582,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 28493337,
+      "local_name": "终焉之指名者",
+      "local_type": 4,
+      "text_digest": "1d8b37dc3f7d5a89b58db0be0d27caaaaa4be8a3f7a01ccb5cc3e8d33c9d058a",
+      "official_cid": 10683,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 30488793,
+      "local_name": "反弹力",
+      "local_type": 4,
+      "text_digest": "0c7967a3e88cd6cbae08a12d68904b8dbfecc9b23d8cb04dacae21048e7e06bf",
+      "official_cid": 9938,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 34002992,
+      "local_name": "虹之生命",
+      "local_type": 4,
+      "text_digest": "9a2da7a8d460297eff85bd43ad902b3f1606dedcc6c29ad36fb67612b87585ff",
+      "official_cid": 7463,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 34351849,
+      "local_name": "蛙类防护罩",
+      "local_type": 4,
+      "text_digest": "368140fa0d95948d257f42472228c7e986a22457c4f3d884a2349fb6f55718ee",
+      "official_cid": 7646,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 35464895,
+      "local_name": "命运标记",
+      "local_type": 4,
+      "text_digest": "727b305f099feee19d3c039c91de2e50269996705d22e80a41ef08a18b8a9a5a",
+      "official_cid": 6679,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 36280194,
+      "local_name": "补充要员",
+      "local_type": 4,
+      "text_digest": "8b7b93c9184708344e63f80788ac3309495645f505c6ae65a19029305f171d2a",
+      "official_cid": 4953,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 36690018,
+      "local_name": "逆转的命运",
+      "local_type": 4,
+      "text_digest": "22a1cea7a7c5edc34163f9a4d817754702afa46c7093d63d568ef5b828008b94",
+      "official_cid": 7640,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 37580756,
+      "local_name": "同路人",
+      "local_type": 4,
+      "text_digest": "5817e3fe69c68e7492402311a08c5a885ebfb609558f8f73fddacad2e4df682c",
+      "official_cid": 4939,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 38049934,
+      "local_name": "炎尘爆发",
+      "local_type": 4,
+      "text_digest": "72ff0dcac462ca79f14ecd44cafff983ff1ea98886a46e7fa0d63b2beb2eacd1",
+      "official_cid": 9609,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 39103226,
+      "local_name": "地磅计量",
+      "local_type": 4,
+      "text_digest": "5d50a55d4d7b218c9490406ef80a349857e1e949f11a7a297294aa6d406417d7",
+      "official_cid": 18223,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 39900763,
+      "local_name": "异次元的邂逅",
+      "local_type": 4,
+      "text_digest": "097853721b9f3b3aeab19dbdab07698edd88a7041e548b47f04cad6a088ad276",
+      "official_cid": 11412,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 43262273,
+      "local_name": "红莲之指名者",
+      "local_type": 4,
+      "text_digest": "8e6331eead55ca618777daf836b78ee69ca02bf27565cb3eea13ca4dd782f770",
+      "official_cid": 8515,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 46337945,
+      "local_name": "仪水镜的瞑想术",
+      "local_type": 4,
+      "text_digest": "f9c6d42c2b3ed29bfc2f95064e720b67d270d979fdb6fe68bedeb6cb95170543",
+      "official_cid": 9185,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 47393199,
+      "local_name": "崩界的守护龙",
+      "local_type": 4,
+      "text_digest": "5b8d7969737021022051c0b73cb545baa32a5f5a20b99f89846d113b06d1bd6a",
+      "official_cid": 14150,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 48814566,
+      "local_name": "魔兽的大饵",
+      "local_type": 4,
+      "text_digest": "4ae468a873b08b83e127c6488bb7dcdbf7b4275b2dd7472d697c0826cfece48a",
+      "official_cid": 15558,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 49587034,
+      "local_name": "光之封札剑",
+      "local_type": 4,
+      "text_digest": "3ab43a619ce6ef595f9724118a8da2fe6d7e25ba474e763bc9fd458a996dc3f7",
+      "official_cid": 4808,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 50470982,
+      "local_name": "命运的分岔道",
+      "local_type": 4,
+      "text_digest": "5747a1da4987135c20baad47114d6d756bf03ce050a0571ea9971b311e25787b",
+      "official_cid": 6809,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 51099515,
+      "local_name": "恐击",
+      "local_type": 4,
+      "text_digest": "d224b84babb9422ceb95385ee3897718985bf917bea1297cf8dd3c179dd9a924",
+      "official_cid": 11428,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 53442500,
+      "local_name": "走魔灯",
+      "local_type": 4,
+      "text_digest": "e78e8cf39e416e1d542e7a68a74ab93843bb8856ac09cfda7d8655d876b2cf5b",
+      "official_cid": 16885,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 54658815,
+      "local_name": "远程苏生",
+      "local_type": 4,
+      "text_digest": "7b96716fe31a88ddb7511e33c5c15960d4dbff59eaf8b6506ceab557403b1f9f",
+      "official_cid": 13285,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 55008284,
+      "local_name": "同姓同名同盟",
+      "local_type": 4,
+      "text_digest": "d90446264e5f25724aa9e53edbe7bf449c79d3c59a96aa01405300147caeae0d",
+      "official_cid": 6520,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 56916805,
+      "local_name": "能量吸收",
+      "local_type": 4,
+      "text_digest": "1ac71476894b4f75634d514bc82230eba5812664bec0dfe7ec08a9d03bad1a28",
+      "official_cid": 5859,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 57006589,
+      "local_name": "能量吸收板",
+      "local_type": 4,
+      "text_digest": "2c9e36386b2462225d027873d774507033d9d6f22793c83cc9e0e93fd5830cf8",
+      "official_cid": 7324,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 57047293,
+      "local_name": "苍焰之炼狱",
+      "local_type": 4,
+      "text_digest": "e8de9119850069d9f1dc9f9d7302ea824d4e0023e0de343a731cd584e0e34383",
+      "official_cid": 11591,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 58621589,
+      "local_name": "诱惑之影",
+      "local_type": 4,
+      "text_digest": "5ff078b86262beec4961ecd914532975ef2a770ddf787b725e80d1222fdfd2ac",
+      "official_cid": 5135,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 58990631,
+      "local_name": "自动式镭射炮",
+      "local_type": 4,
+      "text_digest": "c18e7301846f994a1e1d0e24ab296169b806998d1632ccc827bbd72df55eeb25",
+      "official_cid": 8226,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 60530944,
+      "local_name": "异种斗争",
+      "local_type": 4,
+      "text_digest": "8c3979fe04068ac42c466644473895890c01769ada17704e0a4468863ceda549",
+      "official_cid": 8365,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 60534585,
+      "local_name": "斗争本能",
+      "local_type": 4,
+      "text_digest": "4ac1788fb5d28147e964ea373585ebdb5de2ef7dc6968860539e43a4360484bb",
+      "official_cid": 8995,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 60743819,
+      "local_name": "恶魔的叹息",
+      "local_type": 4,
+      "text_digest": "92c929702aaa85c39a8257461b3c49c2b17c1dab05b777fadb026417dd90d9a8",
+      "official_cid": 11751,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 62271284,
+      "local_name": "正义雷破",
+      "local_type": 4,
+      "text_digest": "8b323d69cadf5f57791f6c0f4812b8215a4629a41d3195271c3b949b94b47869",
+      "official_cid": 6912,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 62279055,
+      "local_name": "魔法筒",
+      "local_type": 4,
+      "text_digest": "2427d85e1f6eb7f9714f505f58b63e6652b3d8efa4bbf67b1997c3fefb721f6d",
+      "official_cid": 5124,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 63545861,
+      "local_name": "星圣的流星",
+      "local_type": 4,
+      "text_digest": "dca9238c95fbf3f11e8974806870598da6cc62f5fa1659e9ca9ba421161c109e",
+      "official_cid": 10011,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 64437633,
+      "local_name": "仪水镜的幻影术",
+      "local_type": 4,
+      "text_digest": "dbc1c3ea2fcf728826512d08e4384b126b4fc68b2227f9639f74ae0cf025f486",
+      "official_cid": 9610,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 64815084,
+      "local_name": "进化的分歧点",
+      "local_type": 4,
+      "text_digest": "98d10bb2375945414574e42a5aa00e7672d4b03db84e4c3fd8a893b200fcf3cf",
+      "official_cid": 9948,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 65810489,
+      "local_name": "黄金邪神像",
+      "local_type": 4,
+      "text_digest": "8f0ed918666b322372b9a7ce9bf6736f5fc3473880f800ac50cd1bd9df9a8bd9",
+      "official_cid": 5443,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 67232306,
+      "local_name": "神圣之铠 -反射镜甲-",
+      "local_type": 4,
+      "text_digest": "9630251eef384407cc8aabaded0cc63c5ddd89f906c98ba2e5ddb0831064be17",
+      "official_cid": 9785,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 67630339,
+      "local_name": "混乱箔片",
+      "local_type": 4,
+      "text_digest": "85dab380758153014529b47161ba0a456ad0ef54890f170f8074fa0a1b4ea4f2",
+      "official_cid": 7919,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 69122763,
+      "local_name": "守护灵护符",
+      "local_type": 4,
+      "text_digest": "2c8dead06712b25f45ed304891f35c661b5a7e80e8494bbbce8383da867d42fe",
+      "official_cid": 5266,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 72022087,
+      "local_name": "自由解放",
+      "local_type": 4,
+      "text_digest": "02904c5ae65a2b5229bae6afef02f72a712e6485e4eeb1afea852751a2426847",
+      "official_cid": 9200,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 72453068,
+      "local_name": "伤停补时",
+      "local_type": 4,
+      "text_digest": "8f740d1e1f670be12ff398254e2e846b50d2ce3ebf96384bafcac3a28e6a43d9",
+      "official_cid": 14157,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 72563071,
+      "local_name": "念力震撼波",
+      "local_type": 4,
+      "text_digest": "b6e4aeceb59b9a7c0af9d30df2a5b09d96627f70566ba274adc08b30bc8055d3",
+      "official_cid": 9707,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 72885174,
+      "local_name": "命运旅行",
+      "local_type": 4,
+      "text_digest": "92294014bfbd7ff900455992ca593ea0b30a7542a859737ac4397ef858e9a793",
+      "official_cid": 8359,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 75078585,
+      "local_name": "截敌蛋",
+      "local_type": 4,
+      "text_digest": "b55314ced3a44510fab4bd2dd994835b3cd6bf03e901a03c31969842efe5dfea",
+      "official_cid": 11673,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 76641981,
+      "local_name": "TG1-EM1",
+      "local_type": 4,
+      "text_digest": "a5421142b35f25f88f3c682f50285b9402150c2841bd7688eaea3c81a30cdaa0",
+      "official_cid": 9541,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 76972801,
+      "local_name": "我我我防御",
+      "local_type": 4,
+      "text_digest": "929695fff694aa7c874f54fa819242a5e2f95d8e8ddb2777192da7be7446cfd6",
+      "official_cid": 9939,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 77505534,
+      "local_name": "堕影的蠢动",
+      "local_type": 4,
+      "text_digest": "8891e983d2c51e5eb61fda77b3dac0f8b08751be0671c51d3a549ce6517ec8ee",
+      "official_cid": 11281,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 77847678,
+      "local_name": "紫炎的计略",
+      "local_type": 4,
+      "text_digest": "35e676313915284e527b7981ecf81140335966467f8621d7b673c4459d0460be",
+      "official_cid": 9366,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 78211862,
+      "local_name": "能量提升",
+      "local_type": 4,
+      "text_digest": "0365f34f788bfaa6f4d5d2ca6956cd4ca6274cab25c283bcb8f3d0c96d7c306d",
+      "official_cid": 6445,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 79178930,
+      "local_name": "时限机巧爆弹",
+      "local_type": 4,
+      "text_digest": "159456f8b2afa01754449916487593842f3a540f4ee94d45fe5537590a45b2e5",
+      "official_cid": 9149,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 79333300,
+      "local_name": "风灵术-「雅」",
+      "local_type": 4,
+      "text_digest": "ec895ace7bdc5d7e3e321bad4a48755e578f57943b6ac2314d7e34db63f1d3cb",
+      "official_cid": 6442,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 80036543,
+      "local_name": "对活路的希望",
+      "local_type": 4,
+      "text_digest": "6b361a8a892c827fa6877f6d88d46272b01cdf4d31f84944b2f2c8be2cfa791f",
+      "official_cid": 9354,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 80280737,
+      "local_name": "爆裂模式",
+      "local_type": 4,
+      "text_digest": "3b83883fb8d0338258cf3a3cfc40c68565df7b33ca4f4f56570276fa7b777e47",
+      "official_cid": 8058,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 81218874,
+      "local_name": "侵略的波纹",
+      "local_type": 4,
+      "text_digest": "7d025548aeee043aafcf3c6b7048b4a7be8f10f1ad16b489c389875715dc1291",
+      "official_cid": 9400,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 81791932,
+      "local_name": "蛇哨",
+      "local_type": 4,
+      "text_digest": "99ea902ed5193ddac0cd31766ecf385dab179a6dabbdd04ee530e96fdcc52bb5",
+      "official_cid": 7165,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 85080048,
+      "local_name": "雷之裁决",
+      "local_type": 4,
+      "text_digest": "3578ce2851164cae40ba29d6a13e42c9a73646dd88dd56f174a4c3a8e16f728e",
+      "official_cid": 7766,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 85352446,
+      "local_name": "统制训练",
+      "local_type": 4,
+      "text_digest": "1606877360e9a71a6607490a4f4b27eb1c53d87f7d220468014a648c3ec59f8e",
+      "official_cid": 9695,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 87106146,
+      "local_name": "伤害之门",
+      "local_type": 4,
+      "text_digest": "9d03fab13a1e46bb76dbcc0b8f6c50b26e6d5bd53fed82357d2841374be46f2a",
+      "official_cid": 8845,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 89040386,
+      "local_name": "黑羽-反闪",
+      "local_type": 4,
+      "text_digest": "b81371d1234dd7128b69745faa5aff447e1cc381d8f108358f4a78839bff9761",
+      "official_cid": 8839,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 89041555,
+      "local_name": "牲祭怀抱的爆弹",
+      "local_type": 4,
+      "text_digest": "6aa4070e8bc75d4c2cd4964f330f94b90fd8bdc11a4cdf24f3c03033bdc74943",
+      "official_cid": 5365,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 89569453,
+      "local_name": "断绝的落穴",
+      "local_type": 4,
+      "text_digest": "acd44fad2538a8cfc664064e22457fe9d3ad744c21f1bb09f0f6e09ae09ad1ed",
+      "official_cid": 18864,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 89914395,
+      "local_name": "米约尔尼尔之魔槌",
+      "local_type": 4,
+      "text_digest": "ec7af1549191b6c499d7b06df7a080af5f822a6e007cabd5589794b2ccd3164a",
+      "official_cid": 9357,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 90934570,
+      "local_name": "侵略的侵食崩坏",
+      "local_type": 4,
+      "text_digest": "a0978882f9641b00beeccdea2a5e7c96122ab8a0853cc61a2170a275e792bff4",
+      "official_cid": 10012,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 92958307,
+      "local_name": "娱乐伙伴表演尾声",
+      "local_type": 4,
+      "text_digest": "d66c2d276060db70a3eef6c963fa061d4dbcf3a4865acd3408278da0c57d427a",
+      "official_cid": 12379,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 93217231,
+      "local_name": "毒蛇供物",
+      "local_type": 4,
+      "text_digest": "5c82bab1939a90ce272cca01c980769190f29af16dc2609242d98c2f57bded13",
+      "official_cid": 7476,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 93382620,
+      "local_name": "命之纲",
+      "local_type": 4,
+      "text_digest": "94f5234816211688c446df1998cfe46da864d7b91b92732e14bb8527ff046a9f",
+      "official_cid": 5287,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 93775296,
+      "local_name": "反转重用",
+      "local_type": 4,
+      "text_digest": "f3e0660e6ffedcd1205c114a536e9f6af0db02921e77651aac646650e552338b",
+      "official_cid": 11915,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 95096437,
+      "local_name": "义贼的极意书",
+      "local_type": 4,
+      "text_digest": "8cd0766172f91eeecc7ba44b70af71d0f14ee3a20328f6f3968b6ed03c6aebca",
+      "official_cid": 7136,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 98427577,
+      "local_name": "废铁稻草人",
+      "local_type": 4,
+      "text_digest": "ce3570d8d7bb5df37e39f1f211c3e4f02c3ad8872e43eb3ab77b77cb8d8dad0c",
+      "official_cid": 7694,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 98444741,
+      "local_name": "积累的幸福",
+      "local_type": 4,
+      "text_digest": "30c2ccffca0fc1d1568e689aa67ef15d7ed9689b3d158b270d982b4366c3cc26",
+      "official_cid": 6916,
+      "group": "short-traps-04"
+    },
+    {
+      "code": 98643358,
+      "local_name": "冰晶",
+      "local_type": 4,
+      "text_digest": "c4b4498c4ff4bb3b916353ee3a599cea8fd32f90e9b94775292b4c9ad3b18d93",
+      "official_cid": 10859,
+      "group": "short-traps-04"
+    }
+  ],
+  "updated_cards": [],
+  "pending": [
+    {
+      "code": 61705417,
+      "name": "盗墓者",
+      "status": "needs_ruling",
+      "reason": "盗墓者到回合结束的跨区域借用追踪尚缺完整官方依据，尤其已盖放/作其它用途时的到期位置；完整候选保留，不能只记加手和伤害就升reviewed。"
+    },
+    {
+      "code": 62325062,
+      "name": "黏着的落穴",
+      "status": "needs_ruling",
+      "reason": "黏着的落穴复数同时特殊召唤时处理数量未在现有官方补足明确，先保留原本攻击力减半候选，补全证据后再接纳。"
+    },
+    {
+      "code": 10759529,
+      "name": "小子防御",
+      "status": "needs_ruling",
+      "reason": "小子防御的攻击无效与检索处理在前段失败时的因果边界未由当前补足确认；未按顿号猜测and/then，完整候选保留。"
+    },
+    {
+      "code": 63571750,
+      "name": "王家的财宝",
+      "status": "requires_schema",
+      "reason": "王家的财宝同一无编号分段含卡片发动与独立手卡陷阱效果；需要不伪造获赋关系的独立子效果协议才能隔离费用、对象及区域。"
+    },
+    {
+      "code": 95448692,
+      "name": "伤害瘦身",
+      "status": "requires_schema",
+      "reason": "伤害瘦身同一无编号分段含卡片发动及墓地除外费用的独立效果；目前无法独立匹配两种发动区域和伤害范围，保留候选待模型升级。"
+    }
+  ],
+  "query_cases": [
+    {
+      "code": 78211862,
+      "query": {
+        "action": "stat_change",
+        "cost_kind": "discard"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "弃牌费用加攻"
+    },
+    {
+      "code": 79333300,
+      "query": {
+        "action": "return_deck"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "回卡组底/额外"
+    },
+    {
+      "code": 85080048,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "雷族召唤后破坏"
+    },
+    {
+      "code": 85352446,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "按处理时等级破坏"
+    },
+    {
+      "code": 90934570,
+      "query": {
+        "action": "banish"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "己方除外是处理"
+    },
+    {
+      "code": 98444741,
+      "query": {
+        "action": "draw"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "连锁4抽卡"
+    },
+    {
+      "code": 5577649,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "表侧魔陷全破坏"
+    },
+    {
+      "code": 9201964,
+      "query": {
+        "action": "end_battle_phase",
+        "cost_kind": "banish"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "除外费用结束BP"
+    },
+    {
+      "code": 17688543,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "opponent_grave"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "延迟苏生也含对方墓地"
+    },
+    {
+      "code": 22020907,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "deck"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "战破触发卡组特召"
+    },
+    {
+      "code": 22205600,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "固定2对象"
+    },
+    {
+      "code": 23681456,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "hand"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "手卡特召"
+    },
+    {
+      "code": 23924608,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "区间对象破坏"
+    },
+    {
+      "code": 38049934,
+      "query": {
+        "action": "destroy",
+        "cost_kind": "banish"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "非对象破坏"
+    },
+    {
+      "code": 57047293,
+      "query": {
+        "action": "negate_effect"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "自己狱火机无效"
+    },
+    {
+      "code": 80280737,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "deck"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "爆裂体来自卡组"
+    },
+    {
+      "code": 81791932,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "爬虫类特召"
+    },
+    {
+      "code": 89041555,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "破坏后同时伤害"
+    },
+    {
+      "code": 93382620,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "复活加攻"
+    },
+    {
+      "code": 93775296,
+      "query": {
+        "action": "special_summon",
+        "to_zone": "opponent_monster"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "由自己给对方场上特召"
+    },
+    {
+      "code": 78211862,
+      "query": {
+        "action": "discard_hand"
+      },
+      "expected_keys": [],
+      "reason": "费用不是弃牌能力"
+    },
+    {
+      "code": 90934570,
+      "query": {
+        "cost_kind": "banish"
+      },
+      "expected_keys": [],
+      "reason": "不把效果除外误作费用"
+    },
+    {
+      "code": 9201964,
+      "query": {
+        "action": "banish"
+      },
+      "expected_keys": [],
+      "reason": "除外是费用"
+    },
+    {
+      "code": 23924608,
+      "query": {
+        "action": "lock"
+      },
+      "expected_keys": [],
+      "reason": "BP前文为非效果"
+    },
+    {
+      "code": 38049934,
+      "query": {
+        "action": "banish"
+      },
+      "expected_keys": [],
+      "reason": "全部熔岩除外费用"
+    },
+    {
+      "code": 93775296,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "opponent_grave"
+      },
+      "expected_keys": [],
+      "reason": "不能取对方墓地怪兽"
+    },
+    {
+      "code": 3868277,
+      "query": {
+        "action": "return_deck"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "本卡已经逐项核对的处理正例"
+    },
+    {
+      "code": 22869904,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "本卡已经逐项核对的处理正例"
+    },
+    {
+      "code": 36690018,
+      "query": {
+        "action": "reverse_coin_effect"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "本卡已经逐项核对的处理正例"
+    },
+    {
+      "code": 50470982,
+      "query": {
+        "action": "toss_coin"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "本卡已经逐项核对的处理正例"
+    },
+    {
+      "code": 60530944,
+      "query": {
+        "action": "require_player_send_grave"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "本卡已经逐项核对的处理正例"
+    },
+    {
+      "code": 63545861,
+      "query": {
+        "action": "return_deck"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "本卡已经逐项核对的处理正例"
+    },
+    {
+      "code": 67232306,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "本卡已经逐项核对的处理正例"
+    },
+    {
+      "code": 72022087,
+      "query": {
+        "action": "return_deck"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "本卡已经逐项核对的处理正例"
+    },
+    {
+      "code": 87106146,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "本卡已经逐项核对的处理正例"
+    },
+    {
+      "code": 1005587,
+      "query": {
+        "action": "negate_effect"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "本卡已经逐项核对的处理正例"
+    },
+    {
+      "code": 4450854,
+      "query": {
+        "action": "add_hand"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "本卡已经逐项核对的处理正例"
+    },
+    {
+      "code": 23327298,
+      "query": {
+        "action": "add_hand"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "本卡已经逐项核对的处理正例"
+    },
+    {
+      "code": 28493337,
+      "query": {
+        "action": "lock"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "本卡已经逐项核对的处理正例"
+    },
+    {
+      "code": 39900763,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "本卡已经逐项核对的处理正例"
+    },
+    {
+      "code": 53442500,
+      "query": {
+        "action": "draw"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "本卡已经逐项核对的处理正例"
+    },
+    {
+      "code": 58621589,
+      "query": {
+        "action": "set_position"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "本卡已经逐项核对的处理正例"
+    },
+    {
+      "code": 65810489,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "本卡已经逐项核对的处理正例"
+    },
+    {
+      "code": 72563071,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "本卡已经逐项核对的处理正例"
+    },
+    {
+      "code": 22869904,
+      "query": {
+        "action": "send_grave"
+      },
+      "expected_keys": [],
+      "reason": "送墓只是条件"
+    },
+    {
+      "code": 36690018,
+      "query": {
+        "action": "toss_coin"
+      },
+      "expected_keys": [],
+      "reason": "不重新投币"
+    },
+    {
+      "code": 60530944,
+      "query": {
+        "action": "send_grave"
+      },
+      "expected_keys": [],
+      "reason": "作用于玩家不是陷阱效果送墓"
+    },
+    {
+      "code": 63545861,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [],
+      "reason": "没有效果破坏"
+    },
+    {
+      "code": 72022087,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [],
+      "reason": "补足误写不产生破坏能力"
+    },
+    {
+      "code": 87106146,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [],
+      "reason": "战伤只是条件"
+    },
+    {
+      "code": 4450854,
+      "query": {
+        "from_zone": "deck"
+      },
+      "expected_keys": [],
+      "reason": "来源表侧额外，不是主卡组"
+    },
+    {
+      "code": 28493337,
+      "query": {
+        "action": "banish"
+      },
+      "expected_keys": [],
+      "reason": "手卡除外是费用"
+    },
+    {
+      "code": 39900763,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "banished",
+        "to_zone": "opponent_monster"
+      },
+      "expected_keys": [],
+      "reason": "两方处理项不混接"
+    },
+    {
+      "code": 65810489,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [],
+      "reason": "自身破坏只是触发条件"
+    },
+    {
+      "code": 72563071,
+      "query": {
+        "action": "discard_hand"
+      },
+      "expected_keys": [],
+      "reason": "弃牌是费用"
+    },
+    {
+      "code": 72885174,
+      "query": {
+        "action": "banish"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐卡审核处理正例"
+    },
+    {
+      "code": 79178930,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐卡审核处理正例"
+    },
+    {
+      "code": 98427577,
+      "query": {
+        "action": "set_card"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工逐卡审核处理正例"
+    },
+    {
+      "code": 98643358,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐卡审核处理正例"
+    },
+    {
+      "code": 981540,
+      "query": {
+        "action": "protect"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐卡审核处理正例"
+    },
+    {
+      "code": 5609226,
+      "query": {
+        "action": "protect"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐卡审核处理正例"
+    },
+    {
+      "code": 20638610,
+      "query": {
+        "action": "banish"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工逐卡审核处理正例"
+    },
+    {
+      "code": 30488793,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐卡审核处理正例"
+    },
+    {
+      "code": 37580756,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工逐卡审核处理正例"
+    },
+    {
+      "code": 46337945,
+      "query": {
+        "action": "add_hand"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐卡审核处理正例"
+    },
+    {
+      "code": 51099515,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工逐卡审核处理正例"
+    },
+    {
+      "code": 54658815,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工逐卡审核处理正例"
+    },
+    {
+      "code": 57006589,
+      "query": {
+        "action": "replace_damage_with_recovery"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐卡审核处理正例"
+    },
+    {
+      "code": 60534585,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐卡审核处理正例"
+    },
+    {
+      "code": 60743819,
+      "query": {
+        "action": "send_grave"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工逐卡审核处理正例"
+    },
+    {
+      "code": 64815084,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐卡审核处理正例"
+    },
+    {
+      "code": 67630339,
+      "query": {
+        "action": "perform_battle_damage_calculation"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐卡审核处理正例"
+    },
+    {
+      "code": 75078585,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工逐卡审核处理正例"
+    },
+    {
+      "code": 76641981,
+      "query": {
+        "action": "take_control"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐卡审核处理正例"
+    },
+    {
+      "code": 81218874,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐卡审核处理正例"
+    },
+    {
+      "code": 72885174,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "banished"
+      },
+      "expected_keys": [],
+      "reason": "回场不是特召"
+    },
+    {
+      "code": 98427577,
+      "query": {
+        "action": "negate_effect"
+      },
+      "expected_keys": [],
+      "reason": "只无效攻击"
+    },
+    {
+      "code": 981540,
+      "query": {
+        "action": "prevent_damage"
+      },
+      "expected_keys": [],
+      "reason": "战伤减半不是变0"
+    },
+    {
+      "code": 51099515,
+      "query": {
+        "action": "banish"
+      },
+      "expected_keys": [],
+      "reason": "除外是费用"
+    },
+    {
+      "code": 54658815,
+      "query": {
+        "action": "special_summon",
+        "to_zone": "extra_monster_zone"
+      },
+      "expected_keys": [],
+      "reason": "不是特召到己方额外区"
+    },
+    {
+      "code": 57006589,
+      "query": {
+        "action": "heal"
+      },
+      "expected_keys": [],
+      "reason": "本卡自身不是回复处理"
+    },
+    {
+      "code": 57006589,
+      "query": {
+        "action": "negate_effect"
+      },
+      "expected_keys": [],
+      "reason": "不无效来源效果"
+    },
+    {
+      "code": 67630339,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [],
+      "reason": "进行战斗不等于效果伤害"
+    },
+    {
+      "code": 75078585,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [],
+      "reason": "战破只是条件"
+    },
+    {
+      "code": 81218874,
+      "query": {
+        "action": "heal"
+      },
+      "expected_keys": [],
+      "reason": "支付费用不是回复"
+    },
+    {
+      "code": 89569453,
+      "query": {
+        "action": "banish"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工逐项审核能力正例"
+    },
+    {
+      "code": 92958307,
+      "query": {
+        "action": "set_position"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工逐项审核能力正例"
+    },
+    {
+      "code": 93217231,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工逐项审核能力正例"
+    },
+    {
+      "code": 95096437,
+      "query": {
+        "action": "discard_hand"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐项审核能力正例"
+    },
+    {
+      "code": 4433488,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工逐项审核能力正例"
+    },
+    {
+      "code": 8414337,
+      "query": {
+        "action": "lock"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐项审核能力正例"
+    },
+    {
+      "code": 34351849,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐项审核能力正例"
+    },
+    {
+      "code": 47393199,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工逐项审核能力正例"
+    },
+    {
+      "code": 55008284,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐项审核能力正例"
+    },
+    {
+      "code": 56916805,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐项审核能力正例"
+    },
+    {
+      "code": 58990631,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐项审核能力正例"
+    },
+    {
+      "code": 62279055,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工逐项审核能力正例"
+    },
+    {
+      "code": 64437633,
+      "query": {
+        "action": "return_hand"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐项审核能力正例"
+    },
+    {
+      "code": 69122763,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐项审核能力正例"
+    },
+    {
+      "code": 4466015,
+      "query": {
+        "action": "remove_counter"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐项审核能力正例"
+    },
+    {
+      "code": 13438207,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐项审核能力正例"
+    },
+    {
+      "code": 18816758,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐项审核能力正例"
+    },
+    {
+      "code": 24425055,
+      "query": {
+        "action": "set_card"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工逐项审核能力正例"
+    },
+    {
+      "code": 26647858,
+      "query": {
+        "action": "lock"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐项审核能力正例"
+    },
+    {
+      "code": 34002992,
+      "query": {
+        "action": "replace_damage_with_recovery"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐项审核能力正例"
+    },
+    {
+      "code": 95096437,
+      "query": {
+        "action": "discard_hand",
+        "cost_kind": "discard"
+      },
+      "expected_keys": [],
+      "reason": "固定后续效果无丢弃费用"
+    },
+    {
+      "code": 95096437,
+      "query": {
+        "action": "discard_hand",
+        "timing": "fast_window"
+      },
+      "expected_keys": [],
+      "reason": "弃手新连锁不是父层自由陷阱发动时点"
+    },
+    {
+      "code": 4433488,
+      "query": {
+        "action": "send_grave"
+      },
+      "expected_keys": [],
+      "reason": "素材送墓仅是条件"
+    },
+    {
+      "code": 47393199,
+      "query": {
+        "action": "tribute"
+      },
+      "expected_keys": [],
+      "reason": "解放是费用"
+    },
+    {
+      "code": 56916805,
+      "query": {
+        "action": "hand_reveal"
+      },
+      "expected_keys": [],
+      "reason": "计算手卡数不确认内容"
+    },
+    {
+      "code": 62279055,
+      "query": {
+        "action": "negate_effect"
+      },
+      "expected_keys": [],
+      "reason": "只无效攻击"
+    },
+    {
+      "code": 64437633,
+      "query": {
+        "action": "use_as_ritual_material"
+      },
+      "expected_keys": [],
+      "reason": "不是正规仪式召唤"
+    },
+    {
+      "code": 4466015,
+      "query": {
+        "cost_kind": "remove_counter"
+      },
+      "expected_keys": [],
+      "reason": "取除是处理"
+    },
+    {
+      "code": 13438207,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [],
+      "reason": "战破只是条件"
+    },
+    {
+      "code": 18816758,
+      "query": {
+        "action": "return_hand"
+      },
+      "expected_keys": [],
+      "reason": "回手是费用"
+    },
+    {
+      "code": 24425055,
+      "query": {
+        "action": "discard_hand"
+      },
+      "expected_keys": [],
+      "reason": "丢手是费用"
+    },
+    {
+      "code": 34002992,
+      "query": {
+        "action": "heal"
+      },
+      "expected_keys": [],
+      "reason": "伤害替代不是本卡立即回复"
+    },
+    {
+      "code": 35464895,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐卡核对的处理正例"
+    },
+    {
+      "code": 39103226,
+      "query": {
+        "action": "require_player_send_grave"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工逐卡核对的处理正例"
+    },
+    {
+      "code": 43262273,
+      "query": {
+        "action": "hand_reveal"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工逐卡核对的处理正例"
+    },
+    {
+      "code": 48814566,
+      "query": {
+        "action": "banish"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工逐卡核对的处理正例"
+    },
+    {
+      "code": 49587034,
+      "query": {
+        "action": "banish"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工逐卡核对的处理正例"
+    },
+    {
+      "code": 62271284,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐卡核对的处理正例"
+    },
+    {
+      "code": 72453068,
+      "query": {
+        "action": "set_lp"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工逐卡核对的处理正例"
+    },
+    {
+      "code": 77505534,
+      "query": {
+        "action": "send_grave"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工逐卡核对的处理正例"
+    },
+    {
+      "code": 16964437,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工逐卡核对的处理正例"
+    },
+    {
+      "code": 28378427,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐卡核对的处理正例"
+    },
+    {
+      "code": 36280194,
+      "query": {
+        "action": "add_hand"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐卡核对的处理正例"
+    },
+    {
+      "code": 76972801,
+      "query": {
+        "action": "protect"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐卡核对的处理正例"
+    },
+    {
+      "code": 77847678,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐卡核对的处理正例"
+    },
+    {
+      "code": 80036543,
+      "query": {
+        "action": "draw"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工逐卡核对的处理正例"
+    },
+    {
+      "code": 89040386,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐卡核对的处理正例"
+    },
+    {
+      "code": 89914395,
+      "query": {
+        "action": "grant_extra_attack"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工逐卡核对的处理正例"
+    },
+    {
+      "code": 35464895,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [],
+      "reason": "战破是条件"
+    },
+    {
+      "code": 39103226,
+      "query": {
+        "action": "send_grave"
+      },
+      "expected_keys": [],
+      "reason": "作用于玩家不是直接效果送墓"
+    },
+    {
+      "code": 43262273,
+      "query": {
+        "action": "heal"
+      },
+      "expected_keys": [],
+      "reason": "支付不是回复"
+    },
+    {
+      "code": 48814566,
+      "query": {
+        "cost_kind": "banish"
+      },
+      "expected_keys": [],
+      "reason": "己方除外是效果"
+    },
+    {
+      "code": 49587034,
+      "query": {
+        "action": "hand_reveal"
+      },
+      "expected_keys": [],
+      "reason": "随机取1不确认全手卡"
+    },
+    {
+      "code": 62271284,
+      "query": {
+        "action": "negate_attack"
+      },
+      "expected_keys": [],
+      "reason": "不无效攻击"
+    },
+    {
+      "code": 72453068,
+      "query": {
+        "action": "heal"
+      },
+      "expected_keys": [],
+      "reason": "设值不是回复"
+    },
+    {
+      "code": 72453068,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [],
+      "reason": "设值不是伤害"
+    },
+    {
+      "code": 16964437,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [],
+      "reason": "受伤只是条件"
+    },
+    {
+      "code": 28378427,
+      "query": {
+        "action": "discard_hand"
+      },
+      "expected_keys": [],
+      "reason": "丢弃是费用"
+    },
+    {
+      "code": 89040386,
+      "query": {
+        "action": "send_grave"
+      },
+      "expected_keys": [],
+      "reason": "破坏不推导送墓"
+    },
+    {
+      "code": 89914395,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [],
+      "reason": "两次攻击不是效果伤害"
+    },
+    {
+      "code": 17427333,
+      "query": {
+        "action": "destroy",
+        "cost_kind": "tribute"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "费用原本攻击力确定动态对象上限"
+    },
+    {
+      "code": 17427333,
+      "query": {
+        "action": "tribute"
+      },
+      "expected_keys": [],
+      "reason": "解放只是发动费用"
+    }
+  ],
+  "semantic_cases": [
+    {
+      "code": 93775296,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "processing",
+        0,
+        "to_zones"
+      ],
+      "expected": [
+        "opponent_monster"
+      ],
+      "reason": "精确去向只为对方怪兽区；查询monster是含双方的上位范围"
+    },
+    {
+      "code": 90934570,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "cost"
+      ],
+      "expected": [],
+      "reason": "入魔除外为效果"
+    },
+    {
+      "code": 85352446,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "targeting",
+        0,
+        "count"
+      ],
+      "expected": 1,
+      "reason": "参照1只对象等级"
+    },
+    {
+      "code": 93775296,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "targeting",
+        0,
+        "max_count"
+      ],
+      "expected": 2,
+      "reason": "固定范围不用count_max"
+    },
+    {
+      "code": 38049934,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "targeting"
+      ],
+      "expected": [],
+      "reason": "炎尘爆发非对象"
+    },
+    {
+      "code": 23924608,
+      "path": [
+        "effects",
+        1,
+        "structure",
+        "usage"
+      ],
+      "expected": [],
+      "reason": "BP约束不是名称次数"
+    },
+    {
+      "code": 17688543,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "processing",
+        0,
+        "creates_chain"
+      ],
+      "expected": false,
+      "reason": "准备阶段延迟处理不另开连锁"
+    },
+    {
+      "code": 65810489,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "trap_effect",
+      "reason": "墓地发动陷阱效果，不是卡片发动"
+    },
+    {
+      "code": 1005587,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "targeting"
+      ],
+      "expected": [],
+      "reason": "处理时选1只，不取对象"
+    },
+    {
+      "code": 4450854,
+      "path": [
+        "effects",
+        1,
+        "structure",
+        "usage"
+      ],
+      "expected": [
+        "name_activation_once"
+      ],
+      "reason": "同名卡片发动次数"
+    },
+    {
+      "code": 67232306,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "targeting"
+      ],
+      "expected": [],
+      "reason": "攻击对象不等于效果取对象"
+    },
+    {
+      "code": 72022087,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "targeting",
+        0,
+        "count"
+      ],
+      "expected": 2,
+      "reason": "固定2对象，但可部分处理"
+    },
+    {
+      "code": 98427577,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "processing",
+        0,
+        "then",
+        0,
+        "cannot_activate_set_turn"
+      ],
+      "expected": true,
+      "reason": "再次盖放仍受同回合限制"
+    },
+    {
+      "code": 981540,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "processing",
+        1,
+        "recipient"
+      ],
+      "expected": "self",
+      "reason": "保护对方怪兽时减半的仍是发动者战伤"
+    },
+    {
+      "code": 5609226,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "processing",
+        0,
+        "duration"
+      ],
+      "expected": "下个回合结束时，按2014-07-10改读，不是结束阶段开始",
+      "reason": "旧结束阶段措辞按官方改读"
+    },
+    {
+      "code": 57006589,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "processing",
+        0,
+        "applies_at"
+      ],
+      "expected": "source_effect_resolution",
+      "reason": "改变伤害在原效果处理时适用"
+    },
+    {
+      "code": 92958307,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "targeting",
+        0,
+        "count_rule",
+        "mode"
+      ],
+      "expected": "up_to",
+      "reason": "对象是动态上限，不是固定N或无界"
+    },
+    {
+      "code": 93217231,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "cost"
+      ],
+      "expected": [],
+      "reason": "爬虫类也是破坏对象而非费用"
+    },
+    {
+      "code": 56916805,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "processing",
+        0,
+        "continuous_recalculation"
+      ],
+      "expected": false,
+      "reason": "处理时手卡数冻结"
+    },
+    {
+      "code": 13438207,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "processing",
+        0,
+        "damage_formula"
+      ],
+      "expected": "被战破送墓怪兽卡片记载的原本攻击力",
+      "reason": "不是战斗时临时攻击力"
+    },
+    {
+      "code": 36280194,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "targeting",
+        0,
+        "min_count"
+      ],
+      "expected": 1,
+      "reason": "最多3必须至少1"
+    },
+    {
+      "code": 89914395,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "processing",
+        0,
+        "attack_limit_per_battle_phase"
+      ],
+      "expected": 2,
+      "reason": "合计2次而非增加2次"
+    },
+    {
+      "code": 72453068,
+      "path": [
+        "effects",
+        1,
+        "structure",
+        "processing",
+        0,
+        "amount_rule",
+        "evaluated_at"
+      ],
+      "expected": "resolution",
+      "reason": "动态LP在处理时确定"
+    }
+  ],
+  "purpose_cases": [
+    {
+      "code": 60530944,
+      "effect_key": "m-all",
+      "role": "breakers",
+      "expected": true,
+      "reason": "迫使对方玩家送墓保留解场候选，仅攻击宣言响应窗口不视为持续终场干扰"
+    },
+    {
+      "code": 39103226,
+      "effect_key": "m1",
+      "role": "breakers",
+      "expected": true,
+      "reason": "迫使对方玩家送墓保留解场候选，仅攻击宣言响应窗口不视为持续终场干扰"
+    },
+    {
+      "code": 8414337,
+      "effect_key": "m-all",
+      "role": "endboards",
+      "expected": false,
+      "reason": "迫使对方玩家送墓保留解场候选，仅攻击宣言响应窗口不视为持续终场干扰"
+    }
+  ]
+}

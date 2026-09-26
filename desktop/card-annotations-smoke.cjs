@@ -237,5 +237,19 @@ module.exports = async ({page, application, root, evidence, pass}) => {
   assert.equal((await page.evaluate(()=>api('/api/annotations',{op:'query',q:'91663373',etags:['etag:hand-look']}))).total,1);
   const conflict=await page.evaluate(()=>api('/api/annotations',{op:'card',code:23421244}));
   assert.equal(conflict.status,'none');
+  // Player requirements and delayed trap effects stay separate from direct actions.
+  for (const [code,action,expected] of [[60530944,'require_player_send_grave',1],[60530944,'send_grave',0],
+      [57006589,'replace_damage_with_recovery',1],[57006589,'heal',0],[67630339,'perform_battle_damage_calculation',1],
+      [67630339,'burn',0],[65810489,'special_summon',1]]) {
+    const result=await page.evaluate(([code,action])=>api('/api/annotations',{op:'query',q:String(code),action}),[code,action]);
+    assert.equal(result.total,expected);
+  }
+  assert.equal((await page.evaluate(()=>api('/api/annotations',{op:'query',q:'95096437',action:'discard_hand',timing:'fast_window'}))).total,0);
+  assert.equal((await page.evaluate(()=>api('/api/annotations',{op:'query',q:'95096437',action:'discard_hand'}))).total,1);
+  await reset();
+  await selectCard(72453068);
+  await page.waitForFunction(()=>!annoUI.busy);
+  assert.match(await page.locator('#anno-detail .anno-struct').allTextContents().then(rows=>rows.join(' ')),/对方.*LP.*少1000/);
+  assert.equal((await page.evaluate(()=>api('/api/annotations',{op:'card',code:63571750}))).status,'none');
   pass('Card annotations: Chinese series folders, aliases, covers, colours, collapsed filters/art, monster symbols, queries and personal corrections');
 };

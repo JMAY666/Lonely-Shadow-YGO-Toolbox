@@ -153,3 +153,13 @@ python scripts/check_annotation_source_batch.py --runtime .local/YGOPro-Lite --m
 ```powershell
 python scripts/check_annotation_source_batch.py --runtime .local/YGOPro-Lite --manifest docs/card-annotation-batch-2026-09-26-monsters2.json --source-pack .local/annotation-handoff/20260925-catalog-all-14981
 ```
+
+## 2026-09-26 通常陷阱第四组
+
+从保留的20张检查点继续，固定100张全部处理，接纳95张，累计2488条；盗墓者、黏着的落穴、小子防御保留具体裁定缺口，王家的财宝、伤害瘦身因同一无编号段的两个独立效果尚不能隔离检索而暂缓。它们是本批明确未接纳项，不计入正式覆盖，也不伪造获赋关系来套用现有模型。
+
+四项新动作、对方除外状态、回手费用及动态LP规则的定义见[体系规范](card-annotation-system.md)。义贼的极意书固定后续处理独立匹配，仍是原陷阱效果；作用于玩家的送墓保留解场候选，只有己方攻击宣言响应窗口的封锁不推导持续终场干扰。完整名单与验证见[本批清单](card-annotation-batch-2026-09-26-traps4.json)、[1.49.6验收](verification-1.49.6.md)。
+
+```powershell
+python scripts/check_annotation_source_batch.py --runtime .local/YGOPro-Lite --manifest docs/card-annotation-batch-2026-09-26-traps4.json --source-pack .local/annotation-handoff/20260925-catalog-all-14981
+```

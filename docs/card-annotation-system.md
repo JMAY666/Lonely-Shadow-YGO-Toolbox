@@ -251,6 +251,23 @@ notes[]                       效果级备注（含来源引用）
 
 ## 5. 审核状态与来源追溯
 
+### 通常陷阱04的玩家处理与伤害规则
+
+以下四个动作保留具体协议，不从关键词或未来卡片能力生成TAG，也不执行实际局面操作。每项须含非空`selector.text`。
+
+| 动作 | 参数与正例 | 反例 |
+| --- | --- | --- |
+| `reverse_coin_effect` | `from_zones=['monster']`、`count=1`、`mode=swap_current_heads_tails_effects`、`requires_actual_coin_effect=true`、`new_coin_toss=false`。逆转的命运只对调已实际投币获赋的表／里效果 | 不重新投币，不对光之结界未投币选择的效果适用，不推导目标的未知能力 |
+| `require_player_send_grave` | `players`为不重复的self／opponent列表，怪兽区来源与适用玩家对应；`to_zones=['grave','opponent_grave']`、`destination_rule=each_sent_cards_owner_grave`保留原持有者去向。`remaining_rule=one_attribute_per_player/one_monster`，双方选择时`selection_order=turn_player_first`、一方时`affected_player`；`simultaneous=true`、`is_effect_movement=false`、`respects_monster_immunity=false`，禁止固定`count`。异种斗争及地磅计量 | 是要求玩家行动，不是直接`send_grave`，不赋予直接送墓TAG；不能把选择玩家等同于原持有者并固定送该玩家墓地 |
+| `replace_damage_with_recovery` | `recipient=self`、`preserves_other_processing=true`。直接连锁来源用`source_effect=directly_chained_opponent_effect,applies_at=source_effect_resolution`；本回合战斗／效果伤害用`source_effect=battle_and_effect_damage_this_turn,applies_at=each_damage_event`并登记`duration`。能量吸收板、虹之生命 | 不使用固定`amount`，不表示本卡立即`heal`或无效原效果，不追回先前已受伤害 |
+| `perform_battle_damage_calculation` | `from_zones=['opponent_monster']`、`attacker_rule=second_direct_attacker_this_battle_phase`、`defender_rule=first_direct_attacker_this_battle_phase`、`requires_distinct_instances=true`、`is_effect_damage=false`，不登记`to_zones`。混乱箔片 | 不等于效果烧血，不把同一怪兽两次直接攻击当成两个实例，不因攻击对象而记录效果取对象 |
+
+作用于玩家的送墓依据见[异种斗争官方补足](https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=8365&ope=4&request_locale=ja)；控制者与原持有者区别见[官方FAQ11875](https://www.db.yugioh-card.com/yugiohdb/faq_search.action?fid=11875&ope=5&request_locale=ja)。墓地区域并集表达可能去向，不表示一张卡同时进入两个墓地。解场候选只表示可能迫使对方移走怪兽，数量与当前合法性仍需局面核对。`attack_response_only`为布尔值，表示仅己方攻击宣言响应窗口的限制；可查限制TAG，但不据此计入持续终场干扰，旧无该字段条目不自动推断或迁移。
+
+新增`zones.opponent_banished`明确对方除外状态，不改旧`banished`查询范围、不自动迁移旧区域，也不从未细分旧字段推断所有权。新增`cost_kinds.return_hand_cost`表示明确场上卡返回持有者手卡作为发动费用，来源、数量及限制由费用文字记录，不产生回手能力TAG。
+
+`set_lp`须恰好提供固定非负整数`amount`或动态`amount_rule`之一。动态规则只允许`text`（非空计算依据）和`evaluated_at=resolution`，例如伤停补时按处理时对方LP减1000设置自己LP；不得混写固定数值、添加可执行表达式或把时点写为activation。沿用原固定amount的旧数据；设置LP不等同伤害或回复。这里仅保存和显示文字依据，不求解当前LP。
+
 ### 怪兽02批的攻击手续与伤害性质
 
 `actions.require_attack_return`表达《霞之谷的猎鹰》（82199284）攻击宣言的回手手续：`from_zones`为场上范围，`to_zones`为`hand`／`opponent_hand`的明确集合、`count=1`、`executor=self`、`exclude_source_instance=true`、`payment_timing=attack_declaration`及`is_effect_movement=false`。须实际回到持有者手卡，不能选本卡实例、衍生物或回额外卡组的怪兽。它不是`return_hand`处理，也不是效果发动的费用，不产生`etag:add-hand`；已有本批资料不改写为效果回手。[官方补足](https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=8109&ope=4&request_locale=ja)和关联FAQ支持攻击手续与被效果回手的区别。

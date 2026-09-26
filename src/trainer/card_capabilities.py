@@ -39,12 +39,15 @@ def purpose_candidates(effect):
     nodes = list(processing_nodes(structure.get('processing')))
     actions = {row.get('action') for row in nodes}
     disruptive_lock = any(row.get('action') == 'lock' and not row.get('self_only')
-                          and not row.get('summon_response_only') for row in nodes)
+                          and not row.get('summon_response_only') and not row.get('attack_response_only') for row in nodes)
     interaction = bool(actions & {'negate_effect', 'negate_activation'}) or disruptive_lock
     removal = {'destroy', 'banish', 'send_grave', 'return_deck', 'return_hand', 'add_hand', 'take_control', 'set_position'}
     opposing_removal = any(row.get('action') in removal and (
         any(zone.startswith('opponent_') for zone in row.get('from_zones') or [])
         or '对方' in (row.get('selector') or {}).get('text', '')) for row in nodes)
+    forced_opposing_send = any(row.get('action') == 'require_player_send_grave'
+                              and 'opponent' in (row.get('players') or []) for row in nodes)
+    opposing_removal = opposing_removal or forced_opposing_send
     result = []
     if 'hand' in zones and activation.get('fast_effect') and (interaction or opposing_removal):
         result.append({'role': 'handtraps', 'label': ROLE_NAMES['handtraps'],
@@ -53,7 +56,8 @@ def purpose_candidates(effect):
             any(zone.startswith('opponent_') for zone in row.get('from_zones') or [])
             or '对方' in (row.get('selector') or {}).get('text', '')) for row in nodes):
         result.append({'role': 'breakers', 'label': ROLE_NAMES['breakers'],
-                       'reason': '存在处理对方卡牌的分支；对象、费用与能否使用需要另行核对。'})
+                       'reason': ('要求对方玩家送走怪兽，未直接作用于怪兽；实际数量及能否使用需要局面核对。'
+                                  if forced_opposing_send else '存在处理对方卡牌的分支；对象、费用与能否使用需要另行核对。')})
     if zones & {'monster', 'spell', 'field', 'field_spell', 'pendulum', 'grave', 'banished'} and (
             activation.get('fast_effect') and (interaction or opposing_removal)
             or effect.get('effect_type') in ('continuous', 'spell_continuous') and (disruptive_lock or 'protect' in actions)):

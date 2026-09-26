@@ -181,7 +181,7 @@ class CapabilityTests(unittest.TestCase):
         self.assertIn('handtraps', {row['role'] for row in purpose_candidates(effect)})
 
     def test_self_restriction_and_summon_response_lock_are_not_endboard_interactions(self):
-        for qualifier in ('self_only', 'summon_response_only'):
+        for qualifier in ('self_only', 'summon_response_only', 'attack_response_only'):
             with self.subTest(qualifier=qualifier):
                 effect = simple_effect('m1', 1, ['etag:lock'], [
                     {'action': 'lock', qualifier: True, 'selector': {'text': '仅自身不能攻击或本次召唤成功响应封锁'}}])
@@ -204,6 +204,17 @@ class CapabilityTests(unittest.TestCase):
             {'action': 'lock', 'self_only': True}, {'action': 'negate_activation'}])
         effect['structure']['activation'].update(zones=['monster'], fast_effect=True)
         self.assertIn('endboards', {row['role'] for row in purpose_candidates(effect)})
+
+    def test_forced_opponent_send_has_a_candidate_role_without_a_direct_send_tag(self):
+        action={'action':'require_player_send_grave','players':['opponent'],'from_zones':['opponent_monster'],
+                'to_zones':['opponent_grave'],'selector':{'text':'对方玩家自己选择送走怪兽'}}
+        effect=simple_effect('m1',1,[],[action]);effect['structure']['activation'].update(zones=['spell'],fast_effect=True)
+        roles=purpose_candidates(effect)
+        self.assertIn('breakers',{r['role'] for r in roles})
+        self.assertIn('玩家',next(r['reason'] for r in roles if r['role']=='breakers'))
+        self.assertEqual(effect['tags'],[])
+        action.update(players=['self'],from_zones=['monster'],to_zones=['grave'])
+        self.assertNotIn('breakers',{r['role'] for r in purpose_candidates(effect)})
 
     def test_multiline_crlf_card_keeps_same_effect_reference(self):
         text = SEARCHER + '\n处理范围的补充说明。'

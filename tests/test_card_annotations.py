@@ -347,6 +347,66 @@ class CardAnnotationTests(unittest.TestCase):
         only_none = self.service.search({'etags': ['etag:add-hand'], 'status': ['none']})
         self.assertEqual(only_none['total'], 0)
 
+    def test_trap_semantic_actions_reject_wrong_players_events_and_damage_kinds(self):
+        samples = [
+            {'action':'reverse_coin_effect','from_zones':['monster'],'count':1,'mode':'swap_current_heads_tails_effects',
+             'requires_actual_coin_effect':True,'new_coin_toss':False},
+            {'action':'require_player_send_grave','players':['self','opponent'],'from_zones':['monster','opponent_monster'],
+             'to_zones':['grave','opponent_grave'],'remaining_rule':'one_attribute_per_player','selection_order':'turn_player_first',
+             'simultaneous':True,'is_effect_movement':False,'respects_monster_immunity':False,'destination_rule':'each_sent_cards_owner_grave'},
+            {'action':'replace_damage_with_recovery','recipient':'self','source_effect':'directly_chained_opponent_effect',
+             'applies_at':'source_effect_resolution','preserves_other_processing':True},
+            {'action':'perform_battle_damage_calculation','from_zones':['opponent_monster'],
+             'attacker_rule':'second_direct_attacker_this_battle_phase','defender_rule':'first_direct_attacker_this_battle_phase',
+             'requires_distinct_instances':True,'is_effect_damage':False},
+        ]
+        for item in samples:
+            validate_entry(self.rule_action_entry(item, []),self.service.registry,card_type=2)
+        changes = [
+            (0,'count',True),(0,'count',2),(0,'mode','reroll'),(0,'requires_actual_coin_effect',False),(0,'new_coin_toss',True),
+            (1,'players',['opponent','opponent']),(1,'players',[{},[]]),(1,'players',[]),(1,'to_zones',['grave']),
+            (1,'selection_order','any'),(1,'is_effect_movement',True),(1,'respects_monster_immunity',True),(1,'count',1),
+            (2,'recipient','opponent'),(2,'applies_at','activation'),(2,'preserves_other_processing',False),(2,'amount',2000),
+            (3,'attacker_rule','any_attacker'),(3,'requires_distinct_instances',False),(3,'is_effect_damage',True),(3,'to_zones',['grave']),
+        ]
+        for index,field,value in changes:
+            with self.subTest(index=index,field=field,value=value):
+                item=deepcopy(samples[index]);item[field]=value
+                with self.assertRaises(ValueError):validate_entry(self.rule_action_entry(item,[]),self.service.registry,card_type=2)
+        for index in (0,2,3):
+            for tag in ('etag:draw','etag:effect-damage','etag:recover-lp'):
+                with self.assertRaisesRegex(ValueError,'TAG 与处理'):
+                    validate_entry(self.rule_action_entry(samples[index],[tag]),self.service.registry,card_type=2)
+
+    def test_dynamic_lp_rule_is_not_fixed_amount_damage_or_recovery(self):
+        action={'action':'set_lp','recipient':'self','amount_rule':{'text':'处理时对方LP减1000','evaluated_at':'resolution'}}
+        entry=self.rule_action_entry(action,[])
+        validate_entry(entry,self.service.registry,card_type=2)
+        for changes in ({'amount':3000},{'amount_rule':None},{'amount_rule':{}},
+                        {'amount_rule':{'text':'','evaluated_at':'resolution'}},
+                        {'amount_rule':{'text':'对方LP减1000','evaluated_at':'activation'}},
+                        {'amount_rule':{'text':'对方LP减1000','evaluated_at':'resolution','expression':'evaluate()'}}):
+            with self.subTest(changes=changes):
+                with self.assertRaises(ValueError):validate_entry(self.rule_action_entry({**action,**changes},[]),self.service.registry,card_type=2)
+        self.write_curated(lambda entries:entries.update({'20000001':entry}));self.service.reload()
+        self.assertEqual(self.service.search({'q':'20000001','action':'set_lp'})['total'],1)
+        for tag in ('etag:effect-damage','etag:recover-lp'):
+            self.assertEqual(self.service.search({'q':'20000001','etags':[tag]})['total'],0)
+        fixed={**action,'amount':0};del fixed['amount_rule']
+        validate_entry(self.rule_action_entry(fixed,[]),self.service.registry,card_type=2)
+
+    def test_opponent_banished_queries_do_not_borrow_another_players_destination(self):
+        item={'action':'special_summon','from_zones':['opponent_banished'],'to_zones':['opponent_monster'],'count':1}
+        entry=self.rule_action_entry(item,['etag:special-summon'])
+        self.write_curated(lambda entries:entries.update({'20000001':entry}));self.service.reload()
+        self.assertEqual(self.service.search({'q':'20000001','action':'special_summon','from_zone':'opponent_banished','to_zone':'opponent_monster'})['total'],1)
+        self.assertEqual(self.service.search({'q':'20000001','action':'special_summon','from_zone':'banished','to_zone':'opponent_monster'})['total'],0)
+        effect=entry['effects'][0];effect['structure']['processing']=[{'action':'destroy'}];effect['tags']=['etag:destroy']
+        effect['structure']['cost']=[{'kind':'return_hand_cost','text':'把自己场上1只怪兽返回持有者手卡'}]
+        self.write_curated(lambda entries:entries.update({'20000001':entry}));self.service.reload()
+        self.assertEqual(self.service.search({'q':'20000001','cost_kind':'return_hand_cost'})['total'],1)
+        self.assertEqual(self.service.search({'q':'20000001','action':'return_hand'})['total'],0)
+
     def test_attack_return_is_a_procedure_not_an_effect_return_or_activation_cost(self):
         item = {'action': 'require_attack_return', 'selector': {'text': '攻击宣言须返回其它卡'},
                 'from_zones': ['field'], 'to_zones': ['hand', 'opponent_hand'], 'count': 1,

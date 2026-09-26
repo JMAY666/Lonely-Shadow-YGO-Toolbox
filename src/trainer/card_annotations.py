@@ -198,7 +198,8 @@ def _check_rule_action(item, where):
                  'place_deck_bottom', 'increase_pendulum_summon_limit', 'win_duel',
                  'place_and_use_spell', 'return_to_field'}
     supported.update({'skip_turn', 'swap_lp', 'change_attribute', 'change_equip_target', 'shuffle_deck',
-                      'require_attack_return', 'convert_battle_damage'})
+                      'require_attack_return', 'convert_battle_damage', 'reverse_coin_effect',
+                      'require_player_send_grave', 'replace_damage_with_recovery', 'perform_battle_damage_calculation'})
     if action not in supported: return
     where = f'{where} {action}'
     _check_text((item.get('selector') or {}).get('text', ''), f'{where}选择器')
@@ -212,6 +213,50 @@ def _check_rule_action(item, where):
     def boolean(field):
         if type(item.get(field)) is not bool: raise ValueError(f'{where} {field}须为布尔值')
     players = {'self', 'opponent', 'both'}
+    if action == 'reverse_coin_effect':
+        if item.get('from_zones') != ['monster']:
+            raise ValueError(f'{where}须登记己方怪兽区来源')
+        integer('count')
+        if item['count'] != 1: raise ValueError(f'{where}只处理1只对象')
+        choice('mode', {'swap_current_heads_tails_effects'})
+        if item.get('requires_actual_coin_effect') is not True or item.get('new_coin_toss') is not False:
+            raise ValueError(f'{where}须有实际投币获赋效果且不重新投币')
+        return
+    if action == 'require_player_send_grave':
+        affected = item.get('players')
+        if not isinstance(affected, list) or not affected or any(type(p) is not str for p in affected) \
+                or len(set(affected)) != len(affected) or not set(affected) <= {'self', 'opponent'}:
+            raise ValueError(f'{where}须明确不重复的适用玩家')
+        expected_from = {'monster' if p == 'self' else 'opponent_monster' for p in affected}
+        expected_to = {'grave', 'opponent_grave'}
+        if set(item.get('from_zones') or []) != expected_from or set(item.get('to_zones') or []) != expected_to:
+            raise ValueError(f'{where}玩家须对应来源，墓地去向须保留持有者两种可能')
+        choice('destination_rule', {'each_sent_cards_owner_grave'})
+        choice('remaining_rule', {'one_attribute_per_player', 'one_monster'})
+        choice('selection_order', {'turn_player_first'} if len(affected) == 2 else {'affected_player'})
+        if item.get('simultaneous') is not True or item.get('is_effect_movement') is not False \
+                or item.get('respects_monster_immunity') is not False or 'count' in item:
+            raise ValueError(f'{where}须明确同时、作用于玩家、非效果移动且不编造固定数量')
+        return
+    if action == 'replace_damage_with_recovery':
+        choice('recipient', {'self'})
+        choice('source_effect', {'directly_chained_opponent_effect', 'battle_and_effect_damage_this_turn'})
+        if item.get('preserves_other_processing') is not True or 'amount' in item:
+            raise ValueError(f'{where}须保留来源其他处理且不编造固定回复量')
+        if item['source_effect'] == 'directly_chained_opponent_effect':
+            choice('applies_at', {'source_effect_resolution'})
+        else:
+            choice('applies_at', {'each_damage_event'})
+            text_field('duration')
+        return
+    if action == 'perform_battle_damage_calculation':
+        if item.get('from_zones') != ['opponent_monster'] or 'to_zones' in item:
+            raise ValueError(f'{where}须明确两只对方怪兽且不登记区域移动')
+        choice('attacker_rule', {'second_direct_attacker_this_battle_phase'})
+        choice('defender_rule', {'first_direct_attacker_this_battle_phase'})
+        if item.get('requires_distinct_instances') is not True or item.get('is_effect_damage') is not False:
+            raise ValueError(f'{where}须为不同实例的战斗计算，不能冒充效果伤害')
+        return
     if action == 'require_attack_return':
         if not item.get('from_zones') or not set(item['from_zones']) <= {'field'} | ZONE_GROUPS['field']:
             raise ValueError(f'{where}须明确场上来源')
@@ -354,7 +399,16 @@ def _check_rule_action(item, where):
         if 'shuffle_source_after' in item: boolean('shuffle_source_after')
     elif action == 'set_lp':
         choice('recipient', players)
-        integer('amount', 0)
+        if ('amount' in item) == ('amount_rule' in item):
+            raise ValueError(f'{where}须恰好一种固定amount或动态amount_rule')
+        if 'amount_rule' in item:
+            rule = item['amount_rule']
+            if not isinstance(rule, dict) or set(rule) != {'text', 'evaluated_at'} \
+                    or rule.get('evaluated_at') != 'resolution':
+                raise ValueError(f'{where}动态LP规则须有文字依据及resolution时点')
+            _check_text(rule.get('text'), f'{where}动态LP依据', 400)
+        else:
+            integer('amount', 0)
     elif action == 'replace_draw_with_discard':
         choice('source_activation', {'draw_only_effect'})
         choice('quantity', {'cards_that_would_be_drawn'})
@@ -418,7 +472,7 @@ def _check_processing(items, registry, where, reviewed=False, card_type=None):
             if 'recipient' in item:
                 raise ValueError(f'{where}事件决定的玩家规则不能同时指定固定recipient')
         if item.get('action') == 'lock':
-            for qualifier in ('self_only', 'summon_response_only'):
+            for qualifier in ('self_only', 'summon_response_only', 'attack_response_only'):
                 if qualifier in item and type(item[qualifier]) is not bool:
                     raise ValueError(f'{where}限制范围 {qualifier} 须为布尔值')
         count = item.get('count')
