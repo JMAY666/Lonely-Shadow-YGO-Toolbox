@@ -144,12 +144,20 @@ function annoProcessingLines(items, registry, indent = '') {
   for (const item of items || []) {
     const action = registry.actions[item.action] || item.action;
     const count = item.count === undefined ? '' : `×${item.count === 'up_to_1' ? '至多1' : item.count === 'all' ? '全部' : item.count}`;
+    const rule = item.count_rule;
     const zones = (zonesText) => zonesText ? zonesText.map(zone => registry.zones[zone] || zone).join('／') : '';
     const flow = [zones(item.from_zones), zones(item.to_zones)].filter(Boolean).join(' → ');
     const selector = item.selector?.text || item.evidence || '';
     if (item.branch) lines.push(`${indent}分支 ${item.branch}（选择其一）：`);
     if (item.condition) lines.push(`${indent}前提：${item.condition}`);
     lines.push(`${indent}${item.optional ? '可选：' : ''}${action}${count}${flow ? `（${flow}）` : ''}${selector ? `：${selector}` : ''}`);
+    if (item.min_count !== undefined && item.max_count !== undefined) {
+      lines.push(`${indent}　数量：${item.max_count === null ? `至少${item.min_count}个` : `${item.min_count}至${item.max_count}个`}`);
+    }
+    if (rule && ['exact', 'up_to'].includes(rule.mode) && ['activation', 'resolution'].includes(rule.evaluated_at)) {
+      const quantity = rule.mode === 'exact' ? '动态固定：N个' : `动态上限：${rule.minimum}至N个`;
+      lines.push(`${indent}　数量：${quantity}，N＝${rule.text}（${rule.evaluated_at === 'activation' ? '发动' : '处理'}时确定）`);
+    }
     if (item.duration) lines.push(`${indent}　持续：${item.duration}`);
     if (item.position) lines.push(`${indent}　表示形式：${item.position}`);
     for (const restriction of item.restrictions || []) lines.push(`${indent}　限制：${restriction}`);

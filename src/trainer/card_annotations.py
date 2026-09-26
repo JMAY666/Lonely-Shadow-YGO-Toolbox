@@ -450,9 +450,9 @@ def _check_rule_action(item, where):
         choice('used_spell_targeting_timing', {'resolution'})
     elif action == 'return_to_field':
         if item.get('count') != 'all': integer('count')
-        if item['from_zones'] != ['banished'] or not item.get('to_zones') \
+        if item['from_zones'] not in (['banished'], ['opponent_banished']) or not item.get('to_zones') \
                 or not set(item['to_zones']) <= {'field'} | ZONE_GROUPS['field']:
-            raise ValueError(f'{where}须从banished返回场上区域')
+            raise ValueError(f'{where}须从明确的自己或对方除外状态返回场上区域')
         text_field('position')
         text_field('resolution_timing')
         boolean('delayed')
@@ -468,6 +468,15 @@ def _check_processing(items, registry, where, reviewed=False, card_type=None):
     for item in items:
         if not isinstance(item, dict): raise ValueError(f'{where}处理项无效')
         registry.require('actions', item.get('action'), where)
+        if item['action'] == 'halve_lp':
+            selector = item.get('selector')
+            if not isinstance(selector, dict): raise ValueError(f'{where}基本分减半须有选择说明')
+            _check_text(selector.get('text', ''), f'{where}基本分减半依据', 400)
+            if (item.get('recipient') not in ('self', 'opponent', 'both')
+                    or item.get('evaluated_at') != 'resolution'
+                    or item.get('is_effect_damage') is not False or item.get('is_payment') is not False
+                    or any(field in item for field in ('amount', 'amount_rule', 'recipient_rule', 'count', 'count_rule', 'min_count', 'max_count', 'from_zones', 'to_zones'))):
+                raise ValueError(f'{where}基本分减半须明确承受者和处理时点，且不是伤害或支付')
         if item.get('action') == 'extra_reveal' and (not item.get('from_zones')
                 or not set(item['from_zones']) <= {'extra', 'opponent_extra'}):
             raise ValueError(f'{where}额外卡组确认须明确自己或对方额外区域')
@@ -486,6 +495,25 @@ def _check_processing(items, registry, where, reviewed=False, card_type=None):
                 if qualifier in item and type(item[qualifier]) is not bool:
                     raise ValueError(f'{where}限制范围 {qualifier} 须为布尔值')
         count = item.get('count')
+        if 'min_count' in item or 'max_count' in item:
+            minimum, maximum = item.get('min_count'), item.get('max_count')
+            if ('count' in item or 'count_rule' in item or 'min_count' not in item or 'max_count' not in item
+                    or type(minimum) is not int or minimum < 0
+                    or (maximum is not None and (type(maximum) is not int or maximum < minimum))):
+                raise ValueError(f'{where}处理数量区间无效，须完整且不混用数量规则')
+        if 'count_rule' in item:
+            rule = item['count_rule']
+            if any(field in item for field in ('count', 'min_count', 'max_count')):
+                raise ValueError(f'{where}动态处理数量不能与固定数量或区间混用')
+            if not isinstance(rule, dict) or set(rule) - {'mode', 'text', 'evaluated_at', 'minimum'}:
+                raise ValueError(f'{where}动态处理数量字段无效')
+            if rule.get('mode') not in ('exact', 'up_to') or rule.get('evaluated_at') not in ('activation', 'resolution'):
+                raise ValueError(f'{where}动态处理数量须明确模式和取值时点')
+            _check_text(rule.get('text', ''), f'{where}动态处理数量依据', 400)
+            if rule['mode'] == 'exact':
+                if 'minimum' in rule: raise ValueError(f'{where}动态固定处理数量不能含minimum')
+            elif type(rule.get('minimum')) is not int or rule['minimum'] < 0:
+                raise ValueError(f'{where}动态处理数量上限须有非负整数minimum')
         if count is not None and not (isinstance(count, int) or count in ('all', 'up_to_1') or re.fullmatch(r'\d+', str(count))):
             raise ValueError(f'{where}数量无效')
         for field in ('from_zones', 'to_zones'):

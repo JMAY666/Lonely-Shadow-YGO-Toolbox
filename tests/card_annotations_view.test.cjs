@@ -329,3 +329,18 @@ test('art popover stays inside viewport near right and bottom edges', () => {
     assert.ok(p.left+258<=808&&p.top+385<=608);
   }
 });
+
+test('processing quantities show when N is determined and preserve constant bounds', () => {
+  const e=setup();
+  const lines=e.annoProcessingLines([
+    {action:'destroy',selector:{text:'魔陷'},count_rule:{mode:'up_to',minimum:1,text:'处理时其他HERO数量',evaluated_at:'resolution'}},
+    {action:'draw',selector:{text:'按卡数抽卡'},count_rule:{mode:'exact',text:'发动时已选卡数',evaluated_at:'activation'}},
+    {action:'special_summon',min_count:1,max_count:2},
+    {action:'destroy',min_count:2,max_count:null},
+    {action:'special_summon',count:1}],registry).join('\n');
+  assert.match(lines,/动态上限：1至N个，N＝处理时其他HERO数量（处理时确定）/);
+  assert.match(lines,/动态固定：N个，N＝发动时已选卡数（发动时确定）/);
+  assert.match(lines,/数量：1至2个/);
+  assert.match(lines,/数量：至少2个/);
+  assert.match(lines,/特殊召唤×1/);
+});

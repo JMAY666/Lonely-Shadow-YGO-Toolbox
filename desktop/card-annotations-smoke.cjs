@@ -270,5 +270,27 @@ module.exports = async ({page, application, root, evidence, pass}) => {
   await page.locator('#anno-detail details').evaluateAll(nodes=>nodes.forEach(node=>node.open=true));
   assert.match(await page.locator('#anno-detail').textContent(),/400/);
   await page.screenshot({path:path.join(evidence,'annotations-fast-series-stage01.png')});
+  // 1.49.8: dynamic processing quantities, LP changes and new per-event scopes.
+  for (const [code,action,expected,extra] of [[42421606,'halve_lp',1,{}],[42421606,'burn',0,{}],
+      [54725177,'return_to_field',1,{from_zone:'opponent_banished'}],
+      [54725177,'special_summon',0,{from_zone:'opponent_banished'}],
+      [55727845,'stat_change',1,{usage:'attack_declaration_once'}],
+      [56832966,'stat_change',1,{usage:'damage_calculation_once'}],
+      [46382143,'special_summon',1,{usage:'name_apply_once'}],
+      [49221191,'negate_effect',0,{}]]) {
+    const result=await page.evaluate(([code,action,extra])=>api('/api/annotations',{op:'query',q:String(code),action,...extra}),[code,action,extra]);
+    assert.equal(result.total,expected);
+  }
+  for (const [code,quantity] of [[40044918,/动态上限：1至N个.*处理时确定/],
+                               [39030163,/数量：1至2个/]]) {
+    await reset();
+    await selectCard(code);
+    await page.waitForFunction(()=>!annoUI.busy);
+    await page.locator('#anno-detail details').evaluateAll(nodes=>nodes.forEach(node=>node.open=true));
+    assert.match(await page.locator('#anno-detail').textContent(),quantity);
+  }
+  const frozenRule=await page.evaluate(()=>api('/api/capabilities',{op:'card',code:40044918}));
+  assert.ok(frozenRule.effects.some(effect=>effect.facts.some(fact=>/处理时确定/.test(fact.text))));
+  await page.screenshot({path:path.join(evidence,'annotations-fast-series-stage02.png')});
   pass('Card annotations: Chinese series folders, aliases, covers, colours, collapsed filters/art, monster symbols, queries and personal corrections');
 };

@@ -108,6 +108,14 @@ class CardCapabilities:
                 value = registry.action_label(row.get('action', ''))
                 selector = (row.get('selector') or {}).get('text')
                 if selector: value += '：' + selector
+                if 'min_count' in row and 'max_count' in row:
+                    quantity = f"至少{row['min_count']}个" if row['max_count'] is None else f"{row['min_count']}至{row['max_count']}个"
+                    value += '；数量 ' + quantity
+                rule = row.get('count_rule')
+                if isinstance(rule, dict) and rule.get('mode') in ('exact', 'up_to') and rule.get('evaluated_at') in ('activation', 'resolution'):
+                    quantity = '动态固定：N个' if rule['mode'] == 'exact' else f"动态上限：{rule.get('minimum', '')}至N个"
+                    timing = '发动' if rule['evaluated_at'] == 'activation' else '处理'
+                    value += f"；数量 {quantity}，N＝{rule.get('text', '')}（{timing}时确定）"
                 if row.get('from_zones'): value += '；来源 ' + '、'.join(registry.zone_label(z) for z in row['from_zones'])
                 if row.get('to_zones'): value += '；去向 ' + '、'.join(registry.zone_label(z) for z in row['to_zones'])
                 if row.get('restrictions'): value += '；限制 ' + '；'.join(row['restrictions'])

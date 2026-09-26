@@ -169,3 +169,13 @@ python scripts/check_annotation_source_batch.py --runtime .local/YGOPro-Lite --m
 ## 1.49.7 首阶段续接
 
 原386张清单前100张已处理，81核准合并、19具体问题待核实；286张尚未处理。后续从.local/annotation-pipeline/fast-series-01/task.json第101项与最新规范库继续，不重复统计已入库81条。共用动作、次数、动态数值和未知查询字段门禁见体系规范；[逐卡清单](card-annotation-batch-2026-09-26-fast-series-stage01.json)及[本阶段验收](verification-1.49.7.md)保留结果。自动模板不计为审核，尚未核实独立单元不套用虚构获赋关系。
+
+## 1.49.8 最新续接位置
+
+第101～240项已逐卡处理，新增113条，27条具体待核实；累计2,682条。原386项任务前240项现有194条已合并、46条待核实，剩146项未处理，下一项为第241项62107981《元素英雄 小花蕾》。读取原任务和最新决策，不覆盖原清单或重复计数。新动态处理数量、LP减半与事件次数见体系规范。[本批清单](card-annotation-batch-2026-09-26-fast-series-stage02.json)包含正反查询、语义和用途边界；[本版验收](verification-1.49.8.md)区分来源身份复查和逐卡规则审核。
+
+```powershell
+python scripts/check_annotation_source_batch.py --runtime .local/YGOPro-Lite --manifest docs/card-annotation-batch-2026-09-26-fast-series-stage02.json --source-pack .local/annotation-handoff/20260925-catalog-all-14981 --supplemental-root .local/annotation-integration-20260926/corrected-identity-pack --full
+```
+
+无本地资料目录时省略两个来源参数，只可验证结构与查询，不能声称来源快照已重验。

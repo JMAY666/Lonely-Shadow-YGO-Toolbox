@@ -63,6 +63,27 @@ class CapabilityTests(unittest.TestCase):
         fact = next(row['text'] for row in self.capabilities.facts(legacy) if row['label'] == '对象')
         self.assertEqual(fact, '2 原快照2只以上的文字')
 
+    def test_processing_quantity_facts_and_report_snapshots_remain_read_only(self):
+        processing = [{'action': 'add_hand', 'from_zones': ['deck'], 'to_zones': ['hand'],
+                       'selector': {'text': '由处理时卡数量决定'},
+                       'count_rule': {'mode': 'exact', 'text': '处理时卡数量', 'evaluated_at': 'resolution'}},
+                      {'action': 'add_hand', 'from_zones': ['grave'], 'to_zones': ['hand'],
+                       'min_count': 1, 'max_count': 2}]
+        self.write_curated(lambda entries: entries['20000001']['effects'][0]['structure'].update(processing=deepcopy(processing)))
+        self.service.reload()
+        card = self.capabilities.card(20000001)
+        text = ' '.join(fact['text'] for fact in card['effects'][0]['facts'])
+        self.assertIn('动态固定：N个，N＝处理时卡数量（处理时确定）', text)
+        self.assertIn('数量 1至2个', text)
+        report = {'catalog': {'20000001': {'desc': SEARCHER}}, 'branches': []}
+        self.capabilities.freeze_report(report)
+        self.assertEqual(report['annotation_snapshot']['20000001']['effects'][0]['structure']['processing'], processing)
+        before = deepcopy(report)
+        processing[0]['count_rule']['text'] = '新值'
+        self.capabilities.freeze_report(report)
+        self.assertEqual(report, before)
+        self.assertFalse(self.service.path.exists())
+
     def test_dynamic_target_facts_show_exact_or_upper_bound_basis_and_freeze_the_rule(self):
         targets = [
             {'count_rule': {'mode': 'exact', 'text': '作为费用解放的连接怪兽的连接标记数量',

@@ -1496,6 +1496,96 @@ class CardAnnotationTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_entry(invalid, self.service.registry, {'m1'}, card_type=2)
 
+    def test_processing_quantity_rules_preserve_context_and_reject_conflicts(self):
+        entry = make_entry(20000001, SEARCHER, [simple_effect('m1', 1, ['etag:destroy'],
+                    [{'action': 'destroy', 'from_zones': ['spell'],
+                      'selector': {'text': '按其他HERO数选择魔陷'},
+                      'count_rule': {'mode': 'up_to', 'minimum': 1,
+                                     'text': '处理时其他HERO数量', 'evaluated_at': 'resolution'}}])])
+        entry['effects'][0]['effect_type'] = 'spell_activation'
+        entry['effects'][0]['structure']['activation']['fast_effect'] = False
+        validate_entry(entry, self.service.registry, {'m1'}, card_type=2)
+        bad_rules = [
+            {'mode': 'up_to', 'text': 'N', 'evaluated_at': 'resolution'},
+            {'mode': 'up_to', 'minimum': True, 'text': 'N', 'evaluated_at': 'resolution'},
+            {'mode': 'up_to', 'minimum': -1, 'text': 'N', 'evaluated_at': 'resolution'},
+            {'mode': 'exact', 'minimum': 0, 'text': 'N', 'evaluated_at': 'activation'},
+            {'mode': 'exact', 'text': '', 'evaluated_at': 'resolution'},
+            {'mode': 'exact', 'text': 'N', 'evaluated_at': 'later'},
+            {'mode': 'exact', 'text': 'N', 'evaluated_at': 'resolution', 'execute': True}]
+        for rule in bad_rules:
+            invalid = deepcopy(entry)
+            invalid['effects'][0]['structure']['processing'][0]['count_rule'] = rule
+            with self.assertRaises(ValueError):
+                validate_entry(invalid, self.service.registry, {'m1'}, card_type=2)
+        for field in ('count', 'min_count', 'max_count'):
+            invalid = deepcopy(entry)
+            invalid['effects'][0]['structure']['processing'][0][field] = 1
+            with self.assertRaises(ValueError):
+                validate_entry(invalid, self.service.registry, {'m1'}, card_type=2)
+        self.write_curated(lambda entries: entries.update({'20000001': entry}))
+        self.service.reload()
+        self.assertEqual(self.service.search({'action': 'destroy', 'from_zone': 'spell'})['total'], 1)
+        self.assertEqual(self.service.search({'action': 'destroy', 'from_zone': 'grave'})['total'], 0)
+
+    def test_processing_ranges_and_half_lp_do_not_become_damage_or_costs(self):
+        entry = make_entry(20000001, SEARCHER, [simple_effect('m1', 1, ['etag:destroy'],
+                  [{'action': 'destroy', 'from_zones': ['spell'], 'min_count': 1, 'max_count': 2}])])
+        entry['effects'][0]['effect_type'] = 'spell_activation'
+        entry['effects'][0]['structure']['activation']['fast_effect'] = False
+        validate_entry(entry, self.service.registry, {'m1'}, card_type=2)
+        for changes in ({'min_count': True}, {'max_count': True}, {'min_count': -1},
+                        {'max_count': 0}, {'count': 1}, {'count_rule': {}}, {'min_count': None}):
+            invalid = deepcopy(entry)
+            invalid['effects'][0]['structure']['processing'][0].update(changes)
+            with self.assertRaises(ValueError):
+                validate_entry(invalid, self.service.registry, {'m1'}, card_type=2)
+        for missing in ('min_count', 'max_count'):
+            invalid = deepcopy(entry)
+            invalid['effects'][0]['structure']['processing'][0].pop(missing)
+            with self.assertRaises(ValueError):
+                validate_entry(invalid, self.service.registry, {'m1'}, card_type=2)
+        effect = entry['effects'][0]
+        effect['tags'] = []
+        half = {'action': 'halve_lp', 'selector': {'text': '对方当前LP减半'},
+                'recipient': 'opponent', 'evaluated_at': 'resolution',
+                'is_effect_damage': False, 'is_payment': False}
+        effect['structure']['processing'] = [half]
+        validate_entry(entry, self.service.registry, {'m1'}, card_type=2)
+        for changes in ({'recipient': 'owner'}, {'evaluated_at': 'activation'},
+                        {'is_payment': True}, {'is_effect_damage': True},
+                        {'amount': 1000}, {'amount_rule': {}}, {'recipient_rule': 'owner'},
+                        {'count': 1}, {'count_rule': {}}, {'min_count': 1, 'max_count': 2},
+                        {'from_zones': ['grave']}, {'selector': {}}, {'selector': []}):
+            invalid = deepcopy(entry)
+            invalid['effects'][0]['structure']['processing'][0].update(changes)
+            with self.assertRaises(ValueError):
+                validate_entry(invalid, self.service.registry, {'m1'}, card_type=2)
+        self.write_curated(lambda entries: entries.update({'20000001': entry}))
+        self.service.reload()
+        self.assertEqual(self.service.search({'action': 'halve_lp'})['total'], 1)
+        self.assertEqual(self.service.search({'action': 'burn'})['total'], 0)
+        self.assertEqual(self.service.search({'cost_kind': 'lp'})['total'], 0)
+
+    def test_opponent_temporary_banishment_returns_without_special_summoning(self):
+        entry = make_entry(20000001, SEARCHER, [simple_effect('m1', 1, [],
+                    [{'action': 'return_to_field', 'selector': {'text': '按原表示返回对方怪兽区'},
+                      'from_zones': ['opponent_banished'], 'to_zones': ['opponent_monster'], 'count': 1,
+                      'position': '原表示', 'resolution_timing': '结束阶段', 'delayed': True,
+                      'creates_chain': False, 'counts_as_special_summon': False}])])
+        entry['effects'][0]['effect_type'] = 'spell_activation'
+        entry['effects'][0]['structure']['activation']['fast_effect'] = False
+        validate_entry(entry, self.service.registry, {'m1'}, card_type=2)
+        for zones in (['grave'], ['banished', 'opponent_banished']):
+            invalid = deepcopy(entry)
+            invalid['effects'][0]['structure']['processing'][0]['from_zones'] = zones
+            with self.assertRaises(ValueError):
+                validate_entry(invalid, self.service.registry, {'m1'}, card_type=2)
+        self.write_curated(lambda entries: entries.update({'20000001': entry}))
+        self.service.reload()
+        self.assertEqual(self.service.search({'q': '20000001', 'action': 'return_to_field', 'from_zone': 'opponent_banished'})['total'], 1)
+        self.assertEqual(self.service.search({'q': '20000001', 'action': 'special_summon'})['total'], 0)
+
     def test_distinct_usage_scopes_and_additive_attribute(self):
         effect = simple_effect('m1', 1, ['etag:stat-change'],
                               [{'action': 'change_attribute', 'selector': {'text': '追加光，保留暗'},
