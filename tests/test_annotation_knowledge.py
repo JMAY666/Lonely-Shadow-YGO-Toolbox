@@ -46,6 +46,22 @@ class AnnotationKnowledgeTests(unittest.TestCase):
         self.assertFalse(self.sync.upgrade())
         self.assertEqual(before, self.store.library.path.read_bytes())
 
+    def test_build_keeps_fixed_granted_constraints_in_purpose_and_opening_conditions(self):
+        path = Path(__file__).resolve().parents[1] / 'src/trainer/card-annotations.json'
+        actual = deepcopy(json.loads(path.read_text('utf-8'))['cards']['15092394'])
+        actual['code'] = 20000003
+        self.store.catalog.cards[20000003]['desc'] = actual['frozen_text']
+        self.write_curated(lambda entries: entries.update({'20000003': actual}))
+        self.service.reload()
+        compiled = self.sync.build()
+        values = (compiled['libraries']['breakers']['20000003']['condition'],
+                  compiled['opening']['20000003:m1']['condition'])
+        for value in values:
+            self.assertIn('固定获赋效果：以下效果须另行满足', value)
+            self.assertIn('固定获赋效果·时点：自己主要阶段', value)
+            self.assertIn('固定获赋效果·费用：取除本卡1个素材', value)
+            self.assertIn('固定获赋效果·次数：', value)
+
     def test_annotation_change_replaces_generated_notes_and_membership(self):
         self.sync.upgrade()
         self.service.command({'op': 'add-note', 'code': 20000003, 'key': 'm2', 'text': '统一标注的新说明',

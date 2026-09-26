@@ -116,6 +116,34 @@ test('detail marks stale entries, unannotated segments and drafts as auto', () =
   assert.match(fresh, /data-anno-op="draft"/);
 });
 
+test('fixed granted effects show their own timing, costs and limits without duplicating immediate processing', () => {
+  const e = setup();
+  const vocab = {...registry, actions: {...registry.actions, grant_effect: '获得效果', burn: '效果伤害'},
+    effect_types: {trigger: '诱发效果'}, timings: {...registry.timings, end_phase: '结束阶段'},
+    cost_kinds: {...registry.cost_kinds, detach_material: '取除超量素材'}};
+  const processing = [{action: 'burn', selector: {text: '给对方1000伤害'}}];
+  const lines = e.annoStructureLines({effect_type: 'non_effect', structure: {
+    activation: {zones: ['monster'], conditions: ['仍持有指定素材']},
+    processing: [{action: 'grant_effect', then: processing, granted_effect: {
+      effect_type: 'trigger', structure: {
+        activation: {timing: 'end_phase', zones: ['monster']},
+        cost: [{kind: 'detach_material', text: '取除1个素材'}],
+        processing, usage: [], usage_text: '每个结束阶段一次'
+      }
+    }}]
+  }}, vocab);
+  assert.ok(lines.some(line => line.startsWith('适用：') && line.includes('仍持有指定素材')));
+  assert.ok(lines.some(line => line.includes('获得后的固定效果（诱发效果）')));
+  assert.ok(lines.some(line => line.includes('发动：结束阶段')));
+  assert.ok(lines.some(line => line.includes('费用：取除超量素材 — 取除1个素材')));
+  assert.ok(lines.some(line => line.includes('次数说明：每个结束阶段一次')));
+  assert.equal(lines.filter(line => line.includes('给对方1000伤害')).length, 1);
+  const continuous = e.annoStructureLines({effect_type: 'spell_continuous', structure: {
+    activation: {zones: ['spell'], conditions: ['装备状态中']}
+  }}, vocab);
+  assert.ok(continuous[0].startsWith('适用：'));
+});
+
 test('historical personal corrections stay visible and escaped outside current effects', () => {
   const e = setup();
   const html = e.annoDetailHTML({code: 1, name: '测试', type: 2, status: 'pending', digest_ok: true,

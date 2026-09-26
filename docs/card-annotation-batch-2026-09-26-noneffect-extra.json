@@ -1,0 +1,678 @@
+{
+  "version": 1,
+  "checked_on": "2026-09-26",
+  "cards": [
+    {
+      "code": 1641882,
+      "local_name": "融合体",
+      "local_type": 65,
+      "official_cid": 4195,
+      "text_digest": "8b66179a8208981c51800f26e5d8c666a68de4f506156279ae1653ddd8a4fbee",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 2504891,
+      "local_name": "骷髅祭司",
+      "local_type": 65,
+      "official_cid": 4713,
+      "text_digest": "07513c04a9e4a5addc4313c2f6ac447b5951e805c618a70e42556d247652fae6",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 3544583,
+      "local_name": "无之毕竟",
+      "local_type": 4161,
+      "official_cid": 16227,
+      "text_digest": "049a4ad689501b70e6f2cd93e5ad0537a0a6dbca9fbabb4bbce52e195ca051a0",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 3627449,
+      "local_name": "法理守护者",
+      "local_type": 129,
+      "official_cid": 4710,
+      "text_digest": "5e0ab030d3653773168ff3823b81f3d57c08665c6f2250d03a72ac777b19e831",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 4849037,
+      "local_name": "舞蹈战士",
+      "local_type": 129,
+      "official_cid": 4707,
+      "text_digest": "bb197a5391a64f94e0b0f167cdfe10162f4cfe5cef24508fe05dd2138cd71f93",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 5368615,
+      "local_name": "蒸汽旋翼机人",
+      "local_type": 65,
+      "official_cid": 6394,
+      "text_digest": "17caff52197a4488ab7495ff0de074506b984be9260c9b05de9fe27bf27cb56f",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 5405694,
+      "local_name": "混沌战士",
+      "local_type": 129,
+      "official_cid": 4370,
+      "text_digest": "c7c2a48b64c6c28e8a72fa8f9f82ea903733f2b2ad16726d551b05e01e633769",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 5405696,
+      "local_name": "混沌战士",
+      "local_type": 129,
+      "official_cid": 4370,
+      "text_digest": "c7c2a48b64c6c28e8a72fa8f9f82ea903733f2b2ad16726d551b05e01e633769",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 5600127,
+      "local_name": "人形鳞虫",
+      "local_type": 65,
+      "official_cid": 5062,
+      "text_digest": "2440925212533aedef535617471375962b383e0d4015f34bee00c30752bc7108",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 6840573,
+      "local_name": "巴洛克斯",
+      "local_type": 65,
+      "official_cid": 4092,
+      "text_digest": "d4718e68da1a40b994255703873180fb083d3b800ba7b9b171400e0a6de4fa63",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 8327462,
+      "local_name": "死亡鸟",
+      "local_type": 65,
+      "official_cid": 4527,
+      "text_digest": "cc2689f40457c7bcb347ffb93054fd8288d747c3a0bcc5888898d0ae811d0889",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 8692301,
+      "local_name": "宝石骑士·仿钻",
+      "local_type": 65,
+      "official_cid": 9820,
+      "text_digest": "deb28f78ecbda638132392f40f5b903fb3ebcd9ead64d5add6e22775277be317",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 9053187,
+      "local_name": "觉醒的勇士 魔蜥义豪",
+      "local_type": 8388609,
+      "official_cid": 10272,
+      "text_digest": "42a2f81d2d1aa3f775d146b1ed0eda060b889af1c47727d121029080938d0a2b",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 9293977,
+      "local_name": "金属龙",
+      "local_type": 65,
+      "official_cid": 4415,
+      "text_digest": "206c2dbc71d614e59fd54c034ec8d97ed3cef43e952c917dc922c051ae19b361",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 9653271,
+      "local_name": "雷神之怒",
+      "local_type": 65,
+      "official_cid": 4464,
+      "text_digest": "6f373681995438a95a3f587601ff690566ceb73ed7853a53ef6ac4ff5bdebcab",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 11901678,
+      "local_name": "暗黑魔龙",
+      "local_type": 65,
+      "official_cid": 4223,
+      "text_digest": "da80e0ed36128ca401a2302f533b57a3473dd85d78c108df4b0ea1db44d7c629",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 15237615,
+      "local_name": "下达裁决的女帝",
+      "local_type": 65,
+      "official_cid": 4578,
+      "text_digest": "e3781715d20354b2f7294ce92c64bcf298f50fb894a6c04f1810a56b03d526ed",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 16507828,
+      "local_name": "腕龙",
+      "local_type": 65,
+      "official_cid": 4515,
+      "text_digest": "ecc278bac6fcf1aa70768ef0a7eb53b7be42871a2f48fb81bb0dcaae11d4aaf0",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 16527176,
+      "local_name": "自然狮面草",
+      "local_type": 8193,
+      "official_cid": 8119,
+      "text_digest": "99c654edef4541fd3f290eb181ef3a53100066fafce7c928d974546b5b42a3db",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 17881964,
+      "local_name": "暗黑火炎龙",
+      "local_type": 65,
+      "official_cid": 4174,
+      "text_digest": "dba94a0a533c694160b092a46abc4802e470b2d7d1d0636344bc83335e1ae1c1",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 19066538,
+      "local_name": "轰鸣的大海蛇",
+      "local_type": 65,
+      "official_cid": 4229,
+      "text_digest": "e48b4ea086fb8c75dede81a8fc6bb219100fbb0acae5bc90bd39e997664e5538",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 21175632,
+      "local_name": "圣女 贞德",
+      "local_type": 65,
+      "official_cid": 5208,
+      "text_digest": "ca6bd0cf08bcedb279360d356619a303fa68e025ad9314f9ef1c00bc66305c1d",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 25655502,
+      "local_name": "恶魔箱",
+      "local_type": 65,
+      "official_cid": 4391,
+      "text_digest": "a7345a0c088af5b374bbfd5469749916573699e1845a7584c4b1c55a99397cc9",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 26932788,
+      "local_name": "标枪甲虫",
+      "local_type": 129,
+      "official_cid": 4723,
+      "text_digest": "f7bf4236cc5055ba974f05f80787a6e336ac9a8bcacedc67b5e866fcd1de8a1d",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 27134689,
+      "local_name": "OZ之主",
+      "local_type": 65,
+      "official_cid": 6127,
+      "text_digest": "1e6a51feab6320871760fe002cc709fedd9e3d745f04cde52676c1b18548dd4d",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 28593363,
+      "local_name": "深海的潜鲛",
+      "local_type": 65,
+      "official_cid": 4443,
+      "text_digest": "44ac7e05b7218142ba8f837d4e87d58edc39b223af4cda2470e16bd2c550d361",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 29929832,
+      "local_name": "海兽鱼",
+      "local_type": 65,
+      "official_cid": 4623,
+      "text_digest": "a6034c053f068da488fff14b86508c682ecea47aaa38b601e09f168788bb356a",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 30208479,
+      "local_name": "黑混沌之魔术师",
+      "local_type": 129,
+      "official_cid": 4728,
+      "text_digest": "2a000d1bf52efe30787f2f4f1c08d8bcf72117ae2134fa7c5a8bab56a3b3797c",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 30243636,
+      "local_name": "饥饿的汉堡",
+      "local_type": 129,
+      "official_cid": 4708,
+      "text_digest": "c5799c8af76a75bd4e02e6229a5c504e0bad5700bdb6f4437ca1f3935f6d567c",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 31339260,
+      "local_name": "不死战士",
+      "local_type": 65,
+      "official_cid": 4036,
+      "text_digest": "1675c0496d06b7da61171167ca53e381e3d97c8ce5ae3d90edae75ee65ef50e8",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 31890399,
+      "local_name": "恶魔镜",
+      "local_type": 129,
+      "official_cid": 4371,
+      "text_digest": "2ab61cdaa9be827ad759efc4e82281fc307b3c6339a733b58ce00e0f0f092877",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 32355828,
+      "local_name": "骸骨龙",
+      "local_type": 65,
+      "official_cid": 4551,
+      "text_digest": "68791af25cc4ac7b2ca6a9aa0aead0c43f36d9b6dd81989c4a056490f0f15735",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 32485271,
+      "local_name": "栖身蔷薇的恶灵",
+      "local_type": 65,
+      "official_cid": 4600,
+      "text_digest": "3c113d62930f000dcaa39ae3b43236b4775eb61b5a851c05732ffb9e54ff11c4",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 32751480,
+      "local_name": "砂之魔女",
+      "local_type": 65,
+      "official_cid": 4537,
+      "text_digest": "2e8fd27668cacaf425472a071a845a9999a6a990619fe9d3146c1544486b2ae0",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 33691040,
+      "local_name": "尖刺龙",
+      "local_type": 65,
+      "official_cid": 4488,
+      "text_digest": "46b2a075b87cd5cc34e0d103389faaf216025a3855160dee0bf362860ea36363",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 33951077,
+      "local_name": "超级战狮",
+      "local_type": 129,
+      "official_cid": 4362,
+      "text_digest": "f79696ce34c3501bc9242c849ecfb3d352ec994a1b00bb6cb21bea52061d6ad2",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 35752363,
+      "local_name": "朱雀",
+      "local_type": 65,
+      "official_cid": 4479,
+      "text_digest": "e038bfc14da2906bd271e9f9750b5b4f63bf9af9e2036547451c3a3baa921bf4",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 37421579,
+      "local_name": "炎之骑士 基拉",
+      "local_type": 65,
+      "official_cid": 4139,
+      "text_digest": "08497e7ca257d71ac3c5b4d1bfcff8b75ccb790bd14694c34d36b4ae787a85c8",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 40173854,
+      "local_name": "水陆两用战斗艇",
+      "local_type": 65,
+      "official_cid": 4645,
+      "text_digest": "8b25677d988304b0524f5fbf222e56e33c8f849535742ef6727751fac192fc7a",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 41248270,
+      "local_name": "流量幽灵",
+      "local_type": 67108865,
+      "official_cid": 13529,
+      "text_digest": "8e80a78e669ed1f79c7b4fd76039cdc28248d83fc6732e60b10871004808cc2e",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 41462083,
+      "local_name": "千年龙",
+      "local_type": 65,
+      "official_cid": 4075,
+      "text_digest": "9335ff522482133d64f0ff8ce6d42c62cfc9c246bd4efea5eb391b5389a1c9c4",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 41462084,
+      "local_name": "千年龙",
+      "local_type": 65,
+      "official_cid": 4075,
+      "text_digest": "9335ff522482133d64f0ff8ce6d42c62cfc9c246bd4efea5eb391b5389a1c9c4",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 41544074,
+      "local_name": "混沌男巫",
+      "local_type": 65,
+      "official_cid": 4121,
+      "text_digest": "374551b2aef011f9a0959b3a34c628770a49114da5cdb1c4c5b8598973b2f357",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 45231177,
+      "local_name": "炎之剑士",
+      "local_type": 65,
+      "official_cid": 4021,
+      "text_digest": "dcccf51e256db64bb4bc3209a3e1d66db33ecd73bdb311cc8e75d2966ad1ffdc",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 45231178,
+      "local_name": "炎之剑士",
+      "local_type": 65,
+      "official_cid": 4021,
+      "text_digest": "dcccf51e256db64bb4bc3209a3e1d66db33ecd73bdb311cc8e75d2966ad1ffdc",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 45815891,
+      "local_name": "废铁死亡恶魔",
+      "local_type": 8193,
+      "official_cid": 9202,
+      "text_digest": "664b452ecce07fbee1e4aec03247d92436123f508163ec0c8d67fe8cb042f162",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 46696593,
+      "local_name": "红阳鸟",
+      "local_type": 65,
+      "official_cid": 4473,
+      "text_digest": "63ed37e90f22d402ade8adbc9cf00bea56b4935560db3a25d29de9a0388dae73",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 49064413,
+      "local_name": "假面魔兽 鬼面修道士",
+      "local_type": 129,
+      "official_cid": 5094,
+      "text_digest": "30e0919528b162766fce04de0316734e2a1f37f03afaf2e707c55a1282bdcd98",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 51828629,
+      "local_name": "魔导骑士 基尔提亚",
+      "local_type": 65,
+      "official_cid": 4395,
+      "text_digest": "66fe9a2d4492661f7a4c6b4e7a59ab8099590f09bfca8373786c8c71c1da3e56",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 53539634,
+      "local_name": "三眼小巫师",
+      "local_type": 65,
+      "official_cid": 6128,
+      "text_digest": "234bf5498ab945a4f9322b1819eb96184623ce8771c8e1764c879d1f44b58ff7",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 54401832,
+      "local_name": "炼装勇士·绯金红巨甲",
+      "local_type": 65,
+      "official_cid": 12444,
+      "text_digest": "fccf6b5e13b25338d4c8c1fa4034fc2ffd7d34fd24659af6630c469d993dd256",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 54541900,
+      "local_name": "炭烧战士",
+      "local_type": 65,
+      "official_cid": 4049,
+      "text_digest": "0235d8b1e50fb77798fe8710f3e7930ceaddee3fda3165f59668806ae78dea23",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 54622031,
+      "local_name": "金色的魔象",
+      "local_type": 65,
+      "official_cid": 4570,
+      "text_digest": "bab7ddbf68108a57e4e0cd2a57fad8990b9668603dcb1c97ca461ffa4c8dd643",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 54752875,
+      "local_name": "双头雷龙",
+      "local_type": 65,
+      "official_cid": 4619,
+      "text_digest": "cc4cd8776ea47440a2fc3c5c143114d471e4d44d0196efeca7092b418d7449ca",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 56413937,
+      "local_name": "战场的死装束",
+      "local_type": 65,
+      "official_cid": 4624,
+      "text_digest": "30175e2c2f8a74eb81e97ffd4352cd86c73013de9ded7b0964e6e8be17b5fa2a",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 56907389,
+      "local_name": "音乐家帝王",
+      "local_type": 65,
+      "official_cid": 4501,
+      "text_digest": "4cd8ea7dde305fa02146feb8c6fc21943cefe78de32547c6956a11a58181bfea",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 58528964,
+      "local_name": "火焰幽灵",
+      "local_type": 65,
+      "official_cid": 4221,
+      "text_digest": "8d1b429b1f2361cf75f424561e1194a99ad1c8c79c370493598656926a086432",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 59036972,
+      "local_name": "奇迹鸟",
+      "local_type": 65,
+      "official_cid": 4278,
+      "text_digest": "4a72c238172c9456e97850ce0a0cece72973fa71bb69ae2ff93000236a1e5e49",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 62337487,
+      "local_name": "要塞鲸",
+      "local_type": 129,
+      "official_cid": 4724,
+      "text_digest": "8077f74312778b09d940ea5b0050b6a3c605ad02108f0f32d63819a61caf2f09",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 65393205,
+      "local_name": "查克拉",
+      "local_type": 129,
+      "official_cid": 4715,
+      "text_digest": "fd66933a509dec94cfd87201c7fab3419839804c38c0099fc20db075a62dad40",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 66889139,
+      "local_name": "龙骑士 盖亚",
+      "local_type": 65,
+      "official_cid": 4043,
+      "text_digest": "8a2e324cc2fa23e5476808463c2e47f8d51ac54d2a6462d55b8b4019b4c8fd7a",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 67598234,
+      "local_name": "电影之骑士 盖亚剑士",
+      "local_type": 67108865,
+      "official_cid": 13090,
+      "text_digest": "ea1ce8536557be2ec4f52cb567c12127cf884bccc6eea939e7925027a51dec26",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 69123138,
+      "local_name": "杰拉",
+      "local_type": 129,
+      "official_cid": 4366,
+      "text_digest": "ed54b64d3c2f82ca6e608bb1f1722a31ec7729260f636a565c40d9819ff839dc",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 70681994,
+      "local_name": "魔装骑士 德拉格尼斯",
+      "local_type": 65,
+      "official_cid": 4300,
+      "text_digest": "7c0097501f3f5eeed4fef466cc425bc5b14fdcf57475b5bab51a7b3a3c2747fd",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 71594310,
+      "local_name": "宝石骑士·珍珠",
+      "local_type": 8388609,
+      "official_cid": 9601,
+      "text_digest": "126e67d0163cd23cd89f7e6f8a475dc4638af451a50685fbacbe9c4e5b8faadf",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 72869010,
+      "local_name": "狩魂魔人",
+      "local_type": 65,
+      "official_cid": 4477,
+      "text_digest": "bb61460e2d20d97caac7278f25f5844f45bc4248d646e5a0c377d13217ae3ba8",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 74703140,
+      "local_name": "裁决之鹰",
+      "local_type": 65,
+      "official_cid": 4471,
+      "text_digest": "b4d432386fdfd9662fd59fe867f84d489f137ae3c91ca11cf76210b13e6562b1",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 77637979,
+      "local_name": "LAN喙嘴龙",
+      "local_type": 67108865,
+      "official_cid": 13530,
+      "text_digest": "b79faaf443ba21cba6a74d48dca9d64de38916655b7b2d92af8e0c057ab8aa6f",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 80516007,
+      "local_name": "珍鱼",
+      "local_type": 65,
+      "official_cid": 4236,
+      "text_digest": "c0c725273bf92ad05332d43f8894f438495a0c4bd09641a2eb318471d599935a",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 80727036,
+      "local_name": "黑色食人鲛",
+      "local_type": 65,
+      "official_cid": 4571,
+      "text_digest": "50aa2aacdd424bb0569831dc476ed95d9e7e1a5d3d12475157f60acf58743572",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 81612598,
+      "local_name": "炼装勇士·精金超人",
+      "local_type": 65,
+      "official_cid": 12442,
+      "text_digest": "1e056ca5ebae005d95cc830635b83b59abc2120976244d63b0a5ca10942e0b71",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 86164529,
+      "local_name": "水精龙",
+      "local_type": 65,
+      "official_cid": 4448,
+      "text_digest": "43b8ebb20ae208112836038fdf6c7ed167fa2fafa50ae49dbc8d4816e8dea4d9",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 89112729,
+      "local_name": "机械恐龙",
+      "local_type": 65,
+      "official_cid": 4514,
+      "text_digest": "3b68d3ffab5fac2dae9a1132a4186d93a0305b46c0dea517af39baa85de0c1c2",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 90660762,
+      "local_name": "流星黑龙",
+      "local_type": 65,
+      "official_cid": 4719,
+      "text_digest": "397e2cf9e843820d6394bee99c786828309217cc9de08aa589dd9457e36a04e1",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 90844184,
+      "local_name": "伽玛剑",
+      "local_type": 129,
+      "official_cid": 4722,
+      "text_digest": "71babba2fb6abdbd0c3bf7efec08f4e510fc2682c4e61f25efaf600b964dc4ee",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 91782219,
+      "local_name": "蟹龟",
+      "local_type": 129,
+      "official_cid": 4716,
+      "text_digest": "2eef1eb6cfd9708e667ad9ef05bfe5a153a2ef037085582e015617f353bc5c8a",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 94566432,
+      "local_name": "帝王龙",
+      "local_type": 65,
+      "official_cid": 4433,
+      "text_digest": "4037abba73c2d81d37e06d578e01b94ebffce62bb94cb7d122dd49223d35d31e",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 94905343,
+      "local_name": "牛头人马兽",
+      "local_type": 65,
+      "official_cid": 4098,
+      "text_digest": "ed0d72ba844a31de9d23116a76961e056d608a9e7d17c495e12f349b77394b89",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 95144193,
+      "local_name": "锹甲独角仙",
+      "local_type": 65,
+      "official_cid": 4539,
+      "text_digest": "f60e738aa6460d04c91b95bdec73cac5c3309f06e8639e664ffbbb6ddf8fbf76",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 95952802,
+      "local_name": "花狼",
+      "local_type": 65,
+      "official_cid": 4493,
+      "text_digest": "41732d5f69ff8ce281ee5cae7148ac9cfd7d657b8d4b09ab8156f1f7d22c8b8f",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 96334243,
+      "local_name": "忒修斯魔栖物",
+      "local_type": 4161,
+      "official_cid": 12871,
+      "text_digest": "8925721e32f849527a70cba57f913b8b7ec1394034c53aedea20c7548d0ee2b1",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 97204936,
+      "local_name": "大地之骑士 盖亚骑士",
+      "local_type": 8193,
+      "official_cid": 7697,
+      "text_digest": "664b452ecce07fbee1e4aec03247d92436123f508163ec0c8d67fe8cb042f162",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 99551425,
+      "local_name": "迷宫的魔战车",
+      "local_type": 65,
+      "official_cid": 4376,
+      "text_digest": "7c961bd6788654d8bfcca972c74a6a40975fdde2db16754d01f2ca873e87fbb2",
+      "group": "extra_or_ritual"
+    },
+    {
+      "code": 99721536,
+      "local_name": "骷髅骑手",
+      "local_type": 129,
+      "official_cid": 4725,
+      "text_digest": "31d27c7ffc9cc1d26d34e020bf98af3dfffd777804e2b2aa4371d81739c8ff65",
+      "group": "extra_or_ritual"
+    }
+  ]
+}

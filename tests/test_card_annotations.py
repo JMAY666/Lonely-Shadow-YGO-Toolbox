@@ -42,6 +42,27 @@ def simple_effect(key, number, tags, processing, usage=()):
             'notes': []}
 
 
+def fixed_grant(effect_type, tags, processing, timing='end_phase', cost=(), usage=()):
+    """An explicitly known future effect, separate from the effect granting it."""
+    child = {'effect_type': effect_type, 'tags': list(tags),
+             'structure': {'activation': {'timing': timing, 'zones': ['monster'],
+                                          'conditions': ['取得此固定效果后满足其发动条件'],
+                                          'fast_effect': effect_type == 'quick'},
+                           'cost': list(cost), 'targeting': [], 'usage': list(usage),
+                           'processing': deepcopy(processing)}}
+    return {'action': 'grant_effect', 'selector': {'text': '取得以下固定效果'},
+            'then': deepcopy(processing), 'granted_effect': child}
+
+
+def granting_effect(grants, own_processing=(), own_tags=(), cost=()):
+    tags = set(own_tags).union(*(set(grant['granted_effect']['tags']) for grant in grants))
+    effect = simple_effect('m1', 1, sorted(tags), [*own_processing, *grants])
+    effect['effect_type'] = 'spell_activation'
+    effect['own_tags'] = list(own_tags)
+    effect['structure']['cost'] = list(cost)
+    return effect
+
+
 class CardAnnotationTests(unittest.TestCase):
     def setUp(self):
         test_root = Path(__file__).resolve().parents[1] / '.local/test-runs'
@@ -249,6 +270,65 @@ class CardAnnotationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, '支付基本分处理'):
             validate_entry(entry, registry, {'m1'}, card_type=2)
 
+    def test_defense_attacks_preserve_damage_stat_and_old_attack_value(self):
+        effect = simple_effect('m1', 1, [], [{'action': 'attack_in_defense'}])
+        effect['effect_type'] = 'continuous'
+        entry = make_entry(20000001, SEARCHER, [effect])
+        validate_entry(entry, self.service.registry, {'m1'}, card_type=33)
+        action = effect['structure']['processing'][0]
+        for stat in ('atk', 'def'):
+            action['damage_calculation_stat'] = stat
+            validate_entry(entry, self.service.registry, {'m1'}, card_type=33)
+        action['damage_calculation_stat'] = 'level'
+        with self.assertRaisesRegex(ValueError, '伤害计算数值'):
+            validate_entry(entry, self.service.registry, {'m1'}, card_type=33)
+
+    def test_pendulum_placement_and_copy_effect_keep_source_and_timing(self):
+        effect = simple_effect('m1', 1, [], [])
+        effect['effect_type'] = 'ignition'
+        entry = make_entry(20000001, SEARCHER, [effect])
+        actions = (
+            ({'action': 'place_pendulum', 'from_zones': ['extra_faceup'], 'to_zones': ['pendulum']},
+             'to_zones', '灵摆区放置'),
+            ({'action': 'redirect_attack', 'selector': {'text': '转移到本卡'}},
+             'selector', '攻击转移'),
+            ({'action': 'copy_effect', 'from_zones': ['grave'], 'duration': '直到回合结束',
+              'selector': {'text': '对象超量怪兽的效果'}}, 'duration', '效果复制'),
+        )
+        for action, field, error in actions:
+            effect['structure']['processing'] = [action]
+            validate_entry(entry, self.service.registry, {'m1'}, card_type=33)
+            invalid = deepcopy(entry)
+            del invalid['effects'][0]['structure']['processing'][0][field]
+            with self.assertRaisesRegex(ValueError, error):
+                validate_entry(invalid, self.service.registry, {'m1'}, card_type=33)
+        self.assertEqual(effect['tags'], [])
+
+    def test_continuous_equipment_effect_cannot_claim_fast_activation(self):
+        effect = simple_effect('m1', 1, [], [])
+        effect['effect_type'] = 'spell_continuous'
+        entry = make_entry(20000001, SEARCHER, [effect])
+        validate_entry(entry, self.service.registry, {'m1'}, card_type=33)
+        effect['structure']['activation']['fast_effect'] = True
+        with self.assertRaisesRegex(ValueError, '持续适用的魔法效果'):
+            validate_entry(entry, self.service.registry, {'m1'}, card_type=33)
+
+    def test_damage_prevention_is_not_effect_damage_or_implicit_battle_only(self):
+        action = {'action': 'prevent_damage', 'damage_scope': 'battle_and_effect',
+                  'recipient': 'self', 'duration': '本回合'}
+        effect = simple_effect('m1', 1, ['etag:prevent-damage'], [action])
+        effect['effect_type'] = 'spell_effect'
+        entry = make_entry(20000001, SEARCHER, [effect])
+        validate_entry(entry, self.service.registry, {'m1'}, card_type=2)
+        for field in ('damage_scope', 'recipient', 'duration'):
+            invalid = deepcopy(entry)
+            del invalid['effects'][0]['structure']['processing'][0][field]
+            with self.assertRaisesRegex(ValueError, '伤害防止'):
+                validate_entry(invalid, self.service.registry, {'m1'}, card_type=2)
+        effect['tags'] = ['etag:effect-damage']
+        with self.assertRaisesRegex(ValueError, 'TAG 与处理不一致'):
+            validate_entry(entry, self.service.registry, {'m1'}, card_type=2)
+
     def test_return_and_cost_substitution_actions_keep_zone_boundaries(self):
         registry = self.service.registry
         effect = simple_effect('m1', 1, [], [])
@@ -290,6 +370,214 @@ class CardAnnotationTests(unittest.TestCase):
         destroyed = self.service.search({'action': 'destroy'})
         self.assertEqual([c['code'] for c in destroyed['cards']], [20000003])
         self.assertEqual(destroyed['cards'][0]['hits'][0]['key'], 'm2')
+
+    def install_grant_effect(self, effect):
+        self.write_curated(mutate=lambda entries: entries['20000001'].update(effects=[effect]))
+        self.service.reload()
+
+    def test_real_fixed_grants_match_ultimate_timing_and_stranger_cost(self):
+        cases = [
+            (86221741, '③：这张卡有「急袭猛禽」怪兽在作为超量素材的场合，得到以下效果。\n'
+             '●自己·对方的结束阶段才能发动。对方场上有表侧表示怪兽存在的场合，那些攻击力下降1000。不存在的场合，给与对方1000伤害。',
+             'm3', fixed_grant('trigger', ['etag:effect-damage', 'etag:stat-change'], [
+                 {'action': 'choose_branch', 'branches': [
+                     {'condition': '处理时对方有表侧怪兽', 'actions': [
+                         {'action': 'stat_change', 'from_zones': ['opponent_monster']}]},
+                     {'condition': '处理时对方没有表侧怪兽', 'actions': [
+                         {'action': 'burn', 'recipient': 'opponent', 'amount': 1000}]}]}]),
+             {'timing': 'end_phase', 'action': 'burn', 'etags': ['etag:effect-damage']}),
+            (15092394, '①：这张卡有超量怪兽在作为超量素材的场合，得到以下效果。\n'
+             '●1回合1次，把这张卡1个超量素材取除，以对方场上1只怪兽为对象才能发动。那只怪兽破坏，给与对方那个原本攻击力数值的伤害。',
+             'm1', fixed_grant('ignition', ['etag:destroy', 'etag:effect-damage'], [
+                 {'action': 'destroy', 'from_zones': ['opponent_monster'], 'then': [
+                     {'action': 'burn', 'recipient': 'opponent'}]}], timing='main_phase_self',
+                 cost=[{'kind': 'detach_material', 'text': '取除本卡1个素材'}], usage=['soft_opt']),
+             {'action': 'destroy', 'cost_kind': 'detach_material', 'usage': 'soft_opt',
+              'from_zone': 'opponent_monster', 'etags': ['etag:destroy']}),
+        ]
+        additions = {}
+        for code, desc, key, grant, _ in cases:
+            effect = granting_effect([grant])
+            effect.update(key=key, number=int(key[1:]), effect_type='non_effect')
+            self.store.catalog.cards[code] = {'name': str(code), 'type': 0x800021, 'desc': desc}
+            additions[str(code)] = make_entry(code, desc, [effect])
+        self.write_curated(mutate=lambda entries: entries.update(additions))
+        self.service.reload()
+        for code, _, key, _, conditions in cases:
+            with self.subTest(code=code):
+                result = self.service.search({'q': str(code), **conditions})
+                self.assertEqual(result['total'], 1)
+                self.assertEqual(result['cards'][0]['hit_keys'], [key])
+                evidence = result['cards'][0]['hits'][0]['evidence']
+                self.assertTrue(evidence)
+                self.assertTrue(all(item['effect_source'] == 'granted_effect' for item in evidence))
+                self.assertTrue(all('固定获赋效果' in item['basis'] for item in evidence))
+                self.assertTrue(all(item['effect_path'] == '0.granted_effect' for item in evidence))
+
+    def test_parent_cost_tags_and_zones_cannot_mix_with_granted_actions(self):
+        grant = fixed_grant('trigger', ['etag:destroy'], [
+            {'action': 'destroy', 'from_zones': ['opponent_monster']}])
+        effect = granting_effect([grant], own_tags=['etag:protect'],
+                                 own_processing=[{'action': 'protect', 'from_zones': ['grave']}],
+                                 cost=[{'kind': 'lp', 'text': '支付500LP以获得效果'}])
+        self.install_grant_effect(effect)
+        for condition in ({'cost_kind': 'lp'}, {'action': 'destroy'}, {'etags': ['etag:protect']}):
+            self.assertEqual(self.service.search({'q': '20000001', **condition})['total'], 1)
+        for condition in ({'cost_kind': 'lp'}, {'from_zone': 'grave'}, {'etags': ['etag:protect']}):
+            with self.subTest(condition=condition):
+                self.assertEqual(self.service.search({'q': '20000001', 'action': 'destroy', **condition})['total'], 0)
+        card_scope = self.service.search({'q': '20000001', 'action': 'destroy', 'cost_kind': 'lp', 'scope': 'card'})
+        self.assertEqual(card_scope['total'], 1)
+        self.assertTrue(card_scope['cards'][0]['cross_effects'])
+
+    def test_each_fixed_granted_effect_is_a_separate_matching_unit(self):
+        draw = fixed_grant('trigger', ['etag:draw'], [
+            {'action': 'draw', 'from_zones': ['deck'], 'to_zones': ['hand']}],
+            cost=[{'kind': 'discard'}], usage=['soft_opt'])
+        destroy = fixed_grant('quick', ['etag:destroy'], [
+            {'action': 'destroy', 'from_zones': ['opponent_monster']}], timing='fast_window',
+            cost=[{'kind': 'banish'}], usage=['name_soft_opt'])
+        self.install_grant_effect(granting_effect([draw, destroy]))
+        positive = {'q': '20000001', 'action': 'draw', 'timing': 'end_phase', 'cost_kind': 'discard',
+                    'usage': 'soft_opt', 'from_zone': 'deck', 'to_zone': 'hand', 'etags': ['etag:draw']}
+        self.assertEqual(self.service.search(positive)['total'], 1)
+        for conditions in (
+            {'action': 'draw', 'timing': 'fast_window'},
+            {'action': 'draw', 'cost_kind': 'banish'},
+            {'action': 'destroy', 'usage': 'soft_opt'},
+            {'action': 'destroy', 'from_zone': 'deck'},
+            {'etags': ['etag:draw', 'etag:destroy']},
+        ):
+            with self.subTest(conditions=conditions):
+                self.assertEqual(self.service.search({'q': '20000001', **conditions})['total'], 0)
+
+    def test_nested_fixed_grants_and_branch_containers_keep_boundaries(self):
+        leaf = fixed_grant('trigger', ['etag:draw'], [{'action': 'draw', 'from_zones': ['deck']}])
+        middle = fixed_grant('ignition', ['etag:draw'], [leaf], timing='main_phase_self',
+                             cost=[{'kind': 'discard'}])
+        middle['granted_effect']['own_tags'] = []
+        effect = granting_effect([])
+        effect['tags'] = ['etag:draw']
+        effect['structure']['processing'] = [{'action': 'protect', 'branches': [
+            {'condition': '固定授予条件', 'actions': [middle]}]}]
+        self.install_grant_effect(effect)
+        result = self.service.search({'q': '20000001', 'action': 'draw', 'timing': 'end_phase'})
+        self.assertEqual(result['total'], 1)
+        evidence = result['cards'][0]['hits'][0]['evidence']
+        self.assertTrue(all(item['effect_path'] == '0.branch0.0.granted_effect.0.granted_effect' for item in evidence))
+        self.assertEqual(self.service.search({'q': '20000001', 'action': 'draw', 'cost_kind': 'discard'})['total'], 0)
+
+    def test_copy_effect_does_not_expand_unknown_copied_capabilities(self):
+        action = {'action': 'copy_effect', 'selector': {'text': '墓地对象的效果'},
+                  'from_zones': ['grave'], 'duration': '至结束阶段'}
+        effect = simple_effect('m1', 1, [], [action])
+        effect['effect_type'] = 'spell_activation'
+        self.install_grant_effect(effect)
+        self.assertEqual(self.service.search({'q': '20000001', 'action': 'copy_effect'})['total'], 1)
+        for query in ({'action': 'burn'}, {'etags': ['etag:effect-damage']}, {'timing': 'end_phase'}):
+            self.assertEqual(self.service.search({'q': '20000001', **query})['total'], 0)
+        action['granted_effect'] = fixed_grant('trigger', ['etag:effect-damage'], [{'action': 'burn'}])['granted_effect']
+        with self.assertRaisesRegex(ValueError, '只能登记在 grant_effect'):
+            validate_entry(make_entry(20000001, SEARCHER, [effect]), self.service.registry, card_type=2)
+
+    def test_legacy_grant_without_metadata_retains_query_and_browse_behavior(self):
+        effect = simple_effect('m1', 1, ['etag:destroy'], [
+            {'action': 'grant_effect', 'then': [{'action': 'destroy', 'from_zones': ['opponent_monster']}]}])
+        effect['effect_type'] = 'spell_activation'
+        effect['structure']['cost'] = [{'kind': 'lp', 'text': '旧标注的费用'}]
+        self.install_grant_effect(effect)
+        self.assertEqual(self.service.search({'q': '20000001', 'action': 'destroy', 'cost_kind': 'lp'})['total'], 1)
+        result = self.service.search({'q': '20000001'})
+        self.assertEqual(result['cards'][0]['hit_keys'], ['m1'])
+        self.assertEqual(result['cards'][0]['hits'][0]['evidence'], [])
+
+    def test_fixed_grants_browse_once_with_original_segment_and_summary_tags(self):
+        effect = granting_effect([fixed_grant('trigger', ['etag:draw'], [{'action': 'draw'}]),
+                                  fixed_grant('trigger', ['etag:destroy'], [{'action': 'destroy'}])])
+        self.install_grant_effect(effect)
+        before = deepcopy(self.service.document)
+        result = self.service.search({'q': '20000001'})
+        self.assertEqual(result['total'], 1)
+        hits = result['cards'][0]['hits']
+        self.assertEqual(len(hits), 1)
+        self.assertEqual(hits[0]['key'], 'm1')
+        self.assertEqual(set(hits[0]['tags']), {'etag:draw', 'etag:destroy'})
+        self.assertEqual(hits[0]['evidence'], [])
+        self.assertEqual(self.service.document, before)
+
+    def test_fixed_grant_personal_tag_overrides_mask_children_and_keep_additions(self):
+        self.install_grant_effect(granting_effect([
+            fixed_grant('trigger', ['etag:destroy'], [{'action': 'destroy'}])]))
+        self.service.command({'op': 'set-tags', 'code': 20000001, 'key': 'm1',
+                              'add': ['etag:draw'], 'remove': ['etag:destroy'], 'revision': 1})
+        before = deepcopy(self.service.document)
+        saved = self.service.path.read_bytes()
+        self.assertEqual(self.service.search({'q': '20000001', 'etags': ['etag:destroy']})['total'], 0)
+        self.assertEqual(self.service.search({'q': '20000001', 'etags': ['etag:draw']})['total'], 1)
+        self.assertEqual(self.service.search({'q': '20000001', 'action': 'destroy'})['total'], 1)
+        self.assertEqual(self.service.search({'q': '20000001', 'action': 'destroy', 'etags': ['etag:draw']})['total'], 0)
+        self.assertEqual(self.service.document, before)
+        self.assertEqual(self.service.path.read_bytes(), saved)
+        self.service.reload()
+        self.assertEqual(self.service.search({'q': '20000001', 'etags': ['etag:destroy']})['total'], 0)
+        self.service.command({'op': 'set-tags', 'code': 20000001, 'key': 'm1',
+                              'add': ['etag:destroy'], 'remove': ['etag:draw'], 'revision': 2})
+        result = self.service.search({'q': '20000001', 'etags': ['etag:destroy'], 'timing': 'end_phase'})
+        self.assertEqual(result['total'], 1)
+        self.assertEqual(result['cards'][0]['hits'][0]['evidence'][0]['effect_source'], 'granted_effect')
+
+    def test_fixed_grant_payload_rejects_unknown_or_invalid_semantic_fields(self):
+        grant = fixed_grant('trigger', ['etag:draw'], [{'action': 'draw', 'from_zones': ['deck']}],
+                            cost=[{'kind': 'discard'}], usage=['soft_opt'])
+        original = make_entry(20000001, SEARCHER, [granting_effect([grant])])
+        def mutate_child(entry):
+            return entry['effects'][0]['structure']['processing'][0]['granted_effect']
+        mutations = (
+            ('effect_types', lambda child: child.update(effect_type='invented')),
+            ('effect_types', lambda child: child.update(effect_type=['trigger'])),
+            ('TAG', lambda child: child.update(tags=['etag:not-registered'])),
+            ('timings', lambda child: child['structure']['activation'].update(timing='invented')),
+            ('zones', lambda child: child['structure']['activation'].update(zones=['invented'])),
+            ('cost_kinds', lambda child: child['structure']['cost'][0].update(kind='invented')),
+            ('usage_limits', lambda child: child['structure'].update(usage=['invented'])),
+            ('actions', lambda child: child['structure']['processing'][0].update(action='invented')),
+            ('快速效果', lambda child: child['structure']['activation'].update(fast_effect=True)),
+            ('TAG 与处理', lambda child: child.update(tags=['etag:destroy'])),
+            ('结构无效', lambda child: child.update(structure=[])),
+            ('固定处理', lambda child: child['structure'].update(processing=[])),
+        )
+        for error, mutate in mutations:
+            with self.subTest(error=error):
+                entry = deepcopy(original)
+                mutate(mutate_child(entry))
+                with self.assertRaisesRegex(ValueError, error):
+                    validate_entry(entry, self.service.registry, card_type=2)
+        entry = deepcopy(original)
+        entry['review']['status'] = 'draft'
+        mutate_child(entry)['tags'] = ['etag:destroy']
+        with self.assertRaisesRegex(ValueError, 'TAG 与处理'):
+            validate_entry(entry, self.service.registry, card_type=2)
+
+    def test_fixed_grant_requires_own_tags_and_identical_compatibility_tree(self):
+        grant = fixed_grant('trigger', ['etag:draw'], [{'action': 'draw'}])
+        original = make_entry(20000001, SEARCHER, [granting_effect([grant])])
+        validate_entry(original, self.service.registry, card_type=2)
+        entry = deepcopy(original)
+        del entry['effects'][0]['own_tags']
+        with self.assertRaisesRegex(ValueError, 'own_tags'):
+            validate_entry(entry, self.service.registry, card_type=2)
+        entry = deepcopy(original)
+        entry['effects'][0]['structure']['processing'][0]['then'][0]['count'] = 2
+        with self.assertRaisesRegex(ValueError, '处理树不一致'):
+            validate_entry(entry, self.service.registry, card_type=2)
+        entry = deepcopy(original)
+        entry['effects'][0]['tags'].append('etag:destroy')
+        with self.assertRaisesRegex(ValueError, '并集一致'):
+            validate_entry(entry, self.service.registry, card_type=2)
+        entry = deepcopy(original)
+        entry['effects'][0]['own_tags'] = ['etag:draw']
+        with self.assertRaisesRegex(ValueError, 'TAG 与处理'):
+            validate_entry(entry, self.service.registry, card_type=2)
 
     def test_overview_counts_full_and_partial(self):
         overview = self.service.overview()

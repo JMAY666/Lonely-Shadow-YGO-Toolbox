@@ -19,7 +19,7 @@ const CapabilityView = (() => {
   }
   function comparison(value) {
     if (!value) return '';
-    return `<details class="capability-comparison"><summary>终场能力构成${value.tags.length?' · '+value.tags.map(esc).join('、'):''}</summary><p>${esc(value.basis)}</p>${value.unknown_cards?`<p>${value.unknown_cards} 张标记卡缺少可对应的已核对能力，不按零能力处理。</p>`:''}${value.effects.map(row=>`<div><strong>${esc(row.code)} · ${esc(row.key)}</strong><p>${row.facts.filter(f=>['条件','费用','次数'].includes(f.label)).map(f=>`${esc(f.label)}：${esc(f.text)}`).join('；')}</p>${row.relations.map(r=>`<p>${esc(r.text)}</p>`).join('')}</div>`).join('')}</details>`;
+    return `<details class="capability-comparison"><summary>终场能力构成${value.tags.length?' · '+value.tags.map(esc).join('、'):''}</summary><p>${esc(value.basis)}</p>${value.unknown_cards?`<p>${value.unknown_cards} 张标记卡缺少可对应的已核对能力，不按零能力处理。</p>`:''}${value.effects.map(row=>`<div><strong>${esc(row.code)} · ${esc(row.key)}</strong><p>${row.facts.filter(f=>['条件','时点','费用','次数','次数说明','固定获赋效果'].includes(String(f.label||'').split('·').pop())).map(f=>`${esc(f.label)}：${esc(f.text)}`).join('；')}</p>${row.relations.map(r=>`<p>${esc(r.text)}</p>`).join('')}</div>`).join('')}</details>`;
   }
   return {html, comparison};
 })();

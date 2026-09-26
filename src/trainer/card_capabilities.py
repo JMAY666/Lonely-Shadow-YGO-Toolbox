@@ -54,7 +54,7 @@ def purpose_candidates(effect):
                        'reason': '存在处理对方卡牌的分支；对象、费用与能否使用需要另行核对。'})
     if zones & {'monster', 'spell', 'field', 'field_spell', 'pendulum', 'grave', 'banished'} and (
             activation.get('fast_effect') and (interaction or opposing_removal)
-            or effect.get('effect_type') == 'continuous' and bool(actions & {'lock', 'protect'})):
+            or effect.get('effect_type') in ('continuous', 'spell_continuous') and bool(actions & {'lock', 'protect'})):
         result.append({'role': 'endboards', 'label': ROLE_NAMES['endboards'],
                        'reason': '具有可供终场考虑的干扰或持续能力；是否作为本方案目标由你选择。'})
     return result
@@ -76,12 +76,14 @@ class CardCapabilities:
         def add(label, value):
             if value: rows.append({'label': label, 'text': value})
         add('效果类别', registry.vocab.get('effect_types', {}).get(effect.get('effect_type'), ''))
-        add('发动区域', '、'.join(registry.zone_label(v) for v in activation.get('zones') or []))
+        passive = effect.get('effect_type') in ('continuous', 'spell_continuous', 'non_effect', 'no_chain_effect')
+        add('适用区域' if passive else '发动区域', '、'.join(registry.zone_label(v) for v in activation.get('zones') or []))
         add('时点', registry.vocab['timings'].get(activation.get('timing'), ''))
         add('条件', '；'.join(activation.get('conditions') or []))
         add('费用', '；'.join(row.get('text') or registry.vocab['cost_kinds'].get(row.get('kind'), '') for row in structure.get('cost') or []))
         add('对象', '；'.join(str(row.get('count', '')) + ' ' + row.get('filter', '') for row in structure.get('targeting') or []))
         add('次数', '；'.join(registry.usage_label(v) for v in structure.get('usage') or []))
+        add('次数说明', structure.get('usage_text'))
         def processing(items, prefix='处理'):
             for row in items or []:
                 value = registry.action_label(row.get('action', ''))
@@ -92,7 +94,13 @@ class CardCapabilities:
                 if row.get('restrictions'): value += '；限制 ' + '；'.join(row['restrictions'])
                 if row.get('duration'): value += '；持续 ' + row['duration']
                 add(prefix, value)
-                processing(row.get('then'), '后续处理')
+                granted = row.get('granted_effect')
+                if row.get('action') == 'grant_effect' and isinstance(granted, dict) and isinstance(granted.get('structure'), dict):
+                    add('固定获赋效果', '以下效果须另行满足自己的发动或适用条件。')
+                    for fact in self.facts(granted):
+                        add('固定获赋效果·' + fact['label'], fact['text'])
+                else:
+                    processing(row.get('then'), '后续处理')
                 for index, branch in enumerate(row.get('branches') or []):
                     add(f'分支 {index + 1}', branch.get('condition', '依原文选择或满足条件'))
                     processing(branch.get('actions'), f'分支 {index + 1} 处理')

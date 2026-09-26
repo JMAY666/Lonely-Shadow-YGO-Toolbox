@@ -1,0 +1,5888 @@
+{
+  "version": 1,
+  "checked_on": "2026-09-26",
+  "source_batch": "20260925-catalog-all-14981",
+  "scope": "非灵摆通常怪兽与通常调整；不含效果怪兽、灵摆怪兽、衍生物和身份未确认卡",
+  "cards": [
+    {
+      "code": 32864,
+      "local_name": "第13人的埋葬者",
+      "local_type": 17,
+      "official_cid": 4138,
+      "text_digest": "488b3ed0ad4a33fa3a197cb45829e5d905e8e6ef3bb9ad3638a4a7d914304c73",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 487395,
+      "local_name": "水精灵",
+      "local_type": 4113,
+      "official_cid": 7685,
+      "text_digest": "a9b6bdba04f0647121e39868ef211932f033e54384d0dde4365149d90e8cc092",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 549481,
+      "local_name": "硬毛鼠",
+      "local_type": 17,
+      "official_cid": 4261,
+      "text_digest": "cf1c603ab4812570726abf095a6824a8a77473c928111a962658e1a24de33a5a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 732302,
+      "local_name": "骷髅寺院",
+      "local_type": 17,
+      "official_cid": 4152,
+      "text_digest": "bff9551705c345807dea68122b97ec2666057b01058dd621a726ad6e0661ab7f",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 756652,
+      "local_name": "多隆",
+      "local_type": 17,
+      "official_cid": 4201,
+      "text_digest": "244266addd9bb2f773fde35462a77f400018b3e8c985d4ead92d450c96df5a48",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 1184620,
+      "local_name": "魔物狩人",
+      "local_type": 17,
+      "official_cid": 4072,
+      "text_digest": "89dd44c65f05d020b7737b252f4488b25e4d02c129054cfa57a6b8739fc74efb",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 1761063,
+      "local_name": "猫妖精",
+      "local_type": 17,
+      "official_cid": 4258,
+      "text_digest": "2e1cf37da8380ceee0ad29c1ff50e97992a21ef1c1db1d9920960683c63b498d",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 1784619,
+      "local_name": "荒野盗龙",
+      "local_type": 17,
+      "official_cid": 4086,
+      "text_digest": "897053c403cba9e48c2e7f0b4ada0977206a19c5e6ca77343625394cb311872e",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 1929294,
+      "local_name": "心钥妖精",
+      "local_type": 17,
+      "official_cid": 4198,
+      "text_digest": "982a6ceba509114d7483a05b3d03b113b55e590a0360b0a2c1212825263fcb5c",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 2118022,
+      "local_name": "兵主部",
+      "local_type": 17,
+      "official_cid": 4653,
+      "text_digest": "1329df51b4c5b7cce3a305264cff4aeb00827f7a4968a09f539134a544e6f3de",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 2311603,
+      "local_name": "机关炮装甲车",
+      "local_type": 17,
+      "official_cid": 4982,
+      "text_digest": "a7e46fb8a6e2f779525513578f0fd4299ce572a6207623e423c97a80177ba685",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 2468169,
+      "local_name": "封印师 明晴",
+      "local_type": 17,
+      "official_cid": 5948,
+      "text_digest": "f11987e482b353547462fad2d3b8359966ee48ca22dd0ea4d81e3885eee19894",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 2483611,
+      "local_name": "水之舞女",
+      "local_type": 17,
+      "official_cid": 4255,
+      "text_digest": "a399fe0cd089b780b386468b83786fdcaf4c31321b4d00198a25915fde543357",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 2830619,
+      "local_name": "火焰毒蛇",
+      "local_type": 17,
+      "official_cid": 4650,
+      "text_digest": "16dcec332a66d1ce492fe12dc8205f60402c2246129f58eea3567e776e424e57",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 2863439,
+      "local_name": "幻象鸟",
+      "local_type": 17,
+      "official_cid": 4192,
+      "text_digest": "a920256c0d6a6e12418529a255b0a00ccd174ea62f95bf0cc8f22287cf0f1699",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 2906250,
+      "local_name": "捕猎蛇",
+      "local_type": 17,
+      "official_cid": 4083,
+      "text_digest": "b20cae1934788fc0a28ede6626fc975add39b75e75cece2912d5f75ae684c9f7",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 2957055,
+      "local_name": "魔头邪龙",
+      "local_type": 17,
+      "official_cid": 4304,
+      "text_digest": "219dcfb2586f1a295d5f210c0a64aca1b20eb62b18bd2f4bd614fc696149e183",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 2964201,
+      "local_name": "蛋龙",
+      "local_type": 17,
+      "official_cid": 4732,
+      "text_digest": "ba442933efa9d3eb9a3e7e29d757ed8359dc6cfd585e784c3e90ebec74b7a0d0",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 2971090,
+      "local_name": "战神 奥利安",
+      "local_type": 17,
+      "official_cid": 4132,
+      "text_digest": "58cecb475072a5f9e90ded68e104bfcd4df8d8312f4c95686c14f0315371ad8d",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 3134241,
+      "local_name": "飞螳螂",
+      "local_type": 17,
+      "official_cid": 4979,
+      "text_digest": "5f1c413bc3103ac824ead87a964344de914837e34dee08cda2bfb2048f5dc923",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 3170832,
+      "local_name": "橐蜚",
+      "local_type": 17,
+      "official_cid": 4587,
+      "text_digest": "972f009c8c64be55b0bdcfd69bed61840fad152f6d574cde9c7304657c9f449c",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 3557275,
+      "local_name": "白尘妖",
+      "local_type": 17,
+      "official_cid": 10887,
+      "text_digest": "4d226ceb90071cf7f20a9e7f75a8ea699099ae33752e9f4a082e320c280a4364",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 3573512,
+      "local_name": "地星剑士",
+      "local_type": 17,
+      "official_cid": 4759,
+      "text_digest": "a9ab333e165082089a1ce868f4e709130931a3caf56bd4ede6204d778238ccc3",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 3606209,
+      "local_name": "狩魂者",
+      "local_type": 17,
+      "official_cid": 4252,
+      "text_digest": "29ea22e2db1fc31f13ae4f8bd13d34582a881b47d5938453f4ca7d50c7bc215b",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 3732747,
+      "local_name": "水元素",
+      "local_type": 17,
+      "official_cid": 4249,
+      "text_digest": "517f0a4820e045002a010adaafb1096d87f99d3b95ee720d984548c282d8f604",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 3797883,
+      "local_name": "角子老虎机AM-7",
+      "local_type": 17,
+      "official_cid": 4729,
+      "text_digest": "3412c9272974f621919fe984b0e423410ad2621ec31fae926649b10b31a5e843",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 3985011,
+      "local_name": "神圣能量",
+      "local_type": 17,
+      "official_cid": 4189,
+      "text_digest": "1716792b8b02a26c6fcbbb1cbe49e6e9d0a34b0d70d93f5154f80986d14e6be1",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 4035199,
+      "local_name": "形体抓取者",
+      "local_type": 17,
+      "official_cid": 5038,
+      "text_digest": "dcfa910ae5121bd1523782d67b350c75e213288202682bee1cf7da122912a37a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 4042268,
+      "local_name": "岛龟",
+      "local_type": 17,
+      "official_cid": 5146,
+      "text_digest": "850e1dfc11bca22ff692dca929fd0828b778ef8f5051ff4a370ea1ef397e50c5",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 4148264,
+      "local_name": "G战队 黑亮",
+      "local_type": 17,
+      "official_cid": 13989,
+      "text_digest": "2677cf4a78ebf9f296e6576689f01fddff69ed94630c1237b5ae29cb88ec5854",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 4179849,
+      "local_name": "红叶之女王",
+      "local_type": 17,
+      "official_cid": 4644,
+      "text_digest": "7558d2f2a675b715a588686c24f7e065935be4fa410474173659de08341498bb",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 4392470,
+      "local_name": "狮子男巫",
+      "local_type": 17,
+      "official_cid": 4584,
+      "text_digest": "1aac1ce97fefdf74a08144b68f62ada5cd6ba25b39d0b5a29430f9dba29ae105",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 4920010,
+      "local_name": "怨念集合体",
+      "local_type": 17,
+      "official_cid": 5149,
+      "text_digest": "bc028384ff4d36feb8db0b3a2536f3eb9d432f6381560768d5b564a448de9b3f",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 4931562,
+      "local_name": "山岳斗士",
+      "local_type": 17,
+      "official_cid": 4035,
+      "text_digest": "5ff8b6e4ee0ca7ca7ac80a9d8a1add78b5c03c6b01b4e81c63274ebb7573f5e2",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 5053103,
+      "local_name": "牛头人",
+      "local_type": 17,
+      "official_cid": 4032,
+      "text_digest": "9c422c8b906eb034c7422b5a9c9a6394f2fd77dfe9124ceb9c05031479c68807",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 5265750,
+      "local_name": "海贼船 血骸骨号",
+      "local_type": 17,
+      "official_cid": 5143,
+      "text_digest": "fb04221ce4bff813730d79fdb46ede5fab91b0672bb12fdfeae53bedf0767c9f",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 5388481,
+      "local_name": "燃烧士兵",
+      "local_type": 17,
+      "official_cid": 4973,
+      "text_digest": "aa5bc387bed37188029ab18ae1a9f4d8ba37c42c68f930c3b30ae65f54d5ca62",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 5434080,
+      "local_name": "无头骑士",
+      "local_type": 17,
+      "official_cid": 5221,
+      "text_digest": "4748dfd6a862d3b25dc9fe5aa5aba79dc56ef61b36f42b2524aee3f057556f81",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 5464695,
+      "local_name": "火炎木人18",
+      "local_type": 17,
+      "official_cid": 5876,
+      "text_digest": "826992787b99c0c8ff0da5f1f2d3b532ec9868fe87cde8cad97b78e65845f324",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 5628232,
+      "local_name": "飞企鹅",
+      "local_type": 17,
+      "official_cid": 4367,
+      "text_digest": "42264c8cccd3faa87aee37512a7973165e60cc26b12e31b97246519173f36312",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 5818798,
+      "local_name": "幻兽王 加泽尔",
+      "local_type": 17,
+      "official_cid": 4753,
+      "text_digest": "d87057babea1cc1f0e62b8b14326cc7768da490d992f9ac9af9e978dcce017f5",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 6103114,
+      "local_name": "鸟嘴蛇",
+      "local_type": 17,
+      "official_cid": 4596,
+      "text_digest": "cee15f254045c2a13f71d20eebafed12bff8dfc8757686fbb9a5e016d255c09b",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 6297941,
+      "local_name": "强盗鼠",
+      "local_type": 17,
+      "official_cid": 4487,
+      "text_digest": "748ee79d4cf552f293c59f8cfdd4b1481c08835fdba0b572518a27f1ea495fd4",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 6367785,
+      "local_name": "艾尔丁",
+      "local_type": 17,
+      "official_cid": 4536,
+      "text_digest": "2c5facfab7465e299419eb5782300ba8646641df170fe5821c893d4f38170404",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 6368038,
+      "local_name": "暗黑骑士 盖亚",
+      "local_type": 17,
+      "official_cid": 4044,
+      "text_digest": "04c3c563a19dc54aec441484404a70ebfe6762f3513dabba20e17297f3b264d7",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 6368039,
+      "local_name": "暗黑骑士 盖亚",
+      "local_type": 17,
+      "official_cid": 4044,
+      "text_digest": "04c3c563a19dc54aec441484404a70ebfe6762f3513dabba20e17297f3b264d7",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 6368040,
+      "local_name": "暗黑骑士 盖亚",
+      "local_type": 17,
+      "official_cid": 4044,
+      "text_digest": "04c3c563a19dc54aec441484404a70ebfe6762f3513dabba20e17297f3b264d7",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 6400512,
+      "local_name": "突击兵",
+      "local_type": 17,
+      "official_cid": 4427,
+      "text_digest": "a169256ddf02ef9bfbf4da47de964a3a47075157158cc8c62e9aad5152a3396e",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 6631034,
+      "local_name": "冰霜腕龙",
+      "local_type": 17,
+      "official_cid": 6961,
+      "text_digest": "54e5abec7abef5afcf1e72357e377b8577ed8f6298c417377943a95fdf8bd7a4",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 6740720,
+      "local_name": "圣夜龙",
+      "local_type": 17,
+      "official_cid": 4364,
+      "text_digest": "3bcd76bd971a6ea91d2f00e614b1e6bb8100fb05b1ed16e0d16cfab7446c0858",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 7225792,
+      "local_name": "蒙·拉瓦斯",
+      "local_type": 17,
+      "official_cid": 4593,
+      "text_digest": "4742327ed384cd51214449b5221a4dd918d69b5f85e84ec8c3215cea7aea9fa4",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 7359741,
+      "local_name": "机械猎手",
+      "local_type": 17,
+      "official_cid": 4421,
+      "text_digest": "c0e491eb74bde6111f731faeaf0100a9fbf9b0838b0dfafe902e773bac5f2693",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 7459013,
+      "local_name": "暗黑界的骑士 祖尔",
+      "local_type": 17,
+      "official_cid": 6497,
+      "text_digest": "46deb098c0acabac0a463794651bb10498b2d8c1c98b89dd1b73067aa5d72a53",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 7526150,
+      "local_name": "钢铁魔人",
+      "local_type": 17,
+      "official_cid": 4424,
+      "text_digest": "49338702c419acfefee833839f73ee0924be4d552ef3ade0bd34ba422b675663",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 7562372,
+      "local_name": "超音速之眼",
+      "local_type": 17,
+      "official_cid": 4361,
+      "text_digest": "0c1f48c499a9710806f5d03c39bb290092f15c2c9618ddc878a4743765dae4ab",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 7670542,
+      "local_name": "生化植物",
+      "local_type": 17,
+      "official_cid": 4301,
+      "text_digest": "1dd3e00caed7bfd37762f39f89f995c4a547642ad1db54122719b693e2b329ce",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 7805359,
+      "local_name": "胖鸡",
+      "local_type": 17,
+      "official_cid": 4544,
+      "text_digest": "f888490c138e1e6d6ee36c22c46cf38598449c2e47708c6e44953824677858ca",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 7892180,
+      "local_name": "念力河童",
+      "local_type": 17,
+      "official_cid": 4298,
+      "text_digest": "38cd9d5b4064b66cab809ca80c1cd0aff5b52ff19395f1118a9eb3207b63d1f4",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 7902349,
+      "local_name": "被封印者的左腕",
+      "local_type": 17,
+      "official_cid": 4026,
+      "text_digest": "9eb306a9879a4fb90abf678edd591c6319b7df7b3e1a34bd57e3718790fb746a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 8058240,
+      "local_name": "封印之锁",
+      "local_type": 17,
+      "official_cid": 4590,
+      "text_digest": "99dc7fb78b4f2588e230b1c29c2c8a4546e5d9463251e3842b411b0537e2f0a9",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 8124921,
+      "local_name": "被封印者的右足",
+      "local_type": 17,
+      "official_cid": 4023,
+      "text_digest": "f0593ffe27b20a4f89843984541b9296fe95302a8ff52cdd03338d295292dbde",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 8353769,
+      "local_name": "空气吸收者",
+      "local_type": 17,
+      "official_cid": 4478,
+      "text_digest": "cf51c2d0cefe5a73390b6aabb90db4e8cb91532cf587200e0fa4bb6eec2332ac",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 8471389,
+      "local_name": "高科技狼",
+      "local_type": 17,
+      "official_cid": 4418,
+      "text_digest": "d5047693ee6e771497f986cccfb0adf4f97d6d37fa92ef72bc7f8fd17439919b",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 8508055,
+      "local_name": "格斗鼠 吱助",
+      "local_type": 17,
+      "official_cid": 6234,
+      "text_digest": "54b88335014d2ea7d4270db222071733d6fb30d23c7b3409870b3980bdbf351f",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 8715625,
+      "local_name": "魔货物车辆 博科伊奇",
+      "local_type": 17,
+      "official_cid": 6174,
+      "text_digest": "fe1e924ffc5c7fa29d25a0d6474b1d8963379ebb3005594f70b6e2a53d1d53db",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 8783685,
+      "local_name": "生命之沙漏",
+      "local_type": 17,
+      "official_cid": 4235,
+      "text_digest": "91b83d344afcb3fe14761508329fba63429d2c7fe7a293e9c4be062900a419a5",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 8944575,
+      "local_name": "死亡之足",
+      "local_type": 17,
+      "official_cid": 4246,
+      "text_digest": "73a66e033a9c3b093d1484320683c6ab46d6b454f80ec1cfe84513e209c45745",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 9159938,
+      "local_name": "暗黑灰羚",
+      "local_type": 17,
+      "official_cid": 4119,
+      "text_digest": "c3ec7843e1aa289733553b00705b19f427429d35045f6aefba187185e62878cd",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 9197735,
+      "local_name": "龙魂之石像",
+      "local_type": 17,
+      "official_cid": 4144,
+      "text_digest": "d0cb15d91d07d7618a438005c2c591ee0a3a550a56ccb36f9ba182c348186e56",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 9430387,
+      "local_name": "雷云怪",
+      "local_type": 17,
+      "official_cid": 4197,
+      "text_digest": "cbb97da05005acaf053f4b1b395ce6ed247cacbcbee5d0f71c7590d008c4b1e6",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 9540040,
+      "local_name": "岩石龟",
+      "local_type": 17,
+      "official_cid": 4524,
+      "text_digest": "ed40b95363107a689fa15eba5d367e53a67b0c59d4ac2c4c615ddc1c889bf0b2",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 10071456,
+      "local_name": "王座守护者",
+      "local_type": 17,
+      "official_cid": 4286,
+      "text_digest": "25d5485495d478891ab2497b0ab732da68872976a9b67b9e734e066e6b44d7a3",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 10202894,
+      "local_name": "天空猎手",
+      "local_type": 17,
+      "official_cid": 4472,
+      "text_digest": "e97a22b337d509ff0b88832ab9ef2c4272feff65ded8e3606e05c150debcc84c",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 10262698,
+      "local_name": "复活节岛石像",
+      "local_type": 17,
+      "official_cid": 4521,
+      "text_digest": "26fed21ffab434dafa77301f270a4613cd1ec9623a64fdaf4d40db9f753d68ec",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 10315429,
+      "local_name": "切割机器人",
+      "local_type": 17,
+      "official_cid": 4412,
+      "text_digest": "9bd20853b0f23410d21bf6731c9fbd68d4074b12b0a7bb3e3cf52e42149d0a2a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 10476868,
+      "local_name": "机枪岩",
+      "local_type": 17,
+      "official_cid": 4461,
+      "text_digest": "24509c24ddbedd2de684d33fdf49ff4c1a1075484c65eeb93c224dcb2f60c422",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 10538007,
+      "local_name": "狮子王",
+      "local_type": 17,
+      "official_cid": 4409,
+      "text_digest": "f6b6f1dd45282239edbfea955913df98c59ac6ca5b4dc6e9a5659f6b5e0bd0f2",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 10598400,
+      "local_name": "龙虾怪",
+      "local_type": 17,
+      "official_cid": 4458,
+      "text_digest": "5632ea8cb1ab6cd9fc9ad6ad174b1a53815e2f1683bc86fe6ae8cedab3115862",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 10859908,
+      "local_name": "全息投影者",
+      "local_type": 17,
+      "official_cid": 4289,
+      "text_digest": "f526d95c53642716a4d63e5c9064b1fd220bbb5fe51bc04784dc478fd06a48b8",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 10949074,
+      "local_name": "异宇宙军神",
+      "local_type": 17,
+      "official_cid": 21618,
+      "text_digest": "1a04d4a43f8fca5980387dae83d54cbde534e11ed064b84f3fa2e532cb174ebf",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 10992251,
+      "local_name": "超时空战斗机 V形蛇",
+      "local_type": 17,
+      "official_cid": 5140,
+      "text_digest": "e3b88daef917849078a983920575c82637e4090678878ad1d8e27190af698b34",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 11012154,
+      "local_name": "守护龙 朱斯提亚",
+      "local_type": 4113,
+      "official_cid": 14089,
+      "text_digest": "9e6508843277815dc98e866a9d444be78705a4e9849e7efa275577ee2633610f",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 11066358,
+      "local_name": "银河海蛇",
+      "local_type": 4113,
+      "official_cid": 10812,
+      "text_digest": "5cace404741428d2ac5d6decd61e5ec825a9ca87da0633a68ba93a6881a84534",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 11091375,
+      "local_name": "蓝宝石龙",
+      "local_type": 17,
+      "official_cid": 5644,
+      "text_digest": "42d7c27e02365512c752c45af840d7997ce83a8fbfd42b8bd2c75f8db2190ccd",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 11212437,
+      "local_name": "魔龙阁-邪灵恶龙",
+      "local_type": 4113,
+      "official_cid": 22185,
+      "text_digest": "33ad562477786a44bd26f3bc2994a378586b17ba49ab31056277266889c0bc9c",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 11250655,
+      "local_name": "水陆的帝王",
+      "local_type": 17,
+      "official_cid": 4406,
+      "text_digest": "e5553e1addf3e6e0e9a03f5f3d48b35593720e050b8672413f9d8ee9ba524c4b",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 11321183,
+      "local_name": "暗魔界的战士 暗黑之剑",
+      "local_type": 17,
+      "official_cid": 5581,
+      "text_digest": "0bbc26f5ab054046c1abfe508e994e6c0a6bc8732e650775191d1ed2929647fc",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 11549357,
+      "local_name": "磁石战士γ",
+      "local_type": 17,
+      "official_cid": 4792,
+      "text_digest": "1ba4fe497a2e842eea008fc94d0d16c9ef9e77516aa48c946e6c38d07879836a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 11714098,
+      "local_name": "3万年的白龟",
+      "local_type": 17,
+      "official_cid": 4455,
+      "text_digest": "ca45953fb872ad4e067c52c681cc4bad8674bd0491999ad8ed8dc39d04292972",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 11761845,
+      "local_name": "塔瓦弯刀恶魔",
+      "local_type": 17,
+      "official_cid": 4789,
+      "text_digest": "9816f3e8db639dca2695f6b23b765d7cb37d11e00f2edf4a6b0e7018481ddfe6",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 11793047,
+      "local_name": "戈耳工蛋",
+      "local_type": 17,
+      "official_cid": 4283,
+      "text_digest": "ce3d70332a6412907cd903c3065f09eb74ced4d879426fe952ec0eb6246cff70",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 11813953,
+      "local_name": "大型肉畜",
+      "local_type": 17,
+      "official_cid": 5641,
+      "text_digest": "c4e867fe1447dfa081f659809de28fbf244c4f2b15c452365b8bf96cb5ca6feb",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 11987744,
+      "local_name": "忍犬 奇狗",
+      "local_type": 17,
+      "official_cid": 5704,
+      "text_digest": "5592bdfd7e49e9fbd1ccf06f989ce86f25d8c9e6db4d9fa10016cb9a237af281",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 12057781,
+      "local_name": "落空哥布林",
+      "local_type": 17,
+      "official_cid": 6096,
+      "text_digest": "6c3fa734fa5d0497a23b00fc709adeca2f096c2d4db5427d2886fc96139e915b",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 12143771,
+      "local_name": "流离的饥民",
+      "local_type": 17,
+      "official_cid": 5578,
+      "text_digest": "07ddf50a1e57a29a0f2d0d100eed19332de5e475dc1b8af532bf09b3184e047d",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 12146024,
+      "local_name": "电击蜗牛",
+      "local_type": 17,
+      "official_cid": 4466,
+      "text_digest": "931e2ed42b5a016a926e1a74c0a6638262f32a07375f4acd398b481c3aceea53",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 12436646,
+      "local_name": "水蛇",
+      "local_type": 17,
+      "official_cid": 4452,
+      "text_digest": "3329da6ea65be42bf4b5a6d39f76cc054934a60cd590950f6efcf72769697f0b",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 12482652,
+      "local_name": "扰乱·绿",
+      "local_type": 17,
+      "official_cid": 5761,
+      "text_digest": "b0213c0b9e7d244b418dfd1285aae7c7ecd321eacfcf99381259d4ce15d43d1d",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 12493482,
+      "local_name": "神力女武神",
+      "local_type": 17,
+      "official_cid": 4786,
+      "text_digest": "550d6ac0ce0040575a72517f04de10351ff5f6206b8a418f0e1fc5831596ac95",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 12829151,
+      "local_name": "女剑士 迦南",
+      "local_type": 17,
+      "official_cid": 4358,
+      "text_digest": "6abd6d48709271f6dd22c54be05778a4c6f94b9402004e3cd7f818866c1656b8",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 12883044,
+      "local_name": "火焰舞者",
+      "local_type": 17,
+      "official_cid": 5048,
+      "text_digest": "3650537e68045431024051b338ec3d8318b40df321da6f1a6e3996a3fd9666ec",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 13039848,
+      "local_name": "岩石巨兵",
+      "local_type": 17,
+      "official_cid": 4080,
+      "text_digest": "e909dac34267334023a6ef8cec6a5bb7a9724614031e578d63f7b959221606f8",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 13069066,
+      "local_name": "剑龙",
+      "local_type": 17,
+      "official_cid": 4017,
+      "text_digest": "d902a9961e9945dd189c0cf6c2e78f98d2d1fec00afa529930988c517a9fd886",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 13140300,
+      "local_name": "神龙之圣刻印",
+      "local_type": 17,
+      "official_cid": 10025,
+      "text_digest": "4e9a569385db07679a0bf692fb7c7fdcc63da6ec327efbbfee8149b465968f29",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 13179332,
+      "local_name": "大木炭18",
+      "local_type": 17,
+      "official_cid": 6093,
+      "text_digest": "06b4d0c758b7b28490a6e8d4cbde8b10c5a22c5024a5c07315b49d5ef918f4c3",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 13193642,
+      "local_name": "暗黑植物",
+      "local_type": 17,
+      "official_cid": 4129,
+      "text_digest": "191d765c01c91d467054038ebbd1da08aaf59e142f8c445c6590f182bfce904a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 13429800,
+      "local_name": "大白鲨",
+      "local_type": 17,
+      "official_cid": 4066,
+      "text_digest": "bb2cb4db9bfecfb90752afdd2b43ab138e16d78ea5bfa6351178aafa88d993dd",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 13676474,
+      "local_name": "假面咒术师 诅咒之喉",
+      "local_type": 17,
+      "official_cid": 5093,
+      "text_digest": "0dd1e0275a1bb729526e86131fc245fc98bcdce31ad8b78a954de82e4094504a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 13723605,
+      "local_name": "食人宝石箱",
+      "local_type": 17,
+      "official_cid": 4883,
+      "text_digest": "3935db5a4127f8b6f30c5a7fcf03a4c2d1192ac368ae50b7a78e4f22a6372cfa",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 14015067,
+      "local_name": "大森林的长老",
+      "local_type": 17,
+      "official_cid": 4581,
+      "text_digest": "09f5c1757c2d486b35a8771af6f60170ea9a8f6c34a52e35f355872d6a317c42",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 14037717,
+      "local_name": "书之精灵 飞鹰主教",
+      "local_type": 17,
+      "official_cid": 4123,
+      "text_digest": "4df9b554616054822aac3ecd0089fc05f26c16704bbace74987a24442f57c1d2",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 14181608,
+      "local_name": "蘑菇人",
+      "local_type": 17,
+      "official_cid": 4014,
+      "text_digest": "c838e1bf4d939fcc7babe7fe4b839e484ae1cceb0a17cebe2c5bddbb93983304",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 14214060,
+      "local_name": "魔法剑士 特兰斯",
+      "local_type": 17,
+      "official_cid": 10131,
+      "text_digest": "3faf4099466e4fe237d8b9598f54b5d6a2c389beb2cc30b3c96fef6ee6a50455",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 14531242,
+      "local_name": "红色独眼巨人",
+      "local_type": 17,
+      "official_cid": 5309,
+      "text_digest": "eb2cfbdf5c26fe2e3be081a6200fd26c81500560e7ffa861d70e2e29ac5e2423",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 14575467,
+      "local_name": "僵尸男孩",
+      "local_type": 17,
+      "official_cid": 13408,
+      "text_digest": "2ce2d75d2f95512f6ee5be99486b196a758775a9302ec1d7a37085c81dbc09e1",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 14708569,
+      "local_name": "阿罗妮",
+      "local_type": 17,
+      "official_cid": 4186,
+      "text_digest": "361a090857190f9b8a726d7406c9109b05bcf94decc4e6fd6dc49519ef838556",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 14851496,
+      "local_name": "水母",
+      "local_type": 17,
+      "official_cid": 4077,
+      "text_digest": "4f3d17d4903810855b67b744ed54e362eb72a2a8425e5e82dcfa15ff3a34110e",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 14898066,
+      "local_name": "血腥魔兽人",
+      "local_type": 17,
+      "official_cid": 5004,
+      "text_digest": "64f6c08a91ad3c9eca21474b5ddb31f29ecf8c767382b480269d442c69bbb207",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 14898067,
+      "local_name": "血腥魔兽人",
+      "local_type": 17,
+      "official_cid": 5004,
+      "text_digest": "64f6c08a91ad3c9eca21474b5ddb31f29ecf8c767382b480269d442c69bbb207",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 14977074,
+      "local_name": "加鲁撒斯",
+      "local_type": 17,
+      "official_cid": 4074,
+      "text_digest": "314337bd2b4306d5b1b25b3ede585f9f1ad21a61fda7a3d9b2aa70d5525ea163",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 15023985,
+      "local_name": "岩石巨人",
+      "local_type": 17,
+      "official_cid": 4638,
+      "text_digest": "e6b391b6389251c627cfa26cf645c08f112127f2f150bd0d6209a4567cc98791",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 15025844,
+      "local_name": "圣精灵",
+      "local_type": 17,
+      "official_cid": 4008,
+      "text_digest": "935c683d386df62367fefa7ea160f15f832b6f19ce4bfe938915a5b6c850a4ee",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 15042735,
+      "local_name": "飓风怪",
+      "local_type": 17,
+      "official_cid": 4180,
+      "text_digest": "19b67aba712b7bf4039f0f01f915570ed71e13c043a238f156a5250f7113a9aa",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 15150371,
+      "local_name": "恶魔之镜",
+      "local_type": 17,
+      "official_cid": 4267,
+      "text_digest": "17fd1db8c82bb3ca55f42c093306fba9cd8f1a135e65fd3c1e540e42ad0b5b67",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 15303296,
+      "local_name": "石像怪",
+      "local_type": 17,
+      "official_cid": 4011,
+      "text_digest": "ada408257a707318c6b893a87327071a9431f2a57f6e19df6b3c67f7f79e99a2",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 15367030,
+      "local_name": "蟑螂球",
+      "local_type": 17,
+      "official_cid": 4060,
+      "text_digest": "54880b6a18071b824ebcee26d4d902f218ffc8f57f765e85cda7371ef4a8b10d",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 15401633,
+      "local_name": "紫炎的影武者",
+      "local_type": 17,
+      "official_cid": 4220,
+      "text_digest": "8143206dee00ec9eebcf9bd68636279efac7c00076882cdf15425640e1370ac9",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 15480588,
+      "local_name": "铠蜥蜴",
+      "local_type": 17,
+      "official_cid": 4057,
+      "text_digest": "d9281adc66193aeed1568b4468c64560a87978d65ef9ba86183e68dd19b6d811",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 15507080,
+      "local_name": "黑暗随从者",
+      "local_type": 17,
+      "official_cid": 4274,
+      "text_digest": "1a4ac043a665c93507575bd82c9f8f51fef17ef73f979526a75151866bf062f0",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 15510988,
+      "local_name": "雷电小子",
+      "local_type": 17,
+      "official_cid": 4217,
+      "text_digest": "441f3f9f7266297a7d709d5b1fc3e65c2108741d8dd4baeb01432eee590bad74",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 15734813,
+      "local_name": "魂虎",
+      "local_type": 17,
+      "official_cid": 5813,
+      "text_digest": "9e14167259af61b3984deda14d9a037b24485141733669fc108664165ce1a289",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 15820147,
+      "local_name": "怪龟",
+      "local_type": 17,
+      "official_cid": 4183,
+      "text_digest": "29e6a1d587eae2827ad2ca881d8f69e6f44ec54101de0a76b1b07f5fb147f5c1",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 16246527,
+      "local_name": "铠鼠",
+      "local_type": 17,
+      "official_cid": 4635,
+      "text_digest": "dc3076a744aa5bf19cf6a167680eb4711c0bd2843c0141e80ef962c10f38d33c",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 16353197,
+      "local_name": "鲜血吮吸者",
+      "local_type": 17,
+      "official_cid": 4575,
+      "text_digest": "a77d38f3245041dd2ee7a0fa66e9391426bf00053da2709841e1d4e60279502e",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 16587243,
+      "local_name": "新虫",
+      "local_type": 17,
+      "official_cid": 5873,
+      "text_digest": "c53124e2848feaac5cef123c1102131bf991c739575689f0624c2acd183c0e8e",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 16899564,
+      "local_name": "斩首的美女",
+      "local_type": 17,
+      "official_cid": 4240,
+      "text_digest": "91eaebd1d2ba8fde13696780f865fda43db603cb80f29ccfa2f907c78ca10628",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 16972957,
+      "local_name": "死之沉默天使 多玛",
+      "local_type": 17,
+      "official_cid": 4117,
+      "text_digest": "b5e0eba9a8643456b1e78a656d9040e83a415e4d41bc4ae11e801481ce9759aa",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 17115745,
+      "local_name": "尤蒙刚德",
+      "local_type": 17,
+      "official_cid": 4572,
+      "text_digest": "4e9e41cf4fba2b8964c0cdcba41daf1b5487725dcba958fe856bfb6cc57f22c7",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 17192817,
+      "local_name": "熔岩大巨人",
+      "local_type": 17,
+      "official_cid": 5029,
+      "text_digest": "6d2dbcbd46373fb568e8bc9b646215047c61309226a1d99a9a883d7bba0e960b",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 17238333,
+      "local_name": "阁楼上的妖怪",
+      "local_type": 17,
+      "official_cid": 4569,
+      "text_digest": "12b79a9514a9f084b045f55f04ad28c4c0dd6301bbfaed6bfbc33fc46c598921",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 17358176,
+      "local_name": "高等女祭司",
+      "local_type": 17,
+      "official_cid": 4618,
+      "text_digest": "b9a7ee828506c65df719598f24432e05509952d1305e9907306c7119c3e7d924",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 17441953,
+      "local_name": "龟狸",
+      "local_type": 17,
+      "official_cid": 4509,
+      "text_digest": "3d6d3debd37da88161e1605fb8d332b27175d658660d0c9b825d37e91abadc19",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 17511156,
+      "local_name": "木灵小丑",
+      "local_type": 17,
+      "official_cid": 4237,
+      "text_digest": "d5c024283c141f4946d23e60390e73fff8984d4b794206a900c7e848d5690074",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 17535588,
+      "local_name": "甲化海星",
+      "local_type": 17,
+      "official_cid": 4621,
+      "text_digest": "2442e7536e03ee3310fb95cb9fabe904ddbbfa71242f7dccfe514eb1762097c6",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 17658803,
+      "local_name": "绿宝石龙",
+      "local_type": 17,
+      "official_cid": 5349,
+      "text_digest": "e5ffea6dbd609981575145d9fe7d6af356a4b8f23a1438a8f54a5b27f9e0d743",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 17733394,
+      "local_name": "森之尸",
+      "local_type": 17,
+      "official_cid": 4234,
+      "text_digest": "16f1c651443c9d3176cae3e33a48383c0bf74a7eb915826d8a2631e08025802f",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 17968114,
+      "local_name": "海原的女战士",
+      "local_type": 17,
+      "official_cid": 4632,
+      "text_digest": "7f7a6c27d7a34a33671556bb7655c64d5fbdbb3fd6173c0d82b2e8c6d876a177",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 18106132,
+      "local_name": "人偶怪兽 熊仔",
+      "local_type": 17,
+      "official_cid": 15889,
+      "text_digest": "6db39d0bec7024d88dfdd03afa64d6df43d8ce304b2cd95c2815a28c23aedbc9",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 18108166,
+      "local_name": "幻壳龙",
+      "local_type": 17,
+      "official_cid": 11785,
+      "text_digest": "90eecbd48d419d9c54bec70ef7963ce954fbb5347a3f27bde7e770a0623cb4ab",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 18180762,
+      "local_name": "泥浆潜居者",
+      "local_type": 17,
+      "official_cid": 4629,
+      "text_digest": "b08ffe641f04a87d74c9c3a8dd6b2acad1476e97628c161cc937c747a986bf42",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 18246479,
+      "local_name": "牛魔人",
+      "local_type": 17,
+      "official_cid": 4020,
+      "text_digest": "6cf06ca66eaadf072f4dcea4a24138283636dda6063f9eb82b4f5d245f5be045",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 18710707,
+      "local_name": "愤怒的海王",
+      "local_type": 17,
+      "official_cid": 4271,
+      "text_digest": "35dfbef7aac609c817b8ac1425a65c74e8952ba68f998a50372f5f6d8d73978a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 18914778,
+      "local_name": "变形史莱姆",
+      "local_type": 17,
+      "official_cid": 4295,
+      "text_digest": "a08017084306f8f231ed5eb91b224f32eff01a6379d86cad0f9958a39b76a6b0",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 19737320,
+      "local_name": "看门人",
+      "local_type": 17,
+      "official_cid": 4292,
+      "text_digest": "9390cbd5ad4244376d444cd91fe67cb5fb773a67577a286d91ad3931a4352701",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 20060230,
+      "local_name": "坚硬铠甲",
+      "local_type": 17,
+      "official_cid": 4162,
+      "text_digest": "e3503f848defe95b340582b7c6f7d2c13163a451d64cf332eec9dbac76606e0a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 20129614,
+      "local_name": "童话动物·小兔子",
+      "local_type": 17,
+      "official_cid": 15250,
+      "text_digest": "5c95c094bfe25e5ac03d3e939972046b04bb1d4ffe5088d9aed20a4956414363",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 20277860,
+      "local_name": "铠武者僵尸",
+      "local_type": 17,
+      "official_cid": 4102,
+      "text_digest": "f111b5908e95ed4a601501f845e6c4dd4beebb826a9b1c45ec625c2df815962d",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 20315854,
+      "local_name": "妖精龙",
+      "local_type": 17,
+      "official_cid": 4609,
+      "text_digest": "fbaa195f3c247b2e08b33dfeb350f64b1ca54885aefd6c1ab909e3322d8b95c5",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 20541432,
+      "local_name": "心锁妖精",
+      "local_type": 17,
+      "official_cid": 4606,
+      "text_digest": "f46ee91a8768f4e121456c453299ca054843fad5d3df36bfb663495cd9da1386",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 20624263,
+      "local_name": "孔雀",
+      "local_type": 17,
+      "official_cid": 4497,
+      "text_digest": "e178dc08d94d6890998ab979523af024ffd651870caf5085e1d2c4b2dba8a350",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 20721928,
+      "local_name": "元素英雄 电光侠",
+      "local_type": 17,
+      "official_cid": 6313,
+      "text_digest": "b162a67c1ff0080d82722fc5540653dcfcbac3cd46f57e6ce7ca1759899a22c8",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 20721929,
+      "local_name": "元素英雄 电光侠",
+      "local_type": 17,
+      "official_cid": 6313,
+      "text_digest": "b162a67c1ff0080d82722fc5540653dcfcbac3cd46f57e6ce7ca1759899a22c8",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 20721930,
+      "local_name": "元素英雄 电光侠",
+      "local_type": 17,
+      "official_cid": 6313,
+      "text_digest": "b162a67c1ff0080d82722fc5540653dcfcbac3cd46f57e6ce7ca1759899a22c8",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 20831168,
+      "local_name": "蜥蜴兵",
+      "local_type": 17,
+      "official_cid": 5337,
+      "text_digest": "e706a2e8fd07328d9e14dc443c06e4edcc7fd902d53c2cdf7deada11378aec88",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 20848593,
+      "local_name": "冻水",
+      "local_type": 17,
+      "official_cid": 4437,
+      "text_digest": "44c2ed422e6a5e961aa069d67b1f9886433532ee6ff871a28b075d833ba083d7",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 21239280,
+      "local_name": "骨鼠",
+      "local_type": 17,
+      "official_cid": 4554,
+      "text_digest": "eba65b41eb11852ed0869488fa71410c49c3ade95b41e554f85c9b4921e2ef3d",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 21251800,
+      "local_name": "带来光明的使者 路西法",
+      "local_type": 17,
+      "official_cid": 14529,
+      "text_digest": "8062b927052cc8a1da32a5bc88b5134eebd7922bb9b8e4ff4146fcc4839f79b1",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 21263083,
+      "local_name": "苍白兽",
+      "local_type": 17,
+      "official_cid": 4603,
+      "text_digest": "4e5a66a0d40bc2158833cb56ef3ec5a35e508ac9065a0a4ce73d9fb9dd5018b2",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 21615956,
+      "local_name": "炎狱护卫龙",
+      "local_type": 4113,
+      "official_cid": 7535,
+      "text_digest": "5a1b2567685e3aaea783bfa11e5f148cc45551394e198504c3ee6d84a0dddaf6",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 21817254,
+      "local_name": "大雷电球",
+      "local_type": 17,
+      "official_cid": 4543,
+      "text_digest": "5fe897fe99d5d39c09267f39a8fc0841d09941403b25c7b569123e4de230fec7",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 21844576,
+      "local_name": "元素英雄 羽翼侠",
+      "local_type": 17,
+      "official_cid": 6310,
+      "text_digest": "2208092037b9872352cc59a9e351b6e10a11d771f2da9f3f0623dfb2af2ac10a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 21844577,
+      "local_name": "元素英雄 羽翼侠",
+      "local_type": 17,
+      "official_cid": 6310,
+      "text_digest": "2208092037b9872352cc59a9e351b6e10a11d771f2da9f3f0623dfb2af2ac10a",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 22026707,
+      "local_name": "黑魔族的幕帘",
+      "local_type": 17,
+      "official_cid": 4110,
+      "text_digest": "a747dea6094070371cd7bd411a5f7d9034e5ea30f98fe77b54504bd3fb01c714",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 22499463,
+      "local_name": "蛇毒眼镜蛇",
+      "local_type": 17,
+      "official_cid": 7194,
+      "text_digest": "280400a7760e1d40fc66543d7c25872ee857329aca7a72ceb2f67ca79735c25b",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 22855882,
+      "local_name": "被诅咒的魔剑",
+      "local_type": 17,
+      "official_cid": 4231,
+      "text_digest": "a73f09ff7e19937faff14c4f1b6ac9e83e3bf82b8287a02c73809cd16b6e538a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 22910685,
+      "local_name": "绿树之灵王",
+      "local_type": 17,
+      "official_cid": 4280,
+      "text_digest": "634129dbd0d2343ffb5b9fc13754ac383c0b90b24a98ad775186f7df4394f777",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 23032273,
+      "local_name": "梅基拉斯之光",
+      "local_type": 17,
+      "official_cid": 4277,
+      "text_digest": "6f97fbeb162b2d3e590b88c13a8477ed31dff98646fabfd0ca90972cf05f6c95",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 23115241,
+      "local_name": "X-剑士 安娜佩瑞拉",
+      "local_type": 17,
+      "official_cid": 7821,
+      "text_digest": "92c43483f7813ce9ddda4afdd3aacb9f8d4b44d2c556446051f7b26dd0a0f8a7",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 23635815,
+      "local_name": "软糖豆人",
+      "local_type": 17,
+      "official_cid": 6413,
+      "text_digest": "4066bd8c79ad08bf92c608c31ed9b6168781344d0a1f67730b56d6aab0dc4472",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 23659124,
+      "local_name": "海之龙王",
+      "local_type": 17,
+      "official_cid": 4449,
+      "text_digest": "134915182b204df68f2342b432413dca8d6fe7d35e478f573fc7219c21df636f",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 23771716,
+      "local_name": "彩虹鱼",
+      "local_type": 17,
+      "official_cid": 4446,
+      "text_digest": "1669be8ea7f496e01b6678ee536324e7889205657705d03ee4cf5c8c7d9111cc",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 23923758,
+      "local_name": "包烤蒸骑-汉堡排",
+      "local_type": 17,
+      "official_cid": 18899,
+      "text_digest": "b9430455bb16166bd7f97ebb844dcfe86ed1f5c3d816f77a3c3bdc5c1756d38a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 23923759,
+      "local_name": "包烤蒸骑-汉堡排",
+      "local_type": 17,
+      "official_cid": 18899,
+      "text_digest": "b9430455bb16166bd7f97ebb844dcfe86ed1f5c3d816f77a3c3bdc5c1756d38a",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 24154052,
+      "local_name": "原型机灵",
+      "local_type": 17,
+      "official_cid": 13556,
+      "text_digest": "5b9a60ed373875ac9ce7ec38cbe135a09386d86658dd6362c5df6a98370d3c9a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 24194033,
+      "local_name": "泥浆兽",
+      "local_type": 17,
+      "official_cid": 4211,
+      "text_digest": "c41d254eca7cc1418663aae40e614443c5aef994dfb44a75253d6b970e3fe973",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 24311372,
+      "local_name": "恶魔兽灵",
+      "local_type": 17,
+      "official_cid": 4397,
+      "text_digest": "80095a95a391958fbcb72f8eadb4836c14dba38471e1f20eae54bce3c96a485f",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 24348204,
+      "local_name": "魅惑的怪盗",
+      "local_type": 17,
+      "official_cid": 4151,
+      "text_digest": "622ec72d0045e758cfc22d23def2e7474020f0938a45249b0d23eea41d714cbf",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 24433920,
+      "local_name": "单摆刃拷问机械",
+      "local_type": 17,
+      "official_cid": 4394,
+      "text_digest": "f190f1e0769bfc98d008518ea926dbc5d7bee42310200dc5b1080823b766708d",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 24433921,
+      "local_name": "单摆刃拷问机械",
+      "local_type": 17,
+      "official_cid": 4394,
+      "text_digest": "f190f1e0769bfc98d008518ea926dbc5d7bee42310200dc5b1080823b766708d",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 24530661,
+      "local_name": "达人僵尸",
+      "local_type": 17,
+      "official_cid": 5506,
+      "text_digest": "7a8630abb4f9cb1afcd62e1453e9a5c62eae16f7a480bc4afa3a74aa93b06b94",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 24611934,
+      "local_name": "强化石像怪",
+      "local_type": 17,
+      "official_cid": 4383,
+      "text_digest": "f8234ca36b4d00ed8ef2ed30ed489bd6e34e79eb8888ab7fec6624a4298320ac",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 25652259,
+      "local_name": "王后骑士",
+      "local_type": 17,
+      "official_cid": 5503,
+      "text_digest": "9ce0ed82ecb88367c5dc7822e824b7ba97fcfece1e8f334da946e774569cfa59",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 25882881,
+      "local_name": "死神骷髅",
+      "local_type": 17,
+      "official_cid": 4159,
+      "text_digest": "b311372a61d0ed626a4c63821a44a7b4196f49d8b9b3d98f775286f0b0a523b1",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 26378150,
+      "local_name": "粗暴帝王",
+      "local_type": 17,
+      "official_cid": 4388,
+      "text_digest": "cf30072433c0e3e6058d1b7c22da50c6aa981c9615de00752524739897463929",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 26566878,
+      "local_name": "恶魔蝎",
+      "local_type": 17,
+      "official_cid": 6021,
+      "text_digest": "75191f3f01aa39872a46a3c40669efeeb3ba34257dbf6304c67cf261d2c48a6a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 26976414,
+      "local_name": "海皇的长枪兵",
+      "local_type": 17,
+      "official_cid": 7366,
+      "text_digest": "5a0ce0a40991fe5c0c6ea09a9902b97f1a577ff67dadfab6a4b88496c72017be",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 27054370,
+      "local_name": "火翼飞马",
+      "local_type": 17,
+      "official_cid": 4720,
+      "text_digest": "a32a6b5401271ca9d493df8ef5f2861d41ab78f6ca2eb56cd8a0800a84db0fc0",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 27094595,
+      "local_name": "招手的墓场",
+      "local_type": 17,
+      "official_cid": 4114,
+      "text_digest": "adc8c9995bbf098c0378b847a30250bfe2a641bbbfb9175f930ac95d742b2956",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 27125110,
+      "local_name": "千眼邪教神",
+      "local_type": 17,
+      "official_cid": 4739,
+      "text_digest": "022638ad2cc5d7059b71b23585a1802b6af8d11b7cc41890cc163835aedb541e",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 27126980,
+      "local_name": "宝石骑士·青玉",
+      "local_type": 17,
+      "official_cid": 8894,
+      "text_digest": "b2de80294a4e050caee37db0735101ed02d111c37d5549ca5a0dd1730316abe0",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 27288416,
+      "local_name": "悠悠",
+      "local_type": 17,
+      "official_cid": 6018,
+      "text_digest": "ff95c9e242f80d166f7b6545323c0c6274f2778b02d9e2256e95a2187967b8e1",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 27324313,
+      "local_name": "电气小子",
+      "local_type": 17,
+      "official_cid": 4051,
+      "text_digest": "0427b0beaba2e0426008f3f778c67f0aabc6fbe7ead72e2a0cf14a218e24588b",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 27520594,
+      "local_name": "圣种之地灵",
+      "local_type": 17,
+      "official_cid": 15857,
+      "text_digest": "1d11cbf4ddccfd5f2e031c4c04130f0dbf59974b0ef4ebe9eea9e2157308c5a7",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 27553701,
+      "local_name": "绝对的王者-大盗掠龙",
+      "local_type": 17,
+      "official_cid": 18676,
+      "text_digest": "da716cd920f0d69175b0405d1212c99065c7fd5fe9597ddcbafe0afed5bcb050",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 27671321,
+      "local_name": "雷鳗",
+      "local_type": 17,
+      "official_cid": 5079,
+      "text_digest": "95209bfda2a8f02709f3c9bfc931d00a3090bd83df4dd829a34fa8d36a82ee5b",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 28003512,
+      "local_name": "审判之手",
+      "local_type": 17,
+      "official_cid": 4171,
+      "text_digest": "d18345ca66311f9e2a37b9d0ee780a45f7f45d650ca6580e0e7af6739f719b9e",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 28103028,
+      "local_name": "火马天龙",
+      "local_type": 17,
+      "official_cid": 20476,
+      "text_digest": "3a0ee1aea068c0fb5c7c99aed8e373d63c7fb5efb2aa1750985cccb3bc75ff0b",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 28279543,
+      "local_name": "诅咒之龙",
+      "local_type": 17,
+      "official_cid": 4045,
+      "text_digest": "76a1f00ad30dffc25b205fb741f6fce91b944ab794eb5b479ccf6d664d51bac5",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 28450915,
+      "local_name": "来自异次元的侵略者",
+      "local_type": 17,
+      "official_cid": 4566,
+      "text_digest": "1e572a1050dbdd24c2023bbb4cdf9fcced9b9cda76af4cb6913291daa7127087",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 28546905,
+      "local_name": "无脸幻想师",
+      "local_type": 17,
+      "official_cid": 4048,
+      "text_digest": "fcb0de80d4a7b3b8041796af04f3cbafe588f2db8172d669934229a6e30b0d51",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 29054481,
+      "local_name": "霞之谷的看守者",
+      "local_type": 17,
+      "official_cid": 7815,
+      "text_digest": "c676b7bfd2166da160a012a5dbec6eddeb4457a0f4b1f4faf217b13cc8764b10",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 29172562,
+      "local_name": "钢铁巨神像",
+      "local_type": 17,
+      "official_cid": 4563,
+      "text_digest": "8c59f89f7a98a027e3c8b954a24ecba6f1459a21d963346c0c8dd32f8a8fa479",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 29402771,
+      "local_name": "彩虹人鱼",
+      "local_type": 17,
+      "official_cid": 4500,
+      "text_digest": "91e26af33b94c40e1d789cea32e4afb0bfd2235d7c4d0810a9785073867a73d5",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 29491031,
+      "local_name": "美杜莎的亡灵",
+      "local_type": 17,
+      "official_cid": 4042,
+      "text_digest": "fd50722e9bb2a2305e1a89d92ebe64d35090d4073b76500d17c8325791ae8ed5",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 29616941,
+      "local_name": "美丽的魔物使",
+      "local_type": 17,
+      "official_cid": 4440,
+      "text_digest": "463419f9daf8c5bc8b2df22c2e4389d503fd0412e62c38eed68724349eee9d1a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 29692206,
+      "local_name": "双尾",
+      "local_type": 17,
+      "official_cid": 4612,
+      "text_digest": "330523c489edab37f5076081c5e1c5621b30c7d4052d4feb25c7fe4d4d137841",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 29802344,
+      "local_name": "蛇椰树",
+      "local_type": 17,
+      "official_cid": 4626,
+      "text_digest": "067f51dddebb4342d885a374228dc5783b48031bc49e1a30eba6b4122c48e076",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 29948642,
+      "local_name": "鸟嘴兽",
+      "local_type": 17,
+      "official_cid": 4165,
+      "text_digest": "b62bf15116e0357d83d04b5a50bebb27343de0c47efd084e7510736df169649d",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 30090452,
+      "local_name": "铠武者 斩鬼",
+      "local_type": 17,
+      "official_cid": 4099,
+      "text_digest": "684880c7542a024b6c8c4c74381cdcad53fb3a5bfea41443359f502e4eec95f4",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 30113682,
+      "local_name": "审判者",
+      "local_type": 17,
+      "official_cid": 4039,
+      "text_digest": "60847732284b86502f5c1b50acd18cb9da6e3333ad3ba4c3e0ec22094d33133c",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 30325729,
+      "local_name": "死神回力镖",
+      "local_type": 17,
+      "official_cid": 5150,
+      "text_digest": "e7f7c68dc4789b535974f3cf3c69b9b8d2cf8161e2e0f768a6186612ba9afc1f",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 30532390,
+      "local_name": "鸟人",
+      "local_type": 17,
+      "official_cid": 4980,
+      "text_digest": "e4971855ae423d3352d6a6c74b2fc0ca03ee4ac90093573617f11ea723e2b262",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 30655537,
+      "local_name": "机械猎鹰",
+      "local_type": 17,
+      "official_cid": 4977,
+      "text_digest": "3aca050720310bc9576048ce52874f41fc019002960ced8429428656cfbaeba7",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 31122090,
+      "local_name": "逆转之女神",
+      "local_type": 17,
+      "official_cid": 4096,
+      "text_digest": "b336f05a6e3be26e1f67f26a62ff8fe7252b6ee2463b97d7c984eb337e8784fe",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 31122091,
+      "local_name": "逆转之女神",
+      "local_type": 17,
+      "official_cid": 4096,
+      "text_digest": "b336f05a6e3be26e1f67f26a62ff8fe7252b6ee2463b97d7c984eb337e8784fe",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 31242786,
+      "local_name": "食魂鱼",
+      "local_type": 17,
+      "official_cid": 5036,
+      "text_digest": "a09bce6ecac6884e1931dc8d301de5d05872c846d29a28c6e8ba4d1db1badcb9",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 31447217,
+      "local_name": "织翼者",
+      "local_type": 17,
+      "official_cid": 5147,
+      "text_digest": "63f4c475191eb669f79ac57144b1ecd385f8e1b290ca62c4b30e03d002eab42d",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 31477025,
+      "local_name": "火山先生",
+      "local_type": 17,
+      "official_cid": 4974,
+      "text_digest": "fc72b9e4b5e19fb5f1f9241cdc7ad4a109f7d377b84170e328b2d592a04032a8",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 31987274,
+      "local_name": "飞鱼",
+      "local_type": 17,
+      "official_cid": 5065,
+      "text_digest": "72e4cdd925da040340cc4dc588bd08e3cb018300fd12fc4ed2b7ed5a299d6ffe",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 32012841,
+      "local_name": "千年盾",
+      "local_type": 17,
+      "official_cid": 4368,
+      "text_digest": "63f4b590dbecdc79a3afa402c70eadeb69ba7b1b1fb1a8c3e5598bedcdb03bed",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 32012842,
+      "local_name": "千年盾",
+      "local_type": 17,
+      "official_cid": 4368,
+      "text_digest": "63f4b590dbecdc79a3afa402c70eadeb69ba7b1b1fb1a8c3e5598bedcdb03bed",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 32269855,
+      "local_name": "独眼白虎",
+      "local_type": 17,
+      "official_cid": 5144,
+      "text_digest": "d0525451502b02f9368e85296f889cced6a6f48a38109e8abd71b4de076a00b9",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 32274490,
+      "local_name": "白骨",
+      "local_type": 17,
+      "official_cid": 4030,
+      "text_digest": "c9536769062e363e32388e6a5a19c8d0fdf6a4469bde6bad9e795f1a779b113d",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 32274491,
+      "local_name": "白骨",
+      "local_type": 17,
+      "official_cid": 4030,
+      "text_digest": "c9536769062e363e32388e6a5a19c8d0fdf6a4469bde6bad9e795f1a779b113d",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 32274492,
+      "local_name": "白骨",
+      "local_type": 17,
+      "official_cid": 4030,
+      "text_digest": "c9536769062e363e32388e6a5a19c8d0fdf6a4469bde6bad9e795f1a779b113d",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 32295838,
+      "local_name": "数字机灵",
+      "local_type": 17,
+      "official_cid": 13192,
+      "text_digest": "94809b3140fb3c61d3007af7f0e15d59ddbef41503dd435752b28e7ef411d09d",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 32344688,
+      "local_name": "暗黑奇美拉",
+      "local_type": 17,
+      "official_cid": 4093,
+      "text_digest": "14dd6e985e040c1ad9a56dbf685e790855ccd3aa4783660b86407d6659a98ffb",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 32452818,
+      "local_name": "路易斯",
+      "local_type": 17,
+      "official_cid": 4033,
+      "text_digest": "72bf457c20e14054fa34dc8aecbd5e3cb372a2b427ec96dd82f992e0f1089d72",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 32541773,
+      "local_name": "绘画中的潜藏者",
+      "local_type": 17,
+      "official_cid": 5219,
+      "text_digest": "9aec66b87f87b51b609e6debd0d13a006ce276ba4a15f4a14a4dfe8c21ff031d",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 32569498,
+      "local_name": "屎壳郎",
+      "local_type": 17,
+      "official_cid": 4491,
+      "text_digest": "eb668bf4b38140ce0881e4a3e5ee11e297f0e3ea1061765ef2c6e48675e8a55e",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 32626733,
+      "local_name": "螺旋龙",
+      "local_type": 17,
+      "official_cid": 6962,
+      "text_digest": "47959a43626d41eeffda36266f9fd690fb7387586263c9b9757222ed935491fc",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 33064647,
+      "local_name": "独眼盾龙",
+      "local_type": 17,
+      "official_cid": 4302,
+      "text_digest": "b6699381515e2df0b3a8f97a37bf8f1b161f156cadf4b1044f2f89ad4b4f7c1e",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 33112041,
+      "local_name": "火山鼠",
+      "local_type": 17,
+      "official_cid": 7191,
+      "text_digest": "b65042bba23f4c2b5fe2a4a821af2c0849b2b92811e7e7c316cc8fcf6f766f0a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 33178416,
+      "local_name": "奈耳",
+      "local_type": 17,
+      "official_cid": 4548,
+      "text_digest": "183b98ebe9cfdbd683b106ec104d98ac4b8e5fbd32ffefc852f76aa96f998448",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 33621868,
+      "local_name": "铁球巨人",
+      "local_type": 17,
+      "official_cid": 4425,
+      "text_digest": "3bb510110e82db06da7aed6514eac2233df513720f729bbf2fa3bdc5cc3174a0",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 33734439,
+      "local_name": "2人3脚僵尸",
+      "local_type": 17,
+      "official_cid": 4365,
+      "text_digest": "7e74295be44fb1914d256c07e3b518eb01d5d0b327a578ec802c05f33cc86bf6",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 33878931,
+      "local_name": "撞击兽",
+      "local_type": 17,
+      "official_cid": 4534,
+      "text_digest": "911cdedd8d2af441e8a41bd6e389122195e5724272dfaf9109f9861c2465eb56",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 34100324,
+      "local_name": "鹰身少女",
+      "local_type": 17,
+      "official_cid": 6175,
+      "text_digest": "3a41916f5cfc64a142824e1b20f7055560c6026712966e2ea1798ea0b42a572e",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 34290067,
+      "local_name": "死亡鲨",
+      "local_type": 17,
+      "official_cid": 4545,
+      "text_digest": "afdc92f576bbb9c06c417b13296bfa22cc7601e11b54c2e91d16e4a06e5ab6db",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 34320307,
+      "local_name": "有生命的花瓶",
+      "local_type": 17,
+      "official_cid": 4594,
+      "text_digest": "7ce2999da69cc680b58d508ca807f343eac329f4f1ceebb44075f8b5a036985e",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 34442949,
+      "local_name": "机械蜗牛",
+      "local_type": 17,
+      "official_cid": 4591,
+      "text_digest": "a2c0396e785c4f45c87fc68e3ed8c6a075585cad44d442de989da4cdf5ba4bbf",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 34460851,
+      "local_name": "火焰操纵者",
+      "local_type": 17,
+      "official_cid": 4148,
+      "text_digest": "b050e19ea89ccb36c615901a84653bb8c33d0b492841f4f4ca9b2ae071b160d2",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 34536276,
+      "local_name": "蟹蛛",
+      "local_type": 17,
+      "official_cid": 4482,
+      "text_digest": "4ba57934be83f82a76cc3bc7e820ee635bb43b37fe84489688e8b137e4977195",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 34690519,
+      "local_name": "山之精灵",
+      "local_type": 17,
+      "official_cid": 4531,
+      "text_digest": "e85db3ba1229b6006be33f46a756211f5594b354cdb7a770fa704d9c78f0360b",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 34743446,
+      "local_name": "碎块人",
+      "local_type": 17,
+      "official_cid": 4422,
+      "text_digest": "129c01261895978f5f8f4660aa5380d558ed9ca02b4b7eecee79f0a4dfa98ffb",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 35052053,
+      "local_name": "甲虫装甲骑士",
+      "local_type": 17,
+      "official_cid": 6235,
+      "text_digest": "dd1a8e529b5b97bc1cd1c4347fd6b5a3d66c4dd284811e87963a3ae3306d5984",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 35282433,
+      "local_name": "青色眼银僵尸",
+      "local_type": 17,
+      "official_cid": 4145,
+      "text_digest": "f77844b12a876373a006bced120e079f7fb8318d2e0c6efd1291c8a0e231a3cb",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 35322812,
+      "local_name": "人造木人18",
+      "local_type": 17,
+      "official_cid": 6172,
+      "text_digest": "c0d4d0624b843ac7b4307e98f4ba291e9554f2ddedb1e6e2e8a67fc145dd6b9d",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 35565537,
+      "local_name": "女武神",
+      "local_type": 17,
+      "official_cid": 4588,
+      "text_digest": "13ffc37afd6a50e2ba9af2960c56e6f7962b1fb60773a7aaf3889dc1606b1d17",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 35712107,
+      "local_name": "巨大怪鸟",
+      "local_type": 17,
+      "official_cid": 4528,
+      "text_digest": "9569e65e29bb542cd40182ea55a9ef70996eb8eee7e8ec6d3b9d87052f720893",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 36119641,
+      "local_name": "太空翻车鱼",
+      "local_type": 17,
+      "official_cid": 6232,
+      "text_digest": "cbac7d830ad0c4d2facc85f7fac0e8fc6e86b89ae09165d6817586efeb130ef7",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 36121917,
+      "local_name": "怪兽蛋",
+      "local_type": 17,
+      "official_cid": 4153,
+      "text_digest": "54eef172e6ab49c5e6b9ce0254fcf9121b3e1937be496cc5d9d8066f37576517",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 36151751,
+      "local_name": "菊石骑士",
+      "local_type": 17,
+      "official_cid": 4202,
+      "text_digest": "63b6c271559a92176ff874fbdf90f121f275bbbf5adf8904caa23e8b78893559",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 36211150,
+      "local_name": "比特机灵",
+      "local_type": 17,
+      "official_cid": 13029,
+      "text_digest": "95c6c4b3fe0a60fe120529d46389f27b62de4886b85c7b88b4e4ea4c8fd8a411",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 36304921,
+      "local_name": "魔人 死亡撒旦",
+      "local_type": 17,
+      "official_cid": 4142,
+      "text_digest": "dbd02f3d10987d13cf9c20c6b3a729dcd05c7208bb4333f1a4b780363271cb48",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 36821538,
+      "local_name": "古代魔导士",
+      "local_type": 17,
+      "official_cid": 4265,
+      "text_digest": "c13f1bfc9c0def3cf74a98b9a7db50fbf10444c00d369d36b0c1bd17c7c4b1d1",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 36904469,
+      "local_name": "卡库塔斯",
+      "local_type": 17,
+      "official_cid": 4156,
+      "text_digest": "462f1c0b1c892c5a4b968f3cb3f8871296f71ad880e518c95a34a07cbd529041",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 37160778,
+      "local_name": "天使魔女",
+      "local_type": 17,
+      "official_cid": 4259,
+      "text_digest": "764f5a92a7c6f7f5a5a78792b7c879926ed7e86c5c9327f251b613686f44fead",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 37243151,
+      "local_name": "气象控制员",
+      "local_type": 17,
+      "official_cid": 4136,
+      "text_digest": "f594813c096066624808a5ae463d3de6bc55285e83b34af4655444caed138116",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 37265642,
+      "local_name": "剑角龙",
+      "local_type": 17,
+      "official_cid": 6796,
+      "text_digest": "95eff8201e49078aa41162cb2740f6320d49a186d49d8b088c17e59fa9a9620b",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 37313348,
+      "local_name": "龟虎",
+      "local_type": 17,
+      "official_cid": 4199,
+      "text_digest": "c22f7526f50733c4eb97e3297d86859cc0149e5e29c3a17f0f965948cfd3ff47",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 38035986,
+      "local_name": "红A",
+      "local_type": 17,
+      "official_cid": 4196,
+      "text_digest": "d63fad64832062c3d12ad21aeec850d5517a5c22c0da77256d2b2c6185c31337",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 38116136,
+      "local_name": "机器攻击者",
+      "local_type": 17,
+      "official_cid": 4654,
+      "text_digest": "200d8880df0e69b2c1da739b8641e61a069341dff932bccdb258121e3611bdfd",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 38142739,
+      "local_name": "小天使",
+      "local_type": 17,
+      "official_cid": 4214,
+      "text_digest": "e38c3ce2fc9fc383c37888492a64449cca1186b01f7cb0d4f48ba8648e3023c1",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 38277918,
+      "local_name": "新月龙",
+      "local_type": 17,
+      "official_cid": 4717,
+      "text_digest": "83d1fdb6688d1b3fa2e459f37214b87bc9b71282b53a9eece12148bec7060619",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 38289717,
+      "local_name": "贪尸龙",
+      "local_type": 17,
+      "official_cid": 4087,
+      "text_digest": "40b75975474eb9480bc74ae039dac062642b0afeeb299d4863b9052515182edd",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 38445524,
+      "local_name": "屠杀巨灵",
+      "local_type": 17,
+      "official_cid": 5491,
+      "text_digest": "dbf86b5b0378dac5196d204df4f155023635a8f187183e379825bdd997bdea0b",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 38916461,
+      "local_name": "稀有金属战士",
+      "local_type": 17,
+      "official_cid": 5073,
+      "text_digest": "b4c452dc706f06e503e828cbcb50fa114e0d9e63e4a213fe032bafa206dcf6b4",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 38942059,
+      "local_name": "音女",
+      "local_type": 17,
+      "official_cid": 4305,
+      "text_digest": "46bf19282dfe4fa39a7f98d8fb8a49caae7c9eb63a2f831b880d735091e9b51e",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 38955728,
+      "local_name": "龙核的咒灵者",
+      "local_type": 4113,
+      "official_cid": 12591,
+      "text_digest": "ac9a439c86cd7be65118f003fe639104b69d4254215b24cd23f04530a391dea6",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 38982356,
+      "local_name": "冰",
+      "local_type": 17,
+      "official_cid": 4256,
+      "text_digest": "02e0611141f38fdfb6f0191e79514fbe51437f44784f4762b05ff892e9354d88",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 38999506,
+      "local_name": "宇宙女王",
+      "local_type": 17,
+      "official_cid": 4714,
+      "text_digest": "8453fd2fcc0eae4a739baac5ee65139f4ddbfa419eb50f7fa85cdff6e5a8e486",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 39004808,
+      "local_name": "根潭鱼人",
+      "local_type": 17,
+      "official_cid": 4253,
+      "text_digest": "aa403b87d2685f5ded8c80de4220863c0ca09b6c92f48b19f1757f0de5af6268",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 39111158,
+      "local_name": "三角魔龙",
+      "local_type": 17,
+      "official_cid": 4711,
+      "text_digest": "f1930ae6565187ca30c2a9530e3d095e5d88c0a92ad3683b6fb0ed03257bbdc2",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 39175982,
+      "local_name": "暗黑杀手",
+      "local_type": 17,
+      "official_cid": 4215,
+      "text_digest": "85dd5417aa56c959df7aec6d876dab2dc5106590ed89879981dfa435f6deca73",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 39239728,
+      "local_name": "王家守卫",
+      "local_type": 17,
+      "official_cid": 4651,
+      "text_digest": "0ee8a7f1236525e516e97f2a4de5fbaceca66ead396fff445ba23ec6bfac0672",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 39256679,
+      "local_name": "磁石战士β",
+      "local_type": 17,
+      "official_cid": 4763,
+      "text_digest": "1ba4fe497a2e842eea008fc94d0d16c9ef9e77516aa48c946e6c38d07879836a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 39552864,
+      "local_name": "神圣球体",
+      "local_type": 17,
+      "official_cid": 5949,
+      "text_digest": "62f718204b6e2cbd58d238875bcb72975835a6445544d8a3ea5a91aafe7348de",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 39674352,
+      "local_name": "巨歧蜥·魔蜥义豪",
+      "local_type": 17,
+      "official_cid": 5946,
+      "text_digest": "3324d783037d2b812f451ed1a81784e4d7c919a4c11c986b64c351d4cbca135c",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 40155554,
+      "local_name": "盟军·头脑",
+      "local_type": 4113,
+      "official_cid": 7960,
+      "text_digest": "9611f02dbea3f6f9468277d3cca32d0c6ea7398b2f463c3ecabf919c93a54215",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 40196604,
+      "local_name": "暗影",
+      "local_type": 17,
+      "official_cid": 4187,
+      "text_digest": "5205b36ecfff162b90096509210638104916f363aeda3b47aa79b1e739cc1a01",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 40200834,
+      "local_name": "睡狮子",
+      "local_type": 17,
+      "official_cid": 4127,
+      "text_digest": "7d73c18b528a3518736278c2b289c8847df7bac1cac4b4e1bd970044e3a784e4",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 40374923,
+      "local_name": "猛犸的墓场",
+      "local_type": 17,
+      "official_cid": 4065,
+      "text_digest": "191a26d84fe89cbd7b4e78c4339b962534f4911666acdb5b5b2a6ff944ea45a4",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 40387124,
+      "local_name": "开在深渊的花",
+      "local_type": 17,
+      "official_cid": 4585,
+      "text_digest": "3316b07a00c34c662364aea44efa7140bf0615effdf21151c181807a82e5346b",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 40575313,
+      "local_name": "地狱亡灵",
+      "local_type": 17,
+      "official_cid": 4015,
+      "text_digest": "72e107ef5fdc824cb474ea2e7cb578d13a1d57184f211060554bbe65693ce3b0",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 40826495,
+      "local_name": "岩浆人",
+      "local_type": 17,
+      "official_cid": 4250,
+      "text_digest": "69be88a67db1708bbe7b9c8e3121e45b2548a795733b81705ce8c6d8fdc93a24",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 41061625,
+      "local_name": "椰树",
+      "local_type": 17,
+      "official_cid": 4244,
+      "text_digest": "e5bd0c71c9c608165c8c072784c885b580bdebef5e80149cefdfc0006b8d41ff",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 41218256,
+      "local_name": "利爪杀手",
+      "local_type": 17,
+      "official_cid": 4184,
+      "text_digest": "396443ef6c68196e798efff6250de0861edeb1b027ee33e72cead611ac85f870",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 41392891,
+      "local_name": "小精怪",
+      "local_type": 17,
+      "official_cid": 4012,
+      "text_digest": "9c38ba8a67a1762b31b50bc388f91c1a52d77947e70e2945bce734d50a8eb761",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 41396436,
+      "local_name": "苍翼冠鸟",
+      "local_type": 17,
+      "official_cid": 4642,
+      "text_digest": "fa56fbdc5f0e2bb1e4d24329f2642c43affb7540e1694b4109398ddac1316bb8",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 41403766,
+      "local_name": "冻土带的大蝎",
+      "local_type": 17,
+      "official_cid": 4582,
+      "text_digest": "d3cf033eec28adfa9bf1358326dbe66023f5256d7b045c5f37687325d63204b1",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 41422426,
+      "local_name": "阴暗处的协力者",
+      "local_type": 17,
+      "official_cid": 4124,
+      "text_digest": "e363c4731ab82f63ae9583c69603fa26b85b5c30060a6e63b34b9a18ebe07918",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 41762634,
+      "local_name": "吸血跳蚤",
+      "local_type": 17,
+      "official_cid": 4061,
+      "text_digest": "26a4e0fc612b5ee0c3101477b37e79afed7d21fbb1a19a23d48e43e258f3d662",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 41949033,
+      "local_name": "暗之暗杀者",
+      "local_type": 17,
+      "official_cid": 4247,
+      "text_digest": "b230ec8ae062454c0f0c30bcf5290d62fcb2b49b6f8830b2941a5e7a00af2f15",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 42026772,
+      "local_name": "泽塔次元的魔术王",
+      "local_type": 4113,
+      "official_cid": 23428,
+      "text_digest": "d349fbe78fe519fb5d54aa2f59e0ee753f7cd2b9b302999dd0760c5c51a1557f",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 42071342,
+      "local_name": "暗黑之海龙兵",
+      "local_type": 17,
+      "official_cid": 5874,
+      "text_digest": "8d7b01ac46e99dc4fa7b17920742d88208befed2f8db273de88bc91c08bb33d7",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 42129512,
+      "local_name": "巨大树熊",
+      "local_type": 17,
+      "official_cid": 5814,
+      "text_digest": "e9b2eaf7d202de4dfa0442111e20ee07f26501c75e0a0d7e1a9166376076418d",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 42348802,
+      "local_name": "虎纹龙",
+      "local_type": 17,
+      "official_cid": 4576,
+      "text_digest": "b0170774abc247ee11684ef260e2d1e7f802589b53f640de7ca1bd7fb0a77020",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 42418084,
+      "local_name": "诞生的天使",
+      "local_type": 17,
+      "official_cid": 4639,
+      "text_digest": "a6924810a5b7568f19d52025efec2462d5a64dd942d2bbc0f7f83e91c9b40750",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 42431843,
+      "local_name": "魔天老",
+      "local_type": 17,
+      "official_cid": 4181,
+      "text_digest": "bd39dde98c53ba160513f52c3b8c9cb94662239ac758b3af58819984c7d6bb0e",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 42591472,
+      "local_name": "笑花",
+      "local_type": 17,
+      "official_cid": 4516,
+      "text_digest": "e83183f6b41d584c643daaca7acf7938e49ed2bf52ae6f2f3a65cf371e37b0ae",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 42599677,
+      "local_name": "火焰杀手",
+      "local_type": 17,
+      "official_cid": 4971,
+      "text_digest": "c0d7c5c071c9778de25fc2cfd38192f6d4300514b0c763c782092e6608b385fc",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 42625254,
+      "local_name": "小霸王龙",
+      "local_type": 17,
+      "official_cid": 4579,
+      "text_digest": "d28d5ed327631130606dbf4881d3956597cd550b1fb04bfa6615a3ec742c2b92",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 42941100,
+      "local_name": "扰乱·黄",
+      "local_type": 17,
+      "official_cid": 5811,
+      "text_digest": "b0213c0b9e7d244b418dfd1285aae7c7ecd321eacfcf99381259d4ce15d43d1d",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 43096270,
+      "local_name": "紫翠玉龙",
+      "local_type": 17,
+      "official_cid": 9863,
+      "text_digest": "89233e07b240b954f09625228046cdf6f62cfc90e97125540e5b4e695e11b6a2",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 43230671,
+      "local_name": "古代的蜥蜴战士",
+      "local_type": 17,
+      "official_cid": 4636,
+      "text_digest": "542fa43d4546162d5759ec67980cd80a182cf432893f66e5f6b9093bced177d1",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 43352213,
+      "local_name": "猫女郎",
+      "local_type": 17,
+      "official_cid": 4633,
+      "text_digest": "5e0ec77dba4fc9ed3bd4a1d3ccf643d8963fe191d1b3ae62acd0f5ecb75315d6",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 43500484,
+      "local_name": "魔界之棘",
+      "local_type": 17,
+      "official_cid": 4573,
+      "text_digest": "61df54aa0b038cd9faa2b0867d9a3c3dba8a95ccb18a45f2c58c5bea15b851ba",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 43793530,
+      "local_name": "歧蜥·魔蜥义豪",
+      "local_type": 17,
+      "official_cid": 5871,
+      "text_digest": "73d339d4a57c3f9d9f66f082e1fc163dce72e3e233346d89e67c838433c4c197",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 43905751,
+      "local_name": "魔人铳",
+      "local_type": 17,
+      "official_cid": 4238,
+      "text_digest": "53cf2e3696a04541c9c106b06e7324f18b1271d611e77d91ab4a518a46c8fb24",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 44073668,
+      "local_name": "塔库利米诺斯",
+      "local_type": 17,
+      "official_cid": 4359,
+      "text_digest": "2f101621e34be535440e86d3d059681ce246204be5367e59a3783a1ef986615b",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 44203504,
+      "local_name": "机械军曹",
+      "local_type": 17,
+      "official_cid": 5027,
+      "text_digest": "50b74464b1b83f9af0cf27254f9b96fd0d597e8615451ff6e7191883366eeb6d",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 44287299,
+      "local_name": "传说的剑豪 正树",
+      "local_type": 17,
+      "official_cid": 4299,
+      "text_digest": "abacffd2f00fd96a4f2ab9b024344f4ee6a4e13c2e71abf3926c10a92fff1b48",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 44430454,
+      "local_name": "六武众的侍从",
+      "local_type": 17,
+      "official_cid": 7276,
+      "text_digest": "fe34a7e6d86c18618e5b7d90bf31aa1afe2c6be9af27f35ac7125449160051a5",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 44519536,
+      "local_name": "被封印者的左足",
+      "local_type": 17,
+      "official_cid": 4024,
+      "text_digest": "05d6c90a3dbd7de1f45bcec22b085ec2fb9cd61276f428357e4bd8a8343276f8",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 44865098,
+      "local_name": "机械士兵",
+      "local_type": 17,
+      "official_cid": 4419,
+      "text_digest": "5a31ddfb122fa0059221f634a01d4356a813348ca203ab0929812760329bff1e",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 45042329,
+      "local_name": "地雷兽",
+      "local_type": 17,
+      "official_cid": 4465,
+      "text_digest": "76e9b566740da1ec267e2deda7adbaf328aa6436d580f7f7a160a79cf9231363",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 45121025,
+      "local_name": "黑影之鬼王",
+      "local_type": 17,
+      "official_cid": 4293,
+      "text_digest": "d748f5b9d24cff047fd1932c4c7b0d9b2b50854b635f5d466cc92dd27b094fcd",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 45909477,
+      "local_name": "月之使者",
+      "local_type": 17,
+      "official_cid": 4296,
+      "text_digest": "ec8b3ae92b07a1a3f0a288636139a5b41827a2e28fafa28e8ca0fc0899d5f125",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 45945685,
+      "local_name": "单车机人",
+      "local_type": 17,
+      "official_cid": 6383,
+      "text_digest": "8e89091de0d7c11e8e5039c0e210cd440ff2952e43eac3fe3ccfceb9021a797c",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 46247516,
+      "local_name": "阴阳师 道",
+      "local_type": 17,
+      "official_cid": 4290,
+      "text_digest": "2ff4776f2b556e57d3de05f2d1beb3f45c2d4e754e02bff239d8bfa8eaba89aa",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 46457856,
+      "local_name": "友伴恐龙",
+      "local_type": 17,
+      "official_cid": 4111,
+      "text_digest": "e5f3a71c09862acdfcba63ad96a2237dbe0795da73d3b6687fceab5b91513b1f",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 46474915,
+      "local_name": "魔法幽灵",
+      "local_type": 17,
+      "official_cid": 4476,
+      "text_digest": "2a57481168e8216de378b2c9fda5d5aa33437c9d4aafa9064e1857ad1593e314",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 46533533,
+      "local_name": "皮蒂",
+      "local_type": 17,
+      "official_cid": 20274,
+      "text_digest": "c21118a5d5ac27aa591f2ddca526eb0c90bb1c5d90b6f17e88bfe6d3d937b5c9",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 46534755,
+      "local_name": "火焰乌贼",
+      "local_type": 17,
+      "official_cid": 4525,
+      "text_digest": "1e80e1b13b5db6e8be038eacfe4e1668a365b165994bcc0762d4f5b75f741d20",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 46718686,
+      "local_name": "海星葵",
+      "local_type": 17,
+      "official_cid": 4233,
+      "text_digest": "74617f0b5d81f6d4d7c92ebff31fa24a06929f39fb406a8aeffd92b1e5b3d74c",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 46821314,
+      "local_name": "人形史莱姆",
+      "local_type": 17,
+      "official_cid": 5060,
+      "text_digest": "23c7881db20780f2bc9f4f7e118e1265e8d71caff4195ef8b65a07981ad8ce76",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 46864967,
+      "local_name": "岩之战士",
+      "local_type": 17,
+      "official_cid": 4462,
+      "text_digest": "7cb45397b66c178c829676ec654a54737cd93dd85bb230690a9c53359cc15340",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 46986414,
+      "local_name": "黑魔术师",
+      "local_type": 17,
+      "official_cid": 4041,
+      "text_digest": "4138a9a3c8081bc440eab80aedfa311a1c54815253b0614b0c6d4f023a414f7f",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 46986415,
+      "local_name": "黑魔术师",
+      "local_type": 17,
+      "official_cid": 4041,
+      "text_digest": "4138a9a3c8081bc440eab80aedfa311a1c54815253b0614b0c6d4f023a414f7f",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 46986416,
+      "local_name": "黑魔术师",
+      "local_type": 17,
+      "official_cid": 4041,
+      "text_digest": "4138a9a3c8081bc440eab80aedfa311a1c54815253b0614b0c6d4f023a414f7f",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 46986417,
+      "local_name": "黑魔术师",
+      "local_type": 17,
+      "official_cid": 4041,
+      "text_digest": "4138a9a3c8081bc440eab80aedfa311a1c54815253b0614b0c6d4f023a414f7f",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 46986418,
+      "local_name": "黑魔术师",
+      "local_type": 17,
+      "official_cid": 4041,
+      "text_digest": "4138a9a3c8081bc440eab80aedfa311a1c54815253b0614b0c6d4f023a414f7f",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 46986419,
+      "local_name": "黑魔术师",
+      "local_type": 17,
+      "official_cid": 4041,
+      "text_digest": "4138a9a3c8081bc440eab80aedfa311a1c54815253b0614b0c6d4f023a414f7f",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 46986420,
+      "local_name": "黑魔术师",
+      "local_type": 17,
+      "official_cid": 4041,
+      "text_digest": "4138a9a3c8081bc440eab80aedfa311a1c54815253b0614b0c6d4f023a414f7f",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 46986421,
+      "local_name": "黑魔术师",
+      "local_type": 17,
+      "official_cid": 4041,
+      "text_digest": "4138a9a3c8081bc440eab80aedfa311a1c54815253b0614b0c6d4f023a414f7f",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 46986422,
+      "local_name": "黑魔术师",
+      "local_type": 17,
+      "official_cid": 4041,
+      "text_digest": "4138a9a3c8081bc440eab80aedfa311a1c54815253b0614b0c6d4f023a414f7f",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 46986423,
+      "local_name": "黑魔术师",
+      "local_type": 17,
+      "official_cid": 4041,
+      "text_digest": "4138a9a3c8081bc440eab80aedfa311a1c54815253b0614b0c6d4f023a414f7f",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 46986424,
+      "local_name": "黑魔术师",
+      "local_type": 17,
+      "official_cid": 4041,
+      "text_digest": "4138a9a3c8081bc440eab80aedfa311a1c54815253b0614b0c6d4f023a414f7f",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 46986425,
+      "local_name": "黑魔术师",
+      "local_type": 17,
+      "official_cid": 4041,
+      "text_digest": "4138a9a3c8081bc440eab80aedfa311a1c54815253b0614b0c6d4f023a414f7f",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 46986426,
+      "local_name": "黑魔术师",
+      "local_type": 17,
+      "official_cid": 4041,
+      "text_digest": "4138a9a3c8081bc440eab80aedfa311a1c54815253b0614b0c6d4f023a414f7f",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 46986427,
+      "local_name": "黑魔术师",
+      "local_type": 17,
+      "official_cid": 4041,
+      "text_digest": "4138a9a3c8081bc440eab80aedfa311a1c54815253b0614b0c6d4f023a414f7f",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 46986428,
+      "local_name": "黑魔术师",
+      "local_type": 17,
+      "official_cid": 4041,
+      "text_digest": "4138a9a3c8081bc440eab80aedfa311a1c54815253b0614b0c6d4f023a414f7f",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 46986429,
+      "local_name": "黑魔术师",
+      "local_type": 17,
+      "official_cid": 4041,
+      "text_digest": "4138a9a3c8081bc440eab80aedfa311a1c54815253b0614b0c6d4f023a414f7f",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 46986430,
+      "local_name": "黑魔术师",
+      "local_type": 17,
+      "official_cid": 4041,
+      "text_digest": "4138a9a3c8081bc440eab80aedfa311a1c54815253b0614b0c6d4f023a414f7f",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 46986431,
+      "local_name": "黑魔术师",
+      "local_type": 17,
+      "official_cid": 4041,
+      "text_digest": "4138a9a3c8081bc440eab80aedfa311a1c54815253b0614b0c6d4f023a414f7f",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 47060154,
+      "local_name": "狂战士",
+      "local_type": 17,
+      "official_cid": 4287,
+      "text_digest": "e10a708023d7f14f230e055d0f32f5a48b5deb762f2f12c865b081df82f57f87",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 47226949,
+      "local_name": "骑狮机兽",
+      "local_type": 17,
+      "official_cid": 13692,
+      "text_digest": "03373933cd884a7d20dfe64ddecc5c37b3f382e3c6b344798f73b179723af006",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 47319141,
+      "local_name": "飞鹰",
+      "local_type": 17,
+      "official_cid": 4470,
+      "text_digest": "22a89e0e84c794e7d233427950abb9e2df477a7b6ed1dd4b0ef72d387688e950",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 47372349,
+      "local_name": "杂技猴",
+      "local_type": 17,
+      "official_cid": 5705,
+      "text_digest": "55a4c01faa99147ce79d4c639f7b94b7727274fa8bd0c2d329fbe062899f31df",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 47484352,
+      "local_name": "异宇宙龙",
+      "local_type": 17,
+      "official_cid": 18145,
+      "text_digest": "bbce6c0fa9f0c31e88ce84b0d9bd3d5913bf8af5cbf6b459d36b0a3ea94c8a69",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 47643326,
+      "local_name": "太空咒语兔",
+      "local_type": 4113,
+      "official_cid": 20901,
+      "text_digest": "54c31e221c4c02c4ff8c4354706a968062715b8d4dcc7d85335d6cd0265c039a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 47695416,
+      "local_name": "命运之蜡烛",
+      "local_type": 17,
+      "official_cid": 4248,
+      "text_digest": "6ac8e61791f3ab50ebefca7eb6bbf548fe2656ce15a917e93b9620222d30b171",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 47879985,
+      "local_name": "王室前的守护者",
+      "local_type": 17,
+      "official_cid": 4519,
+      "text_digest": "fe5717381d7f446b9b3f69a43a9ca39bb47004cc9a3a9dbc957e2eef3b951890",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 47894537,
+      "local_name": "街头眼艺幻术师",
+      "local_type": 17,
+      "official_cid": 19490,
+      "text_digest": "638c379162ad418e138e24c196f9a6659f75b63dcc2874b123f99472c1927d22",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 47922711,
+      "local_name": "海马兽",
+      "local_type": 17,
+      "official_cid": 4410,
+      "text_digest": "fe582a95f519a15abf88934dfac600af17f89da20e0410babe6b7151762b7b7f",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 47986555,
+      "local_name": "千年石人",
+      "local_type": 17,
+      "official_cid": 4459,
+      "text_digest": "559aad9b063c63954240aa131d45f4277ca9c31d7b545dafbcaef4f11fc684d0",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 48094997,
+      "local_name": "战斗橄榄球员",
+      "local_type": 17,
+      "official_cid": 5702,
+      "text_digest": "b95eb63c07806393db17dd7bebcc6e3e900ee8c62658184157ac209bf7019594",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 48109103,
+      "local_name": "复仇的河童",
+      "local_type": 17,
+      "official_cid": 4456,
+      "text_digest": "e89b2f78a910534b06e74270a06279ab7f8a5a27a9a7a7ad5b16350b8c32a106",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 48202661,
+      "local_name": "彼者",
+      "local_type": 17,
+      "official_cid": 5642,
+      "text_digest": "41533de839b388613eea37ea5da0f6b1ce14ab313c5152b8c6fb65e81c1c17de",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 48305365,
+      "local_name": "巨斧袭击者",
+      "local_type": 17,
+      "official_cid": 4084,
+      "text_digest": "115c7b1f6ece944689732ca8552d3b4570318d5d81bd4ff66b036a05ae01a124",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 48365709,
+      "local_name": "暗杀者",
+      "local_type": 17,
+      "official_cid": 4133,
+      "text_digest": "ed859d9b79a177be27ea55b76aa77e0d00cc708f63d0a0474528cb91db49fd27",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 48531733,
+      "local_name": "电击企鹅",
+      "local_type": 17,
+      "official_cid": 4467,
+      "text_digest": "a0a6c339f600f63423645752a2173a1d7f33a670d8544004b11445017906e264",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 48649353,
+      "local_name": "牛鬼",
+      "local_type": 17,
+      "official_cid": 4407,
+      "text_digest": "31f2af4b795472e757dca18a1f9c3397a95d395b917948cab39979971709e0e6",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 48766543,
+      "local_name": "电子科技翼龙",
+      "local_type": 17,
+      "official_cid": 4790,
+      "text_digest": "af0ad46cd1acfae40abdd56918b11ac3da2d43bf1e17b5f1b30a601f8af7740e",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 49003308,
+      "local_name": "魔蜥义豪",
+      "local_type": 17,
+      "official_cid": 5759,
+      "text_digest": "85d20c568120f5d47452f8a1c8bbd181bcf5cdd550f771073de50d9dd74628c6",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 49036338,
+      "local_name": "PSY骨架驱动者",
+      "local_type": 17,
+      "official_cid": 12067,
+      "text_digest": "e0c684a5029956df6066586346459fe195f974320400c5bfafce63c051f894c4",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 49127943,
+      "local_name": "食人植物",
+      "local_type": 17,
+      "official_cid": 4081,
+      "text_digest": "aee0a358aa5e990ea9560f013f873da5b584d8380ddafa17538096e6be13f9ab",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 49218300,
+      "local_name": "死亡巫师",
+      "local_type": 17,
+      "official_cid": 4884,
+      "text_digest": "4bbfd17c77281f28ce2a88c0c5c67ab6aaeec47e4d5b08fb735b9b6fa69da7f6",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 49258578,
+      "local_name": "地狱之门",
+      "local_type": 17,
+      "official_cid": 4193,
+      "text_digest": "34ab4cead60c3ded4105246db6cdc08b132b6d34c2989cc29f0bc04fbea3d864",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 49370026,
+      "local_name": "戏法师",
+      "local_type": 17,
+      "official_cid": 4190,
+      "text_digest": "e0d9ba0eebb92a55d2be962369a2756beae545b411268a87c2e038ba30c507cb",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 49417509,
+      "local_name": "狼",
+      "local_type": 17,
+      "official_cid": 4067,
+      "text_digest": "81ee18eecf1156f1a2e208d03fe1f3dc2757893d56ff21b0be466787cb820c12",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 49563947,
+      "local_name": "新水魔道士",
+      "local_type": 17,
+      "official_cid": 6094,
+      "text_digest": "69684755749efe1732df02c831f2e2267e2f0cf210d55a6d53f1c9d38905a898",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 49587396,
+      "local_name": "钢铁之心",
+      "local_type": 17,
+      "official_cid": 4130,
+      "text_digest": "343b68462e45bd9f12e671c7d4ad585fbb8c6a0ff31acadd049842b4631b2e13",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 49791927,
+      "local_name": "老虎斧战士",
+      "local_type": 17,
+      "official_cid": 4070,
+      "text_digest": "d3c3cbb4dac82f9eff8cbf2c79d3c061be3152aa957e5411c0504e7d99c29122",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 49791928,
+      "local_name": "老虎斧战士",
+      "local_type": 17,
+      "official_cid": 4070,
+      "text_digest": "d3c3cbb4dac82f9eff8cbf2c79d3c061be3152aa957e5411c0504e7d99c29122",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 49858495,
+      "local_name": "力量棒球女郎三姐妹",
+      "local_type": 17,
+      "official_cid": 17344,
+      "text_digest": "00f8608339b71df6a27090d2ad756b8e016787c899ac2f329bb9f4dd9296980a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 49881766,
+      "local_name": "恶魔士兵",
+      "local_type": 17,
+      "official_cid": 5762,
+      "text_digest": "41ef781635c303582b1427f54ebe27175d6f5a3fc6ea017c29dfe1495ff1bede",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 49888191,
+      "local_name": "甘尼许巨象",
+      "local_type": 17,
+      "official_cid": 4787,
+      "text_digest": "2a317713ec72bb443970a1f5aa6010f3de732f210def090c6c8cd36f2a73b574",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 50005633,
+      "local_name": "复仇的潜行剑士",
+      "local_type": 17,
+      "official_cid": 4384,
+      "text_digest": "3c87d60dae10a58d52363a06fdb8dcb42ee815701263294307a8c464d224e94e",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 50176820,
+      "local_name": "电子鱼",
+      "local_type": 17,
+      "official_cid": 4447,
+      "text_digest": "54a02deaa7c76d6622618e53311893aeaf8f0d00df28bd280bf28835cc19963d",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 50930991,
+      "local_name": "魔法剑士 尼奥",
+      "local_type": 17,
+      "official_cid": 4881,
+      "text_digest": "f4561dc458879ae3ef8157aa1feef69ce423afbb78ac382dc1b9d9e9f8d54fc4",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 51228280,
+      "local_name": "迷宫的蠕虫",
+      "local_type": 17,
+      "official_cid": 4381,
+      "text_digest": "499f72b4ea06fd1a36365e5a77d3d1381940298c1ca64122b11368ebaf63e0f7",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 51638941,
+      "local_name": "V-喷气虎",
+      "local_type": 17,
+      "official_cid": 6471,
+      "text_digest": "c25103c6ce6f093ec77eb97d04b590f99679d80891e43a1ab23de29e3e1c56b9",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 51934376,
+      "local_name": "打大喷嚏的河马龙",
+      "local_type": 17,
+      "official_cid": 5507,
+      "text_digest": "4e502f75e6d6e0c1a87667d86127a14974c88c44a1e96768fdd0672221b24651",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 52121290,
+      "local_name": "蛇女郎",
+      "local_type": 17,
+      "official_cid": 5086,
+      "text_digest": "5dc6aa683f94b69fafc98f1b153cd0df3a0b7223d985dba8c0cff606057db9d6",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 52367652,
+      "local_name": "食命者",
+      "local_type": 17,
+      "official_cid": 4118,
+      "text_digest": "8ba9af8b19398148283f3c2d5ad46763fe90daae2ad26a8feccc4975b32873d9",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 52550973,
+      "local_name": "法老的仆人",
+      "local_type": 17,
+      "official_cid": 6022,
+      "text_digest": "431d9962cda036b80e92fe8fe42c5045eb94bb9c12af26b48a889c793b66ed9a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 52584282,
+      "local_name": "大力独角仙",
+      "local_type": 17,
+      "official_cid": 4058,
+      "text_digest": "5b14fbd12278e4481ad1edad636a0ad8c12ed578fd588678390232b465ebf52c",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 52800428,
+      "local_name": "死者之腕",
+      "local_type": 17,
+      "official_cid": 4141,
+      "text_digest": "03085bd33d8bf5e37d499c8633ed0e5c016a3bc88eac47c306bcf8b5f4c15eda",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 53153481,
+      "local_name": "铠甲剑尾战士",
+      "local_type": 17,
+      "official_cid": 4178,
+      "text_digest": "d263efdc774200c57570f2f355058de815b769cd375f1602aadaea579bfc6283",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 53293545,
+      "local_name": "火炎草",
+      "local_type": 17,
+      "official_cid": 4163,
+      "text_digest": "f728b02c5cd7185ee2fea10ca419cc1f20c9057cdd5b8347c2eb74d5b7ee1a6d",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 53375573,
+      "local_name": "深渊的冥王",
+      "local_type": 17,
+      "official_cid": 4175,
+      "text_digest": "90b59c59d393d3ac3d8b394cab7ec29ff8cd0bdfd39d876216b1f2a5340bf03b",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 53581214,
+      "local_name": "火焰恶魔",
+      "local_type": 17,
+      "official_cid": 4160,
+      "text_digest": "2cf9b9eb7b59708df8bbc9815fd131d57b035f9074f7e64e8b884e458607f5a2",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 53606874,
+      "local_name": "巨大蚂蚁",
+      "local_type": 17,
+      "official_cid": 4055,
+      "text_digest": "ea0df0adaaeb6bd51146eb3f6d6e295be9233d4c95cb2b6d963f65b6247c38ea",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 53713014,
+      "local_name": "狂鱼",
+      "local_type": 17,
+      "official_cid": 4513,
+      "text_digest": "9d7c1451edcc43af4e42b5128f0851ef32e38d9c60d7c7d3b7fc87da9ffc5b1a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 53776525,
+      "local_name": "义豪灵蜥",
+      "local_type": 17,
+      "official_cid": 6019,
+      "text_digest": "af6e296030ccdc53dc5c7104bf56d57f3da8a2e75bc7651efe0a0647912a4016",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 53829412,
+      "local_name": "狮鹫兽卫",
+      "local_type": 17,
+      "official_cid": 4052,
+      "text_digest": "19a0576231241cc5ed80c003d2d323381e55b2087740acd980842b5014114777",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 53830602,
+      "local_name": "魔界植物",
+      "local_type": 17,
+      "official_cid": 4510,
+      "text_digest": "305117f11078d1307710312de8ae880ace200a2635856daa61b3b155496f003a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 53832650,
+      "local_name": "巴比伦",
+      "local_type": 17,
+      "official_cid": 4218,
+      "text_digest": "b0ca8de30524cf35eed9114780d7407e60c5032627c88a64317f850b2bad1cbe",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 54112932,
+      "local_name": "薯薯与片片",
+      "local_type": 17,
+      "official_cid": 14235,
+      "text_digest": "e67139ac48de7e88756ccf886b0cd1831f2eaa3a20c36e9551d424e2e60e972f",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 54579801,
+      "local_name": "满潮鱼人",
+      "local_type": 17,
+      "official_cid": 4630,
+      "text_digest": "e5680e1d8b98ea7cbb308b57efe9a5b1bf0a294ab9ca67e2c19c4f153e339ef4",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 54615781,
+      "local_name": "风之精灵",
+      "local_type": 17,
+      "official_cid": 4112,
+      "text_digest": "29b16eaea9791557a58f2257a70cc717efa31612d26fd468318066bebe71a5e5",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 54620698,
+      "local_name": "宝石骑士·黄碧",
+      "local_type": 17,
+      "official_cid": 8895,
+      "text_digest": "0a8d529106eb4667f204585e3344b4da8d505e3a62ed057d2058df4527266c9d",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 54844990,
+      "local_name": "死亡潜行者",
+      "local_type": 17,
+      "official_cid": 4232,
+      "text_digest": "66f7bc7cbeee5d4d49184d15a669eb9bb074f36ce6af1a86344f66d971228a52",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 55014050,
+      "local_name": "水之少女",
+      "local_type": 17,
+      "official_cid": 4441,
+      "text_digest": "821919250222b96f5121aa5b69d04d665d4145ee1164c0447059e79b2082aeb5",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 55210709,
+      "local_name": "青玉眼怪",
+      "local_type": 17,
+      "official_cid": 4169,
+      "text_digest": "20e3c6b657dc9624f56586e758e92bb3924df37041b78d880efe7ba5833fa003",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 55291359,
+      "local_name": "女夜魔骑士",
+      "local_type": 17,
+      "official_cid": 4627,
+      "text_digest": "a38d4d7f47fa7b6c474210a7ad5077f4afb7e7df332b981324400163921cf7b2",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 55337339,
+      "local_name": "转职的魔镜",
+      "local_type": 17,
+      "official_cid": 4109,
+      "text_digest": "8402eb95949b6731739197873983f1eb922fbae718c86e807f8328d8d9a0b9c2",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 55343172,
+      "local_name": "传说的决斗场",
+      "local_type": 17,
+      "official_cid": 20030,
+      "text_digest": "eab45db7a1cfae661d764f9d9efc6872fc4ad96ed49f47c59ea1cdbc3b07d070",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 55444629,
+      "local_name": "下级龙",
+      "local_type": 17,
+      "official_cid": 4567,
+      "text_digest": "e98bc82a8e2e6d7ea3b46edba3c0c2e8836d490126375b1ffe96959c29ef3e57",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 55550921,
+      "local_name": "格斗战士 阿提米特",
+      "local_type": 17,
+      "official_cid": 4106,
+      "text_digest": "0f54d16ab30f6913ebc493a95272846b2f96d84956f124375056e1790d770fd6",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 55567161,
+      "local_name": "戏法壶",
+      "local_type": 17,
+      "official_cid": 4564,
+      "text_digest": "d66e04f2d47bfbef54987ad9a7606797d7aeccd83ff110b6bad60ac818bf76f9",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 55691901,
+      "local_name": "大嘴",
+      "local_type": 17,
+      "official_cid": 4613,
+      "text_digest": "4811d647194e1076ae602597f9257225456ab61ad723fd4d87ae017f99b40797",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 55784832,
+      "local_name": "莫林芬",
+      "local_type": 17,
+      "official_cid": 4504,
+      "text_digest": "623f5510b8d0cc6ad0fcf07c588e94cfe3d9d82e84350adc2e627f2ebad20420",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 55998462,
+      "local_name": "金属鱼",
+      "local_type": 17,
+      "official_cid": 4444,
+      "text_digest": "a7e565ed729b3b52ce0f738868fb333f23af365099230f3da61a8f5b3595bae6",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 56283725,
+      "local_name": "蜘蛛男",
+      "local_type": 17,
+      "official_cid": 4227,
+      "text_digest": "359d92f3c72190b62e150ae5f43ce85cf5bde32e635f2378d072f2a1936c5c6a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 56342351,
+      "local_name": "磁力战士1号",
+      "local_type": 17,
+      "official_cid": 4166,
+      "text_digest": "6533e9ad9f5fd2a89e1c6a39c590cc7053248a08e23ffd3fe615dcf23017f80e",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 56369281,
+      "local_name": "贝奥武夫狼",
+      "local_type": 17,
+      "official_cid": 5018,
+      "text_digest": "52b1995cbfa2217de933a2170264df7ebf2d2333296f14bc49a12897407a1d80",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 56649609,
+      "local_name": "幻煌龙 螺旋",
+      "local_type": 17,
+      "official_cid": 12942,
+      "text_digest": "3e56657c4ef3304990de888017b862f03504d18e5e944c2d4669c601a248e8a8",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 56713552,
+      "local_name": "邪恶老鼠",
+      "local_type": 17,
+      "official_cid": 4610,
+      "text_digest": "f99b1faee23d9023783bd8fd5eece65c798ae8ff2f6e2540c717d68fb2a3861e",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 56789759,
+      "local_name": "鲜红之龙",
+      "local_type": 17,
+      "official_cid": 4561,
+      "text_digest": "0d2fa7a7235a97c1a99992403eaa1bec8c0b5d1e023cc27c4cdad46da76acb96",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 57305373,
+      "local_name": "双口的暗之支配者",
+      "local_type": 17,
+      "official_cid": 4224,
+      "text_digest": "829bbe972deed0e171710aed1cadcaadf4897fbdc63b033650ee2beec91d6cad",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 57308711,
+      "local_name": "单轮车人",
+      "local_type": 17,
+      "official_cid": 8612,
+      "text_digest": "74c64d49237374344b0aa0e6db0a35063f676f91e150e483ab6d6eb3f923d168",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 57405307,
+      "local_name": "翼龙",
+      "local_type": 17,
+      "official_cid": 4558,
+      "text_digest": "8a72abb89e9a58e82abc97ee17035d78500b061f78dfb2a0e20eb9b40566462d",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 57649113,
+      "local_name": "退电之刺卫",
+      "local_type": 4113,
+      "official_cid": 21493,
+      "text_digest": "a0c96da4d668c3a49e5b3f4f9f4394394c61fbddb83de252c55122fd04a9db84",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 57935140,
+      "local_name": "温柔天使",
+      "local_type": 17,
+      "official_cid": 4607,
+      "text_digest": "a367501f6b202dd12b7913e137033d8c31a5bd10e50136e5a6e6af9dba0e08b4",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 58192742,
+      "local_name": "飞蛾宝宝",
+      "local_type": 17,
+      "official_cid": 4284,
+      "text_digest": "e2d1e7b8727cae5f393467816cef8b7fd4f200701b7f7d91f4e65551c5179513",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 58314394,
+      "local_name": "陆战型战斗艇",
+      "local_type": 17,
+      "official_cid": 4281,
+      "text_digest": "b602ce578d51a3dc31d61cd15b37323631f71667eda3fa52fb87bd8c0a81ab37",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 58538870,
+      "local_name": "受弹压的民众",
+      "local_type": 17,
+      "official_cid": 5579,
+      "text_digest": "ffde3feced15826de4c39c12479846cb4ea9d000faa733b8247a47f5ac1d1eb2",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 58696829,
+      "local_name": "生化僧侣",
+      "local_type": 17,
+      "official_cid": 5206,
+      "text_digest": "59830ef5f2ceec098231c8281e243fc72ef4dd48271a3d9a89d02c5e695e8d88",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 58818411,
+      "local_name": "女帝螳螂",
+      "local_type": 17,
+      "official_cid": 5203,
+      "text_digest": "0ad327046eaab78ea160a41f569bff8677b2a96325ae025c798c3ef608f63974",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 58831685,
+      "local_name": "海鳞蛇",
+      "local_type": 17,
+      "official_cid": 4453,
+      "text_digest": "847ed7e0a212087c5a3341384740e909faf50f1f3605496363580cf9d29d5512",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 58932615,
+      "local_name": "元素英雄 爆热女郎",
+      "local_type": 17,
+      "official_cid": 6311,
+      "text_digest": "971d947b31031ab14330376459f4ba4759cb829e9bb93ca630c8da346ff9ed25",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 58932616,
+      "local_name": "元素英雄 爆热女郎",
+      "local_type": 17,
+      "official_cid": 6311,
+      "text_digest": "971d947b31031ab14330376459f4ba4759cb829e9bb93ca630c8da346ff9ed25",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 59053232,
+      "local_name": "小水怪",
+      "local_type": 17,
+      "official_cid": 4450,
+      "text_digest": "bc757348d9dda16f2c96ef0f0b1d140e9e84d3855dd646870ff99e851ed9af77",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 59383041,
+      "local_name": "卡通鳄鱼",
+      "local_type": 17,
+      "official_cid": 4387,
+      "text_digest": "263a2e6a94c3277f85e2972c97d7aceddd9fcb4bdc4b0333e73ceace7c666e85",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 59983499,
+      "local_name": "舞蹈精灵",
+      "local_type": 17,
+      "official_cid": 4401,
+      "text_digest": "123524dbbcef1c5157d15e72e894a257ccf886f1b9e5de08ff21ce56f45d2270",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 60246171,
+      "local_name": "他者",
+      "local_type": 17,
+      "official_cid": 6411,
+      "text_digest": "671823f277b5db9f5f892e1866584549baf671085d256c98dffa50fef9a790db",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 60589682,
+      "local_name": "格洛斯",
+      "local_type": 17,
+      "official_cid": 4212,
+      "text_digest": "dbaa8f732d5c6240da12a7d312b095c52085730235acf1672d25084902d8b6f0",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 60606759,
+      "local_name": "暗黑界的番兵 兰治",
+      "local_type": 17,
+      "official_cid": 7192,
+      "text_digest": "db6c41fe84da58626f0438e085db938d69d46e1b1b9cf53810303768aa8838ed",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 60715406,
+      "local_name": "藤蔓植物",
+      "local_type": 17,
+      "official_cid": 4595,
+      "text_digest": "62764e5a2929d148ac70c1107903c7f3bdf87420d7f2b0b0f822ec465522035e",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 60802233,
+      "local_name": "锹甲阿尔法",
+      "local_type": 17,
+      "official_cid": 4486,
+      "text_digest": "b0edd03d7b35aa8508db0c45c336185c8cb29fc153f0af2bf352544ba7c590df",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 60862676,
+      "local_name": "火焰地狱犬",
+      "local_type": 17,
+      "official_cid": 4535,
+      "text_digest": "5c1dd2996bc0b66c6b1ef309c722f9b2981b00fe98665a0157e8f664c162bc66",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 61201220,
+      "local_name": "幽灵",
+      "local_type": 17,
+      "official_cid": 4209,
+      "text_digest": "75c504b01359ec2ec0b05cb183c35d33c085d27c441a5ed01d14c1c0180f1b04",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 61454890,
+      "local_name": "时间魔人 独眼死灵师",
+      "local_type": 17,
+      "official_cid": 4149,
+      "text_digest": "00cec1cc6f43d26b59af355f7fc4caea5fc70bc867e49d39ae67d79245a35fb0",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 62113340,
+      "local_name": "神龙 末日龙",
+      "local_type": 17,
+      "official_cid": 6233,
+      "text_digest": "240dca75f72aee0b057d0dd50387283c3e5ee4c9350dd6cdc2771bc020682657",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 62193699,
+      "local_name": "大地战士",
+      "local_type": 17,
+      "official_cid": 4269,
+      "text_digest": "de07dbc5cc855a3a1eab0d4b993e752cf82b9ac44d1b5e55c63c324b78e20879",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 62210247,
+      "local_name": "月之女神 艾露塞姆",
+      "local_type": 17,
+      "official_cid": 4266,
+      "text_digest": "a330bd87203503d3dbc84d865f7796c84a77fe007476b14cf0e2bbff2413c657",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 62327910,
+      "local_name": "强力守卫",
+      "local_type": 17,
+      "official_cid": 6173,
+      "text_digest": "8ce5b8c111106791626563ea2569f010c36f30867e9789e14e34cd2bfb2826b1",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 62397231,
+      "local_name": "钻石龙",
+      "local_type": 17,
+      "official_cid": 4743,
+      "text_digest": "787a49d20dbc3b2c55083205caf554848e7af9f6bba060f30820f62e22f71b5e",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 62403074,
+      "local_name": "赤剑之莱蒙多斯",
+      "local_type": 17,
+      "official_cid": 4157,
+      "text_digest": "4066927ee8af125409197d9faf848f97541352548b41fc4254f894543c96b043",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 62514770,
+      "local_name": "拉长石龙",
+      "local_type": 4113,
+      "official_cid": 10732,
+      "text_digest": "55fea37bc64b3a0bee6e0ddfd780c7ec35118baa2e7dd727a5e93d9641f86d45",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 62651957,
+      "local_name": "X-首领加农",
+      "local_type": 17,
+      "official_cid": 5504,
+      "text_digest": "9593c6f1fb1f9eb79aca289307243cbd7eaf8cffc2a204d5aac36968494b02e4",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 62671448,
+      "local_name": "蛤蟆仙人",
+      "local_type": 17,
+      "official_cid": 4146,
+      "text_digest": "4aefcc1ee318b8294f580f564b183072f3449a15568a0c54a9481319a6c81931",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 62762898,
+      "local_name": "鹦鹉龙",
+      "local_type": 17,
+      "official_cid": 4389,
+      "text_digest": "e29033e4f3302102e965ef6bb50f6ac3d4a6bf445b4afa0b70108651c2207086",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 62793020,
+      "local_name": "谜之手",
+      "local_type": 17,
+      "official_cid": 4143,
+      "text_digest": "b56923bf217794cfec2e90834550433d50fc64ce485ce4477a0b33d6be990326",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 63125616,
+      "local_name": "司暗的影子",
+      "local_type": 17,
+      "official_cid": 4154,
+      "text_digest": "54b310e45f85c47f747b1d3ef339b67dcdfc0a4a5f843bd648b792833d9341f9",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 63308047,
+      "local_name": "魔人 泰拉",
+      "local_type": 17,
+      "official_cid": 4200,
+      "text_digest": "84bd12c481732db10563075b358324a3e6c3996d3c023ff22ce1307069ce97a1",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 63432835,
+      "local_name": "岩石犰狳",
+      "local_type": 17,
+      "official_cid": 4263,
+      "text_digest": "5531df7be8cc009bd2dd44c9ec4a6b39276df573a28dedb3e12f4d7e7b8b2db0",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 63515678,
+      "local_name": "神圣之锁",
+      "local_type": 17,
+      "official_cid": 4140,
+      "text_digest": "8df234cf2317ceabb88f4abb35d67c0a7c8b5c57f2d6f9e886e0a39909872d0d",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 63545455,
+      "local_name": "僵尸鬼灯",
+      "local_type": 17,
+      "official_cid": 4203,
+      "text_digest": "f9d4a0871630f91d8a9132e13ef3d882dfc915cf35970e3157b1e612a18baae6",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 64154377,
+      "local_name": "未熟的恶魔",
+      "local_type": 17,
+      "official_cid": 4260,
+      "text_digest": "048eb9f1ac190dc6be3de3d8e9c9f5ad1f714cf8193740acc947fb57212fc73a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 64271667,
+      "local_name": "流星之龙",
+      "local_type": 17,
+      "official_cid": 4718,
+      "text_digest": "2a4a4225888e06e003af66c6897df297abf2d012747a6aeee57ad0c95e6c26df",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 64413994,
+      "local_name": "隐密天使-摇篮镰天使",
+      "local_type": 17,
+      "official_cid": 22617,
+      "text_digest": "d10b91442d56043e0da35311c580bb574a632e75bcdce5bdd55ef738252caefc",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 64428736,
+      "local_name": "翼龙战士",
+      "local_type": 17,
+      "official_cid": 4767,
+      "text_digest": "679e8efd6104e9c778062a8dabefdc62929a78751801cee97ee4ee1b11952541",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 64501875,
+      "local_name": "响女",
+      "local_type": 17,
+      "official_cid": 4655,
+      "text_digest": "9ce53777b6e839f5054677d73f6a1eb74e385f7aa99d1025d5aa3b8eb5e35d66",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 64511793,
+      "local_name": "复印者",
+      "local_type": 17,
+      "official_cid": 4191,
+      "text_digest": "adc7e943a3beafbd71478b43d96bf19d7cc9a9638fb9efbd92071327464c2df9",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 65570596,
+      "local_name": "拉弓的人鱼",
+      "local_type": 17,
+      "official_cid": 4731,
+      "text_digest": "b36f96326ec55b9ed12c206c44846a86bd026d54798256bcbf59b804be3b2954",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 65623423,
+      "local_name": "杀人污泥",
+      "local_type": 17,
+      "official_cid": 4652,
+      "text_digest": "79dbfef3c16cb947932575370f3f653463b7f0863afa7e21fb18872780962575",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 65957473,
+      "local_name": "铁钢装甲虫",
+      "local_type": 17,
+      "official_cid": 5950,
+      "text_digest": "398b71d5503535d43b8fb87ca4956cc21640d8f80d587d46ca952c808a384811",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 66073051,
+      "local_name": "杰拉的战士",
+      "local_type": 17,
+      "official_cid": 5947,
+      "text_digest": "fdfff30af2738812e4ea748a18ec2d4ed9cc551ff7ca322d0853f83f59d37f07",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 66429798,
+      "local_name": "吟幽狮神 佩桑塔",
+      "local_type": 17,
+      "official_cid": 21249,
+      "text_digest": "fe506334aa9a5507518957099b46d6e55aafb86e6907eb4387456cfe5c9bb52b",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 66516792,
+      "local_name": "邪恶骑士龙",
+      "local_type": 17,
+      "official_cid": 4712,
+      "text_digest": "cae91f5199f94634295e43fac380727632671fc66ce596d69b044b6b40232aea",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 66602787,
+      "local_name": "暗道化师 扎奇",
+      "local_type": 17,
+      "official_cid": 4040,
+      "text_digest": "fbeecc18075fc4b2496a2b7b8ace3867eef7a246bcde736473ef7ae4a132df9e",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 66672569,
+      "local_name": "龙僵尸",
+      "local_type": 17,
+      "official_cid": 4103,
+      "text_digest": "c707af1b46f63ff72d2ea87d996af1821e8c1290062b6f056ddb48404bbcd1ae",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 66836598,
+      "local_name": "温蒂妮",
+      "local_type": 17,
+      "official_cid": 4438,
+      "text_digest": "1fc7231b50c3015e4d3e1f8529bc2715105bc914870c263a078bfd783a9bef99",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 66927994,
+      "local_name": "鬼坦克T-34",
+      "local_type": 17,
+      "official_cid": 4981,
+      "text_digest": "2e731ab0cb0362d60e14f280b489049a0bd972077219bda976fb30fe2a651aa3",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 66989694,
+      "local_name": "死灵伯爵",
+      "local_type": 17,
+      "official_cid": 5229,
+      "text_digest": "ef305e2807306b3cee2e1ca6e8e8212155215fd1023f6a881d3088d70307b531",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 67049542,
+      "local_name": "暗黑蝙蝠",
+      "local_type": 17,
+      "official_cid": 4978,
+      "text_digest": "7e6b2a2f9a4163b364eb9e868b56fe53e66e0cbf6e20dabc3490337c23e4d14d",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 67105242,
+      "local_name": "束缚于土地的亡灵",
+      "local_type": 17,
+      "official_cid": 5226,
+      "text_digest": "6120e26d13d9347ea584f0041a942793b91d7cae44f8925fc9674cfb963eeb35",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 67284908,
+      "local_name": "迷宫壁",
+      "local_type": 17,
+      "official_cid": 4372,
+      "text_digest": "2b8a6caa287dcbf56693d6bd11ed056998257bfeeb5869c05b854a747c4bbfc0",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 67371383,
+      "local_name": "半鱼兽",
+      "local_type": 17,
+      "official_cid": 5066,
+      "text_digest": "b1234ffe0f9254dee5e5c594e6332628131e88a6c4341f24e4d3329f6176d235",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 67494157,
+      "local_name": "伏地龙",
+      "local_type": 17,
+      "official_cid": 4100,
+      "text_digest": "e5fd73ba97fd091bc33a541b45b1c9781da639cb4332ed7a51aa131b1d7e4cbc",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 67532912,
+      "local_name": "科学特殊兵",
+      "local_type": 17,
+      "official_cid": 5148,
+      "text_digest": "b38128dc0609e51c5e5f8fa5a289b446611dc7c090470ba3be2146fcba5cc037",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 67724379,
+      "local_name": "恶魔龙",
+      "local_type": 17,
+      "official_cid": 4037,
+      "text_digest": "9cba811f66c7b8a5699d6f1e0090cb4e5730b3dbf42e2ea7d9311be09594a555",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 67841515,
+      "local_name": "枪管百合",
+      "local_type": 17,
+      "official_cid": 4495,
+      "text_digest": "42daf129c0ed5b56c9de18dbf7600c0b959ba35b658678b45507aa86762476c3",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 68049471,
+      "local_name": "梦魔的亡灵",
+      "local_type": 17,
+      "official_cid": 5220,
+      "text_digest": "9cee672fcf6a777d6c9c9c5620d7a0e8020d4f2ba2d40b3766a5abb123113593",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 68075840,
+      "local_name": "球骑士三人娘",
+      "local_type": 17,
+      "official_cid": 18659,
+      "text_digest": "5f94e842ceb01ac0c56f3515e0a455c698227eb9ec081b6e99cd97d1a92ef21d",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 68171737,
+      "local_name": "岩石龙",
+      "local_type": 17,
+      "official_cid": 4432,
+      "text_digest": "c175d677ca38c6d3b44dcfcc1c64f691013e7a6dc24c67ab992461a8f078149b",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 68339286,
+      "local_name": "金属守护者",
+      "local_type": 17,
+      "official_cid": 4094,
+      "text_digest": "a6ab4ce6a341e8961216621ee72455045f95bbfd92f149dd2b8f5b90664bf308",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 68401546,
+      "local_name": "妖精的赠礼",
+      "local_type": 17,
+      "official_cid": 4369,
+      "text_digest": "506d581fadb7c68478a12334bf066a8b6c64878c086652ab1ccc965c4b642186",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 68505803,
+      "local_name": "次世代控制员",
+      "local_type": 4113,
+      "official_cid": 7807,
+      "text_digest": "a8f9bd24fcfd12d7fea3dd2c1be180ebbc9fb30cd501e018dca915ff31bf9038",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 68516705,
+      "local_name": "人马兽",
+      "local_type": 17,
+      "official_cid": 4097,
+      "text_digest": "9258d2fc7dafc34961be1ad7c0ff16b2220390db6fdb01a7b4730a279c40e861",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 68638985,
+      "local_name": "蛙形史莱姆",
+      "local_type": 17,
+      "official_cid": 4555,
+      "text_digest": "b4d0dc6b4c1bef3b37acab32ecd0443e58586c332d746c22f9e8fdc1564d85e0",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 68846917,
+      "local_name": "岩窟魔人",
+      "local_type": 17,
+      "official_cid": 4034,
+      "text_digest": "a799e430e515778c1b280a06561ccff7528942fb923ecc20de0c3993cbabc02f",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 68870276,
+      "local_name": "绝对鸟",
+      "local_type": 17,
+      "official_cid": 4601,
+      "text_digest": "f44ec39ccffc143bc4bb23e37b8a109f880bcd69d68a5ec5b40a32ab2c844170",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 68928540,
+      "local_name": "螳螂杀手",
+      "local_type": 17,
+      "official_cid": 4541,
+      "text_digest": "ac2358d893e2d14c8d2494129db6467b02b2039b13042e5c9f34ccadb5ccb92f",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 68963107,
+      "local_name": "书之精灵",
+      "local_type": 17,
+      "official_cid": 4492,
+      "text_digest": "0c833ffb2b734edf1374c0192b8810d499cf7aad21acd7a5ef446d01a69b28ba",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 69140098,
+      "local_name": "双生精灵",
+      "local_type": 17,
+      "official_cid": 4538,
+      "text_digest": "872b4076fb0df1a12ba388a9c11c3bbcac870ca6aea4cc185a2de751b8c10748",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 69140099,
+      "local_name": "双生精灵",
+      "local_type": 17,
+      "official_cid": 4538,
+      "text_digest": "872b4076fb0df1a12ba388a9c11c3bbcac870ca6aea4cc185a2de751b8c10748",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 69247929,
+      "local_name": "基因狼人",
+      "local_type": 17,
+      "official_cid": 6960,
+      "text_digest": "ed8f7b3b00054909902b7958bd09c72c198a446eb7c159d81e457c41caca7535",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 69380702,
+      "local_name": "小白兔",
+      "local_type": 17,
+      "official_cid": 9719,
+      "text_digest": "a215d6e33b7695253ef83578c93c66076b2c63ef3621060a0f9c09338fcdfa9f",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 69455834,
+      "local_name": "暗魔界的霸王",
+      "local_type": 17,
+      "official_cid": 4091,
+      "text_digest": "e0b31cf323177bd1b9cc8d3fef5c9f186df885c9cf6a73b4f48cac740abaa8d0",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 69572024,
+      "local_name": "舌鱼",
+      "local_type": 17,
+      "official_cid": 4549,
+      "text_digest": "12eef0f18a2a85083a9370e0478c6ad1c978e5202d2a0ec5fc81f8b6befe81de",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 69669405,
+      "local_name": "小鬼",
+      "local_type": 17,
+      "official_cid": 4031,
+      "text_digest": "ad0aca1d8251ce47a8cd67716f2bffa057b2ce84927a9b467b742f5f2a0e5532",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 69750536,
+      "local_name": "鱼战士",
+      "local_type": 17,
+      "official_cid": 4552,
+      "text_digest": "01ccf1337e9089e86e3de699a65c1458e1fd1eb6c5bc66169a67c8cfd29ce077",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 69780745,
+      "local_name": "加尔瓦斯",
+      "local_type": 17,
+      "official_cid": 4489,
+      "text_digest": "d38502303fccecbbe47f3d8fae18dd7a86bf5d816f259264892190eaa5e37f38",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 69893315,
+      "local_name": "骰子犰狳",
+      "local_type": 17,
+      "official_cid": 4429,
+      "text_digest": "5421210b5ee7cb434e002e970e24b14762bcda1179973055e43539cd03a1cdac",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 69992868,
+      "local_name": "缪斯天使",
+      "local_type": 17,
+      "official_cid": 4598,
+      "text_digest": "e85b5b7b12afd88f66e3b91a5170fd962eab3127780dfd2490a744ca66473ad0",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 70084224,
+      "local_name": "猎头魔人",
+      "local_type": 17,
+      "official_cid": 4532,
+      "text_digest": "988845ad1262bbab24beb1b7b46311409fa6deb190a5518937a116dbfee5c04d",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 70345785,
+      "local_name": "三头巨龙",
+      "local_type": 17,
+      "official_cid": 4363,
+      "text_digest": "23717fcb0bb12dd61a753ba0153a4ffbe5ef5a264b55f9d85100726e7b8e4d3f",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 70781052,
+      "local_name": "恶魔召唤",
+      "local_type": 17,
+      "official_cid": 4028,
+      "text_digest": "fe0141d47920f99120fc1421d6c0a152e5721a08490f23c33e14971c3a691718",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 70781053,
+      "local_name": "恶魔召唤",
+      "local_type": 17,
+      "official_cid": 4028,
+      "text_digest": "fe0141d47920f99120fc1421d6c0a152e5721a08490f23c33e14971c3a691718",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 70781054,
+      "local_name": "恶魔召唤",
+      "local_type": 17,
+      "official_cid": 4028,
+      "text_digest": "fe0141d47920f99120fc1421d6c0a152e5721a08490f23c33e14971c3a691718",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 70781055,
+      "local_name": "恶魔召唤",
+      "local_type": 17,
+      "official_cid": 4028,
+      "text_digest": "fe0141d47920f99120fc1421d6c0a152e5721a08490f23c33e14971c3a691718",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 70781056,
+      "local_name": "恶魔召唤",
+      "local_type": 17,
+      "official_cid": 4028,
+      "text_digest": "fe0141d47920f99120fc1421d6c0a152e5721a08490f23c33e14971c3a691718",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 70781057,
+      "local_name": "恶魔召唤",
+      "local_type": 17,
+      "official_cid": 4028,
+      "text_digest": "fe0141d47920f99120fc1421d6c0a152e5721a08490f23c33e14971c3a691718",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 70903634,
+      "local_name": "被封印者的右腕",
+      "local_type": 17,
+      "official_cid": 4025,
+      "text_digest": "1303d330067ac22ab10059c975ecff8c247447d3a6dadbf9a13cc48207bc1486",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 70924884,
+      "local_name": "锯足锹形虫",
+      "local_type": 17,
+      "official_cid": 4483,
+      "text_digest": "b112887aebb24b6c175ce69f0e68af29806f03051ecc9603f60cea3b42d65ae3",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 71068263,
+      "local_name": "食人玩偶",
+      "local_type": 17,
+      "official_cid": 4360,
+      "text_digest": "b3d0d601158a960efb023a94071e4f63fe6f657320fb0baa600e0e6d419e0152",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 71280811,
+      "local_name": "宝箱鬼",
+      "local_type": 17,
+      "official_cid": 4357,
+      "text_digest": "4faee356fc3d3965d25de5736ea7e27b7676693d3c77ccd871f6b6ed52bbb6eb",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 71407486,
+      "local_name": "炎之魔神",
+      "local_type": 17,
+      "official_cid": 4297,
+      "text_digest": "daaf97477c77c31131206f396e1b11bed8c8c4e936462d3489965d1539923118",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 71746462,
+      "local_name": "深海切割手",
+      "local_type": 17,
+      "official_cid": 4480,
+      "text_digest": "c4d9f19832ff8ce13cb31e0dba879ddca8f525f141a0742a8f24681d9bbc6c20",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 71950093,
+      "local_name": "铁铲粉碎机",
+      "local_type": 17,
+      "official_cid": 4420,
+      "text_digest": "e5a178ef47c50e68438536105891a4cf10214a2f74dd7ce5c71889bcc47cf965",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 72076281,
+      "local_name": "机械蝙蝠",
+      "local_type": 17,
+      "official_cid": 4417,
+      "text_digest": "cf6153b5860d97f70fd29cbb108aaf3ebab202b7d474d9c4056c91df14d7c5e4",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 72269672,
+      "local_name": "岩石幽灵",
+      "local_type": 17,
+      "official_cid": 4463,
+      "text_digest": "97501a764175e8a13a465596cbdd43951d12db9691a73a9dc657819b724e9a4f",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 72299832,
+      "local_name": "机械巨兵",
+      "local_type": 17,
+      "official_cid": 4414,
+      "text_digest": "0bf8f090529c77ed95cdd1c358ffc73fbabf6431d6d2df2130095f1deeff64e4",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 72717433,
+      "local_name": "人偶怪兽 小姑娘",
+      "local_type": 17,
+      "official_cid": 15888,
+      "text_digest": "13a84cb25fa8f6e3f1eabeb7a876566dd0a3ac668e27eb67ceaa3d96f41939d2",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 72842870,
+      "local_name": "大炮鸟",
+      "local_type": 17,
+      "official_cid": 4019,
+      "text_digest": "2152ba69c77785fe2509b439edc9f06a0b66ca2ac30ceb7d71cfb3e0c60cd6e8",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 72929454,
+      "local_name": "龟鸟",
+      "local_type": 17,
+      "official_cid": 4526,
+      "text_digest": "8f350e5931d59c801ca5bfe10b12669dc49a05c397fd88aa8e46e81c876973a4",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 73051941,
+      "local_name": "沙石怪",
+      "local_type": 17,
+      "official_cid": 4523,
+      "text_digest": "eb914bba0121529db925a44e02978bb9d39c7ff23307b46ff27671f125130b36",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 73081602,
+      "local_name": "女王鸟",
+      "local_type": 17,
+      "official_cid": 4474,
+      "text_digest": "07ad12250c6d8946120fb47f039c7897677d6db94e93a05833ef1f60c63a1eb1",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 73216412,
+      "local_name": "鳞虫",
+      "local_type": 17,
+      "official_cid": 5061,
+      "text_digest": "5fed0f7e52c25fa9d5b7c7fab0c40cb414562d12ec1a23fe99b86493150085bb",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 73481154,
+      "local_name": "破坏的石人",
+      "local_type": 17,
+      "official_cid": 4460,
+      "text_digest": "e8592c9b6f9050638d8a0dd75bf191222ebac3d82df908619aa44fbdd177bfbb",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 73911410,
+      "local_name": "杀人机器",
+      "local_type": 17,
+      "official_cid": 4411,
+      "text_digest": "9bf3219ee2aa672241aabe97d4d6b287c1011a0c4c2b339b81f31470ef247052",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 74093656,
+      "local_name": "调整战士",
+      "local_type": 4113,
+      "official_cid": 7684,
+      "text_digest": "1adce79224e49e203c11f420d97351a2a3e5f441c6b4218f546a2195c6a7a413",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 74277583,
+      "local_name": "剪刀勇士",
+      "local_type": 17,
+      "official_cid": 4520,
+      "text_digest": "b35103bdb1db10efacf5e8becbfb4d4525f2311e6e5458320d44bcb7833c1884",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 74637266,
+      "local_name": "章鱼怪",
+      "local_type": 17,
+      "official_cid": 4137,
+      "text_digest": "dee129df2671b739dfd3796a7072c4c5d5a44fefcebc7aaa8773e97fdcad2242",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 74677422,
+      "local_name": "真红眼黑龙",
+      "local_type": 17,
+      "official_cid": 4088,
+      "text_digest": "469343ee168712b7c96d7b0699d61494c2651ebf95ab174b46777cf39f5b849c",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 74677423,
+      "local_name": "真红眼黑龙",
+      "local_type": 17,
+      "official_cid": 4088,
+      "text_digest": "469343ee168712b7c96d7b0699d61494c2651ebf95ab174b46777cf39f5b849c",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 74677424,
+      "local_name": "真红眼黑龙",
+      "local_type": 17,
+      "official_cid": 4088,
+      "text_digest": "469343ee168712b7c96d7b0699d61494c2651ebf95ab174b46777cf39f5b849c",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 74677425,
+      "local_name": "真红眼黑龙",
+      "local_type": 17,
+      "official_cid": 4088,
+      "text_digest": "469343ee168712b7c96d7b0699d61494c2651ebf95ab174b46777cf39f5b849c",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 74677426,
+      "local_name": "真红眼黑龙",
+      "local_type": 17,
+      "official_cid": 4088,
+      "text_digest": "469343ee168712b7c96d7b0699d61494c2651ebf95ab174b46777cf39f5b849c",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 74677427,
+      "local_name": "真红眼黑龙",
+      "local_type": 17,
+      "official_cid": 4088,
+      "text_digest": "469343ee168712b7c96d7b0699d61494c2651ebf95ab174b46777cf39f5b849c",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 74677428,
+      "local_name": "真红眼黑龙",
+      "local_type": 17,
+      "official_cid": 4088,
+      "text_digest": "469343ee168712b7c96d7b0699d61494c2651ebf95ab174b46777cf39f5b849c",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 74677429,
+      "local_name": "真红眼黑龙",
+      "local_type": 17,
+      "official_cid": 4088,
+      "text_digest": "469343ee168712b7c96d7b0699d61494c2651ebf95ab174b46777cf39f5b849c",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 74677430,
+      "local_name": "真红眼黑龙",
+      "local_type": 17,
+      "official_cid": 4088,
+      "text_digest": "469343ee168712b7c96d7b0699d61494c2651ebf95ab174b46777cf39f5b849c",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 74677431,
+      "local_name": "真红眼黑龙",
+      "local_type": 17,
+      "official_cid": 4088,
+      "text_digest": "469343ee168712b7c96d7b0699d61494c2651ebf95ab174b46777cf39f5b849c",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 74677432,
+      "local_name": "真红眼黑龙",
+      "local_type": 17,
+      "official_cid": 4088,
+      "text_digest": "469343ee168712b7c96d7b0699d61494c2651ebf95ab174b46777cf39f5b849c",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 74852097,
+      "local_name": "幻之狮鹫",
+      "local_type": 17,
+      "official_cid": 11676,
+      "text_digest": "073f67b92aab43edff2d5a9f04a9fb6e8b1ec0d77fd90e25f7e597d30212db44",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 75356564,
+      "local_name": "小龙",
+      "local_type": 17,
+      "official_cid": 4206,
+      "text_digest": "4e3f34776cd54bd5450ad9f4145e19701e65332252158c804e121942ac94b857",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 75376965,
+      "local_name": "恍惚的人鱼",
+      "local_type": 17,
+      "official_cid": 4257,
+      "text_digest": "aa361a92e8d587ed2c47403b93523af720ae279bd6026f356e51252197530736",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 75390004,
+      "local_name": "巨身多角龙",
+      "local_type": 17,
+      "official_cid": 4085,
+      "text_digest": "21f83f4db75c161ca3da07a9e361fbb2680c98177569ce686bef9d13f6642d2c",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 75499502,
+      "local_name": "主人与能手",
+      "local_type": 17,
+      "official_cid": 4254,
+      "text_digest": "f4651115df66976c349db1585f0a3a8ca00da518a87f17a9c562f947b8827f75",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 75559356,
+      "local_name": "魔界的机械兵",
+      "local_type": 17,
+      "official_cid": 4303,
+      "text_digest": "85e4ff85268d4ff2135b95aab66bb2d2564343adee463bc1446477c4568345da",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 75582395,
+      "local_name": "圣鸟",
+      "local_type": 17,
+      "official_cid": 4131,
+      "text_digest": "de131dc5ba07ca93c1550276b630494f92f4689ba7fb61a6afa3871099e7a244",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 75646173,
+      "local_name": "法兰克斯",
+      "local_type": 17,
+      "official_cid": 4194,
+      "text_digest": "d5ae644d4312061ec7b200284798922790e3b081acb28c05b0e28805d5f8abee",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 75850803,
+      "local_name": "月之魔法师",
+      "local_type": 17,
+      "official_cid": 4134,
+      "text_digest": "03e1feea8fae8fe5ecfcec0f01beb83905d8564be4fb5bae736ef4a79e5510f2",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 75889523,
+      "local_name": "恶魔海狸",
+      "local_type": 17,
+      "official_cid": 4208,
+      "text_digest": "15262cf8bf0efb3b1ab6c02cddf4437f980c87feb753a03dbb29f1b52c928c0a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 75953262,
+      "local_name": "战士 戴·格雷法",
+      "local_type": 17,
+      "official_cid": 5320,
+      "text_digest": "f1f4bcb50398cd9c829cc47c2c7f07a97fe1c4dfcc4c3a8a2ddf9dd21f117efe",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 76184692,
+      "local_name": "独眼巨人",
+      "local_type": 17,
+      "official_cid": 4009,
+      "text_digest": "f02140b40574bdde03ffc972b39cd0d7ea1689e0265e51c7e5bfef24b5d5ce43",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 76211194,
+      "local_name": "暗黑拿破仑",
+      "local_type": 17,
+      "official_cid": 4251,
+      "text_digest": "c70b24c494a881ae9fdf5315f99320736c949e4ae9f1c985403d62dd8797ecb9",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 76232340,
+      "local_name": "千年原人",
+      "local_type": 17,
+      "official_cid": 4709,
+      "text_digest": "97c74322d324b422f65235343052ff3a2e83a7c02881d6aacc06e21c4f1f3ed2",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 76446915,
+      "local_name": "圆盘魔术师",
+      "local_type": 17,
+      "official_cid": 4649,
+      "text_digest": "70b3b53a331fa8a13a5ac0150ec8ba1a0ae1e2cefe76b02d9210d64c39ec7464",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 76512652,
+      "local_name": "鳄鱼人",
+      "local_type": 17,
+      "official_cid": 4082,
+      "text_digest": "23b1b5c5ae3448d13fc2d6a04a4a0325836a4a00fb1ec578a419e72881f4715d",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 76634149,
+      "local_name": "海龙神",
+      "local_type": 17,
+      "official_cid": 4079,
+      "text_digest": "5ce26493ed5cea77f6721a28764182904711cbf5e2c00bb335c8902f1f05c379",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 76704943,
+      "local_name": "八俣龙绘卷",
+      "local_type": 17,
+      "official_cid": 4128,
+      "text_digest": "c1ab1f48fef89d88a63f0209c37bd194c952d55d007d71319788cd8685aca44f",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 76812113,
+      "local_name": "鹰身女郎",
+      "local_type": 17,
+      "official_cid": 4068,
+      "text_digest": "62e4d2afabb3abc56223ad84ebd7f3a1fd9029e617c21958e1b3b17809f60ed6",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 76908448,
+      "local_name": "宝石骑士·白晶",
+      "local_type": 17,
+      "official_cid": 9372,
+      "text_digest": "1014c4ae1cb4f69547090e999be2a666906995c93c26c316c46452d955bbcd82",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 77456781,
+      "local_name": "恶魔乌贼",
+      "local_type": 17,
+      "official_cid": 4076,
+      "text_digest": "a8a5fdbaeed10f8770f05b9c19c1770f91254cf1d0e65d9fa2406be4d7cdc8b3",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 77542832,
+      "local_name": "入魔鬼·血石",
+      "local_type": 17,
+      "official_cid": 9813,
+      "text_digest": "634a177b6ef99fd9a446c36cdb52a36cdc6c4b569268e6c97d46292bbe004a62",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 77568553,
+      "local_name": "酸液爬虫",
+      "local_type": 17,
+      "official_cid": 4646,
+      "text_digest": "5fd5315c163cd60aaf29e78f68a37ab2ed53617943bf4d733f8ec4cc56a8b4f8",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 77581312,
+      "local_name": "假面道化",
+      "local_type": 17,
+      "official_cid": 4188,
+      "text_digest": "a313fdd5c27a6248f2c6a1f4c0d0e16d90279373974b3058ff2f2fd50a8b14b1",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 77603950,
+      "local_name": "萨塔那",
+      "local_type": 17,
+      "official_cid": 4185,
+      "text_digest": "bab9103c8d29ce5332df19ad5e46a8342247f85fc8aa965b06158c5ece29ebc8",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 77827521,
+      "local_name": "地狱的裁判",
+      "local_type": 17,
+      "official_cid": 4125,
+      "text_digest": "dd8a235d5a650bb98afdca71be0f828cd8e207a79c868b477a3a8b1c5024be3a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 77998771,
+      "local_name": "乌鸦天狗",
+      "local_type": 17,
+      "official_cid": 4583,
+      "text_digest": "fc07d248df4b8aac8707f40c58d4c1eff87e7c6b33016f06cea452d5bebebf74",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 78060096,
+      "local_name": "灭绝国王鲑",
+      "local_type": 17,
+      "official_cid": 5875,
+      "text_digest": "f7893f99688d782c8330eebaac5f28bb5d16b3766a6a5a8d55047ed85c66f851",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 78402798,
+      "local_name": "蜥蜴骑士",
+      "local_type": 17,
+      "official_cid": 4640,
+      "text_digest": "685dbbe2baca23e6849e5c1260e51ff20fdbac69e3e61f63ddcc36338b8e71bb",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 78423643,
+      "local_name": "三头基多",
+      "local_type": 17,
+      "official_cid": 4752,
+      "text_digest": "a31781a416ba80870f3efdd6615d9152244347ea74dd96bd5e1f41b3a3b854f2",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 78556320,
+      "local_name": "女夜魔战士",
+      "local_type": 17,
+      "official_cid": 4245,
+      "text_digest": "4f3a594c4c3174900f48221a5be9fc3244aa41ed9bc09dd224e203dec63acc45",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 78780140,
+      "local_name": "特伦特",
+      "local_type": 17,
+      "official_cid": 4643,
+      "text_digest": "54feb9eab58af7cf901418db04a612b3df717ad9aadb9aa358762dad40dd67f7",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 78861134,
+      "local_name": "炎之剑豪",
+      "local_type": 17,
+      "official_cid": 4975,
+      "text_digest": "dbe93c9cdc8a53b8285e411b617587397cf32b97704d9c4d519d07aa0cdf8dc3",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 78984772,
+      "local_name": "爆炎龙",
+      "local_type": 17,
+      "official_cid": 4972,
+      "text_digest": "b0d35e2d4e9a6280dd6e47505f2b28825c33627002c2c53c20a22141565fc3f3",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 79182538,
+      "local_name": "暗黑之狂犬",
+      "local_type": 17,
+      "official_cid": 5872,
+      "text_digest": "20140b665bbf1f8939fde376f8ba8d40c2305f36e4c88b9aac35f150f5d10c45",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 79335209,
+      "local_name": "扰乱·黑",
+      "local_type": 17,
+      "official_cid": 5812,
+      "text_digest": "b0213c0b9e7d244b418dfd1285aae7c7ecd321eacfcf99381259d4ce15d43d1d",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 79629370,
+      "local_name": "月光少女",
+      "local_type": 17,
+      "official_cid": 4637,
+      "text_digest": "14ea583729852993b6536bb536ecf7f4d0563b6b2b4479e2b2b7a37074bec4cc",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 80141480,
+      "local_name": "猎手蜘蛛",
+      "local_type": 17,
+      "official_cid": 4620,
+      "text_digest": "7fb8882998df223348ac1b16e026ca268203dfb4c0191d1ba931ad77ee7e795a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 80222045,
+      "local_name": "勒库纳斯之吸雷 闪电比熊犬",
+      "local_type": 17,
+      "official_cid": 23128,
+      "text_digest": "ef6c4dcd7dd63952749a6c563576c3c71fc36b352f7ddda23b3be44d801b81e4",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 80234301,
+      "local_name": "棱镜人",
+      "local_type": 17,
+      "official_cid": 4511,
+      "text_digest": "ca520c9e790a4a8dfbc5b0e72c5e2ba67a6bdddd09df18332793f06304efb5b3",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 80600490,
+      "local_name": "暗影战士",
+      "local_type": 17,
+      "official_cid": 4113,
+      "text_digest": "97b036707ddd9e715ec4a11acf26c080b289c4fa938a098c73ec99df6f6c2379",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 80770678,
+      "local_name": "竖琴精灵",
+      "local_type": 17,
+      "official_cid": 4176,
+      "text_digest": "33f41ba5e41a9b9750823d384f9d848271cfe404ec0ab5a118e7a0a50e3a41f6",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 80813021,
+      "local_name": "犀牛",
+      "local_type": 17,
+      "official_cid": 4053,
+      "text_digest": "089a8594d197c6b83728ee216f546c8e063d757ae73a0d9bd3cf8e63d5fbdfd2",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 80825553,
+      "local_name": "云魔物-小烟球",
+      "local_type": 17,
+      "official_cid": 7277,
+      "text_digest": "ebf4d10d8cf98e882992c3b1dd4f247a33f628ebb6ac776efc842715c2e543b3",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 81057959,
+      "local_name": "龙人",
+      "local_type": 17,
+      "official_cid": 4508,
+      "text_digest": "4e8dab1dccf3b1748aa71a678dbc58b17dc658e66c515380f5cb7d4accd8bd12",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 81179446,
+      "local_name": "青虫",
+      "local_type": 17,
+      "official_cid": 4505,
+      "text_digest": "5fd0bd0bbe79e8724bf85428210375680a2d2a72cb616306f132f059e5465072",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 81386177,
+      "local_name": "神鱼",
+      "local_type": 17,
+      "official_cid": 4445,
+      "text_digest": "94a785b833d45a4451e133af7918f22fa4d61a706347f6b24ec9f3a883ff6399",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 81492226,
+      "local_name": "太古之壶",
+      "local_type": 17,
+      "official_cid": 4173,
+      "text_digest": "d4855cc684e6b986c86b1bc552e7cf50c028cd7108dae8370cbbd1cad41d008d",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 81563416,
+      "local_name": "泉之妖精",
+      "local_type": 17,
+      "official_cid": 4631,
+      "text_digest": "21814eb7e6a0bf106758247e78a1aaf354795e58a3048117bee6c2c755fc32d4",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 81618817,
+      "local_name": "杰米亚之神",
+      "local_type": 17,
+      "official_cid": 4170,
+      "text_digest": "ec456cc675c6633f55e8902c903ed07fa5df48c09a197a07ffca6f3b4dd4e112",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 81686058,
+      "local_name": "塞壬",
+      "local_type": 17,
+      "official_cid": 4628,
+      "text_digest": "fe0ea91c35344717b997dbc2ee498fd13599db377d56ce7f10bb71994e581152",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 81823360,
+      "local_name": "巨噬者X",
+      "local_type": 17,
+      "official_cid": 13012,
+      "text_digest": "c235053eb007c9ee748c7f0d5e725f9d4e4011f1c81d1dd2d68cbb0ff9fa409e",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 82065276,
+      "local_name": "电波英雄",
+      "local_type": 17,
+      "official_cid": 4565,
+      "text_digest": "96005d899dcf50327ee74cfd6610396ecbace6c7589119455e32d1b88679ddca",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 82085619,
+      "local_name": "友谊天使",
+      "local_type": 17,
+      "official_cid": 4614,
+      "text_digest": "815c8670cbc378554fe1a0eff51224721ab0279c975470bb19b5cebe52b36b35",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 82742611,
+      "local_name": "恶魔蛇",
+      "local_type": 17,
+      "official_cid": 4291,
+      "text_digest": "aee2555581cd870e9446be857f17897b1feb0a2d4bb0682a44c1a9af2adca2fa",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 82818645,
+      "local_name": "岩石之精灵",
+      "local_type": 17,
+      "official_cid": 4625,
+      "text_digest": "c6b889d6625bab571130544ddb509af9f71dddb05f689679d15632c8d4e63006",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 83464209,
+      "local_name": "催眠羊",
+      "local_type": 17,
+      "official_cid": 4288,
+      "text_digest": "c156263b0c8b7e8eb86912290eeaceb177d3ffc6a8f188836695e453aaec052a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 83678433,
+      "local_name": "午夜恶魔",
+      "local_type": 17,
+      "official_cid": 4228,
+      "text_digest": "615b0c32346c2f944ec72bf8bb928f36e16c30a64e4a3bc69bdf14ec1da5ad59",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 83764996,
+      "local_name": "魔导绅士-J",
+      "local_type": 17,
+      "official_cid": 5019,
+      "text_digest": "8a873c684472e8fd8f93e165df7039fdf6fc1487daf61890bd4b587490462011",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 84103702,
+      "local_name": "甲壳蟹",
+      "local_type": 17,
+      "official_cid": 4457,
+      "text_digest": "844ec0dba4b3b0f3be3f9b3252e5de7ab526d1938ed97bc761c5780cfa1beee6",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 84285623,
+      "local_name": "埴轮",
+      "local_type": 17,
+      "official_cid": 4243,
+      "text_digest": "996c3aad4541814833db046d23e54c1bc6a79aa9325a4b1b2640f126e2b62a9f",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 84327329,
+      "local_name": "元素英雄 黏土侠",
+      "local_type": 17,
+      "official_cid": 6312,
+      "text_digest": "1c94213182c296840da2d5e107d07c21ec78b940c48dda47455356e77389f31e",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 84620194,
+      "local_name": "断头台锹甲",
+      "local_type": 17,
+      "official_cid": 5136,
+      "text_digest": "df8b8f55e2f0fe00601db248f7847137fc567624f269263a6a48be3657435dfb",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 84686841,
+      "local_name": "烟之王",
+      "local_type": 17,
+      "official_cid": 4285,
+      "text_digest": "e9332e6c7bb11f7ac229436be617c6daa37505bd8207baed9e43b716fbf86510",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 84696266,
+      "local_name": "音速鸭",
+      "local_type": 17,
+      "official_cid": 5643,
+      "text_digest": "885563fa70b44f30e6f6f11823ac361fa4a878850c04e63dfed77286bf09b9bf",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 84754430,
+      "local_name": "机界骑士 亚伯拉姆",
+      "local_type": 17,
+      "official_cid": 13570,
+      "text_digest": "54e2f5095ab5bbcf6f53df94f4bad27cd74fcd03fde3d994575f9d296e3d5222",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 84794011,
+      "local_name": "孤寂",
+      "local_type": 17,
+      "official_cid": 4225,
+      "text_digest": "788defe5efd574555298900daadf7777621352ff91d9d9132b17e3dcf982896d",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 84916669,
+      "local_name": "树精",
+      "local_type": 17,
+      "official_cid": 4222,
+      "text_digest": "56d1eaea16a1d29e4e201bacc42f194b560f9dc3cb476a0793f944fd688c38a5",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 84990171,
+      "local_name": "豌豆战士",
+      "local_type": 17,
+      "official_cid": 4517,
+      "text_digest": "c6075ab7ea2bd2c9855b5c9be4dbc5c89af4730997c2281bdd76364d80772fa2",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 85309439,
+      "local_name": "北风与太阳",
+      "local_type": 17,
+      "official_cid": 4282,
+      "text_digest": "1b26716cdf2b67f6452d82a3c4a59f015c4061fe119fe5086755d6b8ec2a7cf0",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 85326399,
+      "local_name": "尖刺海龙",
+      "local_type": 17,
+      "official_cid": 4454,
+      "text_digest": "eb8e25d7c46fe997e7ac31bae0586ed3f99ea6a73eccb463373d44b6754bbb51",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 85448931,
+      "local_name": "守卫海洋的战士",
+      "local_type": 17,
+      "official_cid": 4451,
+      "text_digest": "d943ba940deb796c8ec0dc1ab445eb2df9aa6a05ac001e121113e40485a40481",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 85639257,
+      "local_name": "水魔道士",
+      "local_type": 17,
+      "official_cid": 4219,
+      "text_digest": "b7999a114eb197e0c8999c3877b0585f427b9be206d8ca1a19f71c1ad5f99ca1",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 85705804,
+      "local_name": "鸭人",
+      "local_type": 17,
+      "official_cid": 4306,
+      "text_digest": "1df443fd8d9effd37875207d454646d839c3207f1deeb6e9109c65e0df801eaf",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 85936485,
+      "local_name": "团结的反抗军",
+      "local_type": 17,
+      "official_cid": 5580,
+      "text_digest": "0100f33bf48fb8d4ee774d7f6378b098a09366edc2b3ac6ed60d1589af183eab",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 86088138,
+      "local_name": "耳天使",
+      "local_type": 17,
+      "official_cid": 4402,
+      "text_digest": "2ea0ff2ffbc09d559c7f7ed9fbfcd550e10769f61f10f188eba98b485577e5e0",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 86281779,
+      "local_name": "齿轮战士",
+      "local_type": 17,
+      "official_cid": 5092,
+      "text_digest": "c790e8b5a9a2dec2c12f5969a2f1b45064744be23f9dd4d1b6811dd9c5530a45",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 86325596,
+      "local_name": "邪剑男爵",
+      "local_type": 17,
+      "official_cid": 4882,
+      "text_digest": "6958fcd0e4a5c96915fdb28dfbfbf06f628745440a8d730650d1ad5451d84ff3",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 86421986,
+      "local_name": "悟道的老树",
+      "local_type": 17,
+      "official_cid": 4279,
+      "text_digest": "5c04a89c3ddc543b3b3f0caf016e722a64a115f799dab5e773164b0c0140b1e4",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 86498013,
+      "local_name": "异次元的驯兽师",
+      "local_type": 17,
+      "official_cid": 5760,
+      "text_digest": "18f7f9df4b9dd9d2e989811512a4f4d64c444382a8c8b697f303d36aad61bd30",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 86569121,
+      "local_name": "梅尔基多四面兽",
+      "local_type": 17,
+      "official_cid": 5095,
+      "text_digest": "82474bbc53b09364e658b14c315b59e7dfc68524243ebceef689eb31e9c13b82",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 86652646,
+      "local_name": "骨犬 小栗子",
+      "local_type": 17,
+      "official_cid": 6095,
+      "text_digest": "dbcdd6be95fc1612fe7538a5ac94ad12385235a215b250d263ee08161d9129d3",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 87151205,
+      "local_name": "电气尾龙",
+      "local_type": 17,
+      "official_cid": 10024,
+      "text_digest": "9992f34f5b878545177de27e6e56989cb7cc34b6cf26bee5a523a6184fb07233",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 87303357,
+      "local_name": "光辉深渊",
+      "local_type": 17,
+      "official_cid": 5090,
+      "text_digest": "f9a0b70aded3cc8926d54742b159613fbc018c56d358d502668ea012684f8323",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 87322377,
+      "local_name": "TM-1火箭炮蜘蛛",
+      "local_type": 17,
+      "official_cid": 4396,
+      "text_digest": "daccf7cfc72da3a6ba9058f2ee058e8d293d31977d2a31a82344c30f4b7ad85a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 87322378,
+      "local_name": "TM-1火箭炮蜘蛛",
+      "local_type": 17,
+      "official_cid": 4396,
+      "text_digest": "daccf7cfc72da3a6ba9058f2ee058e8d293d31977d2a31a82344c30f4b7ad85a",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 87511987,
+      "local_name": "尖钉头",
+      "local_type": 17,
+      "official_cid": 4778,
+      "text_digest": "d461c9af056c3eb86da77d67d28d2d87132978f2d1db4f6124e9cf1c490763f3",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 87564352,
+      "local_name": "暗黑之龙王",
+      "local_type": 17,
+      "official_cid": 4016,
+      "text_digest": "0595e9ef0a0bd8a72f05eb653d71304e94cf463bbe33ac117b88342c1f374ae5",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 87796900,
+      "local_name": "守城的翼龙",
+      "local_type": 17,
+      "official_cid": 4013,
+      "text_digest": "ab5b0882fd9be46e3095ddfffff4ac97ba07789ff81bf281b5581e6b32318ca6",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 87979586,
+      "local_name": "曼陀罗天使号手",
+      "local_type": 4113,
+      "official_cid": 12273,
+      "text_digest": "2b3469a563805722cd38f678a0ce41972dbd1f42403893739adfded68cd15ac2",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 88435542,
+      "local_name": "火眼",
+      "local_type": 17,
+      "official_cid": 4182,
+      "text_digest": "7036b84d2fbd8baa5e6e2970c7956a1fa2557b60b6b1a5bc01ae0d2255a93fda",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 88643173,
+      "local_name": "梦魇蝎",
+      "local_type": 17,
+      "official_cid": 4122,
+      "text_digest": "e63d0d9a5b0a36ec2bd729fed6f8d3da7ef977e48ea16007e7ddd07e953c14ec",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 88819587,
+      "local_name": "宝贝龙",
+      "local_type": 17,
+      "official_cid": 4010,
+      "text_digest": "7776e2c7e3439de9a1ab35bb6ab58832c98024cd36c61060b1c869ea0ba359d0",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 88979991,
+      "local_name": "杀人蜂",
+      "local_type": 17,
+      "official_cid": 4059,
+      "text_digest": "bd3227cccdf3e56125da8cf13e76f1e58a13cb431637a218134c6e4e4e43c728",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 89091579,
+      "local_name": "昆虫人",
+      "local_type": 17,
+      "official_cid": 4056,
+      "text_digest": "0a78248f233267ca14eb2bdc390c10407992d73d3589b220bc2be4b25c41672b",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 89189982,
+      "local_name": "玄化武装龙",
+      "local_type": 17,
+      "official_cid": 11212,
+      "text_digest": "23ca8da4e63c12e0c876c82c64145dece22e51c2ccf4a459683c7617ba8ffcce",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 89272878,
+      "local_name": "冥界的番人",
+      "local_type": 17,
+      "official_cid": 4242,
+      "text_digest": "677ae62b1c1ce11384e59ff41347580f19c2e590afc3bbdeca4c34c24bafb192",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 89386122,
+      "local_name": "正义盟军 辉剑鸟",
+      "local_type": 17,
+      "official_cid": 7540,
+      "text_digest": "a19e8dce43785ade9557684c47037e563d6ab6a001d00261f5c9ee9746886030",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 89494469,
+      "local_name": "暗黑魔神 梦魇",
+      "local_type": 17,
+      "official_cid": 4239,
+      "text_digest": "25bbb9ce7a47b799644924ac95c9420870723dafe995ab73d5c767c11e0af22e",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 89558090,
+      "local_name": "暗黑囚犯",
+      "local_type": 17,
+      "official_cid": 4179,
+      "text_digest": "1af5b7abb1195cceddc25f448ccf7cb56ba6abcd1a4fda416dadae1e81db4c1a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 89832901,
+      "local_name": "密林的黑龙王",
+      "local_type": 17,
+      "official_cid": 4577,
+      "text_digest": "685096ac8ed460a458a5c200c1914d275f59f6f6acdd2161cbaf03027f05778b",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 89904598,
+      "local_name": "恐龙人",
+      "local_type": 17,
+      "official_cid": 4574,
+      "text_digest": "13b611debfd371c3e43ef0a0f035fb0ce4f626341f35fab0396a329f86d4e8a0",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 89943723,
+      "local_name": "元素英雄 新宇侠",
+      "local_type": 17,
+      "official_cid": 6653,
+      "text_digest": "2caaf20ecd55c9c7fc027fb4895672f53a9cc047b500d7b1a911a535cb2055b7",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 89943724,
+      "local_name": "元素英雄 新宇侠",
+      "local_type": 17,
+      "official_cid": 6653,
+      "text_digest": "2caaf20ecd55c9c7fc027fb4895672f53a9cc047b500d7b1a911a535cb2055b7",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 89943725,
+      "local_name": "元素英雄 新宇侠",
+      "local_type": 17,
+      "official_cid": 6653,
+      "text_digest": "2caaf20ecd55c9c7fc027fb4895672f53a9cc047b500d7b1a911a535cb2055b7",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 89943726,
+      "local_name": "元素英雄 新宇侠",
+      "local_type": 17,
+      "official_cid": 6653,
+      "text_digest": "2caaf20ecd55c9c7fc027fb4895672f53a9cc047b500d7b1a911a535cb2055b7",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 89959682,
+      "local_name": "王家的守护者",
+      "local_type": 17,
+      "official_cid": 6023,
+      "text_digest": "236572de504c260bb76fabcf0885cbbe1f1e3b88f18ea50537913a18b1e1d558",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 89987208,
+      "local_name": "东方英雄",
+      "local_type": 17,
+      "official_cid": 4116,
+      "text_digest": "2873ca198c3b137a418ec8d4690cfcd153549a1927aeb409acfabb2ee5090676",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 90357090,
+      "local_name": "银牙狼",
+      "local_type": 17,
+      "official_cid": 4071,
+      "text_digest": "62d751954bb41f3200247bde9279600e7d0c99fdb0d65fba985d57aa3d52c49f",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 90582719,
+      "local_name": "剑斗兽 独眼斗",
+      "local_type": 17,
+      "official_cid": 7365,
+      "text_digest": "2c248439df7ca156ea9e3f4a9ff55691c95247a7cd09644697f704e8d4765265",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 90876561,
+      "local_name": "卫兵骑士",
+      "local_type": 17,
+      "official_cid": 5559,
+      "text_digest": "401c169e2ddb598c814bb681a19bea6d837d8876281e518f94c8923c75713737",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 90908427,
+      "local_name": "铁腕巨人",
+      "local_type": 17,
+      "official_cid": 4741,
+      "text_digest": "d590e45abe344a001a1df710b54ff7421abfe3a58aeb1615b01c04820830c54e",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 90963488,
+      "local_name": "睡眠之子",
+      "local_type": 17,
+      "official_cid": 4135,
+      "text_digest": "16fdc274b794e541a5d717315a8fc6d72c5b374013e2912d216aaa8c2cca9efa",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 91152256,
+      "local_name": "精灵剑士",
+      "local_type": 17,
+      "official_cid": 4047,
+      "text_digest": "8a4238fd252121650df6974548b4527c80b44d0d0c423e7756a5242745dcb8ff",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 91152257,
+      "local_name": "精灵剑士",
+      "local_type": 17,
+      "official_cid": 4047,
+      "text_digest": "8a4238fd252121650df6974548b4527c80b44d0d0c423e7756a5242745dcb8ff",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 91152258,
+      "local_name": "精灵剑士",
+      "local_type": 17,
+      "official_cid": 4047,
+      "text_digest": "8a4238fd252121650df6974548b4527c80b44d0d0c423e7756a5242745dcb8ff",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 91731841,
+      "local_name": "宝石骑士·红榴",
+      "local_type": 17,
+      "official_cid": 8893,
+      "text_digest": "0c0b5795313e471dd6c441917f0b18d7a61294bf6b03d8bd18d559fb5493274b",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 91939608,
+      "local_name": "神圣人偶",
+      "local_type": 17,
+      "official_cid": 4050,
+      "text_digest": "e4424068d5db338cf2656a3c10b38ccda55e11f715c753d8499a5425885e4fea",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 91996584,
+      "local_name": "鞭尾石像怪",
+      "local_type": 17,
+      "official_cid": 4656,
+      "text_digest": "eafb8b4b2895e584624d34f06328956a46d4da045343caa0838d0e1ccf4f618f",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 92125819,
+      "local_name": "圣骑士 阿托利斯",
+      "local_type": 17,
+      "official_cid": 10115,
+      "text_digest": "aa2d8f82e8d12a7c24cd4ff2605e761c379d425ee99c0efe8fcd24cefe4316f0",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 92176681,
+      "local_name": "抑制压缩对撞员",
+      "local_type": 17,
+      "official_cid": 14628,
+      "text_digest": "0bd88596fc10733fb15fa0fd3161742e17b2f907b84b174f7424be325510cf1a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 92391084,
+      "local_name": "威尔米",
+      "local_type": 17,
+      "official_cid": 4502,
+      "text_digest": "bbc9da397c4e2bac8ac895881bc3a945545cde4f4f11fc2280f51c24856bbdba",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 92409659,
+      "local_name": "白海豚",
+      "local_type": 17,
+      "official_cid": 4442,
+      "text_digest": "38a11e41f6a4902019f9e42d49575a9c8751794b78cebe4a17e3500b40a28100",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 92421852,
+      "local_name": "稀有金属女郎",
+      "local_type": 17,
+      "official_cid": 5072,
+      "text_digest": "9b0a68364fb507662deff349072d0f3f4ea564bd4b9bcbbc8d9441345185f915",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 92667214,
+      "local_name": "杀人小丑僵尸",
+      "local_type": 17,
+      "official_cid": 4104,
+      "text_digest": "e59847fea7df6d4f7cf66808a38c396e93c6b2ac6a491de99e811d7f6f98f0fb",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 92731455,
+      "local_name": "磁力战士2号",
+      "local_type": 17,
+      "official_cid": 4167,
+      "text_digest": "9a2f4ae071068443f727ef549dac982ea5d3cfbf26bea8d7dfc662403da8a016",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 92944626,
+      "local_name": "邪炎之翼",
+      "local_type": 17,
+      "official_cid": 4107,
+      "text_digest": "2667c390b7ad531d2b95e26f88307e9475f03486098a6941968fe86f13b3e0fb",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 93108297,
+      "local_name": "液体兽",
+      "local_type": 17,
+      "official_cid": 4611,
+      "text_digest": "5cab08fc22b93a4fec9eef1cf3e67e99e6e4f8c42b06d9f9f727874b21c712fb",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 93221206,
+      "local_name": "古代精灵",
+      "local_type": 17,
+      "official_cid": 4439,
+      "text_digest": "6190595659a370b65ad90adc08214d9c884ee66af072e77111a751ba5be8e65f",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 93343894,
+      "local_name": "水之魔导师",
+      "local_type": 17,
+      "official_cid": 4436,
+      "text_digest": "b4d3e7e41382f340b4eccbc07ce957e6462c0170c987e0ed2bd37bc6c8fdfaf3",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 93346024,
+      "local_name": "洞穴的潜龙",
+      "local_type": 17,
+      "official_cid": 5336,
+      "text_digest": "20a1734554d10e05b0d9641803870f0d268f47f95d324988dfaea8dd07c88011",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 93553943,
+      "local_name": "食人花",
+      "local_type": 17,
+      "official_cid": 4164,
+      "text_digest": "e0948f469f0cd966270c21ed9ed6082e44b62fd4467ce4f96243c939a929237a",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 93788854,
+      "local_name": "彷徨的亡者",
+      "local_type": 17,
+      "official_cid": 4562,
+      "text_digest": "a426e67c6e2b2a75c3de1782d66f92cb923b54278da1554f93772b5a17eb6f73",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 94022093,
+      "local_name": "大肚海蛇",
+      "local_type": 17,
+      "official_cid": 4556,
+      "text_digest": "fe6b440dbfb6114952e4683bb82f7795e78fa8d971bf14c94d24bb5d39d7fc37",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 94042337,
+      "local_name": "暴雨怪",
+      "local_type": 17,
+      "official_cid": 4605,
+      "text_digest": "b5c3d3690eaa2236a182c4520f361f70f075fd440e09911e113ca111b4a8fe70",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 94119974,
+      "local_name": "双头恐龙王",
+      "local_type": 17,
+      "official_cid": 4038,
+      "text_digest": "453d5dc09a34a32b1330bc4bf4130d8c3b6756c3456042a7e6607a725c154f73",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 94412545,
+      "local_name": "机械变色龙",
+      "local_type": 17,
+      "official_cid": 4542,
+      "text_digest": "368565c73073dc91055202ec6cee614fdfcf2d704d664d26944bf644985dca19",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 94675535,
+      "local_name": "拉瓦斯",
+      "local_type": 17,
+      "official_cid": 4161,
+      "text_digest": "a85bf394eb15f2ddfb715c3b1418a872c68f5928aef292fd26c1f37355f421b2",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 95265975,
+      "local_name": "贪食的食尸鬼",
+      "local_type": 17,
+      "official_cid": 4602,
+      "text_digest": "f837a52197e567e385948cf2af5e3576abf24a8f2de71b9bbbc3e41cd7f24a41",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 95288024,
+      "local_name": "天空龙",
+      "local_type": 17,
+      "official_cid": 4430,
+      "text_digest": "5e0eb0767e5a00efd6323917cff91b974ba4fb76cc16ce315ff4201504f89d77",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 95788410,
+      "local_name": "兔龙",
+      "local_type": 17,
+      "official_cid": 9720,
+      "text_digest": "912983be8b05448b3991b2df5e7540a04007aac33d362c254f81b16efc586696",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 96005454,
+      "local_name": "猎龙",
+      "local_type": 17,
+      "official_cid": 7193,
+      "text_digest": "f513538c88cd85401c5f60f8c7dcba3501168072120998038fe98bf7f7bc479f",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 96643568,
+      "local_name": "气象精灵",
+      "local_type": 17,
+      "official_cid": 4276,
+      "text_digest": "04cc10be1ab4adbc3d2d2d9a9dbfe6f23aa5150b796ec90a12e3a2668f93aa75",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 96851799,
+      "local_name": "史汀",
+      "local_type": 17,
+      "official_cid": 4216,
+      "text_digest": "7bd743a5e8b86214a5bc6f95f9719af8c0d09f501850047c51cc5097b16c9600",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 96967123,
+      "local_name": "大炮达磨",
+      "local_type": 17,
+      "official_cid": 4550,
+      "text_digest": "82afe88bc2d13c0fe1e242e48111916685fbfc97023bdd8bd8bf9b49812b5107",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 96981563,
+      "local_name": "食火的大龟",
+      "local_type": 17,
+      "official_cid": 4599,
+      "text_digest": "4a1d9e7f6d7c79bac167077f73eedf9efed4bb125987f1c566a00b1517f26c45",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 97023549,
+      "local_name": "利刃滑冰者",
+      "local_type": 17,
+      "official_cid": 6472,
+      "text_digest": "182e25361d9a096f5a5066598d37a99ac4704920a0de1588a1b8ff0d7ac99c8f",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 97127906,
+      "local_name": "外星人士兵",
+      "local_type": 17,
+      "official_cid": 7190,
+      "text_digest": "7c379e1cc9cbc1686aaad2ffee050e4955b42fcd539d0a7ecbc025d6a4d61aed",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 97240270,
+      "local_name": "狂怒龙虾",
+      "local_type": 17,
+      "official_cid": 6412,
+      "text_digest": "3f0300a1a64adf64b98dbd066f74c62a8b948c900c897960f3bc6d3560de45c2",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 97360116,
+      "local_name": "恶之无名战士",
+      "local_type": 17,
+      "official_cid": 4273,
+      "text_digest": "6f31a25b84bc48cab4bc2b3038fb2f11d306bd5b8fe0448f47c716e02cb39ce9",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 97590747,
+      "local_name": "灯之魔精",
+      "local_type": 17,
+      "official_cid": 4385,
+      "text_digest": "1179e012b98795013ed7e61167fab3235f0f39aa2550b0dac5c6bce79489b3b5",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 97590748,
+      "local_name": "灯之魔精",
+      "local_type": 17,
+      "official_cid": 4385,
+      "text_digest": "1179e012b98795013ed7e61167fab3235f0f39aa2550b0dac5c6bce79489b3b5",
+      "identity_basis": "same_local_name_type_text_stats"
+    },
+    {
+      "code": 97612389,
+      "local_name": "地狱的魔物使",
+      "local_type": 17,
+      "official_cid": 4382,
+      "text_digest": "69d6937cf1a3ed140824bc10268cfac71a8199db90259324fc78cee8368ee8a4",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 97843505,
+      "local_name": "风之番人 精",
+      "local_type": 17,
+      "official_cid": 4150,
+      "text_digest": "f25feaaf1cfa0d6f51dd12302f2f5a98a4faf052b40f872e489d675ffbdccd4c",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 97923414,
+      "local_name": "大木人18",
+      "local_type": 17,
+      "official_cid": 5508,
+      "text_digest": "f8a63362ad8f7e4cd6bcf2b7fb25e795698074fc465d22e950ec68697542b970",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 97973387,
+      "local_name": "大嘴鸟",
+      "local_type": 17,
+      "official_cid": 4213,
+      "text_digest": "600ff9b4e9ad194a9e64368dd1e02c6e2341e4618503aa6ff017f23e1976bcab",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 98075147,
+      "local_name": "恶魔蜗牛",
+      "local_type": 17,
+      "official_cid": 4147,
+      "text_digest": "6e729a66a93c54374c0b188142b326e4e07bb8f571d0c641be97543e3d9bfb61",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 98234196,
+      "local_name": "魔键铳士-克莱维斯",
+      "local_type": 17,
+      "official_cid": 16199,
+      "text_digest": "a5ff2659d625ce5d100b8f2acbf504c563181ab9b3333058ebacfeb6c5083eca",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 98456117,
+      "local_name": "骨海马",
+      "local_type": 17,
+      "official_cid": 5046,
+      "text_digest": "e55e073c7e2b7a817b7b514ff723e13e63cf5f32ebbb83c9e2c124e4a3e7a1cb",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 98582704,
+      "local_name": "翼蛋精灵",
+      "local_type": 17,
+      "official_cid": 4270,
+      "text_digest": "65110894d68a3bcc171956d3f6d8c7f308c0d92ca9ca283eeac22038d7bad1fd",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 98588427,
+      "local_name": "包烤蒸骑-B公牛枪炮",
+      "local_type": 17,
+      "official_cid": 20698,
+      "text_digest": "70853af10db81fd7a4ab09f018a2926b6b7dfe7e1f90122e6f3ddbffe98372d2",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 98795934,
+      "local_name": "魔加农",
+      "local_type": 17,
+      "official_cid": 4210,
+      "text_digest": "a9195b2bc484714b54565d1abacc50e68a21daa08374dc34d3278418e3a921e4",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 98818516,
+      "local_name": "杀人熊猫",
+      "local_type": 17,
+      "official_cid": 4207,
+      "text_digest": "fdf6ff9f4c1797658bf88e676bb9df2803e0814658ef35d1d80a4d8ec86de4a3",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 98898173,
+      "local_name": "溶化的赤影",
+      "local_type": 17,
+      "official_cid": 4158,
+      "text_digest": "0e20710dfa1da93b3b1f383b01062c848299126b709147385729e3aed3be381f",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 99030164,
+      "local_name": "幸福恋人",
+      "local_type": 17,
+      "official_cid": 4204,
+      "text_digest": "5377c70765f93ece2b131022340ab9d952dabd94e922a48641e754f506c51575",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 99171160,
+      "local_name": "平庸鬼",
+      "local_type": 17,
+      "official_cid": 6020,
+      "text_digest": "61b3f0038271a7c0324d944c0442f1765975845e9fa5ae5a3a55b81feff651a5",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 99261403,
+      "local_name": "暗黑兔",
+      "local_type": 17,
+      "official_cid": 4390,
+      "text_digest": "d56ea6bf6d79836d65feb03bfbd0ecaa68b2db13a1bb77cc8e8c08bc9e06d8f1",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 99510761,
+      "local_name": "神灯魔人",
+      "local_type": 17,
+      "official_cid": 4155,
+      "text_digest": "48a197a36e083706e49e043e3237e68aa639ff9b98ad16a0730bf4be602c83d4",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 99645428,
+      "local_name": "宝石骑士·小琉",
+      "local_type": 17,
+      "official_cid": 11532,
+      "text_digest": "2389727ee78382ce90f249a0d38bbdcc2f28047a32024f80aff32c4ee131cf63",
+      "identity_basis": "exact_id"
+    },
+    {
+      "code": 99785935,
+      "local_name": "磁石战士α",
+      "local_type": 17,
+      "official_cid": 4744,
+      "text_digest": "1ba4fe497a2e842eea008fc94d0d16c9ef9e77516aa48c946e6c38d07879836a",
+      "identity_basis": "exact_id"
+    }
+  ],
+  "pending": [
+    {
+      "code": 5405695,
+      "name": "混沌战士",
+      "reasons": [
+        "identity_mapping_missing"
+      ]
+    },
+    {
+      "code": 20240828,
+      "name": "德科平",
+      "reasons": [
+        "identity_mapping_missing"
+      ]
+    },
+    {
+      "code": 63028558,
+      "name": "异宇宙暮阳神",
+      "reasons": [
+        "card_source_missing",
+        "faq_index_source_missing",
+        "official_english_identity_mismatch",
+        "official_normal_category_not_established",
+        "official_attributes_mismatch",
+        "card_faq_text_mismatch"
+      ]
+    },
+    {
+      "code": 86893702,
+      "name": "异宇宙暴食魔",
+      "reasons": [
+        "card_source_missing",
+        "faq_index_source_missing",
+        "official_english_identity_mismatch",
+        "official_normal_category_not_established",
+        "official_attributes_mismatch",
+        "card_faq_text_mismatch"
+      ]
+    }
+  ]
+}

@@ -143,7 +143,8 @@ class AnnotationKnowledge:
     @staticmethod
     def conditions(effects):
         lines = list(dict.fromkeys(f'{row["label"]}：{row["text"]}' for effect in effects for row in effect['facts']
-                                  if row['label'] in ('条件', '时点', '费用', '次数')))
+                                  if str(row.get('label') or '').rsplit('·', 1)[-1]
+                                  in ('条件', '时点', '费用', '次数', '次数说明', '固定获赋效果')))
         text = '\n'.join(lines)
         return text if len(text) <= 3800 else text[:3780] + '…完整条件见统一标注。'
 

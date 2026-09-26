@@ -43,20 +43,31 @@ ACTION_TAGS = {'add_hand': 'etag:add-hand', 'draw': 'etag:draw', 'return_deck': 
                'destroy': 'etag:destroy', 'banish': 'etag:banish', 'send_grave': 'etag:send-grave',
                'special_summon': 'etag:special-summon', 'normal_summon': 'etag:normal-summon',
                'negate_effect': 'etag:negate-effect', 'negate_activation': 'etag:negate-activation',
-               'burn': 'etag:effect-damage', 'heal': 'etag:recover-lp'}
+               'burn': 'etag:effect-damage', 'heal': 'etag:recover-lp',
+               'prevent_damage': 'etag:prevent-damage'}
 
 
 def zone_matches(query, zones):
     return bool(({query} | ZONE_GROUPS.get(query, set())) & set(zones or []))
 
 
+def _processing_nodes(items, include_granted=True):
+    """Walk processing paths; fixed grants can form a separate effect boundary."""
+    for index, item in enumerate(items or []):
+        yield str(index), item
+        if include_granted or 'granted_effect' not in item:
+            for sub_index, sub in _processing_nodes(item.get('then'), include_granted):
+                yield f'{index}.then.{sub_index}', sub
+        for branch_index, branch in enumerate(item.get('branches') or []):
+            for sub_index, sub in _processing_nodes(branch.get('actions'), include_granted):
+                yield f'{index}.branch{branch_index}.{sub_index}', sub
+            for sub_index, sub in _processing_nodes(branch.get('then'), include_granted):
+                yield f'{index}.branch{branch_index}.then.{sub_index}', sub
+
+
 def processing_actions(items):
-    for item in items:
+    for _, item in _processing_nodes(items):
         yield item['action']
-        yield from processing_actions(item.get('then', []))
-        for branch in item.get('branches', []):
-            yield from processing_actions(branch.get('actions', []))
-            yield from processing_actions(branch.get('then', []))
 
 # Implied destinations keep queries honest when an annotation omits to_zones:
 # the action itself names the zone it moves a card to.
@@ -148,7 +159,7 @@ class Registry:
 
     def require(self, vocabulary, value, where):
         values = self.vocab.get(vocabulary)
-        if values is None or value not in values:
+        if values is None or not isinstance(value, str) or value not in values:
             raise ValueError(f'{where}使用了未登记的{vocabulary}取值：{value}')
         return value
 
@@ -174,7 +185,7 @@ def _check_notes(value, where):
             raise ValueError(f'{where}备注来源无效')
 
 
-def _check_processing(items, registry, where):
+def _check_processing(items, registry, where, reviewed=False, card_type=None):
     if not isinstance(items, list): raise ValueError(f'{where}处理无效')
     for item in items:
         if not isinstance(item, dict): raise ValueError(f'{where}处理项无效')
@@ -190,15 +201,24 @@ def _check_processing(items, registry, where):
         selector = item.get('selector')
         if selector is not None and (not isinstance(selector, dict) or not selector.get('text')):
             raise ValueError(f'{where}选择器缺少文字说明')
-        if item.get('then') is not None: _check_processing(item['then'], registry, f'{where}后续')
+        granted = item.get('granted_effect')
+        if 'granted_effect' in item:
+            if item['action'] != 'grant_effect' or not isinstance(granted, dict):
+                raise ValueError(f'{where}固定获赋效果只能登记在 grant_effect 中')
+            _check_effect_payload(granted, registry, f'{where}固定获赋效果', reviewed, card_type, fixed=True)
+            if item.get('then') != granted['structure']['processing']:
+                raise ValueError(f'{where}获赋效果的 then 与固定处理树不一致')
+        elif item.get('then') is not None:
+            _check_processing(item['then'], registry, f'{where}后续', reviewed, card_type)
         if item.get('branches') is not None:
             branches = item['branches']
             if not isinstance(branches, list): raise ValueError(f'{where}分支无效')
             for branch in branches:
                 if not isinstance(branch, dict): raise ValueError(f'{where}分支格式无效')
                 _check_text(branch.get('condition', '分支'), f'{where}分支条件', 400)
-                _check_processing(branch.get('actions', []), registry, f'{where}分支')
-                if branch.get('then') is not None: _check_processing(branch['then'], registry, f'{where}分支后续')
+                _check_processing(branch.get('actions', []), registry, f'{where}分支', reviewed, card_type)
+                if branch.get('then') is not None:
+                    _check_processing(branch['then'], registry, f'{where}分支后续', reviewed, card_type)
         if item.get('action') == 'choose_branch':
             branches = item.get('branches') or []
             if len(branches) < 2 or any(not branch.get('actions') for branch in branches):
@@ -227,6 +247,19 @@ def _check_processing(items, registry, where):
             raise ValueError(f'{where}调整化须登记适用时限')
         if item.get('action') == 'change_level' and not item.get('duration'):
             raise ValueError(f'{where}等级变更须登记适用时限')
+        if item.get('action') == 'attack_in_defense' and item.get('damage_calculation_stat', 'atk') not in ('atk', 'def'):
+            raise ValueError(f'{where}守备表示攻击的伤害计算数值须为 atk 或 def')
+        if item.get('action') == 'place_pendulum' and (not item.get('from_zones') or item.get('to_zones') != ['pendulum']):
+            raise ValueError(f'{where}灵摆区放置须登记来源和灵摆区域去向')
+        if item.get('action') == 'redirect_attack' and not (item.get('selector') or {}).get('text'):
+            raise ValueError(f'{where}攻击转移须登记新的攻击对象')
+        if item.get('action') == 'copy_effect' and (not item.get('from_zones') or not item.get('duration')
+                                                  or not (item.get('selector') or {}).get('text')):
+            raise ValueError(f'{where}效果复制须登记对象来源和适用时限')
+        if item.get('action') == 'prevent_damage' and (item.get('damage_scope') not in ('battle', 'effect', 'battle_and_effect')
+                                                     or item.get('recipient') not in ('self', 'opponent', 'both')
+                                                     or not item.get('duration')):
+            raise ValueError(f'{where}伤害防止须登记伤害范围、承受者和适用时限')
         if item.get('action') == 'treat_as_name' and not item.get('from_zones'):
             raise ValueError(f'{where}名称视作须登记适用区域')
         if item.get('action') == 'place_counter' and not item.get('count'):
@@ -257,6 +290,78 @@ def _check_processing(items, registry, where):
             raise ValueError(f'{where}处理时解放须登记来源区域')
         for restriction in item.get('restrictions', []):
             _check_text(restriction, f'{where}限制', 400)
+
+
+def _check_effect_payload(effect, registry, where, reviewed=False, card_type=None, fixed=False):
+    """Validate the same semantic fields for segments and known granted effects."""
+    effect_type = effect.get('effect_type')
+    if fixed or effect_type: registry.require('effect_types', effect_type, where)
+    if fixed and effect_type == 'unclassified':
+        raise ValueError(f'{where}须明确效果类别')
+    tags = effect.get('tags', [])
+    if not isinstance(tags, list) or (fixed and 'tags' not in effect):
+        raise ValueError(f'{where}须登记效果 TAG 列表')
+    for tag in tags:
+        if not isinstance(tag, str) or tag not in registry.tags: raise ValueError(f'{where}使用未登记 TAG：{tag}')
+    structure = effect.get('structure', {})
+    if not isinstance(structure, dict): raise ValueError(f'{where}结构无效')
+    activation = structure.get('activation')
+    if fixed and (not isinstance(activation, dict) or type(activation.get('fast_effect')) is not bool):
+        raise ValueError(f'{where}须登记发动条件与快速效果标记')
+    if activation is not None:
+        if not isinstance(activation, dict): raise ValueError(f'{where}发动条件无效')
+        if 'fast_effect' in activation and type(activation['fast_effect']) is not bool:
+            raise ValueError(f'{where}快速效果标记须为布尔值')
+        if fixed or activation.get('timing'): registry.require('timings', activation.get('timing'), where)
+        for field in ('zones', 'conditions'):
+            if not isinstance(activation.get(field, []), list): raise ValueError(f'{where}发动{field}须为列表')
+        for zone in activation.get('zones', []): registry.require('zones', zone, where)
+        for condition in activation.get('conditions', []): _check_text(condition, f'{where}条件', 400)
+    for field in ('cost', 'targeting', 'usage'):
+        if not isinstance(structure.get(field, []), list): raise ValueError(f'{where}{field}须为列表')
+    for cost in structure.get('cost', []):
+        if not isinstance(cost, dict): raise ValueError(f'{where}费用无效')
+        registry.require('cost_kinds', cost.get('kind'), f'{where}费用')
+        if cost.get('text'): _check_text(cost['text'], f'{where}费用', 400)
+    for target in structure.get('targeting', []):
+        if not isinstance(target, dict) or not isinstance(target.get('count'), int) or target['count'] < 0:
+            raise ValueError(f'{where}对象数量无效')
+        _check_text(target.get('filter', '对象'), f'{where}对象', 400)
+    processing = structure.get('processing', [])
+    if fixed and not processing: raise ValueError(f'{where}须登记固定处理')
+    _check_processing(processing, registry, where, reviewed, card_type)
+    own_nodes = list(_processing_nodes(processing, include_granted=False))
+    grants = [item['granted_effect'] for _, item in own_nodes if 'granted_effect' in item]
+    own_tags = effect.get('own_tags', tags)
+    if grants or 'own_tags' in effect:
+        if 'own_tags' not in effect or not isinstance(own_tags, list):
+            raise ValueError(f'{where}含固定获赋效果时须登记本层 own_tags')
+        for tag in own_tags:
+            if not isinstance(tag, str) or tag not in registry.tags: raise ValueError(f'{where}本层使用未登记 TAG：{tag}')
+        combined = set(own_tags).union(*(set(grant['tags']) for grant in grants))
+        if set(tags) != combined:
+            raise ValueError(f'{where}汇总 TAG 须与本层及固定获赋效果的 TAG 并集一致')
+    if fixed or (reviewed and effect_type not in (None, 'non_effect', 'unclassified')):
+        fast = (activation or {}).get('fast_effect')
+        if effect_type == 'spell_continuous' and fast:
+            raise ValueError(f'{where}持续适用的魔法效果不能标为快速效果')
+        expected_fast = False if fixed else None
+        if effect_type in ('quick', 'trap_activation', 'trap_effect'): expected_fast = True
+        elif effect_type == 'trigger': expected_fast = False
+        elif effect_type == 'spell_activation' and card_type is not None: expected_fast = bool(card_type & 0x10000)
+        if expected_fast is not None and fast is not expected_fast:
+            raise ValueError(f'{where}类别与快速效果标记不一致')
+    # New explicit units must not borrow their granted children's capability tags,
+    # including when the granting clause itself is non-effect text.
+    if fixed or grants or (reviewed and effect_type not in (None, 'non_effect', 'unclassified')):
+        expected_tags = {ACTION_TAGS[item['action']] for _, item in own_nodes if item['action'] in ACTION_TAGS}
+        actual_tags = set(own_tags) & set(ACTION_TAGS.values())
+        if actual_tags != expected_tags:
+            raise ValueError(f'{where} TAG 与处理不一致：缺少 {sorted(expected_tags - actual_tags)}；多余 {sorted(actual_tags - expected_tags)}')
+    for usage in structure.get('usage', []): registry.require('usage_limits', usage, where)
+    _check_notes(effect.get('notes', []), where)
+    if effect.get('engine') is not None and not isinstance(effect['engine'], dict):
+        raise ValueError(f'{where}引擎依据无效')
 
 
 def validate_entry(entry, registry, segment_keys=None, where='', card_type=None):
@@ -290,45 +395,7 @@ def validate_entry(entry, registry, segment_keys=None, where='', card_type=None)
         if segment_keys is not None and key not in segment_keys:
             raise ValueError(f'{where}效果键 {key} 不在当前卡文分段中，请核对卡文')
         if effect.get('kind') not in ('numbered', 'unnumbered', 'ambiguous'): raise ValueError(f'{where}效果 {key} 类型无效')
-        if effect.get('effect_type'): registry.require('effect_types', effect['effect_type'], f'{where}效果 {key}')
-        for tag in effect.get('tags', []):
-            if tag not in registry.tags: raise ValueError(f'{where}效果 {key} 使用未登记 TAG：{tag}')
-        structure = effect.get('structure', {})
-        if not isinstance(structure, dict): raise ValueError(f'{where}效果 {key} 结构无效')
-        activation = structure.get('activation')
-        if activation is not None:
-            if 'fast_effect' in activation and type(activation['fast_effect']) is not bool:
-                raise ValueError(f'{where}效果 {key} 快速效果标记须为布尔值')
-            if activation.get('timing'): registry.require('timings', activation['timing'], f'{where}效果 {key}')
-            for zone in activation.get('zones', []): registry.require('zones', zone, f'{where}效果 {key}')
-            for condition in activation.get('conditions', []): _check_text(condition, f'{where}效果 {key}条件', 400)
-        for cost in structure.get('cost', []):
-            registry.require('cost_kinds', cost.get('kind'), f'{where}效果 {key}费用')
-            if cost.get('text'): _check_text(cost['text'], f'{where}效果 {key}费用', 400)
-        for target in structure.get('targeting', []):
-            if not isinstance(target.get('count'), int) or target['count'] < 0: raise ValueError(f'{where}效果 {key}对象数量无效')
-            _check_text(target.get('filter', '对象'), f'{where}效果 {key}对象', 400)
-        _check_processing(structure.get('processing', []), registry, f'{where}效果 {key}')
-        if review.get('status') == 'reviewed' and effect.get('effect_type') not in (None, 'non_effect', 'unclassified'):
-            effect_type = effect['effect_type']
-            fast = (activation or {}).get('fast_effect')
-            expected_fast = None
-            if effect_type in ('quick', 'trap_activation', 'trap_effect'): expected_fast = True
-            elif effect_type == 'trigger': expected_fast = False
-            elif effect_type == 'spell_activation' and card_type is not None: expected_fast = bool(card_type & 0x10000)
-            if expected_fast is not None and fast is not expected_fast:
-                raise ValueError(f'{where}效果 {key} 类别与快速效果标记不一致')
-            # These tags describe direct processing, including optional branches.
-            # Rules, stat changes and locks may instead live in restriction text.
-            expected_tags = {ACTION_TAGS[action] for action in processing_actions(structure.get('processing', []))
-                             if action in ACTION_TAGS}
-            actual_tags = set(effect.get('tags', [])) & set(ACTION_TAGS.values())
-            if actual_tags != expected_tags:
-                raise ValueError(f'{where}效果 {key} TAG 与处理不一致：缺少 {sorted(expected_tags - actual_tags)}；多余 {sorted(actual_tags - expected_tags)}')
-        for usage in structure.get('usage', []): registry.require('usage_limits', usage, f'{where}效果 {key}')
-        _check_notes(effect.get('notes', []), f'{where}效果 {key}')
-        if effect.get('engine') is not None and not isinstance(effect['engine'], dict):
-            raise ValueError(f'{where}效果 {key} 引擎依据无效')
+        _check_effect_payload(effect, registry, f'{where}效果 {key}', review.get('status') == 'reviewed', card_type)
     for relation in entry.get('relations', []):
         if relation.get('kind') not in RELATION_KINDS: raise ValueError(f'{where}效果关系类型无效')
         _check_text(relation.get('text', '关系'), f'{where}效果关系', 800)
@@ -542,19 +609,40 @@ class CardAnnotations:
 
     # ---- query ----------------------------------------------------------
 
-    def _iter_processing(self, items):
-        for index, item in enumerate(items or []):
-            yield str(index), item
-            for sub_index, sub in self._iter_processing(item.get('then')):
-                yield f'{index}.then.{sub_index}', sub
-            for branch_index, branch in enumerate(item.get('branches') or []):
-                for sub_index, sub in self._iter_processing(branch.get('actions') or []):
-                    yield f'{index}.branch{branch_index}.{sub_index}', sub
-                for sub_index, sub in self._iter_processing(branch.get('then') or []):
-                    yield f'{index}.branch{branch_index}.then.{sub_index}', sub
+    def _iter_processing(self, items, include_granted=True):
+        yield from _processing_nodes(items, include_granted)
+
+    def _effect_units(self, effect, path='', visible_tags=None):
+        """Keep each fixed granted effect separate from its granting effect."""
+        grants = [(index, item['granted_effect']) for index, item in
+                  self._iter_processing(effect.get('structure', {}).get('processing'), include_granted=False)
+                  if 'granted_effect' in item]
+        own_tags = set(effect.get('own_tags', effect.get('tags', [])))
+        if grants or 'own_tags' in effect:
+            declared = own_tags.union(*(set(grant['tags']) for _, grant in grants))
+            # view() applies segment-level personal tags only to the displayed
+            # aggregate. New tags belong to its own unit; removals mask all units.
+            own_tags |= set(effect.get('tags', [])) - declared
+        visible = set(effect.get('tags', []))
+        if visible_tags is not None: visible &= visible_tags
+        yield path, {**effect, 'tags': sorted(own_tags & visible)}
+        for index, granted in grants:
+            child_path = f'{path + "." if path else ""}{index}.granted_effect'
+            yield from self._effect_units(granted, child_path, visible)
 
     def _effect_conditions(self, effect, body):
-        """Evaluate every requested condition inside ONE effect; None on any miss."""
+        """All conditions must match one own or fixed-granted effect unit."""
+        for path, unit in self._effect_units(effect):
+            evidence = self._unit_conditions(unit, body)
+            if evidence is None: continue
+            if path:
+                return [{**item, 'effect_source': 'granted_effect', 'effect_path': path,
+                         'basis': f'固定获赋效果（{path}）：{item["basis"]}'} for item in evidence]
+            return evidence
+        return None
+
+    def _unit_conditions(self, effect, body):
+        """Existing same-effect matching; does not solve mutually exclusive branches."""
         evidence = []
         etags = body.get('etags') or []
         if etags:
@@ -571,7 +659,7 @@ class CardAnnotations:
             if not value: continue
             found = None
             if name == 'action':
-                for _, item in self._iter_processing(effect.get('structure', {}).get('processing')):
+                for _, item in self._iter_processing(effect.get('structure', {}).get('processing'), include_granted=False):
                     if item.get('action') == value:
                         found = {'condition': name, 'value': value,
                                  'basis': f"处理：{self.registry.action_label(value)}"
@@ -579,7 +667,7 @@ class CardAnnotations:
                         break
             elif name in ('from_zone', 'to_zone'):
                 field = 'from_zones' if name == 'from_zone' else 'to_zones'
-                for _, item in self._iter_processing(effect.get('structure', {}).get('processing')):
+                for _, item in self._iter_processing(effect.get('structure', {}).get('processing'), include_granted=False):
                     zones = item.get(field)
                     if zones and zone_matches(value, zones):
                         found = {'condition': name, 'value': value, 'basis': self.registry.zone_label(value)}

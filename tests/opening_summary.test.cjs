@@ -16,3 +16,23 @@ test('route summary explains unresolved randomness without presenting a verified
   const html=renderer().openingRouteCard(r,result(),false);
   assert(html.includes('含随机结果'));assert(html.includes('未知翻牌'));assert(!html.includes('一卡起手依据'));
 });
+
+test('opening route preserves fixed granted constraints from its frozen capability snapshot',()=>{
+  const r={key:'granted',sources:[{name:'route',plan_id:'p',revision:'hash'}],condition:{status:'satisfied',reason:''},
+    turn_order:'first',opening:[],generic_cost:0,required_hand:0,one_card:false,endboard_count:1,steps:[],relative_unused:[],
+    endboard:[{code:15092394,name:'急袭猛禽-异邦猎鹰',effect:'m1',status:'reviewed',capability:{tags:[],facts:[
+      {label:'固定获赋效果',text:'须另行满足发动或适用条件'},
+      {label:'固定获赋效果·时点',text:'自己主要阶段'},
+      {label:'固定获赋效果·费用',text:'取除本卡1个素材'},
+      {label:'固定获赋效果·次数',text:'每回合1次'},
+      {label:'条件',text:'有超量怪兽素材'}
+    ]}}]};
+  const before=JSON.stringify(r);
+  const html=renderer().openingRouteCard(r,result(),false);
+  assert(html.includes('须另行满足发动或适用条件'));
+  assert(html.includes('固定获赋效果·时点：自己主要阶段'));
+  assert(html.includes('固定获赋效果·费用：取除本卡1个素材'));
+  assert(html.includes('固定获赋效果·次数：每回合1次'));
+  assert(html.includes('条件：有超量怪兽素材'));
+  assert.equal(JSON.stringify(r),before,'rendering must not modify the frozen snapshot');
+});

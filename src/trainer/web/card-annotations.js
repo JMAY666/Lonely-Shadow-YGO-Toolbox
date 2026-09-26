@@ -153,7 +153,14 @@ function annoProcessingLines(items, registry, indent = '') {
     if (item.duration) lines.push(`${indent}　持续：${item.duration}`);
     if (item.position) lines.push(`${indent}　表示形式：${item.position}`);
     for (const restriction of item.restrictions || []) lines.push(`${indent}　限制：${restriction}`);
-    lines.push(...annoProcessingLines(item.then, registry, indent + '　↳ '));
+    if (item.action === 'grant_effect' && item.granted_effect?.structure) {
+      const granted = item.granted_effect;
+      const label = registry.effect_types?.[granted.effect_type] || granted.effect_type || '';
+      lines.push(`${indent}　获得后的固定效果${label ? `（${label}）` : ''}：须另行满足发动或适用条件`);
+      lines.push(...annoStructureLines(granted, registry).map(line => `${indent}　　${line}`));
+    } else {
+      lines.push(...annoProcessingLines(item.then, registry, indent + '　↳ '));
+    }
     for (const branch of item.branches || []) {
       lines.push(`${indent}　若「${branch.condition}」：`);
       lines.push(...annoProcessingLines(branch.actions, registry, indent + '　　· '));
@@ -169,12 +176,14 @@ function annoStructureLines(effect, registry) {
   if (activation) {
     const timing = registry.timings[activation.timing] || activation.timing || '';
     const zonesText = (activation.zones || []).map(zone => registry.zones[zone] || zone).join('／');
-    lines.push(`发动：${[timing, zonesText && `区域 ${zonesText}`, ...(activation.conditions || [])].filter(Boolean).join('；')}${activation.fast_effect ? '（快速效果；仍须满足发动条件）' : ''}`);
+    const passive = ['continuous', 'spell_continuous', 'non_effect', 'no_chain_effect'].includes(effect.effect_type);
+    lines.push(`${passive ? '适用' : '发动'}：${[timing, zonesText && `区域 ${zonesText}`, ...(activation.conditions || [])].filter(Boolean).join('；')}${activation.fast_effect ? '（快速效果；仍须满足发动条件）' : ''}`);
   }
   for (const cost of structure.cost || []) lines.push(`费用：${registry.cost_kinds[cost.kind] || cost.kind}${cost.text ? ` — ${cost.text}` : ''}`);
   for (const target of structure.targeting || []) lines.push(`对象：${target.count}×${target.filter}`);
   for (const line of annoProcessingLines(structure.processing, registry)) lines.push(`处理：${line}`);
   for (const usage of structure.usage || []) lines.push(`次数：${registry.usage_limits[usage] || usage}`);
+  if (structure.usage_text) lines.push(`次数说明：${structure.usage_text}`);
   return lines;
 }
 function annoRelationLabel(kind) {

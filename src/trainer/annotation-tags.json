@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_on": "2026-09-25",
+  "updated_on": "2026-09-26",
   "note": "通用效果 TAG 与受控词表。TAG 表达卡片间的共性能力；每张卡的具体参数（来源区域、数量、费用、限制）记录在标注结构里，不因共用 TAG 而可互相替代。同义词仅用于检索匹配提示，不改变定义。 第三批（2026-09-24）新增 actions.set_position、actions.take_control 处理与 cost_kinds.remove_counter 费用受控取值（定义与正反例见 docs/card-annotation-system.md §4）。 第四批按官方裁定新增分支、素材处理、复制效果、装备、LP损失、额外素材区等受控取值；不变更既有TAG ID，正反例与兼容规则见 docs/card-annotation-system.md §4。 第五批新增 place_faceup_card、modify_activation_window、allow_direct_attack、require_attack_payment 等受控动作，定义与反例见 docs/card-annotation-system.md §4；既有 TAG ID 保持不变。",
   "tags": [
     {
@@ -221,6 +221,14 @@
       "definition": "通过效果回复基本分；区别于效果伤害与基本分费用。",
       "scope": "效果处理。",
       "synonyms": []
+    },
+    {
+      "id": "etag:prevent-damage",
+      "name": "伤害防止",
+      "category": "protection",
+      "definition": "令指定玩家承受的伤害变为0，具体战斗伤害或效果伤害范围由结构明确。",
+      "scope": "效果处理防止承受伤害；不包括给予效果伤害、回复基本分或单纯扣减基本分。",
+      "synonyms": ["伤害变0", "不受伤害"]
     }
   ],
   "vocabularies": {
@@ -302,7 +310,7 @@
       "require_attack_payment": "每次攻击宣言时必须支付规定基本分；不是效果发动费用",
       "end_battle_phase": "结束当前战斗阶段，区别于仅无效一次攻击",
       "tribute": "效果结算时解放怪兽；不是发动费用或非效果召唤手续",
-      "attack_in_defense": "允许怪兽以表侧守备表示宣言攻击并按攻击力计算战斗",
+      "attack_in_defense": "允许怪兽以表侧守备表示宣言攻击；damage_calculation_stat 指定以 atk 或 def 进行伤害计算，旧条目未填写时保留 atk 含义",
       "treat_as_tuner": "把指定怪兽当作调整使用，记录时限及离区或变里侧的中止条件",
       "use_as_synchro_material": "效果处理后立即以指定场上怪兽作为同调素材进行同调召唤，素材不是发动费用",
       "return_hand": "使场上卡回持有者手卡，额外卡组怪兽依规则回额外卡组",
@@ -319,7 +327,11 @@
       "negate_summon": "在非入连锁的召唤或特殊召唤之际无效那次召唤，区别于发动无效",
       "substitute_tribute_cost": "用墓地卡除外替代其他怪兽效果本应支付的解放费用；本身不作效果处理解放",
       "return_unsummoned": "把召唤被无效、尚未入场的怪兽返回持有者手卡或额外卡组，不视为场上怪兽回手",
-      "substitute_detach_source": "其他超量怪兽发动效果需取除自身素材作费用时，可改从己方另一超量怪兽取除"
+      "substitute_detach_source": "其他超量怪兽发动效果需取除自身素材作费用时，可改从己方另一超量怪兽取除",
+      "place_pendulum": "把指定卡从明确来源表侧放置到灵摆区域，不视为发动灵摆卡或特殊召唤",
+      "redirect_attack": "将正在进行的攻击转移到指定攻击对象；是否立即进行伤害计算按具体处理记录",
+      "copy_effect": "在规定时限内获得指定卡的效果；记录复制来源，不从可选卡片自动推导具体能力 TAG",
+      "prevent_damage": "令指定玩家承受的战斗伤害、效果伤害或两者变为0；damage_scope、recipient 和 duration 必须明确"
     },
     "cost_kinds": {
       "discard_self": "把这张卡从手卡丢弃",
@@ -345,7 +357,8 @@
       "field_once": "场上的这张卡的效果只能使用1次",
       "name_activation_once": "同名卡每回合只能发动1张／次（以原文为准）",
       "card_activation_once": "这张卡每回合只能发动1次",
-      "up_to_two_per_turn": "同一效果每回合最多发动2次；是否可在同一连锁两次须另按官方规则说明"
+      "up_to_two_per_turn": "同一效果每回合最多发动2次；是否可在同一连锁两次须另按官方规则说明",
+      "name_summon_method_once": "同名卡按指定方法特殊召唤每回合最多1次；区别于效果的发动或使用次数，召唤被无效等情况按来源说明"
     },
     "timings": {
       "on_summon": "召唤·特殊召唤成功的场合",
@@ -374,6 +387,7 @@
       "non_effect": "规则／限制文本（非效果）",
       "no_chain_effect": "不产生连锁块的效果（官方裁定不属于起动／诱发／诱发即时／永续任一类）",
       "spell_effect": "魔法效果的发动（非卡片放置时的发动，如从墓地发动的魔法效果）",
+      "spell_continuous": "魔法卡或作为魔法卡使用的卡在魔法陷阱区持续适用、不产生连锁块的效果",
       "unclassified": "待核对效果类别"
     }
   }

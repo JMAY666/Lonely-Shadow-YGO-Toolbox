@@ -1,4 +1,5 @@
 from copy import deepcopy
+import json
 from pathlib import Path
 import sys
 import unittest
@@ -81,6 +82,32 @@ class CapabilityTests(unittest.TestCase):
         # The legacy split includes the monster delimiter with the pendulum text.
         p = next(row for row in value['effects'] if row['key'] == 'p1')
         self.assertIsNone(p['legacy_key'])
+
+    def test_fixed_granted_facts_preserve_real_costs_timing_and_limits_across_modules(self):
+        source = Path(__file__).resolve().parents[1] / 'src/trainer/card-annotations.json'
+        document = json.loads(source.read_text('utf-8'))
+        for code, key, timing in ((15092394, 'm1', '自己主要阶段'), (86221741, 'm3', '结束阶段')):
+            effect = next(e for e in document['cards'][str(code)]['effects'] if e['key'] == key)
+            facts = self.capabilities.facts(effect)
+            own = [row for row in facts if not row['label'].startswith('固定获赋效果')]
+            child = [row for row in facts if row['label'].startswith('固定获赋效果·')]
+            self.assertTrue(any(row['label'] == '适用区域' for row in own))
+            self.assertTrue(any(row['label'] == '固定获赋效果·时点' and timing in row['text'] for row in child))
+            self.assertFalse(any(row['label'] == '后续处理' for row in own), 'compatibility then must not be flattened twice')
+            if code == 15092394:
+                self.assertTrue(any(row['label'] == '固定获赋效果·费用' and '取除' in row['text'] for row in child))
+                self.assertTrue(any(row['label'] == '固定获赋效果·对象' for row in child))
+                self.assertTrue(any(row['label'] == '固定获赋效果·次数' for row in child))
+            else:
+                self.assertTrue(any(row['label'] == '固定获赋效果·次数说明' and '结束阶段' in row['text'] for row in child))
+
+    def test_equipped_continuous_protection_keeps_endboard_candidate(self):
+        source = Path(__file__).resolve().parents[1] / 'src/trainer/card-annotations.json'
+        document = json.loads(source.read_text('utf-8'))
+        for code in (27756115, 95500396):
+            effect = next(e for e in document['cards'][str(code)]['effects'] if e['key'] == 'm2')
+            self.assertEqual(effect['effect_type'], 'spell_continuous')
+            self.assertIn('endboards', {row['role'] for row in purpose_candidates(effect)})
 
     def test_role_candidates_exclude_self_destruction_and_ignition_hand_effect(self):
         effect = simple_effect('m1', 1, ['etag:destroy'], [{'action': 'destroy', 'selector': {'text': '把这张卡破坏'}}])
