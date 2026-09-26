@@ -226,5 +226,16 @@ module.exports = async ({page, application, root, evidence, pass}) => {
     }
   }
   assert.ok(fs.existsSync(path.join(root,'runtime','_trainer','card-annotations.json')));
+  // Actual monster-batch data must distinguish a procedure, conversion, and trigger.
+  const procedure=await page.evaluate(()=>api('/api/annotations',{op:'query',q:'82199284',action:'require_attack_return'}));
+  assert.equal(procedure.total,1);
+  assert.equal((await page.evaluate(()=>api('/api/annotations',{op:'query',q:'82199284',action:'return_hand'}))).total,0);
+  assert.equal((await page.evaluate(()=>api('/api/annotations',{op:'query',q:'99690140',etags:['etag:effect-damage']}))).total,1);
+  assert.equal((await page.evaluate(()=>api('/api/annotations',{op:'query',q:'99690140',action:'burn'}))).total,0);
+  const esper=await page.evaluate(()=>api('/api/annotations',{op:'card',code:91663373}));
+  assert.equal(esper.effects[0].effect_type,'trigger');
+  assert.equal((await page.evaluate(()=>api('/api/annotations',{op:'query',q:'91663373',etags:['etag:hand-look']}))).total,1);
+  const conflict=await page.evaluate(()=>api('/api/annotations',{op:'card',code:23421244}));
+  assert.equal(conflict.status,'none');
   pass('Card annotations: Chinese series folders, aliases, covers, colours, collapsed filters/art, monster symbols, queries and personal corrections');
 };

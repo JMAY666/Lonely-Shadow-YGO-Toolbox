@@ -1,0 +1,3648 @@
+{
+  "version": 1,
+  "checked_on": "2026-09-26",
+  "source_pack": "20260925-catalog-all-14981",
+  "source_manifest_sha256": "3c192fb0eecc3fa7f3283dcd564223e2996491fb71c13d43884bf66ad9720933",
+  "scope": "Continue remaining full catalog; all 100 inputs in short-monsters-02 processed, 99 accepted and 1 source conflict pending.",
+  "groups": [
+    {
+      "name": "short-monsters-02",
+      "input_count": 100,
+      "accepted_count": 99,
+      "pending_count": 1
+    }
+  ],
+  "cards": [
+    {
+      "code": 1434352,
+      "local_name": "混沌死灵师",
+      "local_type": 33,
+      "text_digest": "fc41184bbf4b7122453db88bf2064369c674526d6475dab124a34a75bd652893",
+      "official_cid": 5827,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 1596508,
+      "local_name": "次元要塞兵器",
+      "local_type": 33,
+      "text_digest": "9c909c20f11e965d01e27bcd51ed930e6d2d6df55c2d2796e9f460daa2b291f1",
+      "official_cid": 8028,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 2158562,
+      "local_name": "电子化女主角",
+      "local_type": 33,
+      "text_digest": "ccf4613891e88e23c34e7b5c0a12e21c02f794bcfd406802059e2fc2ca29385f",
+      "official_cid": 6666,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 6214884,
+      "local_name": "暗黑界的狂王 布隆",
+      "local_type": 33,
+      "text_digest": "1ee2ec2eeac3e9befc84ef34f190a93ecb8c65d8c0fdfa6283b5af477ee5a59e",
+      "official_cid": 6503,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 6285791,
+      "local_name": "邪恶蠕虫兽",
+      "local_type": 33,
+      "text_digest": "1c7f03c279631fb8c32cad4dae0bb4530603853b0e6c57df7a43842f390afe0a",
+      "official_cid": 4029,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 8175346,
+      "local_name": "袖珍龙",
+      "local_type": 33,
+      "text_digest": "072736d0a9e3b9685800e5e4ff8e24e03bb6a0f0952aa661af97707ec3abc797",
+      "official_cid": 9648,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 9637706,
+      "local_name": "死亡袋熊",
+      "local_type": 33,
+      "text_digest": "b35ecd1db0a0c29548aaad901fd30665d00eada21255846b50b25bd6702de46b",
+      "official_cid": 6340,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 10532969,
+      "local_name": "古代鲨 超巨齿鲨",
+      "local_type": 33,
+      "text_digest": "4ffa76ef9d132efa088035b45e62afeaf24f113827731d92e7acd3503484e667",
+      "official_cid": 10371,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 11324436,
+      "local_name": "电蛇",
+      "local_type": 33,
+      "text_digest": "1a1e2a4f2532a7a7ea98bd1798bbb6bf9f361ca60a87e143dcee54f6a5e9a60d",
+      "official_cid": 4469,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 11384280,
+      "local_name": "加农炮兵",
+      "local_type": 33,
+      "text_digest": "61c6821e31cdd31074e558dc466f0de6b9cf42e45ccd790ffe8839640ce7cf7e",
+      "official_cid": 4518,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 15090429,
+      "local_name": "暴风小僧",
+      "local_type": 33,
+      "text_digest": "a0ddc07b267d3fe9ba271a679fbeef883b43bcf35f6db696856dd6de0602cac7",
+      "official_cid": 6259,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 16751086,
+      "local_name": "暖虫",
+      "local_type": 33,
+      "text_digest": "ca633c7a4808eb5995508012de5d201dbf23d6c8d030c12a66ffeb27e7199252",
+      "official_cid": 8517,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 17444133,
+      "local_name": "帝王海马",
+      "local_type": 33,
+      "text_digest": "c34ad3c1ededd0d83c471909881f264676fe9cd23537fd4b5bea8f9687ef1d3e",
+      "official_cid": 5409,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 17706537,
+      "local_name": "长毛兽化石",
+      "local_type": 33,
+      "text_digest": "2fbabd1ee1b18eda5fbaf594faa622ee6ee701b86841f1708e9f7a49d7438780",
+      "official_cid": 7338,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 18063928,
+      "local_name": "铁皮金鱼",
+      "local_type": 33,
+      "text_digest": "2edf95cf0846543f2cffa4cd44cba436352011092024559a92785a0705a33070",
+      "official_cid": 9979,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 18430390,
+      "local_name": "飞翼犀牛",
+      "local_type": 33,
+      "text_digest": "dfbbd69351af72a4bed3dd8cd3a4ace0abf769fbb463b677147a268dc6c9adfa",
+      "official_cid": 5924,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 18842395,
+      "local_name": "强力侵略者",
+      "local_type": 33,
+      "text_digest": "40894d8489d3a25fbdf5d96d07f0ec7eac5005d56040569c9a244552944bd2f3",
+      "official_cid": 8620,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 19740112,
+      "local_name": "干旱之结界像",
+      "local_type": 33,
+      "text_digest": "f82c868aa7ed816aaf408733692e570b037815b3438bec6b91a7d62d6ed078d5",
+      "official_cid": 6886,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 20193924,
+      "local_name": "白夜之女王",
+      "local_type": 33,
+      "text_digest": "9d7ca74d3b74eb37f864eb2b4ed9dc26b1771bd1a2e45f6ae7f4b72115c9fa18",
+      "official_cid": 7984,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 20228463,
+      "local_name": "仪式之钟",
+      "local_type": 33,
+      "text_digest": "12028672ec3cff7c84f46e7b10892d994b9ca667a7f42714e2066ea0e1768330",
+      "official_cid": 4928,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 20474741,
+      "local_name": "三叉戟战士",
+      "local_type": 33,
+      "text_digest": "a347ee277bfc84ec08638014c17c89fac8a737beaffc63901efc3b40f3c43bac",
+      "official_cid": 8946,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 21887179,
+      "local_name": "月风魔",
+      "local_type": 33,
+      "text_digest": "ad06809e4995188f9749859a08a0ca50c7ad5860cb5d0777617f1d3bda366b9a",
+      "official_cid": 5901,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 26517393,
+      "local_name": "里风之精灵",
+      "local_type": 33,
+      "text_digest": "63daa2ba60314b32cedf8692348abdfdd711c80b2e472cc9470a8086de83420c",
+      "official_cid": 12311,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 27655513,
+      "local_name": "尖叫怪",
+      "local_type": 33,
+      "text_digest": "272b90439f9273945595a1c633f9bf99013e35ace56d26cf1b8229c4dbe6e883",
+      "official_cid": 7486,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 28563545,
+      "local_name": "杀龙者",
+      "local_type": 33,
+      "text_digest": "24532a9c2d002a010cec3c28daab106c5f66cb285d52584189ce2c58892d5c0b",
+      "official_cid": 4506,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 29116732,
+      "local_name": "破晓者",
+      "local_type": 33,
+      "text_digest": "ab271de757947e71db1069e50143dbb19eda1ff53594d2d53b803495c91d81d5",
+      "official_cid": 9730,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 32872833,
+      "local_name": "星间龙 秒差龙",
+      "local_type": 33,
+      "text_digest": "c4f269fc624e4f72154759df2b0f94b5f39882747bbcf174027387c085b043ac",
+      "official_cid": 10496,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 33731070,
+      "local_name": "暗黑界的尖兵 贝基",
+      "local_type": 33,
+      "text_digest": "0c455b5bddd9fee493b935746958833b6bbd0350b648d9d0bf1915c3c6a89a7a",
+      "official_cid": 6501,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 34257001,
+      "local_name": "冲刺战士",
+      "local_type": 33,
+      "text_digest": "2fa46c466f2fd2672a3671dd63f6e6589d682603cfdff7ed03bee39a64f57f97",
+      "official_cid": 8934,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 34627841,
+      "local_name": "正义的同伴 海马侠",
+      "local_type": 33,
+      "text_digest": "51d2a347614d4e9244b4faf4f4cdff5943cc4b0901a35f593e83e1c370bbd35d",
+      "official_cid": 6298,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 36278828,
+      "local_name": "蛇毒魔双蛇",
+      "local_type": 33,
+      "text_digest": "f3843ec9e5fe52950e0ba72ab314d1c3878dc95282516bc81f95740b51467dfc",
+      "official_cid": 7182,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 36584821,
+      "local_name": "红莲魔兽 塔·伊沙",
+      "local_type": 33,
+      "text_digest": "e43ffcd5504f49f25f55d0733a41585316e47c2ff3a86793926bfa5f89cb13a5",
+      "official_cid": 5834,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 37792478,
+      "local_name": "代谢鲨",
+      "local_type": 33,
+      "text_digest": "9966979851a649b5538c97d6aaf9185309ab4421d92f99340d2933a819da0650",
+      "official_cid": 8599,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 40921545,
+      "local_name": "入魔鲸人",
+      "local_type": 33,
+      "text_digest": "4ee86f3ac85f49d4328cb09e3641b8234801dd5a321a51d87c74573f54c7ae18",
+      "official_cid": 9815,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 41089128,
+      "local_name": "火焰支配者",
+      "local_type": 33,
+      "text_digest": "f553409f8fdc884a306656dd51377e7b9e7ad8f2ec8ac096f37b75db71acc50d",
+      "official_cid": 6260,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 42883273,
+      "local_name": "森之住人 乌丹",
+      "local_type": 33,
+      "text_digest": "f213d3c321813ca6f9b2e99ed167e92abcef48b0b08a7769ccf69adfb7953fbc",
+      "official_cid": 4241,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 43791861,
+      "local_name": "凤王兽 铠楼罗",
+      "local_type": 33,
+      "text_digest": "824cb4769c4d2d1c5e27f1c97ace97b1555b80cc598e0a1476d60482937a4575",
+      "official_cid": 9975,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 44436472,
+      "local_name": "双价体",
+      "local_type": 33,
+      "text_digest": "a7b02906ec37437a42fe03eed995ec1825240fa7db9dcca787083be02fe99185",
+      "official_cid": 6040,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 44913552,
+      "local_name": "时间吞噬者",
+      "local_type": 33,
+      "text_digest": "6b33e9dd278a440cd45b2c235974168de1ae4e59e4cba8725bd143290cfe1471",
+      "official_cid": 5041,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 45688586,
+      "local_name": "机巧蜘蛛",
+      "local_type": 33,
+      "text_digest": "04f9dce244ab33dd1e965a11c68b4934c414821f642cafdd85fd091e16ddd05e",
+      "official_cid": 4416,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 45801022,
+      "local_name": "电气狐猴",
+      "local_type": 33,
+      "text_digest": "5ed7e473f472cbc6212a146b2499e2b46e4156754bd3b5c685f43e44765f5d93",
+      "official_cid": 8956,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 46145256,
+      "local_name": "闪光之结界像",
+      "local_type": 33,
+      "text_digest": "1aeb77d1174034884183aebd89ab1e3cf00c6e86ca1a9c3758bbec58bc7d4c27",
+      "official_cid": 6887,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 47961808,
+      "local_name": "业火之结界像",
+      "local_type": 33,
+      "text_digest": "9fe294d4f197d70196a6bce2d311bee4bb58ba9af715d819abdc3c64dfa5c147",
+      "official_cid": 6884,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 50621530,
+      "local_name": "强化调整龙",
+      "local_type": 33,
+      "text_digest": "0f95e482afebb3a278c6ec79e0fc864bcf5b001cbafbb732d34e43285c61c7ff",
+      "official_cid": 8280,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 50781944,
+      "local_name": "古代深红猿",
+      "local_type": 33,
+      "text_digest": "042df88e484b3cea626bde1990c63660156a55eb20733c1b8c23046e5aec69af",
+      "official_cid": 8329,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 51196174,
+      "local_name": "计算器人",
+      "local_type": 33,
+      "text_digest": "c668264cdba752040110c4213ca7be045d676d76d6522d4263143fb204347cc3",
+      "official_cid": 7436,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 52860176,
+      "local_name": "凭依的血魂",
+      "local_type": 33,
+      "text_digest": "20a74073e35c55962cca504103c244ced17c8e978e9ba9b158e51975f117f778",
+      "official_cid": 5304,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 54493213,
+      "local_name": "原始太阳 赫利俄斯",
+      "local_type": 33,
+      "text_digest": "3f61987e581df92be56d83c3f0e4e227b191b06ac1ea5c73c2acab6f062fac35",
+      "official_cid": 6646,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 54706054,
+      "local_name": "测量器人",
+      "local_type": 33,
+      "text_digest": "18c33a2f4bcac16be510c7b3ca0a9cc247cf059c640dfe677f7ac994b84c6819",
+      "official_cid": 10638,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 56647086,
+      "local_name": "暗黑之侵略者",
+      "local_type": 33,
+      "text_digest": "33d13ada8f876d8100353980dc2808ef9290c064c6b9a886df1023bfc6faa843",
+      "official_cid": 5922,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 56840658,
+      "local_name": "抽卡青蛙",
+      "local_type": 33,
+      "text_digest": "184804332043ba9e60555328a78bbe0b69a0182c7ae5f947b734cf64df36bedb",
+      "official_cid": 6426,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 56921677,
+      "local_name": "纹章兽 巴西利斯克",
+      "local_type": 33,
+      "text_digest": "6e15af3c9b6d0bec04341ea88820bee996f62213c9047bb2ae873a1fd6b1495d",
+      "official_cid": 10372,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 58098303,
+      "local_name": "火焰食人魔",
+      "local_type": 33,
+      "text_digest": "133dac20b28bc01ce11bbfab1991315c1fa57654838bab87bde3629aec1f3cc4",
+      "official_cid": 6938,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 59290628,
+      "local_name": "梦魇马",
+      "local_type": 33,
+      "text_digest": "89c401596dffd80aef1aa22c5b13b1252a18eceb8e2c551dd992c9e3977dc4e7",
+      "official_cid": 5527,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 59482302,
+      "local_name": "盟军·炸弹",
+      "local_type": 33,
+      "text_digest": "1235661ae95eb78da97503209d315d5c8fddd54e167e65a9a28b14c8fb7bd34d",
+      "official_cid": 7825,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 59644958,
+      "local_name": "叠光猫头鹰",
+      "local_type": 33,
+      "text_digest": "53566a69b925e88cdb2d01e193459ad4fc7ee25620d583db495833764bffdd86",
+      "official_cid": 10026,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 59797187,
+      "local_name": "滚滚球",
+      "local_type": 33,
+      "text_digest": "72d339ce18421d590cb3c8473cd9d377c06b5dbf8d1dfc5b33619938c8175d53",
+      "official_cid": 7713,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 61679541,
+      "local_name": "燃烧拳击手 击后脑勺拳手",
+      "local_type": 33,
+      "text_digest": "83e2fb7c6845d837b3274ff0e7ff678e3602a0b065d4b9cfb915e82aed1f409b",
+      "official_cid": 10738,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 64379261,
+      "local_name": "蛇头石像怪",
+      "local_type": 33,
+      "text_digest": "20e8f8e3756933bf17a3d39aef1702482285df9c31d23096d2208856ee4cfc4a",
+      "official_cid": 10898,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 64751286,
+      "local_name": "月之女战士",
+      "local_type": 33,
+      "text_digest": "c4c4b28197c38f08883258935fdda04a430db2919b29f68a15b98f825e64a3f5",
+      "official_cid": 6125,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 65064143,
+      "local_name": "对空放花",
+      "local_type": 33,
+      "text_digest": "4b7c6c82efc66bf4de67b73dd2bc5177c97dbcdec6ec2f53a035c51a03859a67",
+      "official_cid": 5890,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 65287621,
+      "local_name": "暗黑三角怪鸟龙",
+      "local_type": 33,
+      "text_digest": "572774103a95ec4eb16b526288b1ba821f38bd8d349d6547221b63d0789fb66f",
+      "official_cid": 5887,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 70054514,
+      "local_name": "暗海救生圈",
+      "local_type": 33,
+      "text_digest": "972d13a3e7020e5b39c7ac603d2ab038cb680dd6aa9abc6f255a0b7cf861d31f",
+      "official_cid": 8305,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 70410002,
+      "local_name": "累加器人",
+      "local_type": 33,
+      "text_digest": "7ab05c024252300924ed4606eca2b5a4e8e0bb09e84303c156976ed01da4495e",
+      "official_cid": 13247,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 70821187,
+      "local_name": "再生木乃伊",
+      "local_type": 33,
+      "text_digest": "5601f6077550e8bd57975725415c172695833f2f61955bb5f484158f9beb6943",
+      "official_cid": 6041,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 71218746,
+      "local_name": "钻头机人",
+      "local_type": 33,
+      "text_digest": "f8b68877e9576caba5d87849c3490172128c077d4739064aa94b84168116b9d0",
+      "official_cid": 6387,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 71923655,
+      "local_name": "触腕鲨",
+      "local_type": 33,
+      "text_digest": "7c095243f98e0fb14cc6e996cc66e7f627a23a620ac93e82a303f644d4dc506a",
+      "official_cid": 10488,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 72429240,
+      "local_name": "入魔鬼灯人",
+      "local_type": 33,
+      "text_digest": "a8d162863a9a603ceaabb9177d4bd8903baa2518d4cdc5eea150e489bb144f57",
+      "official_cid": 9816,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 72845813,
+      "local_name": "正义盟军 D.D.阻隔虫",
+      "local_type": 33,
+      "text_digest": "2d56bbafdb8bd30e2c688d8570774c49f599c175cf3899e632d51a998981dfae",
+      "official_cid": 8408,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 73356503,
+      "local_name": "烈风之结界像",
+      "local_type": 33,
+      "text_digest": "854d57ab5c2ae965aa395e219deff57b3d8a810100f93f4fc038c18a5dee5061",
+      "official_cid": 6885,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 73776643,
+      "local_name": "亲子玉米",
+      "local_type": 33,
+      "text_digest": "b50f79137c94b361a973615df28682327d6e08db68d1d200620f53ab985d8ffe",
+      "official_cid": 10211,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 74131780,
+      "local_name": "流氓佣兵部队",
+      "local_type": 33,
+      "text_digest": "c05761d5ee33dcfc4de72cf26bbb5cb34d46a2e2440bdc6635c9ad27e313436a",
+      "official_cid": 5323,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 76321376,
+      "local_name": "地雷石人",
+      "local_type": 33,
+      "text_digest": "a878515f2d53320f49a8d227ae2307ea85933269d6da37c6863f1897ee4ad0b5",
+      "official_cid": 6327,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 78193831,
+      "local_name": "破坏之剑士",
+      "local_type": 33,
+      "text_digest": "1135d90428cd49b66b570c940217e46afc824a0673265f9129c019525a2f9efe",
+      "official_cid": 4983,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 78193832,
+      "local_name": "破坏之剑士",
+      "local_type": 33,
+      "text_digest": "1135d90428cd49b66b570c940217e46afc824a0673265f9129c019525a2f9efe",
+      "official_cid": 4983,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 79409334,
+      "local_name": "暗黑剑龙",
+      "local_type": 33,
+      "text_digest": "bd438fbb73cca307ffeef416b6fed0863f3043b03f9a107003ca15c96c1f017c",
+      "official_cid": 6776,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 80186010,
+      "local_name": "嗜杀恐龙",
+      "local_type": 33,
+      "text_digest": "514ef361bbb2f773e63ed6e8ddee19b0fedc0eb4a96b361a7a28cb0abb4e4419",
+      "official_cid": 7108,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 82108372,
+      "local_name": "姆多拉",
+      "local_type": 33,
+      "text_digest": "34ae867d2b21a9934241724b4f4db00354fa29080a8aac301606d977a1bcf193",
+      "official_cid": 5356,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 82199284,
+      "local_name": "霞之谷的猎鹰",
+      "local_type": 33,
+      "text_digest": "f2498149f9b99d1e68e6b4fe5a473da17cb77c9d58736a72269a17171520d3a0",
+      "official_cid": 8109,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 83021423,
+      "local_name": "急匆匆弓手",
+      "local_type": 33,
+      "text_digest": "a2b42e540c49890cf7e93cfbdf89c42737162ece8cad2dd20e0b993b6927268d",
+      "official_cid": 9961,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 84133008,
+      "local_name": "眼球怪",
+      "local_type": 33,
+      "text_digest": "8e154b1f940ec38cdeca624826714a344284350e0818e7cc85f05b02ea9ab5e1",
+      "official_cid": 4408,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 84478195,
+      "local_name": "深渊之结界像",
+      "local_type": 33,
+      "text_digest": "a792874bc64791521f42ceaba16f5b6c15a357d07cd6d6f3374ff5d22aaafb37",
+      "official_cid": 6882,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 86952477,
+      "local_name": "光辉骑士",
+      "local_type": 33,
+      "text_digest": "4d1cb8ef816e615a414099d9bfe087477bf364652058ae9bc2d825ca1e5ced09",
+      "official_cid": 9569,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 87047161,
+      "local_name": "人鱼鲨",
+      "local_type": 33,
+      "text_digest": "274e6495a61846581b83397ca1da8d39c017bdbfba29c0e5f1dbf97de9b429e4",
+      "official_cid": 11034,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 87340664,
+      "local_name": "原子萤火虫",
+      "local_type": 33,
+      "text_digest": "f730543b80364c1f3804bd4fba81fd432b200756d458337b6354c25bee9f67c7",
+      "official_cid": 5966,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 87350908,
+      "local_name": "假面斩杀者",
+      "local_type": 33,
+      "text_digest": "f59bba791d874c8af279210c77f48afca06bf0caada1d0187e1f2ff205909791",
+      "official_cid": 7039,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 87978805,
+      "local_name": "寄生体 壁虱",
+      "local_type": 33,
+      "text_digest": "0c1be658d338fb3ce17349888ff9ea295b3fcb270b92de46be29ee81129daa2c",
+      "official_cid": 6596,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 88975532,
+      "local_name": "漆黑的战士 狼人",
+      "local_type": 33,
+      "text_digest": "a96b62c98ac51b37d166f3a3bca9ebe44dd9ac037a4e798add5e8ff7125d7413",
+      "official_cid": 6195,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 89621922,
+      "local_name": "新空间侠·火焰甲虫",
+      "local_type": 33,
+      "text_digest": "503a7698c8580c07af8cba85343dc5a367fe678021151eb151eff00588e4b959",
+      "official_cid": 6773,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 91596726,
+      "local_name": "暗黑十字军",
+      "local_type": 33,
+      "text_digest": "46545d20cb5f2c21f5732daa5576f2c324df42e7f762848b44538ee9b73b184c",
+      "official_cid": 7422,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 91663373,
+      "local_name": "电子超能人",
+      "local_type": 33,
+      "text_digest": "96ec47f2bb018a7e64061701e99a10fa9fc24abd491dc959acf220bb41736c20",
+      "official_cid": 6855,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 91869203,
+      "local_name": "亚马逊射手",
+      "local_type": 33,
+      "text_digest": "7a0d1d3571831842cc6252eb18af6ddcf8f9baf20e47eb2d1f13653b1ecdfe52",
+      "official_cid": 5195,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 93882364,
+      "local_name": "次世代工作员",
+      "local_type": 33,
+      "text_digest": "650eded9f0727c1e32af2126e454a2b1b5e52dd6f2db06a3034e8ae8cfe03f2c",
+      "official_cid": 7811,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 97466712,
+      "local_name": "入侵蠕虫",
+      "local_type": 33,
+      "text_digest": "3bc45cb2634bdcbfeaf7cfd08e481145ada7a854776af317acd33efbfc32efbf",
+      "official_cid": 13051,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 97526666,
+      "local_name": "惑星探查车",
+      "local_type": 33,
+      "text_digest": "784c1bb993a62c66454c97930b74d2923c4e6fa0f945043e9c2d130711bef558",
+      "official_cid": 10232,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 98266377,
+      "local_name": "元素英雄 炽热侠",
+      "local_type": 33,
+      "text_digest": "48d8f17598f6696bc9948cb877bdab65da8e2ef259384b5968fb1568b925f9cc",
+      "official_cid": 6927,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 98865920,
+      "local_name": "热辣辣弓手",
+      "local_type": 33,
+      "text_digest": "f815673c1459e57592b6ecf431e40aa30f2c29edfdd06041bdba27516882134c",
+      "official_cid": 9620,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 99284890,
+      "local_name": "壶魔神",
+      "local_type": 33,
+      "text_digest": "ae8c5eb906e2e6d4d205829cb7e9b1b3c4034870d454ee1308ab1b3a441f4564",
+      "official_cid": 5960,
+      "group": "short-monsters-02"
+    },
+    {
+      "code": 99690140,
+      "local_name": "守墓的从者",
+      "local_type": 33,
+      "text_digest": "24fbe4fd18fd1574fc999e23ab1f7d779aa9e5178660606cfb04e52d06263139",
+      "official_cid": 5513,
+      "group": "short-monsters-02"
+    }
+  ],
+  "updated_cards": [],
+  "pending": [
+    {
+      "code": 23421244,
+      "name": "再生僵尸",
+      "status": "needs_ruling",
+      "reason": "再生僵尸官方卡文限定攻击表示，但同cid补足却说明里侧守备被攻击翻开仍受保护；两份来源条件冲突，待官方版本说明，不擅自扩大保护。"
+    }
+  ],
+  "query_cases": [
+    {
+      "code": 34257001,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "永续效果，自身攻击怪兽或直接攻击均适用，被攻击不适用；伤害步骤开始加攻，步骤结束恢复。"
+    },
+    {
+      "code": 34257001,
+      "query": {
+        "action": "allow_direct_attack"
+      },
+      "expected_keys": [],
+      "reason": "永续效果，自身攻击怪兽或直接攻击均适用，被攻击不适用；伤害步骤开始加攻，步骤结束恢复。"
+    },
+    {
+      "code": 34257001,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ]
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续效果，自身攻击怪兽或直接攻击均适用，被攻击不适用；伤害步骤开始加攻，步骤结束恢复。"
+    },
+    {
+      "code": 34257001,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ],
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续效果，自身攻击怪兽或直接攻击均适用，被攻击不适用；伤害步骤开始加攻，步骤结束恢复。"
+    },
+    {
+      "code": 34627841,
+      "query": {
+        "action": "special_summon",
+        "cost_kind": "tribute"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "起动效果，解放自己是费用，不取对象；手卡须有青眼白龙。没有无视召唤条件或自带检索处理。"
+    },
+    {
+      "code": 34627841,
+      "query": {
+        "action": "tribute"
+      },
+      "expected_keys": [],
+      "reason": "起动效果，解放自己是费用，不取对象；手卡须有青眼白龙。没有无视召唤条件或自带检索处理。"
+    },
+    {
+      "code": 36278828,
+      "query": {
+        "action": "place_counter"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "起动效果，单卡每回合一次；取对方表侧怪兽对象，仅放毒指示物，指示物的其它用途不自动作为本卡能力。"
+    },
+    {
+      "code": 36278828,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [],
+      "reason": "起动效果，单卡每回合一次；取对方表侧怪兽对象，仅放毒指示物，指示物的其它用途不自动作为本卡能力。"
+    },
+    {
+      "code": 43791861,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "永续效果，自己主动攻击对方控制的怪兽才适用，双方卡的原持有者不影响；直接攻击不适用。"
+    },
+    {
+      "code": 43791861,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [],
+      "reason": "永续效果，自己主动攻击对方控制的怪兽才适用，双方卡的原持有者不影响；直接攻击不适用。"
+    },
+    {
+      "code": 43791861,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ]
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续效果，自己主动攻击对方控制的怪兽才适用，双方卡的原持有者不影响；直接攻击不适用。"
+    },
+    {
+      "code": 43791861,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ],
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续效果，自己主动攻击对方控制的怪兽才适用，双方卡的原持有者不影响；直接攻击不适用。"
+    },
+    {
+      "code": 51196174,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "永续设置当前攻击力，不是原本攻击力；含本卡自身等级，不计无等级/里侧怪兽。等级或怪兽数变化即时重算。"
+    },
+    {
+      "code": 51196174,
+      "query": {
+        "action": "change_level"
+      },
+      "expected_keys": [],
+      "reason": "永续设置当前攻击力，不是原本攻击力；含本卡自身等级，不计无等级/里侧怪兽。等级或怪兽数变化即时重算。"
+    },
+    {
+      "code": 51196174,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ]
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续设置当前攻击力，不是原本攻击力；含本卡自身等级，不计无等级/里侧怪兽。等级或怪兽数变化即时重算。"
+    },
+    {
+      "code": 51196174,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ],
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续设置当前攻击力，不是原本攻击力；含本卡自身等级，不计无等级/里侧怪兽。等级或怪兽数变化即时重算。"
+    },
+    {
+      "code": 52860176,
+      "query": {
+        "action": "take_control"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "自身解放为费用，结算选全部3星以下，不取对象；控制权没有回合期限。2026FAQ明确空间要求及处理时空间不足的剩余破坏规则，不能当作本卡主动效果破坏能力。"
+    },
+    {
+      "code": 52860176,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [],
+      "reason": "自身解放为费用，结算选全部3星以下，不取对象；控制权没有回合期限。2026FAQ明确空间要求及处理时空间不足的剩余破坏规则，不能当作本卡主动效果破坏能力。"
+    },
+    {
+      "code": 56921677,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "伤害计算后强制诱发，不取对象，本卡确定战破也发动；对方已经确定战破时亦发动并将其效果破坏，最终不算战斗破坏。"
+    },
+    {
+      "code": 56921677,
+      "query": {
+        "action": "negate_attack"
+      },
+      "expected_keys": [],
+      "reason": "伤害计算后强制诱发，不取对象，本卡确定战破也发动；对方已经确定战破时亦发动并将其效果破坏，最终不算战斗破坏。"
+    },
+    {
+      "code": 59290628,
+      "query": {
+        "action": "allow_direct_attack"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "永续直击权限，攻击时可以选择直接攻击或怪兽；不增加次数、不造成效果伤害。"
+    },
+    {
+      "code": 59290628,
+      "query": {
+        "action": "grant_extra_attack"
+      },
+      "expected_keys": [],
+      "reason": "永续直击权限，攻击时可以选择直接攻击或怪兽；不增加次数、不造成效果伤害。"
+    },
+    {
+      "code": 64379261,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "hand"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "自己岩石族通常召唤成功时的手卡诱发，不取对象；每次该召唤事件只允许发动手卡1只本卡，多个副本不能同次一起发动，不是同名每回合一次。"
+    },
+    {
+      "code": 64379261,
+      "query": {
+        "usage": "name_soft_opt"
+      },
+      "expected_keys": [],
+      "reason": "自己岩石族通常召唤成功时的手卡诱发，不取对象；每次该召唤事件只允许发动手卡1只本卡，多个副本不能同次一起发动，不是同名每回合一次。"
+    },
+    {
+      "code": 71923655,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "四类外不入连锁特召效果；解放是召唤手续，不能为满足动作TAG而写效果解放。"
+    },
+    {
+      "code": 71923655,
+      "query": {
+        "action": "tribute"
+      },
+      "expected_keys": [],
+      "reason": "四类外不入连锁特召效果；解放是召唤手续，不能为满足动作TAG而写效果解放。"
+    },
+    {
+      "code": 76321376,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "战斗破坏且送墓的伤害步骤结束时在墓地必发，不取对象；不因提到战破而标效果破坏。"
+    },
+    {
+      "code": 76321376,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [],
+      "reason": "战斗破坏且送墓的伤害步骤结束时在墓地必发，不取对象；不因提到战破而标效果破坏。"
+    },
+    {
+      "code": 82199284,
+      "query": {
+        "action": "require_attack_return"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "永续效果要求的攻击手续，不是效果回手、不是发动费用，不触发幸运女郎莱蒂或魔偶甜点券的“被效果回手”。旧中文缺“其他”但官方明确不能返回本卡实例。"
+    },
+    {
+      "code": 82199284,
+      "query": {
+        "action": "return_hand"
+      },
+      "expected_keys": [],
+      "reason": "永续效果要求的攻击手续，不是效果回手、不是发动费用，不触发幸运女郎莱蒂或魔偶甜点券的“被效果回手”。旧中文缺“其他”但官方明确不能返回本卡实例。"
+    },
+    {
+      "code": 86952477,
+      "query": {
+        "action": "change_level"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "永续效果，表侧守备或被攻击翻开成表守即适用；其它等级加成仍可叠加，例如同调英雄装备时为5，不能错误固定封顶4。"
+    },
+    {
+      "code": 86952477,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [],
+      "reason": "永续效果，表侧守备或被攻击翻开成表守即适用；其它等级加成仍可叠加，例如同调英雄装备时为5，不能错误固定封顶4。"
+    },
+    {
+      "code": 98865920,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "表侧通常召唤或反转召唤成功时强制诱发，不取对象，连锁2以上效果召唤也发动；特殊召唤不触发。"
+    },
+    {
+      "code": 98865920,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [],
+      "reason": "表侧通常召唤或反转召唤成功时强制诱发，不取对象，连锁2以上效果召唤也发动；特殊召唤不触发。"
+    },
+    {
+      "code": 99284890,
+      "query": {
+        "action": "draw",
+        "cost_kind": "send_grave_cost"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "起动效果，手卡强欲之壶送墓是费用而非丢弃或效果送墓，卡组至少3张才能发动；未写一次限制。"
+    },
+    {
+      "code": 99284890,
+      "query": {
+        "action": "send_grave"
+      },
+      "expected_keys": [],
+      "reason": "起动效果，手卡强欲之壶送墓是费用而非丢弃或效果送墓，卡组至少3张才能发动；未写一次限制。"
+    },
+    {
+      "code": 1596508,
+      "query": {
+        "action": "lock"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "永续锁限制双方主卡组送墓，非无效发动，也不是本卡执行送墓。2025FAQ允许巳剑降临从卡组解放，不能机械禁止所有最终进入墓地的动作。"
+    },
+    {
+      "code": 1596508,
+      "query": {
+        "action": "send_grave"
+      },
+      "expected_keys": [],
+      "reason": "永续锁限制双方主卡组送墓，非无效发动，也不是本卡执行送墓。2025FAQ允许巳剑降临从卡组解放，不能机械禁止所有最终进入墓地的动作。"
+    },
+    {
+      "code": 1596508,
+      "query": {
+        "etags": [
+          "etag:lock"
+        ]
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续锁限制双方主卡组送墓，非无效发动，也不是本卡执行送墓。2025FAQ允许巳剑降临从卡组解放，不能机械禁止所有最终进入墓地的动作。"
+    },
+    {
+      "code": 1596508,
+      "query": {
+        "etags": [
+          "etag:lock"
+        ],
+        "action": "lock"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续锁限制双方主卡组送墓，非无效发动，也不是本卡执行送墓。2025FAQ允许巳剑降临从卡组解放，不能机械禁止所有最终进入墓地的动作。"
+    },
+    {
+      "code": 6214884,
+      "query": {
+        "action": "discard_hand"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "本卡给予对方战伤的伤害计算后任意诱发；不取手卡对象，丢弃是效果而非费用，可触发被效果丢弃的暗黑界。"
+    },
+    {
+      "code": 6214884,
+      "query": {
+        "cost_kind": "discard"
+      },
+      "expected_keys": [],
+      "reason": "本卡给予对方战伤的伤害计算后任意诱发；不取手卡对象，丢弃是效果而非费用，可触发被效果丢弃的暗黑界。"
+    },
+    {
+      "code": 8175346,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "deck"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "表侧通常召唤成功时任意诱发，不取对象；卡组须有同名，连锁2以上代偿召唤错过时点，不能记成不会错过的“场合”。"
+    },
+    {
+      "code": 8175346,
+      "query": {
+        "action": "draw"
+      },
+      "expected_keys": [],
+      "reason": "表侧通常召唤成功时任意诱发，不取对象；卡组须有同名，连锁2以上代偿召唤错过时点，不能记成不会错过的“场合”。"
+    },
+    {
+      "code": 20228463,
+      "query": {
+        "action": "hand_reveal",
+        "from_zone": "hand"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "永续公开双方手卡，效果失效便不再公开；不因公开而允许选择本应随机的指定牌，不抽卡或丢弃。"
+    },
+    {
+      "code": 20228463,
+      "query": {
+        "action": "discard_hand"
+      },
+      "expected_keys": [],
+      "reason": "永续公开双方手卡，效果失效便不再公开；不因公开而允许选择本应随机的指定牌，不抽卡或丢弃。"
+    },
+    {
+      "code": 28563545,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "自身通常或反转召唤成功时强制诱发，取表侧龙族1对象；没有龙族也发动但无对象不处理。特殊召唤不触发。"
+    },
+    {
+      "code": 28563545,
+      "query": {
+        "action": "negate_effect"
+      },
+      "expected_keys": [],
+      "reason": "自身通常或反转召唤成功时强制诱发，取表侧龙族1对象；没有龙族也发动但无对象不处理。特殊召唤不触发。"
+    },
+    {
+      "code": 29116732,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "hand"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "自身表侧特召成功时任意诱发，不取对象，伤害步骤可以；连锁2以上特召或特召后另有处理则不能错过时点后发动。"
+    },
+    {
+      "code": 29116732,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "deck"
+      },
+      "expected_keys": [],
+      "reason": "自身表侧特召成功时任意诱发，不取对象，伤害步骤可以；连锁2以上特召或特召后另有处理则不能错过时点后发动。"
+    },
+    {
+      "code": 32872833,
+      "query": {
+        "action": "normal_summon"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "四类外无连锁效果；需表侧8星，里侧8星不行。仅表侧召唤不能用此法盖放，也可正常解放上级召唤，不增加通常召唤次数。"
+    },
+    {
+      "code": 32872833,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [],
+      "reason": "四类外无连锁效果；需表侧8星，里侧8星不行。仅表侧召唤不能用此法盖放，也可正常解放上级召唤，不增加通常召唤次数。"
+    },
+    {
+      "code": 40921545,
+      "query": {
+        "action": "destroy",
+        "cost_kind": "tribute"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "起动效果，解放本卡费用，取对方魔陷对象，不限表里。自己魔陷不能选。"
+    },
+    {
+      "code": 40921545,
+      "query": {
+        "action": "tribute"
+      },
+      "expected_keys": [],
+      "reason": "起动效果，解放本卡费用，取对方魔陷对象，不限表里。自己魔陷不能选。"
+    },
+    {
+      "code": 54493213,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "永续设置攻守，双方表侧除外怪兽都计数、里侧不计；数量改变立即重算，不存在本卡主动除外处理。"
+    },
+    {
+      "code": 54493213,
+      "query": {
+        "action": "banish"
+      },
+      "expected_keys": [],
+      "reason": "永续设置攻守，双方表侧除外怪兽都计数、里侧不计；数量改变立即重算，不存在本卡主动除外处理。"
+    },
+    {
+      "code": 54493213,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ]
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续设置攻守，双方表侧除外怪兽都计数、里侧不计；数量改变立即重算，不存在本卡主动除外处理。"
+    },
+    {
+      "code": 54493213,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ],
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续设置攻守，双方表侧除外怪兽都计数、里侧不计；数量改变立即重算，不存在本卡主动除外处理。"
+    },
+    {
+      "code": 56840658,
+      "query": {
+        "action": "draw"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "从场上表侧送墓的墓地任意诱发，伤害步骤可；里侧被战斗翻开后战破也满足。送墓后又有其他处理会错过时点，但三头毒蛇攻击宣言手续解放本卡时可在攻击宣言窗口发动。"
+    },
+    {
+      "code": 56840658,
+      "query": {
+        "action": "send_grave"
+      },
+      "expected_keys": [],
+      "reason": "从场上表侧送墓的墓地任意诱发，伤害步骤可；里侧被战斗翻开后战破也满足。送墓后又有其他处理会错过时点，但三头毒蛇攻击宣言手续解放本卡时可在攻击宣言窗口发动。"
+    },
+    {
+      "code": 72429240,
+      "query": {
+        "action": "destroy",
+        "from_zone": "opponent_monster"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "起动效果，自身解放是费用，取对方表侧对象；结算变里侧或控制权到自己则不破坏。"
+    },
+    {
+      "code": 72429240,
+      "query": {
+        "action": "tribute"
+      },
+      "expected_keys": [],
+      "reason": "起动效果，自身解放是费用，取对方表侧对象；结算变里侧或控制权到自己则不破坏。"
+    },
+    {
+      "code": 73776643,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "永续效果，任一方表侧场地均满足；两边各有场地仍只加1000，不按场地张数翻倍。"
+    },
+    {
+      "code": 73776643,
+      "query": {
+        "action": "place_field_spell"
+      },
+      "expected_keys": [],
+      "reason": "永续效果，任一方表侧场地均满足；两边各有场地仍只加1000，不按场地张数翻倍。"
+    },
+    {
+      "code": 73776643,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ]
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续效果，任一方表侧场地均满足；两边各有场地仍只加1000，不按场地张数翻倍。"
+    },
+    {
+      "code": 73776643,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ],
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续效果，任一方表侧场地均满足；两边各有场地仍只加1000，不按场地张数翻倍。"
+    },
+    {
+      "code": 79409334,
+      "query": {
+        "action": "set_position"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "表侧攻击的本卡被选为攻击对象时必发诱发，不取对象；含攻击宣言及战斗卷回重新选到本卡，不是只伤害步骤后转守。"
+    },
+    {
+      "code": 79409334,
+      "query": {
+        "action": "negate_attack"
+      },
+      "expected_keys": [],
+      "reason": "表侧攻击的本卡被选为攻击对象时必发诱发，不取对象；含攻击宣言及战斗卷回重新选到本卡，不是只伤害步骤后转守。"
+    },
+    {
+      "code": 87978805,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "永续设置当前攻守，不算原本数值；双方衍生物计数，变化立即重算，本卡不生成衍生物。"
+    },
+    {
+      "code": 87978805,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [],
+      "reason": "永续设置当前攻守，不算原本数值；双方衍生物计数，变化立即重算，本卡不生成衍生物。"
+    },
+    {
+      "code": 87978805,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ]
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续设置当前攻守，不算原本数值；双方衍生物计数，变化立即重算，本卡不生成衍生物。"
+    },
+    {
+      "code": 87978805,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ],
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续设置当前攻守，不算原本数值；双方衍生物计数，变化立即重算，本卡不生成衍生物。"
+    },
+    {
+      "code": 89621922,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "永续加攻，含对方盖放魔陷、场地区盖放场地，数量变化立即重算，不只数表侧魔陷。"
+    },
+    {
+      "code": 89621922,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [],
+      "reason": "永续加攻，含对方盖放魔陷、场地区盖放场地，数量变化立即重算，不只数表侧魔陷。"
+    },
+    {
+      "code": 89621922,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ]
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续加攻，含对方盖放魔陷、场地区盖放场地，数量变化立即重算，不只数表侧魔陷。"
+    },
+    {
+      "code": 89621922,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ],
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续加攻，含对方盖放魔陷、场地区盖放场地，数量变化立即重算，不只数表侧魔陷。"
+    },
+    {
+      "code": 91869203,
+      "query": {
+        "action": "burn",
+        "cost_kind": "tribute"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "自己2只怪兽解放作费用，可包含自身及里侧怪兽，不取对象，无每回合一次。官方英名保留Amazon Archer更名注记，按同cid确认。"
+    },
+    {
+      "code": 91869203,
+      "query": {
+        "action": "tribute"
+      },
+      "expected_keys": [],
+      "reason": "自己2只怪兽解放作费用，可包含自身及里侧怪兽，不取对象，无每回合一次。官方英名保留Amazon Archer更名注记，按同cid确认。"
+    },
+    {
+      "code": 97466712,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "hand"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "四类外无连锁特召，条件看对方没有任何怪兽，不是自己空场；可选表侧攻守，对方里侧怪兽也不满足空场。"
+    },
+    {
+      "code": 97466712,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "opponent_hand"
+      },
+      "expected_keys": [],
+      "reason": "四类外无连锁特召，条件看对方没有任何怪兽，不是自己空场；可选表侧攻守，对方里侧怪兽也不满足空场。"
+    },
+    {
+      "code": 97526666,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "deck"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "起动效果，解放本卡费用；卡组须有场地魔法，不取对象，不直接发动或放场地。"
+    },
+    {
+      "code": 97526666,
+      "query": {
+        "action": "activate_field_spell"
+      },
+      "expected_keys": [],
+      "reason": "起动效果，解放本卡费用；卡组须有场地魔法，不取对象，不直接发动或放场地。"
+    },
+    {
+      "code": 1434352,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "永续设置当前ATK，非原本ATK；墓地数量即时影响，不产生墓地送墓、除外或回收动作。"
+    },
+    {
+      "code": 1434352,
+      "query": {
+        "action": "send_grave"
+      },
+      "expected_keys": [],
+      "reason": "永续设置当前ATK，非原本ATK；墓地数量即时影响，不产生墓地送墓、除外或回收动作。"
+    },
+    {
+      "code": 1434352,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ]
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续设置当前ATK，非原本ATK；墓地数量即时影响，不产生墓地送墓、除外或回收动作。"
+    },
+    {
+      "code": 1434352,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ],
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续设置当前ATK，非原本ATK；墓地数量即时影响，不产生墓地送墓、除外或回收动作。"
+    },
+    {
+      "code": 6285791,
+      "query": {
+        "action": "return_hand",
+        "timing": "end_phase"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "自己结束阶段一次必须发动的诱发，不取对象；原持有者手卡是归还目的地，不能从墓地或对方结束阶段自动回手。"
+    },
+    {
+      "code": 6285791,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "grave"
+      },
+      "expected_keys": [],
+      "reason": "自己结束阶段一次必须发动的诱发，不取对象；原持有者手卡是归还目的地，不能从墓地或对方结束阶段自动回手。"
+    },
+    {
+      "code": 15090429,
+      "query": {
+        "action": "modify_summon_material"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "四类外效果，可用里侧本卡，也可上级盖放高等级风属性；盖放时告知适用双重数量但不向对方展示所盖怪兽。非效果解放或立即召唤。"
+    },
+    {
+      "code": 15090429,
+      "query": {
+        "action": "tribute"
+      },
+      "expected_keys": [],
+      "reason": "四类外效果，可用里侧本卡，也可上级盖放高等级风属性；盖放时告知适用双重数量但不向对方展示所盖怪兽。非效果解放或立即召唤。"
+    },
+    {
+      "code": 16751086,
+      "query": {
+        "action": "send_grave",
+        "from_zone": "opponent_deck_top"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "被破坏后必发诱发，伤害步骤也发；手卡、卡组、场上里侧被破坏均满足，宏观宇宙等除外替代时在除外状态仍可发动，不要求被破坏送墓。"
+    },
+    {
+      "code": 16751086,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [],
+      "reason": "被破坏后必发诱发，伤害步骤也发；手卡、卡组、场上里侧被破坏均满足，宏观宇宙等除外替代时在除外状态仍可发动，不要求被破坏送墓。"
+    },
+    {
+      "code": 17444133,
+      "query": {
+        "action": "modify_summon_material"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "四类外效果，里侧亦可，能用于效果进行的上级召唤或盖放。技抽下表侧无效而里侧仍可；只是2份数量，实际只解放1只，不能触发要求实际解放2只的冥界宝札抽卡。"
+    },
+    {
+      "code": 17444133,
+      "query": {
+        "action": "draw"
+      },
+      "expected_keys": [],
+      "reason": "四类外效果，里侧亦可，能用于效果进行的上级召唤或盖放。技抽下表侧无效而里侧仍可；只是2份数量，实际只解放1只，不能触发要求实际解放2只的冥界宝札抽卡。"
+    },
+    {
+      "code": 18063928,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "hand"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "通常召唤成功后立即的任意诱发，不取对象；须手卡有可召4星，召唤后再有其它处理或连锁2以上召唤会错过时点。"
+    },
+    {
+      "code": 18063928,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "deck"
+      },
+      "expected_keys": [],
+      "reason": "通常召唤成功后立即的任意诱发，不取对象；须手卡有可召4星，召唤后再有其它处理或连锁2以上召唤会错过时点。"
+    },
+    {
+      "code": 18842395,
+      "query": {
+        "action": "normal_summon"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "四类外无连锁效果，对方怪兽数条件包含表里；不解放的方式仅表侧召唤不能盖放，仍消耗通常召唤机会。"
+    },
+    {
+      "code": 18842395,
+      "query": {
+        "action": "increase_normal_summon_limit"
+      },
+      "expected_keys": [],
+      "reason": "四类外无连锁效果，对方怪兽数条件包含表里；不解放的方式仅表侧召唤不能盖放，仍消耗通常召唤机会。"
+    },
+    {
+      "code": 20193924,
+      "query": {
+        "action": "destroy",
+        "usage": "soft_opt"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "不能特殊召唤是非效果规则；起动效果取双方场上任意类型的1张里侧卡为对象，处理前翻表则不破坏。"
+    },
+    {
+      "code": 20193924,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [],
+      "reason": "不能特殊召唤是非效果规则；起动效果取双方场上任意类型的1张里侧卡为对象，处理前翻表则不破坏。"
+    },
+    {
+      "code": 20474741,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "hand"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "表侧通常召唤成功时的任意诱发，不取对象；连锁2以上效果中通常召唤会错过时点，不是反转或特殊召唤成功。"
+    },
+    {
+      "code": 20474741,
+      "query": {
+        "from_zone": "deck"
+      },
+      "expected_keys": [],
+      "reason": "表侧通常召唤成功时的任意诱发，不取对象；连锁2以上效果中通常召唤会错过时点，不是反转或特殊召唤成功。"
+    },
+    {
+      "code": 21887179,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "伤害步骤结束强制诱发，不取对象；对方已战破则不发动。本卡战破送墓时在墓地发动；不能当作在伤害计算前立即破坏。"
+    },
+    {
+      "code": 21887179,
+      "query": {
+        "action": "negate_attack"
+      },
+      "expected_keys": [],
+      "reason": "伤害步骤结束强制诱发，不取对象；对方已战破则不发动。本卡战破送墓时在墓地发动；不能当作在伤害计算前立即破坏。"
+    },
+    {
+      "code": 26517393,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "deck"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "通常召唤的场合场上任意诱发，检索的是反转怪兽类别，不把所有翻开会触发的怪兽都当作反转怪兽；不取对象。"
+    },
+    {
+      "code": 26517393,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [],
+      "reason": "通常召唤的场合场上任意诱发，检索的是反转怪兽类别，不把所有翻开会触发的怪兽都当作反转怪兽；不取对象。"
+    },
+    {
+      "code": 33731070,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "被效果从手卡丢弃到墓地时墓地必发诱发，伤害步骤也发动。发动费用丢弃不满足；本效果无丢弃费用，也不取对象。"
+    },
+    {
+      "code": 33731070,
+      "query": {
+        "cost_kind": "discard"
+      },
+      "expected_keys": [],
+      "reason": "被效果从手卡丢弃到墓地时墓地必发诱发，伤害步骤也发动。发动费用丢弃不满足；本效果无丢弃费用，也不取对象。"
+    },
+    {
+      "code": 41089128,
+      "query": {
+        "action": "modify_summon_material"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "四类外的召唤手续效果，不形成连锁；可用里侧本卡，上级盖放也可适用。实际只解放1只，不能将2只份标成效果解放2只。"
+    },
+    {
+      "code": 41089128,
+      "query": {
+        "action": "tribute"
+      },
+      "expected_keys": [],
+      "reason": "四类外的召唤手续效果，不形成连锁；可用里侧本卡，上级盖放也可适用。实际只解放1只，不能将2只份标成效果解放2只。"
+    },
+    {
+      "code": 44436472,
+      "query": {
+        "action": "modify_summon_material"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "四类外的召唤手续效果，不形成连锁；可用里侧本卡，上级盖放也可适用。实际只解放1只，不能将2只份标成效果解放2只。"
+    },
+    {
+      "code": 44436472,
+      "query": {
+        "action": "tribute"
+      },
+      "expected_keys": [],
+      "reason": "四类外的召唤手续效果，不形成连锁；可用里侧本卡，上级盖放也可适用。实际只解放1只，不能将2只份标成效果解放2只。"
+    },
+    {
+      "code": 50621530,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "永续适用；只计双方怪兽区表侧调整，数量变化时立即重算。不因条件提到调整而获得改变调整身份的能力。"
+    },
+    {
+      "code": 50621530,
+      "query": {
+        "action": "treat_as_tuner"
+      },
+      "expected_keys": [],
+      "reason": "永续适用；只计双方怪兽区表侧调整，数量变化时立即重算。不因条件提到调整而获得改变调整身份的能力。"
+    },
+    {
+      "code": 50621530,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ]
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续适用；只计双方怪兽区表侧调整，数量变化时立即重算。不因条件提到调整而获得改变调整身份的能力。"
+    },
+    {
+      "code": 50621530,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ],
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续适用；只计双方怪兽区表侧调整，数量变化时立即重算。不因条件提到调整而获得改变调整身份的能力。"
+    },
+    {
+      "code": 50781944,
+      "query": {
+        "action": "heal"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "场上强制诱发，不取对象，伤害步骤可发动。本卡自身被破坏送墓不发动；同次2只破坏只发动一次并回复1000，不按只数倍增。"
+    },
+    {
+      "code": 50781944,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [],
+      "reason": "场上强制诱发，不取对象，伤害步骤可发动。本卡自身被破坏送墓不发动；同次2只破坏只发动一次并回复1000，不按只数倍增。"
+    },
+    {
+      "code": 56647086,
+      "query": {
+        "action": "lock"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "只封锁对方速攻魔法卡的卡片发动，墓地魔法效果等仍可发动；先前已发动的效果正常处理，不是发动或效果无效。"
+    },
+    {
+      "code": 56647086,
+      "query": {
+        "action": "negate_activation"
+      },
+      "expected_keys": [],
+      "reason": "只封锁对方速攻魔法卡的卡片发动，墓地魔法效果等仍可发动；先前已发动的效果正常处理，不是发动或效果无效。"
+    },
+    {
+      "code": 56647086,
+      "query": {
+        "etags": [
+          "etag:lock"
+        ]
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：只封锁对方速攻魔法卡的卡片发动，墓地魔法效果等仍可发动；先前已发动的效果正常处理，不是发动或效果无效。"
+    },
+    {
+      "code": 56647086,
+      "query": {
+        "etags": [
+          "etag:lock"
+        ],
+        "action": "lock"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：只封锁对方速攻魔法卡的卡片发动，墓地魔法效果等仍可发动；先前已发动的效果正常处理，不是发动或效果无效。"
+    },
+    {
+      "code": 58098303,
+      "query": {
+        "action": "draw"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "不能特殊召唤是非效果规则。表侧通常召唤成功强制诱发，不取对象，连锁2以上效果中召唤也可发动，区别于任意时点诱发。"
+    },
+    {
+      "code": 58098303,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [],
+      "reason": "不能特殊召唤是非效果规则。表侧通常召唤成功强制诱发，不取对象，连锁2以上效果中召唤也可发动，区别于任意时点诱发。"
+    },
+    {
+      "code": 59797187,
+      "query": {
+        "action": "set_position"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "伤害步骤结束强制诱发，不取对象；本卡战斗破坏时也发动，不是翻里侧费用或使发动无效。"
+    },
+    {
+      "code": 59797187,
+      "query": {
+        "action": "negate_effect"
+      },
+      "expected_keys": [],
+      "reason": "伤害步骤结束强制诱发，不取对象；本卡战斗破坏时也发动，不是翻里侧费用或使发动无效。"
+    },
+    {
+      "code": 65064143,
+      "query": {
+        "action": "burn",
+        "cost_kind": "tribute"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "起动效果；解放自己怪兽区1只昆虫族是费用，可解放里侧昆虫，不取对象。没有每回合次数限制，也没有效果解放处理。"
+    },
+    {
+      "code": 65064143,
+      "query": {
+        "action": "tribute"
+      },
+      "expected_keys": [],
+      "reason": "起动效果；解放自己怪兽区1只昆虫族是费用，可解放里侧昆虫，不取对象。没有每回合次数限制，也没有效果解放处理。"
+    },
+    {
+      "code": 70410002,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "永续增加当前攻击力，数量变化立即重算；只计双方怪兽区连接怪兽，魔陷区作为装备的连接卡不计，不新增连接召唤能力。"
+    },
+    {
+      "code": 70410002,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [],
+      "reason": "永续增加当前攻击力，数量变化立即重算；只计双方怪兽区连接怪兽，魔陷区作为装备的连接卡不计，不新增连接召唤能力。"
+    },
+    {
+      "code": 70410002,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ]
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续增加当前攻击力，数量变化立即重算；只计双方怪兽区连接怪兽，魔陷区作为装备的连接卡不计，不新增连接召唤能力。"
+    },
+    {
+      "code": 70410002,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ],
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续增加当前攻击力，数量变化立即重算；只计双方怪兽区连接怪兽，魔陷区作为装备的连接卡不计，不新增连接召唤能力。"
+    },
+    {
+      "code": 70821187,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "被对方卡效果从自己手卡送至自己墓地时在墓地强制诱发，伤害步骤也发动；从卡组或场上送墓不满足，本身不丢弃手卡。"
+    },
+    {
+      "code": 70821187,
+      "query": {
+        "action": "send_grave"
+      },
+      "expected_keys": [],
+      "reason": "被对方卡效果从自己手卡送至自己墓地时在墓地强制诱发，伤害步骤也发动；从卡组或场上送墓不满足，本身不丢弃手卡。"
+    },
+    {
+      "code": 71218746,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "伤害计算前场上强制诱发，不取对象；攻击里侧怪兽时先翻开再发动，不在攻击宣言时发动。"
+    },
+    {
+      "code": 71218746,
+      "query": {
+        "action": "negate_attack"
+      },
+      "expected_keys": [],
+      "reason": "伤害计算前场上强制诱发，不取对象；攻击里侧怪兽时先翻开再发动，不在攻击宣言时发动。"
+    },
+    {
+      "code": 72845813,
+      "query": {
+        "action": "lock"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "永续封锁双方的光属性特殊召唤，不封锁其它属性或通常召唤；不属于对特召发动无效。"
+    },
+    {
+      "code": 72845813,
+      "query": {
+        "action": "negate_activation"
+      },
+      "expected_keys": [],
+      "reason": "永续封锁双方的光属性特殊召唤，不封锁其它属性或通常召唤；不属于对特召发动无效。"
+    },
+    {
+      "code": 72845813,
+      "query": {
+        "etags": [
+          "etag:lock"
+        ]
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续封锁双方的光属性特殊召唤，不封锁其它属性或通常召唤；不属于对特召发动无效。"
+    },
+    {
+      "code": 72845813,
+      "query": {
+        "etags": [
+          "etag:lock"
+        ],
+        "action": "lock"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续封锁双方的光属性特殊召唤，不封锁其它属性或通常召唤；不属于对特召发动无效。"
+    },
+    {
+      "code": 82108372,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "永续效果，墓地数量变化立即重算；控制权变化后按新控制者墓地的天使族数量，不是墓地卡的独立发动。"
+    },
+    {
+      "code": 82108372,
+      "query": {
+        "action": "send_grave"
+      },
+      "expected_keys": [],
+      "reason": "永续效果，墓地数量变化立即重算；控制权变化后按新控制者墓地的天使族数量，不是墓地卡的独立发动。"
+    },
+    {
+      "code": 82108372,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ]
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续效果，墓地数量变化立即重算；控制权变化后按新控制者墓地的天使族数量，不是墓地卡的独立发动。"
+    },
+    {
+      "code": 82108372,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ],
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续效果，墓地数量变化立即重算；控制权变化后按新控制者墓地的天使族数量，不是墓地卡的独立发动。"
+    },
+    {
+      "code": 83021423,
+      "query": {
+        "action": "destroy",
+        "usage": "soft_opt"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "自己主要阶段起动、单卡每回合一次；取双方场上表侧或里侧魔法陷阱卡对象，不能取怪兽区怪兽。"
+    },
+    {
+      "code": 83021423,
+      "query": {
+        "usage": "name_soft_opt"
+      },
+      "expected_keys": [],
+      "reason": "自己主要阶段起动、单卡每回合一次；取双方场上表侧或里侧魔法陷阱卡对象，不能取怪兽区怪兽。"
+    },
+    {
+      "code": 84133008,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "场上起动效果，支付1000基本分为费用；不取对象，处理时选择。只限融合本身，不包含融合派兵等名字带融合的卡。"
+    },
+    {
+      "code": 84133008,
+      "query": {
+        "action": "heal"
+      },
+      "expected_keys": [],
+      "reason": "场上起动效果，支付1000基本分为费用；不取对象，处理时选择。只限融合本身，不包含融合派兵等名字带融合的卡。"
+    },
+    {
+      "code": 87350908,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "伤害步骤结束在场上强制诱发，不取对象；同攻击力互相战破时不发动。战斗破坏是条件，不生成效果破坏动作。"
+    },
+    {
+      "code": 87350908,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [],
+      "reason": "伤害步骤结束在场上强制诱发，不取对象；同攻击力互相战破时不发动。战斗破坏是条件，不生成效果破坏动作。"
+    },
+    {
+      "code": 91663373,
+      "query": {
+        "action": "hand_reveal",
+        "from_zone": "opponent_hand"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "是任意诱发效果而非永续确认；发动时本卡须表侧攻击，不能在伤害步骤，连锁2以上抽卡会错过时点。处理时本卡不再在怪兽区表侧则不确认。"
+    },
+    {
+      "code": 91663373,
+      "query": {
+        "action": "draw"
+      },
+      "expected_keys": [],
+      "reason": "是任意诱发效果而非永续确认；发动时本卡须表侧攻击，不能在伤害步骤，连锁2以上抽卡会错过时点。处理时本卡不再在怪兽区表侧则不确认。"
+    },
+    {
+      "code": 91663373,
+      "query": {
+        "etags": [
+          "etag:hand-look"
+        ]
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "电子超能人仅确认对方本次抽到的手卡；保留手卡确认TAG，不表示查看整个手卡或卡组"
+    },
+    {
+      "code": 91663373,
+      "query": {
+        "etags": [
+          "etag:hand-look"
+        ],
+        "from_zone": "opponent_hand"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "电子超能人仅确认对方本次抽到的手卡；保留手卡确认TAG，不表示查看整个手卡或卡组"
+    },
+    {
+      "code": 91663373,
+      "query": {
+        "action": "hand_reveal",
+        "from_zone": "deck"
+      },
+      "expected_keys": [],
+      "reason": "电子超能人仅确认对方本次抽到的手卡；保留手卡确认TAG，不表示查看整个手卡或卡组"
+    },
+    {
+      "code": 2158562,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "上级召唤成功的场合场上必发；即使没有表侧魔法也发动，不取对象，不破坏里侧魔法或陷阱。"
+    },
+    {
+      "code": 2158562,
+      "query": {
+        "action": "negate_activation"
+      },
+      "expected_keys": [],
+      "reason": "上级召唤成功的场合场上必发；即使没有表侧魔法也发动，不取对象，不破坏里侧魔法或陷阱。"
+    },
+    {
+      "code": 9637706,
+      "query": {
+        "action": "prevent_damage"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "永续效果，只防自己效果伤害，不防战斗伤害，不使对方伤害为0。破坏轮先破坏本卡后再伤害时，保护已不适用。"
+    },
+    {
+      "code": 9637706,
+      "query": {
+        "action": "negate_effect"
+      },
+      "expected_keys": [],
+      "reason": "永续效果，只防自己效果伤害，不防战斗伤害，不使对方伤害为0。破坏轮先破坏本卡后再伤害时，保护已不适用。"
+    },
+    {
+      "code": 10532969,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "给对方战斗伤害的伤害计算后任意诱发，取1只对方怪兽对象；不能选择已经被本次战斗破坏的怪兽。"
+    },
+    {
+      "code": 10532969,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [],
+      "reason": "给对方战斗伤害的伤害计算后任意诱发，取1只对方怪兽对象；不能选择已经被本次战斗破坏的怪兽。"
+    },
+    {
+      "code": 11324436,
+      "query": {
+        "action": "draw"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "对方效果从原持有者手卡丢弃到墓地时墓地强制诱发，伤害步骤可发。单纯送墓不是丢弃，费用丢弃也不满足；自身无丢弃费用。"
+    },
+    {
+      "code": 11324436,
+      "query": {
+        "cost_kind": "discard"
+      },
+      "expected_keys": [],
+      "reason": "对方效果从原持有者手卡丢弃到墓地时墓地强制诱发，伤害步骤可发。单纯送墓不是丢弃，费用丢弃也不满足；自身无丢弃费用。"
+    },
+    {
+      "code": 11384280,
+      "query": {
+        "action": "burn",
+        "cost_kind": "tribute"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "场上起动，不取对象；解放自己1只怪兽为费用，可用本卡或里侧怪兽。没有每回合次数限制，不生成效果解放。"
+    },
+    {
+      "code": 11384280,
+      "query": {
+        "action": "tribute"
+      },
+      "expected_keys": [],
+      "reason": "场上起动，不取对象；解放自己1只怪兽为费用，可用本卡或里侧怪兽。没有每回合次数限制，不生成效果解放。"
+    },
+    {
+      "code": 17706537,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "在伤害步骤结束场上强制诱发；对方必须战破且送墓，本卡互相战破时不发动。战破条件不等于效果破坏处理。"
+    },
+    {
+      "code": 17706537,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [],
+      "reason": "在伤害步骤结束场上强制诱发；对方必须战破且送墓，本卡互相战破时不发动。战破条件不等于效果破坏处理。"
+    },
+    {
+      "code": 18430390,
+      "query": {
+        "action": "return_hand"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "诱发即时直接连锁通常或永续陷阱的卡片发动，不取对象；不能连锁反击陷阱或已表侧陷阱的效果发动，不能在伤害步骤。"
+    },
+    {
+      "code": 18430390,
+      "query": {
+        "action": "negate_activation"
+      },
+      "expected_keys": [],
+      "reason": "诱发即时直接连锁通常或永续陷阱的卡片发动，不取对象；不能连锁反击陷阱或已表侧陷阱的效果发动，不能在伤害步骤。"
+    },
+    {
+      "code": 19740112,
+      "query": {
+        "action": "lock"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "永续行动封锁；其它属性的里侧特召也不允许，多种不同属性结界像同时适用会交叉限制。不是无效特召或封锁通常召唤。"
+    },
+    {
+      "code": 19740112,
+      "query": {
+        "action": "negate_activation"
+      },
+      "expected_keys": [],
+      "reason": "永续行动封锁；其它属性的里侧特召也不允许，多种不同属性结界像同时适用会交叉限制。不是无效特召或封锁通常召唤。"
+    },
+    {
+      "code": 19740112,
+      "query": {
+        "etags": [
+          "etag:lock"
+        ]
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续行动封锁；其它属性的里侧特召也不允许，多种不同属性结界像同时适用会交叉限制。不是无效特召或封锁通常召唤。"
+    },
+    {
+      "code": 19740112,
+      "query": {
+        "etags": [
+          "etag:lock"
+        ],
+        "action": "lock"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续行动封锁；其它属性的里侧特召也不允许，多种不同属性结界像同时适用会交叉限制。不是无效特召或封锁通常召唤。"
+    },
+    {
+      "code": 46145256,
+      "query": {
+        "action": "lock"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "永续行动封锁；其它属性的里侧特召也不允许，多种不同属性结界像同时适用会交叉限制。不是无效特召或封锁通常召唤。"
+    },
+    {
+      "code": 46145256,
+      "query": {
+        "action": "negate_activation"
+      },
+      "expected_keys": [],
+      "reason": "永续行动封锁；其它属性的里侧特召也不允许，多种不同属性结界像同时适用会交叉限制。不是无效特召或封锁通常召唤。"
+    },
+    {
+      "code": 46145256,
+      "query": {
+        "etags": [
+          "etag:lock"
+        ]
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续行动封锁；其它属性的里侧特召也不允许，多种不同属性结界像同时适用会交叉限制。不是无效特召或封锁通常召唤。"
+    },
+    {
+      "code": 46145256,
+      "query": {
+        "etags": [
+          "etag:lock"
+        ],
+        "action": "lock"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续行动封锁；其它属性的里侧特召也不允许，多种不同属性结界像同时适用会交叉限制。不是无效特召或封锁通常召唤。"
+    },
+    {
+      "code": 47961808,
+      "query": {
+        "action": "lock"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "永续行动封锁；其它属性的里侧特召也不允许，多种不同属性结界像同时适用会交叉限制。不是无效特召或封锁通常召唤。"
+    },
+    {
+      "code": 47961808,
+      "query": {
+        "action": "negate_activation"
+      },
+      "expected_keys": [],
+      "reason": "永续行动封锁；其它属性的里侧特召也不允许，多种不同属性结界像同时适用会交叉限制。不是无效特召或封锁通常召唤。"
+    },
+    {
+      "code": 47961808,
+      "query": {
+        "etags": [
+          "etag:lock"
+        ]
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续行动封锁；其它属性的里侧特召也不允许，多种不同属性结界像同时适用会交叉限制。不是无效特召或封锁通常召唤。"
+    },
+    {
+      "code": 47961808,
+      "query": {
+        "etags": [
+          "etag:lock"
+        ],
+        "action": "lock"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续行动封锁；其它属性的里侧特召也不允许，多种不同属性结界像同时适用会交叉限制。不是无效特召或封锁通常召唤。"
+    },
+    {
+      "code": 27655513,
+      "query": {
+        "action": "send_grave",
+        "from_zone": "deck"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "战斗破坏的伤害步骤结束强制诱发，不取对象；战破后除外也发动。卡组仅1只水属性时仍发，但处理不送任何卡，不写成最多2只。"
+    },
+    {
+      "code": 27655513,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [],
+      "reason": "战斗破坏的伤害步骤结束强制诱发，不取对象；战破后除外也发动。卡组仅1只水属性时仍发，但处理不送任何卡，不写成最多2只。"
+    },
+    {
+      "code": 36584821,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "永续设置当前攻守而非原本攻守；自己无除外卡时为0。疾风之盖尔减半后数量变化不再自行重算，一滴无效后的攻击与守备处理有区别。"
+    },
+    {
+      "code": 36584821,
+      "query": {
+        "action": "banish"
+      },
+      "expected_keys": [],
+      "reason": "永续设置当前攻守而非原本攻守；自己无除外卡时为0。疾风之盖尔减半后数量变化不再自行重算，一滴无效后的攻击与守备处理有区别。"
+    },
+    {
+      "code": 36584821,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ]
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续设置当前攻守而非原本攻守；自己无除外卡时为0。疾风之盖尔减半后数量变化不再自行重算，一滴无效后的攻击与守备处理有区别。"
+    },
+    {
+      "code": 36584821,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ],
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续设置当前攻守而非原本攻守；自己无除外卡时为0。疾风之盖尔减半后数量变化不再自行重算，一滴无效后的攻击与守备处理有区别。"
+    },
+    {
+      "code": 37792478,
+      "query": {
+        "action": "return_deck",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "表侧通常召唤成功时任意诱发，取墓地恰好2只鱼族对象；融合等额外怪兽回额外，不是加手或抽卡。"
+    },
+    {
+      "code": 37792478,
+      "query": {
+        "action": "draw"
+      },
+      "expected_keys": [],
+      "reason": "表侧通常召唤成功时任意诱发，取墓地恰好2只鱼族对象；融合等额外怪兽回额外，不是加手或抽卡。"
+    },
+    {
+      "code": 42883273,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "永续效果，不计里侧或装备状态植物族。自身因DNA改造手术变植物族后也计入，数量变化立即重算，不自带改种族。"
+    },
+    {
+      "code": 42883273,
+      "query": {
+        "action": "change_race"
+      },
+      "expected_keys": [],
+      "reason": "永续效果，不计里侧或装备状态植物族。自身因DNA改造手术变植物族后也计入，数量变化立即重算，不自带改种族。"
+    },
+    {
+      "code": 42883273,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ]
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续效果，不计里侧或装备状态植物族。自身因DNA改造手术变植物族后也计入，数量变化立即重算，不自带改种族。"
+    },
+    {
+      "code": 42883273,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ],
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续效果，不计里侧或装备状态植物族。自身因DNA改造手术变植物族后也计入，数量变化立即重算，不自带改种族。"
+    },
+    {
+      "code": 44913552,
+      "query": {
+        "action": "skip_phase"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "战破对方怪兽的伤害步骤结束场上必发，不取对象。对方战破后除外也满足，本卡互相战破则不发；只跳主要1，不跳整个回合。"
+    },
+    {
+      "code": 44913552,
+      "query": {
+        "action": "skip_turn"
+      },
+      "expected_keys": [],
+      "reason": "战破对方怪兽的伤害步骤结束场上必发，不取对象。对方战破后除外也满足，本卡互相战破则不发；只跳主要1，不跳整个回合。"
+    },
+    {
+      "code": 45688586,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "伤害计算正常进行后强制诱发，不取对象；本卡被本次战斗破坏也发，不是伤害计算前破坏。规则上属机巧怪兽不等于获得额外能力。"
+    },
+    {
+      "code": 45688586,
+      "query": {
+        "action": "prevent_damage"
+      },
+      "expected_keys": [],
+      "reason": "伤害计算正常进行后强制诱发，不取对象；本卡被本次战斗破坏也发，不是伤害计算前破坏。规则上属机巧怪兽不等于获得额外能力。"
+    },
+    {
+      "code": 45801022,
+      "query": {
+        "action": "lock"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "原持有者控制本卡时被对方战斗或效果破坏的强制诱发，伤害步骤也发；控制权转给对方后被自己原持有者破坏不满足。只限制下次对方战阶。"
+    },
+    {
+      "code": 45801022,
+      "query": {
+        "action": "negate_attack"
+      },
+      "expected_keys": [],
+      "reason": "原持有者控制本卡时被对方战斗或效果破坏的强制诱发，伤害步骤也发；控制权转给对方后被自己原持有者破坏不满足。只限制下次对方战阶。"
+    },
+    {
+      "code": 45801022,
+      "query": {
+        "etags": [
+          "etag:lock"
+        ]
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：原持有者控制本卡时被对方战斗或效果破坏的强制诱发，伤害步骤也发；控制权转给对方后被自己原持有者破坏不满足。只限制下次对方战阶。"
+    },
+    {
+      "code": 45801022,
+      "query": {
+        "etags": [
+          "etag:lock"
+        ],
+        "action": "lock"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：原持有者控制本卡时被对方战斗或效果破坏的强制诱发，伤害步骤也发；控制权转给对方后被自己原持有者破坏不满足。只限制下次对方战阶。"
+    },
+    {
+      "code": 54706054,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "永续加当前攻击力，不改原本攻击力；只计对方怪兽区表侧超量，数量或阶级变化时重算，不是提高阶级。"
+    },
+    {
+      "code": 54706054,
+      "query": {
+        "action": "change_level"
+      },
+      "expected_keys": [],
+      "reason": "永续加当前攻击力，不改原本攻击力；只计对方怪兽区表侧超量，数量或阶级变化时重算，不是提高阶级。"
+    },
+    {
+      "code": 54706054,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ]
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续加当前攻击力，不改原本攻击力；只计对方怪兽区表侧超量，数量或阶级变化时重算，不是提高阶级。"
+    },
+    {
+      "code": 54706054,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ],
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续加当前攻击力，不改原本攻击力；只计对方怪兽区表侧超量，数量或阶级变化时重算，不是提高阶级。"
+    },
+    {
+      "code": 59482302,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "被光属性怪兽战破送墓的伤害步骤结束，墓地强制诱发。取恰好2张对象；场上仅1张或0张仍开连锁，但因不能取2张而不处理，不是最多2张。"
+    },
+    {
+      "code": 59482302,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [],
+      "reason": "被光属性怪兽战破送墓的伤害步骤结束，墓地强制诱发。取恰好2张对象；场上仅1张或0张仍开连锁，但因不能取2张而不处理，不是最多2张。"
+    },
+    {
+      "code": 59644958,
+      "query": {
+        "action": "detach_material",
+        "cost_kind": "lp"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "起动，单卡每回合一次，支付600LP是费用；不取对象。取除的是效果处理，可取里侧超量的素材，不能登记为取除费用。"
+    },
+    {
+      "code": 59644958,
+      "query": {
+        "cost_kind": "detach_material"
+      },
+      "expected_keys": [],
+      "reason": "起动，单卡每回合一次，支付600LP是费用；不取对象。取除的是效果处理，可取里侧超量的素材，不能登记为取除费用。"
+    },
+    {
+      "code": 61679541,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "伤害步骤开始强制诱发，不取对象；可对应表侧或里侧守备，区别于钻头机人的伤害计算前。卡文不另赋予效果伤害或无效攻击能力。"
+    },
+    {
+      "code": 61679541,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [],
+      "reason": "伤害步骤开始强制诱发，不取对象；可对应表侧或里侧守备，区别于钻头机人的伤害计算前。卡文不另赋予效果伤害或无效攻击能力。"
+    },
+    {
+      "code": 64751286,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "永续效果，自己攻击或被攻击都可适用；里侧光属性怪兽翻开后加攻，本卡被攻击翻开也可适用。不生成效果伤害。"
+    },
+    {
+      "code": 64751286,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [],
+      "reason": "永续效果，自己攻击或被攻击都可适用；里侧光属性怪兽翻开后加攻，本卡被攻击翻开也可适用。不生成效果伤害。"
+    },
+    {
+      "code": 64751286,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ]
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续效果，自己攻击或被攻击都可适用；里侧光属性怪兽翻开后加攻，本卡被攻击翻开也可适用。不生成效果伤害。"
+    },
+    {
+      "code": 64751286,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ],
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续效果，自己攻击或被攻击都可适用；里侧光属性怪兽翻开后加攻，本卡被攻击翻开也可适用。不生成效果伤害。"
+    },
+    {
+      "code": 65287621,
+      "query": {
+        "action": "grant_piercing"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "永续贯通战斗伤害，不是独立效果伤害或可以直接攻击；不改变怪兽的攻击力或守备力。"
+    },
+    {
+      "code": 65287621,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [],
+      "reason": "永续贯通战斗伤害，不是独立效果伤害或可以直接攻击；不改变怪兽的攻击力或守备力。"
+    },
+    {
+      "code": 70054514,
+      "query": {
+        "action": "draw"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "场上本卡被卡效果破坏送墓时的墓地强制诱发，伤害步骤也发；原为里侧也满足。战斗破坏不满足，自身没有效果破坏动作。"
+    },
+    {
+      "code": 70054514,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [],
+      "reason": "场上本卡被卡效果破坏送墓时的墓地强制诱发，伤害步骤也发；原为里侧也满足。战斗破坏不满足，自身没有效果破坏动作。"
+    },
+    {
+      "code": 73356503,
+      "query": {
+        "action": "lock"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "永续封锁包含里侧特召，不封锁通常召唤或无效已经进行的特召；多个不同属性结界像同时适用按交叉限制。"
+    },
+    {
+      "code": 73356503,
+      "query": {
+        "action": "negate_activation"
+      },
+      "expected_keys": [],
+      "reason": "永续封锁包含里侧特召，不封锁通常召唤或无效已经进行的特召；多个不同属性结界像同时适用按交叉限制。"
+    },
+    {
+      "code": 73356503,
+      "query": {
+        "etags": [
+          "etag:lock"
+        ]
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续封锁包含里侧特召，不封锁通常召唤或无效已经进行的特召；多个不同属性结界像同时适用按交叉限制。"
+    },
+    {
+      "code": 73356503,
+      "query": {
+        "etags": [
+          "etag:lock"
+        ],
+        "action": "lock"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续封锁包含里侧特召，不封锁通常召唤或无效已经进行的特召；多个不同属性结界像同时适用按交叉限制。"
+    },
+    {
+      "code": 84478195,
+      "query": {
+        "action": "lock"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "永续封锁包含里侧特召，不封锁通常召唤或无效已经进行的特召；多个不同属性结界像同时适用按交叉限制。"
+    },
+    {
+      "code": 84478195,
+      "query": {
+        "action": "negate_activation"
+      },
+      "expected_keys": [],
+      "reason": "永续封锁包含里侧特召，不封锁通常召唤或无效已经进行的特召；多个不同属性结界像同时适用按交叉限制。"
+    },
+    {
+      "code": 84478195,
+      "query": {
+        "etags": [
+          "etag:lock"
+        ]
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续封锁包含里侧特召，不封锁通常召唤或无效已经进行的特召；多个不同属性结界像同时适用按交叉限制。"
+    },
+    {
+      "code": 84478195,
+      "query": {
+        "etags": [
+          "etag:lock"
+        ],
+        "action": "lock"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续封锁包含里侧特召，不封锁通常召唤或无效已经进行的特召；多个不同属性结界像同时适用按交叉限制。"
+    },
+    {
+      "code": 74131780,
+      "query": {
+        "action": "destroy",
+        "cost_kind": "tribute"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "场上起动，自身解放是费用，费用支付后取另外1只场上怪兽对象；没有其它怪兽时不能发动，自身解放不作为效果处理。"
+    },
+    {
+      "code": 74131780,
+      "query": {
+        "action": "tribute"
+      },
+      "expected_keys": [],
+      "reason": "场上起动，自身解放是费用，费用支付后取另外1只场上怪兽对象；没有其它怪兽时不能发动，自身解放不作为效果处理。"
+    },
+    {
+      "code": 78193831,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "本地基础与异画编号各自保留；身份八字段一致后共用官方cid4983。永续加攻按对方怪兽区表侧及墓地龙族数，不给本卡融合或召唤能力。"
+    },
+    {
+      "code": 78193831,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [],
+      "reason": "本地基础与异画编号各自保留；身份八字段一致后共用官方cid4983。永续加攻按对方怪兽区表侧及墓地龙族数，不给本卡融合或召唤能力。"
+    },
+    {
+      "code": 78193831,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ]
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：本地基础与异画编号各自保留；身份八字段一致后共用官方cid4983。永续加攻按对方怪兽区表侧及墓地龙族数，不给本卡融合或召唤能力。"
+    },
+    {
+      "code": 78193831,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ],
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：本地基础与异画编号各自保留；身份八字段一致后共用官方cid4983。永续加攻按对方怪兽区表侧及墓地龙族数，不给本卡融合或召唤能力。"
+    },
+    {
+      "code": 78193832,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "本地基础与异画编号各自保留；身份八字段一致后共用官方cid4983。永续加攻按对方怪兽区表侧及墓地龙族数，不给本卡融合或召唤能力。"
+    },
+    {
+      "code": 78193832,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [],
+      "reason": "本地基础与异画编号各自保留；身份八字段一致后共用官方cid4983。永续加攻按对方怪兽区表侧及墓地龙族数，不给本卡融合或召唤能力。"
+    },
+    {
+      "code": 78193832,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ]
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：本地基础与异画编号各自保留；身份八字段一致后共用官方cid4983。永续加攻按对方怪兽区表侧及墓地龙族数，不给本卡融合或召唤能力。"
+    },
+    {
+      "code": 78193832,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ],
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：本地基础与异画编号各自保留；身份八字段一致后共用官方cid4983。永续加攻按对方怪兽区表侧及墓地龙族数，不给本卡融合或召唤能力。"
+    },
+    {
+      "code": 80186010,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "deck",
+        "cost_kind": "discard_self"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "手卡起动效果，丢弃本卡为费用，不取对象；卡组没有侏罗纪世界不能发动。丢弃费用不构成效果丢弃或送墓。"
+    },
+    {
+      "code": 80186010,
+      "query": {
+        "action": "send_grave"
+      },
+      "expected_keys": [],
+      "reason": "手卡起动效果，丢弃本卡为费用，不取对象；卡组没有侏罗纪世界不能发动。丢弃费用不构成效果丢弃或送墓。"
+    },
+    {
+      "code": 87047161,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "deck"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "表侧通常召唤成功时任意诱发，不取对象；连锁2以上效果中召唤会错过时点，卡组没有3至5星鱼族不能发动。"
+    },
+    {
+      "code": 87047161,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [],
+      "reason": "表侧通常召唤成功时任意诱发，不取对象；连锁2以上效果中召唤会错过时点，卡组没有3至5星鱼族不能发动。"
+    },
+    {
+      "code": 87340664,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "战破的伤害步骤结束强制诱发，不取对象。里侧被攻击翻开后战破、双方互相战破均发动；不能把控制权变更后的受伤者固定成效果发动者的对方。"
+    },
+    {
+      "code": 87340664,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [],
+      "reason": "战破的伤害步骤结束强制诱发，不取对象。里侧被攻击翻开后战破、双方互相战破均发动；不能把控制权变更后的受伤者固定成效果发动者的对方。"
+    },
+    {
+      "code": 88975532,
+      "query": {
+        "action": "lock"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "永续封锁仅限战斗阶段的陷阱卡片发动；已表侧或墓地陷阱的效果发动仍可进行，不是陷阱效果无效。"
+    },
+    {
+      "code": 88975532,
+      "query": {
+        "action": "negate_effect"
+      },
+      "expected_keys": [],
+      "reason": "永续封锁仅限战斗阶段的陷阱卡片发动；已表侧或墓地陷阱的效果发动仍可进行，不是陷阱效果无效。"
+    },
+    {
+      "code": 88975532,
+      "query": {
+        "etags": [
+          "etag:lock"
+        ]
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续封锁仅限战斗阶段的陷阱卡片发动；已表侧或墓地陷阱的效果发动仍可进行，不是陷阱效果无效。"
+    },
+    {
+      "code": 88975532,
+      "query": {
+        "etags": [
+          "etag:lock"
+        ],
+        "action": "lock"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续封锁仅限战斗阶段的陷阱卡片发动；已表侧或墓地陷阱的效果发动仍可进行，不是陷阱效果无效。"
+    },
+    {
+      "code": 91596726,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "手卡暗属性怪兽送墓是费用，不是丢弃或送墓处理；起动、不取对象，无每回合次数限制，400加攻持续至本卡不再表侧存在。"
+    },
+    {
+      "code": 91596726,
+      "query": {
+        "action": "send_grave"
+      },
+      "expected_keys": [],
+      "reason": "手卡暗属性怪兽送墓是费用，不是丢弃或送墓处理；起动、不取对象，无每回合次数限制，400加攻持续至本卡不再表侧存在。"
+    },
+    {
+      "code": 91596726,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ]
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：手卡暗属性怪兽送墓是费用，不是丢弃或送墓处理；起动、不取对象，无每回合次数限制，400加攻持续至本卡不再表侧存在。"
+    },
+    {
+      "code": 91596726,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ],
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：手卡暗属性怪兽送墓是费用，不是丢弃或送墓处理；起动、不取对象，无每回合次数限制，400加攻持续至本卡不再表侧存在。"
+    },
+    {
+      "code": 93882364,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "hand"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "场上起动，自身解放为费用，不取对象；手卡指定系列特召，不自带检索、无视召唤条件或效果解放。"
+    },
+    {
+      "code": 93882364,
+      "query": {
+        "action": "tribute"
+      },
+      "expected_keys": [],
+      "reason": "场上起动，自身解放为费用，不取对象；手卡指定系列特召，不自带检索、无视召唤条件或效果解放。"
+    },
+    {
+      "code": 98266377,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "永续加攻，计入表侧本卡自身；只计自己怪兽区表侧该系列怪兽，数量变化立即重算，不赋予特殊召唤。"
+    },
+    {
+      "code": 98266377,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [],
+      "reason": "永续加攻，计入表侧本卡自身；只计自己怪兽区表侧该系列怪兽，数量变化立即重算，不赋予特殊召唤。"
+    },
+    {
+      "code": 98266377,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ]
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续加攻，计入表侧本卡自身；只计自己怪兽区表侧该系列怪兽，数量变化立即重算，不赋予特殊召唤。"
+    },
+    {
+      "code": 98266377,
+      "query": {
+        "etags": [
+          "etag:stat-change"
+        ],
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "人工已审核处理的通用TAG正例：永续加攻，计入表侧本卡自身；只计自己怪兽区表侧该系列怪兽，数量变化立即重算，不赋予特殊召唤。"
+    },
+    {
+      "code": 99690140,
+      "query": {
+        "action": "convert_battle_damage"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "永续改变伤害性质，不另开连锁，不具有固定数值烧血。直接攻击或怪兽战斗都可适用，怪兽仍按正常战斗破坏规则处理。"
+    },
+    {
+      "code": 99690140,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [],
+      "reason": "永续改变伤害性质，不另开连锁，不具有固定数值烧血。直接攻击或怪兽战斗都可适用，怪兽仍按正常战斗破坏规则处理。"
+    }
+  ],
+  "semantic_cases": [
+    {
+      "code": 82199284,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "cost"
+      ],
+      "expected": [],
+      "reason": "猎鹰回手是攻击手续，没有发动费用"
+    },
+    {
+      "code": 82199284,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "processing",
+        0,
+        "is_effect_movement"
+      ],
+      "expected": false,
+      "reason": "猎鹰攻击手续不触发被效果回手"
+    },
+    {
+      "code": 82199284,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "processing",
+        0,
+        "exclude_source_instance"
+      ],
+      "expected": true,
+      "reason": "排除本卡实例而不是所有同名卡"
+    },
+    {
+      "code": 99690140,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "processing",
+        0,
+        "action"
+      ],
+      "expected": "convert_battle_damage",
+      "reason": "从者改变伤害性质，不等于固定数值烧血"
+    },
+    {
+      "code": 99690140,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "processing",
+        0,
+        "creates_chain"
+      ],
+      "expected": false,
+      "reason": "从者永续适用不新建连锁"
+    },
+    {
+      "code": 91663373,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "电子超能人不是永续确认手卡"
+    },
+    {
+      "code": 91663373,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "damage_step"
+      ],
+      "expected": false,
+      "reason": "电子超能人不能在伤害步骤发动"
+    },
+    {
+      "code": 91663373,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "processing",
+        0,
+        "quantity_text"
+      ],
+      "expected": "对方在本次事件抽到的卡",
+      "reason": "确认范围限本次抽到的卡，不扩大为全部手卡"
+    },
+    {
+      "code": 84133008,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "targeting"
+      ],
+      "expected": [],
+      "reason": "眼球怪处理时选择融合，不取对象"
+    },
+    {
+      "code": 59482302,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "targeting",
+        0,
+        "count"
+      ],
+      "expected": 2,
+      "reason": "盟军炸弹取恰好2张，不是最多2张"
+    },
+    {
+      "code": 59482302,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "insufficient_targets_still_triggers"
+      ],
+      "expected": true,
+      "reason": "对象不足仍开强制诱发连锁但不处理"
+    },
+    {
+      "code": 27655513,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "processing",
+        0,
+        "all_or_nothing"
+      ],
+      "expected": true,
+      "reason": "尖叫怪仅1只水属性时不送任何卡"
+    },
+    {
+      "code": 59644958,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "cost",
+        0,
+        "kind"
+      ],
+      "expected": "lp",
+      "reason": "叠光猫头鹰费用是600LP，取除是处理"
+    },
+    {
+      "code": 58098303,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "mandatory"
+      ],
+      "expected": true,
+      "reason": "火焰食人魔强制召唤诱发"
+    },
+    {
+      "code": 20474741,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "can_miss_timing"
+      ],
+      "expected": true,
+      "reason": "三叉戟战士任意时点诱发会错过时点"
+    },
+    {
+      "code": 36584821,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "processing",
+        0,
+        "sets_original_value"
+      ],
+      "expected": false,
+      "reason": "红莲魔兽设置当前攻守，不改原本数值"
+    },
+    {
+      "code": 50781944,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "processing",
+        0,
+        "amount"
+      ],
+      "expected": 1000,
+      "reason": "同次破坏多只，古代深红猿仍只回复1000"
+    },
+    {
+      "code": 87340664,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "processing",
+        0,
+        "recipient_rule"
+      ],
+      "expected": "战斗破坏本卡的玩家；由战斗时的控制关系确定，不固定为本卡当前效果控制者的对方",
+      "reason": "原子萤火虫受伤者不固定成墓地效果发动者的对方"
+    }
+  ],
+  "purpose_cases": [
+    {
+      "code": 82199284,
+      "effect_key": "m-all",
+      "role": "endboards",
+      "expected": false,
+      "reason": "实际用途消费者与审核后的持续／诱发／自身限制分类一致"
+    },
+    {
+      "code": 91663373,
+      "effect_key": "m-all",
+      "role": "handtraps",
+      "expected": false,
+      "reason": "实际用途消费者与审核后的持续／诱发／自身限制分类一致"
+    },
+    {
+      "code": 19740112,
+      "effect_key": "m1",
+      "role": "endboards",
+      "expected": true,
+      "reason": "实际用途消费者与审核后的持续／诱发／自身限制分类一致"
+    },
+    {
+      "code": 56647086,
+      "effect_key": "m-all",
+      "role": "endboards",
+      "expected": true,
+      "reason": "实际用途消费者与审核后的持续／诱发／自身限制分类一致"
+    }
+  ]
+}

@@ -145,3 +145,11 @@ python scripts/check_annotation_source_batch.py --runtime .local/YGOPro-Lite --m
 ```
 
 没有本地采集包时省略两个来源目录参数，只能验证结构和查询，不能声称来源快照已重新核验。完整范围和本次结果见[1.49.4验收](verification-1.49.4.md)；下一批继续读取当前Catalog与本地检查点，不把未完成候选计入正式覆盖。
+
+## 2026-09-26 短卡文效果怪兽第二组
+
+100张完成逐卡处理，接纳99张，累计2393条；再生僵尸因官方来源条件冲突保持待核实。保留破坏之剑士的两个独立本地编号，异画只在同名、类型、全文及身份属性一致后共用cid。攻击手续、伤害性质变更及事件决定的受伤者须按[体系规范](card-annotation-system.md)明确记录，不能借用回手处理、固定烧血或固定对方玩家来替代。具体来源与规则正反例见[清单](card-annotation-batch-2026-09-26-monsters2.json)，完整门禁见[1.49.5验收](verification-1.49.5.md)。
+
+```powershell
+python scripts/check_annotation_source_batch.py --runtime .local/YGOPro-Lite --manifest docs/card-annotation-batch-2026-09-26-monsters2.json --source-pack .local/annotation-handoff/20260925-catalog-all-14981
+```

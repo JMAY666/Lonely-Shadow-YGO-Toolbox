@@ -45,7 +45,8 @@ ACTION_TAGS = {'add_hand': 'etag:add-hand', 'draw': 'etag:draw', 'return_deck': 
                'negate_effect': 'etag:negate-effect', 'negate_activation': 'etag:negate-activation',
                'burn': 'etag:effect-damage', 'heal': 'etag:recover-lp',
                'prevent_damage': 'etag:prevent-damage', 'place_deck_top': 'etag:deck-look',
-               'place_deck_bottom': 'etag:deck-look', 'shuffle_deck': 'etag:deck-look'}
+               'place_deck_bottom': 'etag:deck-look', 'shuffle_deck': 'etag:deck-look',
+               'convert_battle_damage': 'etag:effect-damage'}
 
 
 def zone_matches(query, zones):
@@ -196,7 +197,8 @@ def _check_rule_action(item, where):
                  'add_to_extra_faceup', 'set_lp', 'replace_draw_with_discard', 'redirect_effect_damage',
                  'place_deck_bottom', 'increase_pendulum_summon_limit', 'win_duel',
                  'place_and_use_spell', 'return_to_field'}
-    supported.update({'skip_turn', 'swap_lp', 'change_attribute', 'change_equip_target', 'shuffle_deck'})
+    supported.update({'skip_turn', 'swap_lp', 'change_attribute', 'change_equip_target', 'shuffle_deck',
+                      'require_attack_return', 'convert_battle_damage'})
     if action not in supported: return
     where = f'{where} {action}'
     _check_text((item.get('selector') or {}).get('text', ''), f'{where}选择器')
@@ -210,6 +212,32 @@ def _check_rule_action(item, where):
     def boolean(field):
         if type(item.get(field)) is not bool: raise ValueError(f'{where} {field}须为布尔值')
     players = {'self', 'opponent', 'both'}
+    if action == 'require_attack_return':
+        if not item.get('from_zones') or not set(item['from_zones']) <= {'field'} | ZONE_GROUPS['field']:
+            raise ValueError(f'{where}须明确场上来源')
+        if not item.get('to_zones') or not set(item['to_zones']) <= {'hand', 'opponent_hand'}:
+            raise ValueError(f'{where}须实际返回持有者手卡')
+        integer('count')
+        if item['count'] != 1 or item.get('exclude_source_instance') is not True:
+            raise ValueError(f'{where}须返回1张本卡实例以外的卡')
+        choice('executor', {'self'})
+        choice('payment_timing', {'attack_declaration'})
+        if item.get('is_effect_movement') is not False:
+            raise ValueError(f'{where}攻击手续不是效果移动')
+        return
+    if action == 'convert_battle_damage':
+        if item.get('from_zones') != ['monster'] or 'to_zones' in item:
+            raise ValueError(f'{where}须明确本卡怪兽区来源且不登记卡片去向')
+        integer('count')
+        if item['count'] != 1 or 'amount' in item:
+            raise ValueError(f'{where}须为本卡1只的伤害性质变更，不是固定数值伤害')
+        choice('source_damage', {'battle'})
+        choice('result_damage', {'effect'})
+        choice('damage_source', {'this_card'})
+        choice('recipient', {'opponent'})
+        if item.get('creates_chain') is not False:
+            raise ValueError(f'{where}伤害性质变更不新建连锁')
+        return
     if action == 'shuffle_deck':
         choice('executor', players)
         if not item.get('from_zones') or not set(item['from_zones']) <= {'deck', 'opponent_deck'}:
@@ -385,6 +413,10 @@ def _check_processing(items, registry, where, reviewed=False, card_type=None):
     for item in items:
         if not isinstance(item, dict): raise ValueError(f'{where}处理项无效')
         registry.require('actions', item.get('action'), where)
+        if 'recipient_rule' in item:
+            _check_text(item['recipient_rule'], f'{where}受影响玩家规则', 400)
+            if 'recipient' in item:
+                raise ValueError(f'{where}事件决定的玩家规则不能同时指定固定recipient')
         if item.get('action') == 'lock':
             for qualifier in ('self_only', 'summon_response_only'):
                 if qualifier in item and type(item[qualifier]) is not bool:

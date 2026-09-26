@@ -347,6 +347,72 @@ class CardAnnotationTests(unittest.TestCase):
         only_none = self.service.search({'etags': ['etag:add-hand'], 'status': ['none']})
         self.assertEqual(only_none['total'], 0)
 
+    def test_attack_return_is_a_procedure_not_an_effect_return_or_activation_cost(self):
+        item = {'action': 'require_attack_return', 'selector': {'text': '攻击宣言须返回其它卡'},
+                'from_zones': ['field'], 'to_zones': ['hand', 'opponent_hand'], 'count': 1,
+                'executor': 'self', 'exclude_source_instance': True, 'payment_timing': 'attack_declaration',
+                'is_effect_movement': False}
+        entry = self.rule_action_entry(item, [])
+        entry['effects'][0]['effect_type'] = 'continuous'
+        validate_entry(entry, self.service.registry, card_type=33)
+        self.write_curated(lambda entries: entries.update({'20000001': entry}))
+        self.service.reload()
+        self.assertEqual(self.service.search({'q': '20000001', 'action': 'require_attack_return'})['total'], 1)
+        for query in ({'action': 'return_hand'}, {'etags': ['etag:add-hand']}, {'cost_kind': 'return_deck'}):
+            self.assertEqual(self.service.search({'q': '20000001', **query})['total'], 0)
+        for field, value in (('count', True), ('count', 2), ('from_zones', ['grave']),
+                             ('to_zones', ['extra']), ('executor', 'opponent'),
+                             ('exclude_source_instance', False), ('payment_timing', 'activation'),
+                             ('is_effect_movement', True)):
+            with self.subTest(field=field, value=value):
+                broken = deepcopy(entry)
+                broken['effects'][0]['structure']['processing'][0][field] = value
+                with self.assertRaises(ValueError): validate_entry(broken, self.service.registry, card_type=33)
+        with self.assertRaisesRegex(ValueError, 'TAG 与处理'):
+            validate_entry(self.rule_action_entry(item, ['etag:add-hand']), self.service.registry, card_type=33)
+
+    def test_event_damage_recipient_is_preserved_without_inventing_a_fixed_player(self):
+        item = {'action': 'burn', 'amount': 1000, 'recipient_rule': '战斗破坏本卡的玩家'}
+        entry = self.rule_action_entry(item, ['etag:effect-damage'])
+        entry['effects'][0]['effect_type'] = 'trigger'
+        validate_entry(entry, self.service.registry, card_type=33)
+        self.write_curated(lambda entries: entries.update({'20000001': entry}))
+        self.service.reload()
+        shown = self.service.view(20000001)['effects'][0]['structure']['processing'][0]
+        self.assertEqual(shown['recipient_rule'], '战斗破坏本卡的玩家')
+        self.assertNotIn('recipient', shown)
+        for value in ('', None, True, []):
+            broken = deepcopy(entry)
+            broken['effects'][0]['structure']['processing'][0]['recipient_rule'] = value
+            with self.assertRaises(ValueError): validate_entry(broken, self.service.registry, card_type=33)
+        broken = deepcopy(entry)
+        broken['effects'][0]['structure']['processing'][0]['recipient'] = 'opponent'
+        with self.assertRaisesRegex(ValueError, '固定recipient'):
+            validate_entry(broken, self.service.registry, card_type=33)
+
+    def test_battle_damage_conversion_is_effect_damage_but_not_fixed_burn(self):
+        item = {'action': 'convert_battle_damage', 'selector': {'text': '将本卡战斗伤害当作效果伤害'},
+                'from_zones': ['monster'], 'count': 1, 'source_damage': 'battle', 'result_damage': 'effect',
+                'damage_source': 'this_card', 'recipient': 'opponent', 'creates_chain': False}
+        entry = self.rule_action_entry(item, ['etag:effect-damage', 'etag:damage-modify'])
+        entry['effects'][0]['effect_type'] = 'continuous'
+        validate_entry(entry, self.service.registry, card_type=33)
+        self.write_curated(lambda entries: entries.update({'20000001': entry}))
+        self.service.reload()
+        self.assertEqual(self.service.search({'q': '20000001', 'etags': ['etag:effect-damage']})['total'], 1)
+        self.assertEqual(self.service.search({'q': '20000001', 'action': 'convert_battle_damage'})['total'], 1)
+        for action in ('burn', 'destroy', 'grant_extra_attack'):
+            self.assertEqual(self.service.search({'q': '20000001', 'action': action})['total'], 0)
+        for field, value in (('count', False), ('count', 2), ('amount', 1000), ('source_damage', 'effect'),
+                             ('result_damage', 'battle'), ('recipient', 'self'), ('damage_source', 'any_card'),
+                             ('creates_chain', True), ('from_zones', ['grave']), ('to_zones', ['hand'])):
+            with self.subTest(field=field, value=value):
+                broken = deepcopy(entry)
+                broken['effects'][0]['structure']['processing'][0][field] = value
+                with self.assertRaises(ValueError): validate_entry(broken, self.service.registry, card_type=33)
+        with self.assertRaisesRegex(ValueError, 'TAG 与处理'):
+            validate_entry(self.rule_action_entry(item, []), self.service.registry, card_type=33)
+
     def test_new_branch_and_material_actions_require_complete_structure(self):
         registry = self.service.registry
         branch = {'action': 'choose_branch', 'selector': {'text': '回手或特召二选一'},

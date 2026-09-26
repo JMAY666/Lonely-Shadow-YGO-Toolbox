@@ -251,6 +251,14 @@ notes[]                       效果级备注（含来源引用）
 
 ## 5. 审核状态与来源追溯
 
+### 怪兽02批的攻击手续与伤害性质
+
+`actions.require_attack_return`表达《霞之谷的猎鹰》（82199284）攻击宣言的回手手续：`from_zones`为场上范围，`to_zones`为`hand`／`opponent_hand`的明确集合、`count=1`、`executor=self`、`exclude_source_instance=true`、`payment_timing=attack_declaration`及`is_effect_movement=false`。须实际回到持有者手卡，不能选本卡实例、衍生物或回额外卡组的怪兽。它不是`return_hand`处理，也不是效果发动的费用，不产生`etag:add-hand`；已有本批资料不改写为效果回手。[官方补足](https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=8109&ope=4&request_locale=ja)和关联FAQ支持攻击手续与被效果回手的区别。
+
+`actions.convert_battle_damage`表达《守墓的从者》（99690140）将本卡原应给对方的战斗伤害视为效果伤害：`from_zones=['monster']`、`count=1`、`source_damage=battle`、`result_damage=effect`、`damage_source=this_card`、`recipient=opponent`、`creates_chain=false`，禁止固定`amount`和卡片`to_zones`。保留`etag:effect-damage`与`etag:damage-modify`，但不会命中固定烧血`burn`动作，不赋予追加伤害或战斗破坏以外的效果破坏。怪兽仍正常按战斗破坏处理。[官方补足](https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=5513&ope=4&request_locale=ja)明确永续适用与伤害性质。
+
+伤害承受者由事件确定时可在处理项以`recipient_rule`保存完整规则，不能同时编造固定`recipient`。本批《原子萤火虫》（87340664）给予战斗破坏它的玩家1000伤害；本体控制权变化后不能简单固定为墓地效果发动者的对方。此字段仅是规则说明，不执行局面计算。
+
 1.47.3 增加直接处理与 TAG 一致性检查：对加入手卡、抽卡、回卡组、确认手卡／卡组、破坏、除外、送墓、召唤、无效、效果伤害和回复的明确处理递归核对标签，包括分支与后续处理；不会从关键词自动生成已核对数据。规则段、数值变更和行动限制可能在其他结构字段表达，不套用这项一一对应规则。已核对的诱发即时效果、陷阱发动及速攻魔法发动必须使用正确的 `fast_effect`；带条件的起动／快速时点转换仍保留其条件，不按整个文件统一替换。
 
 新增区域 `field_spell` 表示场地区，正例为《访问码语者》②可破坏对方场地区的卡，反例为只能处理怪兽的效果。该效果显式列出 `opponent_monster/spell/pendulum/field_spell`，适用者仍由选择器说明限定为对方。查询 `field` 可命中明确登记的这些场上子区域；`monster` 包含 `opponent_monster`，`spell` 包含 `pendulum`。仅写 `field` 时不会推断为能处理魔陷或其他特定子区域。此规则仅扩展区域筛选，不判断局面合法性，也不改变默认「同一效果」查询的分支能力边界。

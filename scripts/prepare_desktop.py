@@ -102,6 +102,7 @@ def main():
                      'docs/verification-1.47.5.md', 'docs/verification-1.47.6.md',
                      'docs/verification-1.47.7.md', 'docs/verification-1.48.0.md', 'docs/verification-1.49.0.md',
                      'docs/verification-1.49.1.md', 'docs/verification-1.49.2.md', 'docs/verification-1.49.3.md', 'docs/verification-1.49.4.md',
+                     'docs/verification-1.49.5.md',
                      'docs/card-source-intake-2026-09-26.md', 'docs/card-capability-integration.md',
                      'docs/card-annotation-next-batch.md',
                      'docs/card-annotation-batch-2026-09-25.csv',
@@ -114,6 +115,7 @@ def main():
                      'docs/card-annotation-batch-2026-09-26-series.json',
                      'docs/card-annotation-batch-2026-09-26-short.json',
                      'docs/card-annotation-batch-2026-09-26-short2.json',
+                     'docs/card-annotation-batch-2026-09-26-monsters2.json',
                      'docs/card-annotation-progress.md',
                      'licenses/YGOPro-GPL-2.0.txt', 'scripts/source-lock.json', 'scripts/desktop-lock.json'):
         destination = notices / relative
