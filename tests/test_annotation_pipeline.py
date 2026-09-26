@@ -401,6 +401,17 @@ class AnnotationPipelineTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Japanese KONAMI OCG'):
             compile_entry(row, entry)
 
+    def test_query_contract_rejects_a_filter_ignored_by_the_application(self):
+        self.assemble()
+        folder = self.pipeline.folder('trial')
+        manifest = read_json(folder / 'batch-manifest.json')
+        manifest['query_cases'][0]['query']['effect_type'] = 'continuous'
+        atomic_json(folder / 'batch-manifest.json', manifest)
+        # Use the public gate directly: unknown filters cannot be advertised as tested.
+        with redirect_stdout(io.StringIO()), self.assertRaisesRegex(ValueError, 'unsupported filter'):
+            checker.check(self.runtime, folder / 'batch-manifest.json', self.pack,
+                          document_path=folder / 'candidate-document.json')
+
 
 if __name__ == '__main__':
     unittest.main()

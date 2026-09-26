@@ -1459,6 +1459,57 @@ class CardAnnotationTests(unittest.TestCase):
         self.assertIn('etag:destroy', keys['m2']['tags'])
         self.assertTrue(keys['m1']['structure']['processing'][0].get('evidence'))
 
+    def test_extra_confirmation_stays_distinct_from_main_deck_reveal(self):
+        entry = make_entry(20000001, SEARCHER, [simple_effect('m1', 1, ['etag:deck-look'],
+                            [{'action': 'extra_reveal', 'from_zones': ['opponent_extra'],
+                              'selector': {'text': '确认对方额外卡组'}}])])
+        entry['effects'][0]['effect_type'] = 'spell_activation'
+        entry['effects'][0]['structure']['activation']['fast_effect'] = False
+        registry = self.service.registry
+        validate_entry(entry, registry, {'m1'}, card_type=2)
+        for zones in ([], ['deck'], ['opponent_deck'], ['extra', 'deck']):
+            invalid = deepcopy(entry)
+            invalid['effects'][0]['structure']['processing'][0]['from_zones'] = zones
+            with self.assertRaises(ValueError):
+                validate_entry(invalid, registry, {'m1'}, card_type=2)
+        self.write_curated(lambda entries: entries.update({'20000001': entry}))
+        self.service.reload()
+        self.assertEqual(self.service.search({'action': 'extra_reveal', 'from_zone': 'opponent_extra'})['total'], 1)
+        self.assertEqual(self.service.search({'action': 'deck_reveal', 'from_zone': 'opponent_extra'})['total'], 0)
+
+    def test_dynamic_damage_preserves_formula_without_evaluation(self):
+        entry = make_entry(20000001, SEARCHER, [simple_effect('m1', 1, ['etag:effect-damage'],
+                    [{'action': 'burn', 'recipient': 'opponent',
+                      'amount_rule': {'text': '处理时对方场上卡数乘400', 'evaluated_at': 'resolution'}}])])
+        entry['effects'][0]['effect_type'] = 'spell_activation'
+        entry['effects'][0]['structure']['activation']['fast_effect'] = False
+        validate_entry(entry, self.service.registry, {'m1'}, card_type=2)
+        for rule in ({'text': '400', 'evaluated_at': 'activation'},
+                     {'text': '', 'evaluated_at': 'resolution'},
+                     {'text': '400', 'evaluated_at': 'resolution', 'execute': True}):
+            invalid = deepcopy(entry)
+            invalid['effects'][0]['structure']['processing'][0]['amount_rule'] = rule
+            with self.assertRaises(ValueError):
+                validate_entry(invalid, self.service.registry, {'m1'}, card_type=2)
+        invalid = deepcopy(entry)
+        invalid['effects'][0]['structure']['processing'][0]['amount'] = 400
+        with self.assertRaises(ValueError):
+            validate_entry(invalid, self.service.registry, {'m1'}, card_type=2)
+
+    def test_distinct_usage_scopes_and_additive_attribute(self):
+        effect = simple_effect('m1', 1, ['etag:stat-change'],
+                              [{'action': 'change_attribute', 'selector': {'text': '追加光，保留暗'},
+                                'from_zones': ['monster'], 'count': 1, 'mode': 'add', 'attribute': 'light',
+                                'attribute_selection': 'fixed', 'duration': '表侧存在期间'}],
+                              ['battle_step_once', 'name_duel_once', 'chain_once'])
+        effect['effect_type'] = 'ignition'
+        entry = make_entry(20000003, DUAL, [effect])
+        validate_entry(entry, self.service.registry, card_type=0x21)
+        invalid = deepcopy(entry)
+        invalid['effects'][0]['structure']['processing'][0]['mode'] = 'replace_and_add'
+        with self.assertRaises(ValueError):
+            validate_entry(invalid, self.service.registry, card_type=0x21)
+
     def test_folders_apply_effect_filters_and_card_counts_without_changing_personal_data(self):
         before = json.dumps(self.service.document, sort_keys=True)
         query = {'catalog_scope': 'all', 'etags': ['etag:add-hand'], 'from_zone': 'grave'}

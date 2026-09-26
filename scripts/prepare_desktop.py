@@ -118,6 +118,10 @@ def main():
                      'docs/card-annotation-batch-2026-09-26-short2.json',
                      'docs/card-annotation-batch-2026-09-26-monsters2.json',
                      'docs/card-annotation-batch-2026-09-26-traps4.json',
+                     'docs/card-annotation-batch-2026-09-26-fast-series-stage01.json',
+                     'docs/verification-1.49.7.md',
+                     'docs/card-annotation-pipeline.md',
+                     'docs/verification-annotation-pipeline-2026-09-26.md',
                      'docs/card-annotation-progress.md',
                      'licenses/YGOPro-GPL-2.0.txt', 'scripts/source-lock.json', 'scripts/desktop-lock.json'):
         destination = notices / relative

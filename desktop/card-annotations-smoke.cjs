@@ -251,5 +251,24 @@ module.exports = async ({page, application, root, evidence, pass}) => {
   await page.waitForFunction(()=>!annoUI.busy);
   assert.match(await page.locator('#anno-detail .anno-struct').allTextContents().then(rows=>rows.join(' ')),/对方.*LP.*少1000/);
   assert.equal((await page.evaluate(()=>api('/api/annotations',{op:'card',code:63571750}))).status,'none');
+  // 1.49.7: exercise new public data and control values in both actual runtimes.
+  const hundred=await page.evaluate(()=>api('/api/annotations',{op:'query',q:'897409',action:'extra_reveal',from_zone:'opponent_extra'}));
+  assert.deepEqual(hundred.cards[0].hit_keys,['m2']);
+  assert.equal((await page.evaluate(()=>api('/api/annotations',{op:'query',q:'897409',action:'special_summon',from_zone:'extra'}))).total,0);
+  const battleOnce=await page.evaluate(()=>api('/api/annotations',{op:'query',q:'1992816',action:'negate_attack',usage:'battle_step_once'}));
+  assert.deepEqual(battleOnce.cards[0].hit_keys,['m2']);
+  assert.equal((await page.evaluate(()=>api('/api/annotations',{op:'query',q:'1992816',action:'negate_attack',cost_kind:'detach_material'}))).total,0);
+  const denier=await page.evaluate(()=>api('/api/annotations',{op:'query',q:'16605586',action:'special_summon',usage:'name_duel_once'}));
+  assert.deepEqual(denier.cards[0].hit_keys,['m2']);
+  const voltaic=await page.evaluate(()=>api('/api/annotations',{op:'query',q:'9327502',action:'special_summon',from_zone:'banished'}));
+  assert.deepEqual(voltaic.cards[0].hit_keys,['m1']);
+  assert.equal((await page.evaluate(()=>api('/api/annotations',{op:'query',q:'9327502',action:'destroy'}))).total,0);
+  await selectCard(1992816);
+  await page.locator('#anno-detail details').evaluateAll(nodes=>nodes.forEach(node=>node.open=true));
+  assert.match(await page.locator('#anno-detail').textContent(),/战斗步骤/);
+  await selectCard(8593259);
+  await page.locator('#anno-detail details').evaluateAll(nodes=>nodes.forEach(node=>node.open=true));
+  assert.match(await page.locator('#anno-detail').textContent(),/400/);
+  await page.screenshot({path:path.join(evidence,'annotations-fast-series-stage01.png')});
   pass('Card annotations: Chinese series folders, aliases, covers, colours, collapsed filters/art, monster symbols, queries and personal corrections');
 };

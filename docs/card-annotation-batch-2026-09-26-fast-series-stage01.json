@@ -1,0 +1,2696 @@
+{
+  "version": 1,
+  "checked_on": "2026-09-26",
+  "source_pack": "20260925-catalog-all-14981",
+  "source_manifest_sha256": "3c192fb0eecc3fa7f3283dcd564223e2996491fb71c13d43884bf66ad9720933",
+  "scope": "First 100 individually processed cards of the frozen 386-card No./HERO/Galaxy cohort; shared semantic-model changes are validated as a separate stage. The remaining 286 retain their task and are not claimed complete.",
+  "groups": [
+    {
+      "name": "fast-series-stage01",
+      "input_count": 100,
+      "accepted_count": 81,
+      "pending_count": 19
+    }
+  ],
+  "cards": [
+    {
+      "code": 863795,
+      "local_name": "银河召唤师",
+      "local_type": 33,
+      "text_digest": "b9434dce62f8d5787da1062eda0ddeb95d94bfcc94acd3a9c50742e2f84d7a23",
+      "official_cid": 18147,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 897409,
+      "local_name": "银河百式",
+      "local_type": 131074,
+      "text_digest": "3c7c98c8b38d59f426828b01cd6e5c7d4f6f41bc1fc5219e9185eca4b6cb13a3",
+      "official_cid": 18196,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 1426714,
+      "local_name": "No.48 暗影巫妖",
+      "local_type": 8388641,
+      "text_digest": "97603f8c1ba6dfb8db24a09f0e688e49d580324ae5261d4c99ac902b2f26379a",
+      "official_cid": 10847,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 1945387,
+      "local_name": "元素英雄 新星主",
+      "local_type": 97,
+      "text_digest": "3afffb82a1f8d84c5d863fe6256e32a1639601ebe9719afb97bc767b42b4b0a5",
+      "official_cid": 9439,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 1948619,
+      "local_name": "特异英雄 神杖先驱",
+      "local_type": 67108897,
+      "text_digest": "eb7a46d8a61b1fd913f2d732154597c2db2c3633f64ca3deb62a29e6fcf033d1",
+      "official_cid": 13543,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 1992816,
+      "local_name": "No.9 天盖星 戴森球",
+      "local_type": 8388641,
+      "text_digest": "9bed6dd82856164d9f3a5eda9b2b46847b08b8495db7ba27b8ce84aca9273198",
+      "official_cid": 10266,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 2061963,
+      "local_name": "No.104 假面魔蹈士 闪光",
+      "local_type": 8388641,
+      "text_digest": "d55ca17f8682e4872d541f966bbf1138b043d3e5bc8168a5d62abe1d80995761",
+      "official_cid": 10658,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 2407234,
+      "local_name": "No.69 纹章神 盾徽",
+      "local_type": 8388641,
+      "text_digest": "9592f03865ae4390dccae578272fd42ef8b95d4b89ac884152512a6c8e20648a",
+      "official_cid": 10323,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 2419596,
+      "local_name": "No.101 寂静荣誉方舟骑士-灵魂庇护",
+      "local_type": 8388641,
+      "text_digest": "0731cda41f9d3e900c95fd52deebd7d5c320ec6185c39701eb99f5c1dfdd3cda",
+      "official_cid": 23502,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 2419597,
+      "local_name": "No.101 寂静荣誉方舟骑士-灵魂庇护",
+      "local_type": 8388641,
+      "text_digest": "0731cda41f9d3e900c95fd52deebd7d5c320ec6185c39701eb99f5c1dfdd3cda",
+      "official_cid": 23502,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 2530830,
+      "local_name": "银河眼光波刃龙",
+      "local_type": 8388641,
+      "text_digest": "b0413346fb43df7067d2f8dcaf5c02f8d9426d359f24b76666f95b42e44c7cae",
+      "official_cid": 12696,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 2978414,
+      "local_name": "No.46 神影龙 胶子龙",
+      "local_type": 8388641,
+      "text_digest": "b5645af560e59e7835cdd2dbebb7e53140b9da3493deb869a174ac9fd9e49a52",
+      "official_cid": 10781,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 3356494,
+      "local_name": "银河眼煌星龙",
+      "local_type": 67108897,
+      "text_digest": "3f640b90da6b06f3b342172c6901bc1342addd52b61bb57ce75a70adb879ef21",
+      "official_cid": 13929,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 3642509,
+      "local_name": "元素英雄 大龙卷侠",
+      "local_type": 97,
+      "text_digest": "d335d30e9746beaa2089a35ed6174ee2d546207c35eda9f06699451d20c6ab83",
+      "official_cid": 8592,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 3790062,
+      "local_name": "No.65 裁断魔人",
+      "local_type": 8388641,
+      "text_digest": "36c72157019299a5153ec57284576b260a3ea549c42b2f8773cbc33e818a61bd",
+      "official_cid": 10778,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 4019153,
+      "local_name": "No.4 源数之门-肆",
+      "local_type": 8388641,
+      "text_digest": "54002b64861f84d4012fd48b494f2cf5f232345ec309acc4319f8616e7d06390",
+      "official_cid": 15383,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 4606229,
+      "local_name": "最后的希望",
+      "local_type": 2,
+      "text_digest": "bcda07e9618edee436a4c6d00677e36a4142722519f2abbf4952283c984e7c9f",
+      "official_cid": 18428,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 4997565,
+      "local_name": "No.3 地狱蝉王",
+      "local_type": 8388641,
+      "text_digest": "523daec8e958fe78b82dc046bc838770a7b00898d78f5900e9b05d5462a920f4",
+      "official_cid": 15386,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 5128859,
+      "local_name": "元素英雄 海洋新宇侠",
+      "local_type": 97,
+      "text_digest": "8bf990e4e96c3ecb753e82f9eff7542c25ccd4704ac07ddb12a409e1e7b0674b",
+      "official_cid": 7175,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 5133471,
+      "local_name": "银河旋风",
+      "local_type": 2,
+      "text_digest": "d34289eccd39c873a6270f8f40860c14d4a1930a6ababdee121092d45ca45247",
+      "official_cid": 11737,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 6165656,
+      "local_name": "混沌No.88 机关傀儡-灾厄狮子",
+      "local_type": 8388641,
+      "text_digest": "5a68ea1932ccaa574f03377e95c54238e95b641a1c622cdc13fc8267b5244151",
+      "official_cid": 11016,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 7194917,
+      "local_name": "No.52 钻蟹王",
+      "local_type": 8388641,
+      "text_digest": "4d5ab99c26466a0b077a96ae1520d4e8e2bccf0905474e1c7591f54e16f96354",
+      "official_cid": 11122,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 7628844,
+      "local_name": "混沌No.32 海咬龙 鲨龙兽·海恶白煞",
+      "local_type": 8388641,
+      "text_digest": "cadbf704e1d6c306c225c859763c8a83e6144394e14308dfd35a1b669dd2dca2",
+      "official_cid": 20517,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 8165596,
+      "local_name": "No.90 银河眼光子卿",
+      "local_type": 8388641,
+      "text_digest": "e86ca64d48259ec4786280ce5a5fcf39bfaeb8fb35e0b525d4e97e54fd2cc09f",
+      "official_cid": 13826,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 8387138,
+      "local_name": "No.27 重型战舰-准无畏舰",
+      "local_type": 8388641,
+      "text_digest": "7e4b619512193f4bdf804fdb1658ca037a7d54b65d06d12dbb539536f94915f3",
+      "official_cid": 13823,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 8593259,
+      "local_name": "元素英雄 黏土守卫侠",
+      "local_type": 97,
+      "text_digest": "a0a0f9912e84f78862754e13b7630601b32170f0fe42c3ad3ad87fd4830b7955",
+      "official_cid": 23147,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 9024367,
+      "local_name": "银河龙骑士",
+      "local_type": 33,
+      "text_digest": "f61966899e0dbd75102d0705a70dc05cdc0703b72d20e3ca9e5cd8fe6391c5e8",
+      "official_cid": 10730,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 9161357,
+      "local_name": "No.6 先史遗产 大西洲巨人",
+      "local_type": 8388641,
+      "text_digest": "e5be0b7ae845a889a379a1c3df1219ff65fa0593e9300a00893a93f62912877a",
+      "official_cid": 10212,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 9327502,
+      "local_name": "元素英雄 电流侠",
+      "local_type": 33,
+      "text_digest": "be5f4c38ae5ffea93bad728648dfb4c2505fc21e9454a6b67099dcb0e0e0a0f6",
+      "official_cid": 7058,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 9411399,
+      "local_name": "命运英雄 魔性人",
+      "local_type": 33,
+      "text_digest": "3782a2804dbb92a163671b5c66ce30bf91ed5d27af66e99c85f118f9b2746204",
+      "official_cid": 6949,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 10300821,
+      "local_name": "混沌No.79 燃烧拳击手 将星之帝环拳王",
+      "local_type": 8388641,
+      "text_digest": "dfe0ac38993625fe47650b4afd04b3591f394229d2dafd18f06ee6c7b462d579",
+      "official_cid": 18925,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 10389142,
+      "local_name": "No.42 星舰·银河战斧鹰",
+      "local_type": 8388641,
+      "text_digest": "7519ec98ba47719e0f66f85d953ffc540ccd76b7979ba9ae4348305cb02dfc6d",
+      "official_cid": 10480,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 10526791,
+      "local_name": "元素英雄 荒野锯齿侠",
+      "local_type": 97,
+      "text_digest": "9180b72c1c7d27b44afde600d814dc61cb1559d6d3778984f8cc6f554b5b28c5",
+      "official_cid": 6488,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 10666000,
+      "local_name": "No.1 感染蝇王 巴力·西卜",
+      "local_type": 8388641,
+      "text_digest": "ede6efe767ff04aaa1a116dea50dc5a0525d9150f0bf3e31c81bb6b5b2d4e257",
+      "official_cid": 19034,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 10808715,
+      "local_name": "假面英雄 暮鸦",
+      "local_type": 33,
+      "text_digest": "c09d4789d5dc0941aa6e1c4bf6fa9c6ab3044743182dc0b07facfef1ccee8279",
+      "official_cid": 9072,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 11411223,
+      "local_name": "No.10 白辉士 启明者",
+      "local_type": 8388641,
+      "text_digest": "5a35d7447087fe485267c0d0a218ecf47e5c36a55af5b541aa5647ee4d11735e",
+      "official_cid": 9759,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 11522979,
+      "local_name": "混沌No.69 纹章死神 沌徽",
+      "local_type": 8388641,
+      "text_digest": "6369e4d2fa9709db59f77082f41e0894b5d93a77de801a4a6bb8852048caf55f",
+      "official_cid": 10935,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 12744567,
+      "local_name": "混沌No.101 寂静荣誉暗黑骑士",
+      "local_type": 8388641,
+      "text_digest": "fb62661a20bbfe4cd15ced2910a588a2009e0124d9c0b3ba6ca390e6f002cc6e",
+      "official_cid": 10932,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 13243124,
+      "local_name": "至爱英雄 火焰翼侠",
+      "local_type": 97,
+      "text_digest": "8d8dc92ca43f85d6b4b5a9afcb05751ef71d1839f445d013d9d3566793628f9e",
+      "official_cid": 22694,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 13243125,
+      "local_name": "至爱英雄 火焰翼侠",
+      "local_type": 97,
+      "text_digest": "8d8dc92ca43f85d6b4b5a9afcb05751ef71d1839f445d013d9d3566793628f9e",
+      "official_cid": 22694,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 13256226,
+      "local_name": "元素英雄 新宇精灵",
+      "local_type": 33,
+      "text_digest": "e158b2bc116ee55f41ee1e55c11b5e78ebd743e2034424727db86ab7063b66d1",
+      "official_cid": 17403,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 13293158,
+      "local_name": "邪心英雄 荒野风魔",
+      "local_type": 97,
+      "text_digest": "418c5430ea573d91d93ff27308f3b6caea4b4bfe34e501d24c3ca9141e6080cd",
+      "official_cid": 7378,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 13650422,
+      "local_name": "邪心英雄 黯星金魔",
+      "local_type": 33,
+      "text_digest": "db82cbc70b1a62cabd847cc7ab77b3bd32520586d6c5b974f50f89dc66117001",
+      "official_cid": 14587,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 13708888,
+      "local_name": "邪心英雄 新宇支配者",
+      "local_type": 97,
+      "text_digest": "ae5c3ad1c176e52d832112ef9a6cba1424d60a2c24a336ec13ad4a29509485ba",
+      "official_cid": 20768,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 14124483,
+      "local_name": "元素英雄 真诚新宇侠",
+      "local_type": 33,
+      "text_digest": "2356cafb976a7b8dfba5cab30eff8a15f3f960eb3f37c1a868f37810d207df8d",
+      "official_cid": 12901,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 15232745,
+      "local_name": "No.1 源数之门-壹",
+      "local_type": 8388641,
+      "text_digest": "54002b64861f84d4012fd48b494f2cf5f232345ec309acc4319f8616e7d06390",
+      "official_cid": 15380,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 16037007,
+      "local_name": "No.74 魔力小丑-失剑",
+      "local_type": 8388641,
+      "text_digest": "c9f88aabaead0788d46f38f64f42b1886c8d9b989a5cb5a0943cd0c066f534c7",
+      "official_cid": 10706,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 16110708,
+      "local_name": "闪光No.38 银河巨神",
+      "local_type": 8388641,
+      "text_digest": "432d5967a448d31fd09f5e961c1fe61c0bfb903456916180c7c9d030029d9c6b",
+      "official_cid": 21066,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 16259549,
+      "local_name": "No.49 秘鸟 幸运啾啾鸟",
+      "local_type": 8388641,
+      "text_digest": "8d68125214cc1537ec8057e78804713126b052da5eef21426385d971858a148f",
+      "official_cid": 10703,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 16304628,
+      "local_name": "元素英雄 大地侠",
+      "local_type": 97,
+      "text_digest": "e2cd828a16f608abe88fd63511b3411a74222dee00e7b3e67a287f0a80d728c7",
+      "official_cid": 8122,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 16605586,
+      "local_name": "命运英雄 否定人",
+      "local_type": 33,
+      "text_digest": "39c6ec8d7be0511ab0ddb5343c7a696aaca19ace4dfc42390b0885c0f23e1ff2",
+      "official_cid": 16504,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 17132130,
+      "local_name": "命运英雄 教义人",
+      "local_type": 33554465,
+      "text_digest": "90a570dbb256ae9afad85fa044dd94f8a0e9384b7caad25b7e2461b6e3d37142",
+      "official_cid": 6757,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 18094166,
+      "local_name": "幻影英雄 独善人",
+      "local_type": 33,
+      "text_digest": "f4ac2bc74e060e02607c46d37011a9fce3d97ab0c0ed09c443840431397c1ae2",
+      "official_cid": 9190,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 18963306,
+      "local_name": "银河眼光波龙",
+      "local_type": 8388641,
+      "text_digest": "6220e083362c66a1288fbc42c70426a3046ad6ec8ef87518a025ac2523b68218",
+      "official_cid": 12552,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 19222426,
+      "local_name": "元素英雄 雷霆巨人-电流雷击",
+      "local_type": 97,
+      "text_digest": "597386f59f311fe5602ce878348f1fc7fb86c5e0a223af77a7e6ed781fe9d5a2",
+      "official_cid": 21621,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 19316241,
+      "local_name": "银河战龙",
+      "local_type": 33,
+      "text_digest": "0dbd55e5703c68da846cefbea01e0226a3973a3ec77caf6899d05abd0dbb19fd",
+      "official_cid": 20276,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 19324993,
+      "local_name": "特异英雄 地狱裂魔",
+      "local_type": 67108897,
+      "text_digest": "6f886eafcc367bd034e04cc075c61b5269024d33018d96315f3f3217d496d205",
+      "official_cid": 14936,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 19333131,
+      "local_name": "No.12 机甲忍者 红影",
+      "local_type": 8388641,
+      "text_digest": "92b17e27cef8701edca94c00766bd9dbc4330f3cd313a6a361f1d2f6ea20186f",
+      "official_cid": 9916,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 20785975,
+      "local_name": "混沌No.103 神葬零娘 暮永",
+      "local_type": 8388641,
+      "text_digest": "62f962e496b348ffc0d3fe8582add303306c6e4ebabc9cd32c6713a283bb0fac",
+      "official_cid": 11072,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 21313376,
+      "local_name": "No.14 强欲之死神犬",
+      "local_type": 8388641,
+      "text_digest": "1ec99b8550bf3e9493e22f235666fa83e1369af1d5b1df56309fc57b4eb0f86a",
+      "official_cid": 11653,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 21521304,
+      "local_name": "No.39 希望皇 彼端超霍普",
+      "local_type": 8388641,
+      "text_digest": "df7f694cb2aa157b45dfa3914030dd09e84d4cf083af459711acddf0581600c7",
+      "official_cid": 11132,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 21858819,
+      "local_name": "No.XX 无限之达克霍普",
+      "local_type": 8388641,
+      "text_digest": "622b5f4a7c070fa1c3f6d67ca0dc0b38b5a2c1f0f49c06865d7e8338a470a6df",
+      "official_cid": 14346,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 21947653,
+      "local_name": "邪心英雄 闪电巨魔",
+      "local_type": 97,
+      "text_digest": "35e918a62ec1c3de6e86f5255ac85bf6e2ddcffc71a463b81628cef29fe92cea",
+      "official_cid": 7260,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 22160245,
+      "local_name": "邪心英雄 业火翼魔",
+      "local_type": 97,
+      "text_digest": "1d368ea37b384af5659148903cb120eeaad814ca6cc6926422e52c10bdab72a4",
+      "official_cid": 7257,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 22865492,
+      "local_name": "幻影英雄 增量人",
+      "local_type": 33,
+      "text_digest": "308b7a5b8c82280c81354f82e4f4a447e95988508ee74e22d1262367684a8b98",
+      "official_cid": 9063,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 22908820,
+      "local_name": "元素英雄 日出侠",
+      "local_type": 97,
+      "text_digest": "c2d3a693dcfe2c886a2de42b4616e3ac5ff752b944184613006bf3a9482ffe45",
+      "official_cid": 14910,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 23085002,
+      "local_name": "No.68 魔天牢 桑达尔丰",
+      "local_type": 8388641,
+      "text_digest": "22f4c89aef417353b8f12bf3a8bbac1941739601ce6faa26bb21c19fe207f730",
+      "official_cid": 13164,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 23204029,
+      "local_name": "对极英雄 混沌侠",
+      "local_type": 97,
+      "text_digest": "12d30d9b2c04195ab961b29188a934bb8fc6a9a51a6808729066be068c305611",
+      "official_cid": 11310,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 23649496,
+      "local_name": "No.18 纹章祖 素徽",
+      "local_type": 8388641,
+      "text_digest": "5bf70b6a0a29aceb37fac2d976bb6ab7200dd7fd965df5e71227c7cdcd55c025",
+      "official_cid": 10975,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 23998625,
+      "local_name": "No.53 伪骸神 心地心",
+      "local_type": 8388641,
+      "text_digest": "5463fa650f3b4f7d6f79ba3fcb8ab7af81b19210998c1d3cc46a68054aebd0ce",
+      "official_cid": 10405,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 25366484,
+      "local_name": "元素英雄 闪光火焰翼侠",
+      "local_type": 97,
+      "text_digest": "4b686e84088570297ff4f5f70a20c57a8e6b214bb627d4b6d599bc47af74895f",
+      "official_cid": 6467,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 26556950,
+      "local_name": "No.84 增痛蛛",
+      "local_type": 8388641,
+      "text_digest": "7a6eecdf99d831d11f83dfc43936ac8df8536d3717188b31d4d4e740ab5e4e91",
+      "official_cid": 12262,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 26964762,
+      "local_name": "命运英雄 暗黑天使",
+      "local_type": 33,
+      "text_digest": "938432e5e7d7ce8eb18ea5118e3b803a82f1a7057774b0593e2e2ff28dc64a1c",
+      "official_cid": 12706,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 26973555,
+      "local_name": "未来No.0 未来龙皇 霍普",
+      "local_type": 8388641,
+      "text_digest": "f437d3cf3ee6ad957212bc947369b8ffbe22e9fe2853459f54e07109c9b0f9e1",
+      "official_cid": 14958,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 27780618,
+      "local_name": "幻影英雄 仿生人",
+      "local_type": 33,
+      "text_digest": "a7d562d32c24d7423606fb4243685b0e15d133f5335064f206129ae29e667679",
+      "official_cid": 9229,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 28331069,
+      "local_name": "超银河眼光子龙-光子咆哮",
+      "local_type": 8388641,
+      "text_digest": "0c4991e5aade0595015064abf64f84b4c680250c32a67000e938278f66d6b621",
+      "official_cid": 22725,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 28331070,
+      "local_name": "超银河眼光子龙-光子咆哮",
+      "local_type": 8388641,
+      "text_digest": "0c4991e5aade0595015064abf64f84b4c680250c32a67000e938278f66d6b621",
+      "official_cid": 22725,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 28355718,
+      "local_name": "命运英雄 双身人",
+      "local_type": 33,
+      "text_digest": "013d7fbd1962aa36f33a9054b4c265fe1fdd3d792e84abdabc03421a23fa9d86",
+      "official_cid": 6754,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 28400508,
+      "local_name": "No.97 龙影神 引力子龙",
+      "local_type": 8388641,
+      "text_digest": "a1ade00c3d356b599428d31ebf6dde07168c43bc548238a0cd8e189b26c07f05",
+      "official_cid": 14566,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 28677304,
+      "local_name": "元素英雄 黑暗新宇侠",
+      "local_type": 97,
+      "text_digest": "adffa92aec4bf21edcad200c57369dc1fd788a8b34277f3e6dd09f64431ca80f",
+      "official_cid": 6765,
+      "group": "fast-series-01"
+    },
+    {
+      "code": 28770951,
+      "local_name": "银河修道师",
+      "local_type": 33,
+      "text_digest": "7151f36f59c54f9a985442b0482a1efb078fc2b2c75c0627a822bae401e1991f",
+      "official_cid": 13897,
+      "group": "fast-series-01"
+    }
+  ],
+  "updated_cards": [],
+  "pending": [
+    {
+      "code": 3598351,
+      "name": "邪心英雄 毒泡魔",
+      "status": "needs_ruling",
+      "reason": "已读OCG卡文与补足、FAQ20371；①为非连锁效果特召、技能抽取不能取消限制，但需补齐同回合先前非HERO特召与方法限制的直接官方依据后再完整核准，候选原文保留。"
+    },
+    {
+      "code": 5285665,
+      "name": "元素英雄 新水泡侠",
+      "status": "requires_schema",
+      "reason": "同一m-all同时含非效果特召手续、永续改名和多区域必须诱发破坏；需真实独立单元隔离查询，不能虚构编号或获赋关系。"
+    },
+    {
+      "code": 6387204,
+      "name": "混沌No.6 先史遗产 混沌大西洲巨人",
+      "status": "requires_schema",
+      "reason": "当前OCG已改为非编号无伤规则、①装备派生魔法、②持素材条件调LP；本地旧m1/m2/m3编号及获赋关系不同。需补足官方段落映射和装备派生效果边界，不能按旧编号制造现行效果。"
+    },
+    {
+      "code": 9260791,
+      "name": "银河眼云笼",
+      "status": "requires_schema",
+      "reason": "同一m-all含场上解放费用手卡/墓地特召与墓地附素材两个独立起动，次数分别为同名回合一次和决斗一次；次数词表已补齐，但需真实独立单元防跨层拼接。"
+    },
+    {
+      "code": 10920352,
+      "name": "假面英雄 雾水",
+      "status": "requires_schema",
+      "reason": "同一m-all含非效果假面变化限定召唤规则和永续效果破坏耐性；需要独立非效果／永续单元，不能把手续整体标永续或整个段标非效果。"
+    },
+    {
+      "code": 11502550,
+      "name": "元素英雄 天空新宇侠",
+      "status": "requires_schema",
+      "reason": "单一未编号m-all混有非效果接触出场手续、LP差值永续增攻、双方结束阶段必须回额外的诱发，需要独立类别与条件单元。"
+    },
+    {
+      "code": 12632096,
+      "name": "超银河眼光波龙",
+      "status": "requires_schema",
+      "reason": "已读无对象批量夺控的固定获赋起动；选择数量与发动费用实际取除1～3素材数关联，需受控处理数量关系及共同行为边界，不能填固定1/3或把非对象选卡伪装对象。"
+    },
+    {
+      "code": 13093792,
+      "name": "命运英雄 钻石人",
+      "status": "requires_schema",
+      "reason": "①同段包含本体翻卡起动与下一自己回合墓地通常魔法的效果发动；后者保留原魔法身份和费用豁免、是不同效果单元且能力动态未知，不能虚构为本体立即发动的固定获赋。"
+    },
+    {
+      "code": 14225239,
+      "name": "元素英雄 水手侠",
+      "status": "requires_schema",
+      "reason": "未编号m-all混有非效果融合限定召唤与有盖卡时的永续直接攻击，需要独立单元隔离。"
+    },
+    {
+      "code": 15862758,
+      "name": "混沌虚数No.1000 梦幻虚光神 原数天灵·原数天地",
+      "status": "requires_vocabulary",
+      "reason": "①包含指定来源出场历史、翌回合起强制可攻击怪兽攻击自身及特殊胜利；缺强制攻击与历史条件规则，不能用普通锁或伤害替代，原文保留。"
+    },
+    {
+      "code": 16908882,
+      "name": "No.104 假面魔蹈士 闪光V枉然",
+      "status": "requires_vocabulary",
+      "reason": "纠错包已核对cid23364；②的固定必须诱发包括对方自主选择除外4属性各异怪兽加1魔法，或本人除外对方卡组顶10/不足时全余牌，需受控玩家选择与可选代付处理边界，不当普通费用或虚构固定除外10。"
+    },
+    {
+      "code": 17032740,
+      "name": "元素英雄 混沌新宇侠",
+      "status": "requires_schema",
+      "reason": "同一未编号段同时含非效果接触特召、双方结束阶段回额外/盖怪的诱发和主要阶段1的掷币起动；需独立单元及0表分支，不能混作一个效果。"
+    },
+    {
+      "code": 20563387,
+      "name": "混沌No.80 葬装霸王 镇魂狂曲王",
+      "status": "requires_schema",
+      "reason": "①装备派生的+2000魔法效果、②装备区非连锁代替破坏、③固定获赋起动须分离本体与装备层，不能把装备状态的魔法能力拼成场上起动能力。"
+    },
+    {
+      "code": 22061412,
+      "name": "元素英雄 闪光侠",
+      "status": "requires_schema",
+      "reason": "同一m-all混非效果融合限制、除外英雄数值永续增攻、场上任一区送墓时的回收誘发；需要独立单元。"
+    },
+    {
+      "code": 22093873,
+      "name": "假面英雄 神风",
+      "status": "needs_ruling",
+      "reason": "原官方FAQ补足混入与本卡①战斗耐性、②每阶段仅一怪攻击无关的攻撃力减半/回手对象说明；需重取现行卡页/FAQ并核对相关详页，不按错行補足直接核准。"
+    },
+    {
+      "code": 23187256,
+      "name": "No.93 希望皇 霍普·真皇",
+      "status": "requires_schema",
+      "reason": "种类数上限、同阶最多1只的批量No.特召数量需处理关联规则；取除1材是特召成功后的处理，战伤减半/禁止后续特召作用于玩家与处理后时点，不能填固定数量或费用。"
+    },
+    {
+      "code": 24658418,
+      "name": "银河暴龙",
+      "status": "requires_schema",
+      "reason": "同一m-all有手卡被攻响应的特召诱发与其后场上另起连锁的超量支援誘发，时点和发动区域不同，不能整体同一效果/即刻处理。"
+    },
+    {
+      "code": 25158975,
+      "name": "命运英雄 死亡教义人",
+      "status": "requires_schema",
+      "reason": "已进一步读纠错包cid23343；特召后的诱发预约下一准备阶段2000伤害，真正给伤害不新起链，需预约状态与本体触发单元分离，特召无效可重试及回牌融合关联保留。"
+    },
+    {
+      "code": 28346136,
+      "name": "银河眼极光波龙",
+      "status": "requires_schema",
+      "reason": "本地为银河眼极光波龙，原包错配光波刃龙；已进一步读正确cid15854，需区分作用于对方玩家的当前光怪对象保护和后来出场者，以及回额外后可选重叠出场的关联。"
+    }
+  ],
+  "query_cases": [
+    {
+      "code": 863795,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "苏生来源不是费用或卡组"
+    },
+    {
+      "code": 863795,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "deck"
+      },
+      "expected_keys": [],
+      "reason": "不能搜索为卡组特召"
+    },
+    {
+      "code": 897409,
+      "query": {
+        "action": "extra_reveal",
+        "from_zone": "opponent_extra"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "额外确认不能混同主卡组"
+    },
+    {
+      "code": 897409,
+      "query": {
+        "action": "send_grave",
+        "from_zone": "deck"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "送墓是可选效果不是费用"
+    },
+    {
+      "code": 897409,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "extra"
+      },
+      "expected_keys": [],
+      "reason": "从对方额外特召不是从自己额外特召"
+    },
+    {
+      "code": 1426714,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "衍生物是对方回合诱发即时特召"
+    },
+    {
+      "code": 1426714,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "deck"
+      },
+      "expected_keys": [],
+      "reason": "衍生物不是来自卡组"
+    },
+    {
+      "code": 1945387,
+      "query": {
+        "action": "draw"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "战破后是必须诱发抽卡"
+    },
+    {
+      "code": 1945387,
+      "query": {
+        "action": "draw",
+        "from_zone": "grave"
+      },
+      "expected_keys": [],
+      "reason": "抽卡不是从墓地取得卡"
+    },
+    {
+      "code": 1948619,
+      "query": {
+        "action": "set_card",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "盖放魔法与手卡特召分开"
+    },
+    {
+      "code": 1948619,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "hand"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "墓地发动但特召资源来自手卡"
+    },
+    {
+      "code": 1948619,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "grave"
+      },
+      "expected_keys": [],
+      "reason": "不能把发动区域拼接成苏生来源"
+    },
+    {
+      "code": 1992816,
+      "query": {
+        "action": "negate_attack",
+        "usage": "battle_step_once"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "每战斗步骤一次不伪装每回合一次"
+    },
+    {
+      "code": 1992816,
+      "query": {
+        "action": "negate_attack",
+        "cost_kind": "detach_material"
+      },
+      "expected_keys": [],
+      "reason": "无效攻击只要求有素材，不取除素材为费用"
+    },
+    {
+      "code": 1992816,
+      "query": {
+        "action": "detach_material"
+      },
+      "expected_keys": [],
+      "reason": "发动费用不作为取除素材的效果"
+    },
+    {
+      "code": 2061963,
+      "query": {
+        "action": "send_grave",
+        "from_zone": "opponent_deck_top"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "只从对方卡组顶送墓"
+    },
+    {
+      "code": 2061963,
+      "query": {
+        "action": "negate_effect"
+      },
+      "expected_keys": [],
+      "reason": "无效的是发动而不是效果"
+    },
+    {
+      "code": 2407234,
+      "query": {
+        "action": "copy_effect"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "动态复制不假定对象具体能力"
+    },
+    {
+      "code": 2407234,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [],
+      "reason": "不复制原本攻击力"
+    },
+    {
+      "code": 2419596,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "deck"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "第一分支从卡组加手，墓地只是参考选择"
+    },
+    {
+      "code": 2419596,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "grave"
+      },
+      "expected_keys": [],
+      "reason": "不能拼成墓地回收"
+    },
+    {
+      "code": 2419596,
+      "query": {
+        "action": "detach_material"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "只有永续破坏代替的取除属于处理；①取除为费用"
+    },
+    {
+      "code": 2419597,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "deck"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "第一分支从卡组加手，墓地只是参考选择"
+    },
+    {
+      "code": 2419597,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "grave"
+      },
+      "expected_keys": [],
+      "reason": "不能拼成墓地回收"
+    },
+    {
+      "code": 2419597,
+      "query": {
+        "action": "detach_material"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "只有永续破坏代替的取除属于处理；①取除为费用"
+    },
+    {
+      "code": 2530830,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "墓地资源是苏生的来源"
+    },
+    {
+      "code": 2530830,
+      "query": {
+        "action": "send_grave"
+      },
+      "expected_keys": [],
+      "reason": "被破坏送墓条件不能制造送墓能力"
+    },
+    {
+      "code": 2978414,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "hand"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "只存在手卡特召分支"
+    },
+    {
+      "code": 2978414,
+      "query": {
+        "action": "negate_effect"
+      },
+      "expected_keys": [],
+      "reason": "第三分支是禁止发动而非效果无效"
+    },
+    {
+      "code": 3356494,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "对方主要阶段的破坏是诱发即时"
+    },
+    {
+      "code": 3356494,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "hand"
+      },
+      "expected_keys": [],
+      "reason": "丢弃手卡费用不是加手来源"
+    },
+    {
+      "code": 3642509,
+      "query": {
+        "action": "stat_change",
+        "from_zone": "opponent_monster"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "只使对方表侧攻守减半"
+    },
+    {
+      "code": 3642509,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [],
+      "reason": "攻守减半不能标破坏"
+    },
+    {
+      "code": 3790062,
+      "query": {
+        "action": "negate_activation"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "无效发动与效果无效不同"
+    },
+    {
+      "code": 3790062,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [],
+      "reason": "没有破坏能力"
+    },
+    {
+      "code": 4019153,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "攻翻倍是诱发，不是永续"
+    },
+    {
+      "code": 4019153,
+      "query": {
+        "action": "detach_material"
+      },
+      "expected_keys": [],
+      "reason": "取除为费用不是处理"
+    },
+    {
+      "code": 4606229,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "先有两个墓地特召"
+    },
+    {
+      "code": 4606229,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [],
+      "reason": "半LP费用不是效果伤害"
+    },
+    {
+      "code": 4997565,
+      "query": {
+        "action": "negate_effect"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "无效怪兽效果而非发动"
+    },
+    {
+      "code": 4997565,
+      "query": {
+        "action": "negate_activation"
+      },
+      "expected_keys": [],
+      "reason": "不能凭响应时点当作发动无效"
+    },
+    {
+      "code": 5128859,
+      "query": {
+        "action": "destroy",
+        "from_zone": "opponent_hand"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "随机手卡破坏不是弃手"
+    },
+    {
+      "code": 5128859,
+      "query": {
+        "action": "return_deck"
+      },
+      "expected_keys": [],
+      "reason": "素材回卡组是非效果手续"
+    },
+    {
+      "code": 5133471,
+      "query": {
+        "action": "destroy",
+        "cost_kind": "banish_self_from_grave"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "墓地除外是费用，不是除外处理"
+    },
+    {
+      "code": 5133471,
+      "query": {
+        "action": "banish"
+      },
+      "expected_keys": [],
+      "reason": "不把除外费用当作效果"
+    },
+    {
+      "code": 6165656,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "起动烧血是固定1000"
+    },
+    {
+      "code": 6165656,
+      "query": {
+        "action": "detach_material"
+      },
+      "expected_keys": [],
+      "reason": "取除费用不是效果"
+    },
+    {
+      "code": 7194917,
+      "query": {
+        "action": "set_position"
+      },
+      "expected_keys": [
+        "m3",
+        "m4"
+      ],
+      "reason": "两个永续表示变更独立保持时点"
+    },
+    {
+      "code": 7194917,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [],
+      "reason": "没有破坏效果"
+    },
+    {
+      "code": 7628844,
+      "query": {
+        "action": "negate_effect",
+        "cost_kind": "detach_material"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "只记录本效果取除费用"
+    },
+    {
+      "code": 7628844,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [],
+      "reason": "贯通不是效果伤害"
+    },
+    {
+      "code": 8165596,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "deck"
+      },
+      "expected_keys": [
+        "m3"
+      ],
+      "reason": "搜索是对方回合诱发即时，不是自己起动"
+    },
+    {
+      "code": 8165596,
+      "query": {
+        "action": "negate_activation"
+      },
+      "expected_keys": [],
+      "reason": "只能无效效果"
+    },
+    {
+      "code": 8387138,
+      "query": {
+        "action": "detach_material"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "破坏代替的取除是处理"
+    },
+    {
+      "code": 8387138,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "grave"
+      },
+      "expected_keys": [],
+      "reason": "不能从墓地出10阶机械"
+    },
+    {
+      "code": 8593259,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "deck"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "卡组特召不是融合材料规则"
+    },
+    {
+      "code": 8593259,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "extra"
+      },
+      "expected_keys": [],
+      "reason": "额外自锁不是从额外特召能力"
+    },
+    {
+      "code": 9024367,
+      "query": {
+        "action": "stat_change",
+        "from_zone": "monster"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "增攻和对方无效的适用期间不同"
+    },
+    {
+      "code": 9024367,
+      "query": {
+        "action": "negate_effect",
+        "from_zone": "grave"
+      },
+      "expected_keys": [],
+      "reason": "不能无效墓地发动的效果"
+    },
+    {
+      "code": 9161357,
+      "query": {
+        "action": "set_lp"
+      },
+      "expected_keys": [
+        "m3"
+      ],
+      "reason": "减半LP不是效果伤害"
+    },
+    {
+      "code": 9161357,
+      "query": {
+        "action": "send_grave"
+      },
+      "expected_keys": [],
+      "reason": "送墓是费用"
+    },
+    {
+      "code": 9327502,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "banished"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "正确卡只有除外特召效果"
+    },
+    {
+      "code": 9327502,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [],
+      "reason": "不导入错配融合怪兽的全场破坏"
+    },
+    {
+      "code": 9411399,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "deck"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "来源是卡组"
+    },
+    {
+      "code": 9411399,
+      "query": {
+        "usage": "name_soft_opt"
+      },
+      "expected_keys": [],
+      "reason": "魔性人没有同名一次限制"
+    },
+    {
+      "code": 10300821,
+      "query": {
+        "action": "detach_material",
+        "cost_kind": "detach_material"
+      },
+      "expected_keys": [],
+      "reason": "②取除不是费用"
+    },
+    {
+      "code": 10300821,
+      "query": {
+        "action": "detach_material"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②正确保留效果取除"
+    },
+    {
+      "code": 10300821,
+      "query": {
+        "action": "send_grave",
+        "from_zone": "deck"
+      },
+      "expected_keys": [
+        "m3"
+      ],
+      "reason": "已知获赋诱发的卡组送墓可单独查询"
+    },
+    {
+      "code": 10389142,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "deck"
+      },
+      "expected_keys": [],
+      "reason": "生成衍生物不是卡组出怪"
+    },
+    {
+      "code": 10389142,
+      "query": {
+        "action": "prevent_damage"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "只是对方战伤0，不是效果伤害也为0"
+    },
+    {
+      "code": 10526791,
+      "query": {
+        "action": "grant_extra_attack"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "攻击权限不是烧血"
+    },
+    {
+      "code": 10526791,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [],
+      "reason": "不能当作效果伤害"
+    },
+    {
+      "code": 10666000,
+      "query": {
+        "action": "send_grave",
+        "from_zone": "opponent_extra"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "能确认及送墓对方额外表侧卡"
+    },
+    {
+      "code": 10666000,
+      "query": {
+        "action": "attach_material",
+        "from_zone": "opponent_grave"
+      },
+      "expected_keys": [
+        "m3"
+      ],
+      "reason": "准备阶段吸的是对方墓地"
+    },
+    {
+      "code": 10808715,
+      "query": {
+        "action": "special_summon",
+        "cost_kind": "banish"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "手卡起动费用和手卡特召来源分开"
+    },
+    {
+      "code": 10808715,
+      "query": {
+        "action": "banish"
+      },
+      "expected_keys": [],
+      "reason": "墓地除外只是费用"
+    },
+    {
+      "code": 11411223,
+      "query": {
+        "action": "send_grave",
+        "from_zone": "hand"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "手卡送墓是效果处理"
+    },
+    {
+      "code": 11411223,
+      "query": {
+        "cost_kind": "discard"
+      },
+      "expected_keys": [],
+      "reason": "不是丢手费用"
+    },
+    {
+      "code": 11522979,
+      "query": {
+        "action": "destroy",
+        "cost_kind": "detach_material"
+      },
+      "expected_keys": [],
+      "reason": "不能把复制起动费用拼到攻击宣言破坏"
+    },
+    {
+      "code": 11522979,
+      "query": {
+        "action": "copy_effect",
+        "cost_kind": "detach_material"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "固定获赋起动内费用匹配"
+    },
+    {
+      "code": 12744567,
+      "query": {
+        "action": "heal"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "回复不是烧血"
+    },
+    {
+      "code": 12744567,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [],
+      "reason": "不能查询为给对方效果伤害"
+    },
+    {
+      "code": 13243124,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "hand"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "攻击宣言后是手卡特召"
+    },
+    {
+      "code": 13243124,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "extra"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "融合召唤来源另在固定同一处理项"
+    },
+    {
+      "code": 13243125,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "hand"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "攻击宣言后是手卡特召"
+    },
+    {
+      "code": 13243125,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "extra"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "融合召唤来源另在固定同一处理项"
+    },
+    {
+      "code": 13256226,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "opponent_deck"
+      },
+      "expected_keys": [],
+      "reason": "不能跨回卡组和特召两步拼接来源"
+    },
+    {
+      "code": 13256226,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "deck"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "检索魔陷的种类限制保留"
+    },
+    {
+      "code": 13293158,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "破坏不是条件化攻击窗口封锁"
+    },
+    {
+      "code": 13293158,
+      "query": {
+        "action": "negate_activation"
+      },
+      "expected_keys": [],
+      "reason": "禁止魔陷发动不等于无效发动"
+    },
+    {
+      "code": 13650422,
+      "query": {
+        "action": "add_hand",
+        "cost_kind": "discard_self"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "费用为丢弃自身而非解放"
+    },
+    {
+      "code": 13650422,
+      "query": {
+        "action": "discard_hand"
+      },
+      "expected_keys": [],
+      "reason": "手卡丢弃是费用"
+    },
+    {
+      "code": 13708888,
+      "query": {
+        "action": "take_control"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "夺控是诱发能力"
+    },
+    {
+      "code": 13708888,
+      "query": {
+        "action": "negate_effect"
+      },
+      "expected_keys": [],
+      "reason": "耐性不等于无效效果"
+    },
+    {
+      "code": 14124483,
+      "query": {
+        "cost_kind": "discard_self",
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "自身手坑和场上费用分开"
+    },
+    {
+      "code": 14124483,
+      "query": {
+        "cost_kind": "discard",
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "不能拼成手卡自身丢弃的第二效果"
+    },
+    {
+      "code": 15232745,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "翻倍并非永久增攻"
+    },
+    {
+      "code": 15232745,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [],
+      "reason": "不存在效果烧血"
+    },
+    {
+      "code": 16037007,
+      "query": {
+        "action": "negate_activation"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "有对象保护的响应无效发动"
+    },
+    {
+      "code": 16037007,
+      "query": {
+        "action": "negate_effect"
+      },
+      "expected_keys": [],
+      "reason": "不是仅无效效果"
+    },
+    {
+      "code": 16110708,
+      "query": {
+        "action": "attach_material"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "对象魔陷用于素材"
+    },
+    {
+      "code": 16110708,
+      "query": {
+        "action": "allow_direct_attack",
+        "usage": "soft_opt"
+      },
+      "expected_keys": [],
+      "reason": "③没有每回合一次"
+    },
+    {
+      "code": 16259549,
+      "query": {
+        "action": "heal"
+      },
+      "expected_keys": [
+        "m3"
+      ],
+      "reason": "回复单独在准备阶段"
+    },
+    {
+      "code": 16259549,
+      "query": {
+        "action": "return_deck",
+        "to_zone": "extra"
+      },
+      "expected_keys": [
+        "m4"
+      ],
+      "reason": "本体回额外，不是墓地怪兽全回额外"
+    },
+    {
+      "code": 16304628,
+      "query": {
+        "action": "stat_change",
+        "from_zone": "opponent_monster"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "先减半对方，不是烧血"
+    },
+    {
+      "code": 16304628,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [],
+      "reason": "攻击力增减不是效果伤害"
+    },
+    {
+      "code": 16605586,
+      "query": {
+        "usage": "name_duel_once",
+        "action": "special_summon"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "每场决斗不等于每回合"
+    },
+    {
+      "code": 16605586,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "deck"
+      },
+      "expected_keys": [],
+      "reason": "deck置顶不是deck特召"
+    },
+    {
+      "code": 17132130,
+      "query": {
+        "action": "set_lp",
+        "timing": "standby"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "仅下一对方准备阶段减半"
+    },
+    {
+      "code": 17132130,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [],
+      "reason": "不把减半LP当伤害"
+    },
+    {
+      "code": 18094166,
+      "query": {
+        "action": "place_faceup_card",
+        "from_zone": "deck"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "放置永续陷阱不虚构特召"
+    },
+    {
+      "code": 18094166,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "deck"
+      },
+      "expected_keys": [],
+      "reason": "不是从卡组特殊召唤V-HERO"
+    },
+    {
+      "code": 18963306,
+      "query": {
+        "action": "take_control"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "正确光波龙是夺控而非光波刃龙破坏"
+    },
+    {
+      "code": 18963306,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [],
+      "reason": "不引入错配卡破坏能力"
+    },
+    {
+      "code": 19222426,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "实际融合新版与电流侠分别处理"
+    },
+    {
+      "code": 19222426,
+      "query": {
+        "action": "special_summon",
+        "cost_kind": "tribute"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "通常素材历史不等同普通融合史"
+    },
+    {
+      "code": 19316241,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "能从墓地诱发特召"
+    },
+    {
+      "code": 19316241,
+      "query": {
+        "action": "change_level"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "两个等级绑定而非各自独立处理"
+    },
+    {
+      "code": 19324993,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "deck"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "展示额外与卡组加手分步记录"
+    },
+    {
+      "code": 19324993,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "extra"
+      },
+      "expected_keys": [],
+      "reason": "不能拼出从额外加入手卡"
+    },
+    {
+      "code": 19333131,
+      "query": {
+        "action": "protect",
+        "cost_kind": "detach_material"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "忍者耐性是诱发即时适用"
+    },
+    {
+      "code": 19333131,
+      "query": {
+        "action": "negate_effect"
+      },
+      "expected_keys": [],
+      "reason": "保护不等于无效"
+    },
+    {
+      "code": 20785975,
+      "query": {
+        "action": "banish",
+        "from_zone": "opponent_monster"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "伤害成功才除外，非费用"
+    },
+    {
+      "code": 20785975,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "自身墓地苏生不是恢复LP"
+    },
+    {
+      "code": 21313376,
+      "query": {
+        "action": "redirect_effect_damage"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "伤害替代不当作直接烧血"
+    },
+    {
+      "code": 21313376,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [],
+      "reason": "不存在本卡直接给予伤害动作"
+    },
+    {
+      "code": 21521304,
+      "query": {
+        "action": "banish",
+        "from_zone": "monster"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "场上除外是处理不是素材费用"
+    },
+    {
+      "code": 21521304,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "banished"
+      },
+      "expected_keys": [],
+      "reason": "从墓地苏生不是从除外特召"
+    },
+    {
+      "code": 21858819,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "opponent_grave"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "允许双方墓地而不混角色"
+    },
+    {
+      "code": 21858819,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [],
+      "reason": "原本攻击力用于回复而非烧血"
+    },
+    {
+      "code": 21947653,
+      "query": {
+        "action": "destroy",
+        "from_zone": "opponent_monster"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "合法范围包括对方怪兽"
+    },
+    {
+      "code": 21947653,
+      "query": {
+        "action": "destroy",
+        "from_zone": "spell"
+      },
+      "expected_keys": [],
+      "reason": "不能破坏一般魔陷"
+    },
+    {
+      "code": 22160245,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "效果伤害仅在战破送墓诱发"
+    },
+    {
+      "code": 22160245,
+      "query": {
+        "action": "burn",
+        "from_zone": "monster"
+      },
+      "expected_keys": [],
+      "reason": "贯通没有效果伤害来源节点"
+    },
+    {
+      "code": 22865492,
+      "query": {
+        "action": "special_summon",
+        "cost_kind": "tribute"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "陷阱效果有自己费用而非怪兽起动"
+    },
+    {
+      "code": 22865492,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "deck"
+      },
+      "expected_keys": [
+        "m3"
+      ],
+      "reason": "后续触发单独保留来源"
+    },
+    {
+      "code": 22908820,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "deck"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "检索和攻击宣言破坏分开"
+    },
+    {
+      "code": 22908820,
+      "query": {
+        "action": "destroy",
+        "usage": "per_effect_name_soft_opt"
+      },
+      "expected_keys": [
+        "m3"
+      ],
+      "reason": "破坏有同名次数限制"
+    },
+    {
+      "code": 23085002,
+      "query": {
+        "action": "lock",
+        "from_zone": "opponent_grave"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "封锁包括对方墓地"
+    },
+    {
+      "code": 23085002,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [],
+      "reason": "苏生封锁不制造苏生能力"
+    },
+    {
+      "code": 23204029,
+      "query": {
+        "action": "change_attribute"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "双属性是追加不是替换"
+    },
+    {
+      "code": 23204029,
+      "query": {
+        "action": "negate_activation"
+      },
+      "expected_keys": [],
+      "reason": "不是无效发动"
+    },
+    {
+      "code": 23649496,
+      "query": {
+        "action": "send_grave",
+        "from_zone": "deck"
+      },
+      "expected_keys": [
+        "m3"
+      ],
+      "reason": "数量固定两只非费用"
+    },
+    {
+      "code": 23649496,
+      "query": {
+        "action": "destroy",
+        "usage": "soft_opt"
+      },
+      "expected_keys": [],
+      "reason": "没有每回合一次"
+    },
+    {
+      "code": 23998625,
+      "query": {
+        "action": "detach_material"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "代替破坏的取除是处理"
+    },
+    {
+      "code": 23998625,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "grave"
+      },
+      "expected_keys": [],
+      "reason": "墓地自身变素材，而非墓地特召自己"
+    },
+    {
+      "code": 25366484,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "烧血数量取原本而非当前ATK"
+    },
+    {
+      "code": 25366484,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [],
+      "reason": "战破条件不是破坏效果"
+    },
+    {
+      "code": 26556950,
+      "query": {
+        "action": "burn",
+        "cost_kind": "detach_material"
+      },
+      "expected_keys": [],
+      "reason": "持续烧血不借起动费用"
+    },
+    {
+      "code": 26556950,
+      "query": {
+        "action": "destroy",
+        "cost_kind": "detach_material"
+      },
+      "expected_keys": [
+        "m3"
+      ],
+      "reason": "费用仅属于起动破坏"
+    },
+    {
+      "code": 26964762,
+      "query": {
+        "action": "special_summon",
+        "to_zone": "opponent_monster"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "送怪到对方场上而非自己"
+    },
+    {
+      "code": 26964762,
+      "query": {
+        "action": "negate_activation"
+      },
+      "expected_keys": [],
+      "reason": "魔法效果无效而非发动无效"
+    },
+    {
+      "code": 26973555,
+      "query": {
+        "action": "negate_activation"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "不是无效效果"
+    },
+    {
+      "code": 26973555,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [],
+      "reason": "没有破坏行为"
+    },
+    {
+      "code": 27780618,
+      "query": {
+        "action": "send_grave",
+        "from_zone": "deck"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "效果送墓属于召唤诱发"
+    },
+    {
+      "code": 27780618,
+      "query": {
+        "action": "add_hand",
+        "usage": "name_soft_opt"
+      },
+      "expected_keys": [],
+      "reason": "融合检索不是同名一次"
+    },
+    {
+      "code": 28331069,
+      "query": {
+        "action": "tribute"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "解放是处理而不是费用"
+    },
+    {
+      "code": 28331069,
+      "query": {
+        "cost_kind": "tribute"
+      },
+      "expected_keys": [],
+      "reason": "不能用处理中的解放满足费用搜索"
+    },
+    {
+      "code": 28331070,
+      "query": {
+        "action": "tribute"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "解放是处理而不是费用"
+    },
+    {
+      "code": 28331070,
+      "query": {
+        "cost_kind": "tribute"
+      },
+      "expected_keys": [],
+      "reason": "不能用处理中的解放满足费用搜索"
+    },
+    {
+      "code": 28355718,
+      "query": {
+        "action": "special_summon",
+        "timing": "standby"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "预约的墓地诱发生成衍生物"
+    },
+    {
+      "code": 28355718,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "grave"
+      },
+      "expected_keys": [],
+      "reason": "不是苏生自身"
+    },
+    {
+      "code": 28400508,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "可以选择墓地，但必须合法蘇生且另有不同名字素材"
+    },
+    {
+      "code": 28400508,
+      "query": {
+        "action": "add_hand"
+      },
+      "expected_keys": [],
+      "reason": "选卡不等于加入手卡"
+    },
+    {
+      "code": 28677304,
+      "query": {
+        "action": "negate_effect"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "无效是起动建立的持续对象"
+    },
+    {
+      "code": 28677304,
+      "query": {
+        "action": "return_deck",
+        "to_zone": "extra"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "结束阶段返回是诱发"
+    },
+    {
+      "code": 28770951,
+      "query": {
+        "action": "draw",
+        "usage": "shared_name_once"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "两效果共池限制"
+    },
+    {
+      "code": 28770951,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [],
+      "reason": "从手卡作为素材不是特召"
+    }
+  ],
+  "semantic_cases": [
+    {
+      "code": 1426714,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "quick",
+      "reason": "衍生物是对方回合诱发即时特召；效果类别独立冻结，不冒充现有搜索过滤项"
+    },
+    {
+      "code": 1945387,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "战破后是必须诱发抽卡；效果类别独立冻结，不冒充现有搜索过滤项"
+    },
+    {
+      "code": 1945387,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "战破抽卡是必须诱发而非永续"
+    },
+    {
+      "code": 1992816,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "quick",
+      "reason": "无效攻击是诱发即时，不是诱发"
+    },
+    {
+      "code": 2530830,
+      "path": [
+        "effects",
+        2,
+        "structure",
+        "activation",
+        "zones"
+      ],
+      "expected": [
+        "grave"
+      ],
+      "reason": "发动区域与资源来源独立保存"
+    },
+    {
+      "code": 3356494,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "quick",
+      "reason": "对方主要阶段的破坏是诱发即时；效果类别独立冻结，不冒充现有搜索过滤项"
+    },
+    {
+      "code": 4019153,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "攻翻倍是诱发，不是永续；效果类别独立冻结，不冒充现有搜索过滤项"
+    },
+    {
+      "code": 4997565,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "quick",
+      "reason": "无效怪兽效果而非发动；效果类别独立冻结，不冒充现有搜索过滤项"
+    },
+    {
+      "code": 7194917,
+      "path": [
+        "effects",
+        3,
+        "effect_type"
+      ],
+      "expected": "continuous",
+      "reason": "战斗阶段末的表示变更不创造连锁"
+    },
+    {
+      "code": 28331069,
+      "path": [
+        "effects",
+        2,
+        "structure",
+        "usage"
+      ],
+      "expected": [],
+      "reason": "不能把叠放方法的次数套到②"
+    },
+    {
+      "code": 28331070,
+      "path": [
+        "effects",
+        2,
+        "structure",
+        "usage"
+      ],
+      "expected": [],
+      "reason": "不能把叠放方法的次数套到②"
+    }
+  ],
+  "purpose_cases": [
+    {
+      "code": 9024367,
+      "effect_key": "m1",
+      "role": "endboards",
+      "expected": false,
+      "reason": "自身攻击限制或仅自身攻击时的响应窗口封锁，不是自由时段对方持续阻抗"
+    },
+    {
+      "code": 13650422,
+      "effect_key": "m2",
+      "role": "endboards",
+      "expected": false,
+      "reason": "自身攻击限制或仅自身攻击时的响应窗口封锁，不是自由时段对方持续阻抗"
+    },
+    {
+      "code": 13293158,
+      "effect_key": "m1",
+      "role": "endboards",
+      "expected": false,
+      "reason": "自身攻击限制或仅自身攻击时的响应窗口封锁，不是自由时段对方持续阻抗"
+    }
+  ],
+  "source_bindings": {
+    "2419596/card-23502-p1": {
+      "kind": "supplement",
+      "official_cid": 23502,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=23502&ope=2&request_locale=ja",
+      "raw_path": "raw/card-23502-p1.html",
+      "text_path": "text/card-23502-p1.txt",
+      "raw_sha256": "3f3c9e7fdee9d456ad18386e3c1a8c01d6997740cb042876a69e7f54eead622d",
+      "text_sha256": "7c931afb019af7906d96641c64906bf9bc0ea41bae762bc8a064d5076c55da48"
+    },
+    "2419596/faq_index-23502-p1": {
+      "kind": "supplement",
+      "official_cid": 23502,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=23502&ope=4&page=1&request_locale=ja",
+      "raw_path": "raw/faq_index-23502-p1.html",
+      "text_path": "text/faq_index-23502-p1.txt",
+      "raw_sha256": "92d97a62459d115bb181b15a16da03c62d72f88a46efe2a4da18fde27484c1b6",
+      "text_sha256": "b8aea48e320fe35c9f360cdd870d4a1618298bfcd8a12522b246ce266fb73cf5"
+    },
+    "2419596/faq_detail-24163-p1": {
+      "kind": "supplement",
+      "official_cid": 23502,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?ope=5&fid=24163&keyword=&tag=-1&request_locale=ja",
+      "raw_path": "raw/faq_detail-24163-p1.html",
+      "text_path": "text/faq_detail-24163-p1.txt",
+      "raw_sha256": "61ed256cf4edbf0a0b8757ed44cf142bd611e47d40d4e1fdf2471e692a0344b4",
+      "text_sha256": "131066bcf07438e1e8ff02c2cea7a4edca6d7d790658d2595a8163c824d3172c"
+    },
+    "2419597/card-23502-p1": {
+      "kind": "supplement",
+      "official_cid": 23502,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=23502&ope=2&request_locale=ja",
+      "raw_path": "raw/card-23502-p1.html",
+      "text_path": "text/card-23502-p1.txt",
+      "raw_sha256": "3f3c9e7fdee9d456ad18386e3c1a8c01d6997740cb042876a69e7f54eead622d",
+      "text_sha256": "7c931afb019af7906d96641c64906bf9bc0ea41bae762bc8a064d5076c55da48"
+    },
+    "2419597/faq_index-23502-p1": {
+      "kind": "supplement",
+      "official_cid": 23502,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=23502&ope=4&page=1&request_locale=ja",
+      "raw_path": "raw/faq_index-23502-p1.html",
+      "text_path": "text/faq_index-23502-p1.txt",
+      "raw_sha256": "92d97a62459d115bb181b15a16da03c62d72f88a46efe2a4da18fde27484c1b6",
+      "text_sha256": "b8aea48e320fe35c9f360cdd870d4a1618298bfcd8a12522b246ce266fb73cf5"
+    },
+    "2419597/faq_detail-24163-p1": {
+      "kind": "supplement",
+      "official_cid": 23502,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?ope=5&fid=24163&keyword=&tag=-1&request_locale=ja",
+      "raw_path": "raw/faq_detail-24163-p1.html",
+      "text_path": "text/faq_detail-24163-p1.txt",
+      "raw_sha256": "61ed256cf4edbf0a0b8757ed44cf142bd611e47d40d4e1fdf2471e692a0344b4",
+      "text_sha256": "131066bcf07438e1e8ff02c2cea7a4edca6d7d790658d2595a8163c824d3172c"
+    },
+    "8593259/card-23147-p1": {
+      "kind": "supplement",
+      "official_cid": 23147,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=23147&ope=2&request_locale=ja",
+      "raw_path": "raw/card-23147-p1.html",
+      "text_path": "text/card-23147-p1.txt",
+      "raw_sha256": "eed741223698a14fb6573aa89bf1a4b239178aea750056137113c26906f6d113",
+      "text_sha256": "9b69f389fc9e8ce4ebc67ee18627a1fc2e2cf22f65d4e11cc06324855b0bf569"
+    },
+    "8593259/faq_index-23147-p1": {
+      "kind": "supplement",
+      "official_cid": 23147,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=23147&ope=4&page=1&request_locale=ja",
+      "raw_path": "raw/faq_index-23147-p1.html",
+      "text_path": "text/faq_index-23147-p1.txt",
+      "raw_sha256": "8cda359a48dd46d6564403bb424cf8dc2ca27c0559cc758dcb1b98a8dcc17005",
+      "text_sha256": "46f0633091a7178d6c87fedba608ba3ca33fddd1a80819e09689ef7bb066eaae"
+    },
+    "9327502/card-7058-p1": {
+      "kind": "supplement",
+      "official_cid": 7058,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=7058&ope=2&request_locale=ja",
+      "raw_path": "raw/card-7058-p1.html",
+      "text_path": "text/card-7058-p1.txt",
+      "raw_sha256": "4022146a2590b72b030455435406d08fbb7deb93dc5ced6e75157b518ac9ba05",
+      "text_sha256": "90f01aa9108e1682118ac919fbd66c5a49728ad5ce87e0603b12a2fcdcf0335f"
+    },
+    "9327502/faq_index-7058-p1": {
+      "kind": "supplement",
+      "official_cid": 7058,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=7058&ope=4&page=1&request_locale=ja",
+      "raw_path": "raw/faq_index-7058-p1.html",
+      "text_path": "text/faq_index-7058-p1.txt",
+      "raw_sha256": "77576b44cd447de9fc8d0b4788663b8b684d4a28ac92840da3b9eb36f7cef0a1",
+      "text_sha256": "7fe7e2b48c89bf41679d96d8ed4cc6a33247fe587da7153c7eb6518cbdc8b140"
+    },
+    "13243125/card-22694-p1": {
+      "kind": "supplement",
+      "official_cid": 22694,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=22694&ope=2&request_locale=ja",
+      "raw_path": "raw/card-22694-p1.html",
+      "text_path": "text/card-22694-p1.txt",
+      "raw_sha256": "9fd939afda7593c4687c6d6543e96f4c3d0530c0216e0ad54d2a1fedfdd365d1",
+      "text_sha256": "f92a9240a64598d0722fa3b56a41f400179d4275e4d8808a6bc4ef9e929b5826"
+    },
+    "13243125/faq_index-22694-p1": {
+      "kind": "supplement",
+      "official_cid": 22694,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=22694&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-22694-p1.html",
+      "text_path": "text/faq_index-22694-p1.txt",
+      "raw_sha256": "ee1cae889e821e9720051ec9459593c4b6960b044d61897b0ee13efb46679fbc",
+      "text_sha256": "6f6c280e5aada07353d5c622185fe2bdacad8586bba249fcfa132a4787a84e34"
+    },
+    "18963306/card-12552-p1": {
+      "kind": "supplement",
+      "official_cid": 12552,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=12552&ope=2&request_locale=ja",
+      "raw_path": "raw/card-12552-p1.html",
+      "text_path": "text/card-12552-p1.txt",
+      "raw_sha256": "a1d2277b8cc606bdc5c4faf6732072a6c77e060c6b3dc485de1718cf828e420b",
+      "text_sha256": "f9ea1c8411ea8f9c1fcf5636e2d7e65604b5ea3ef687a7d8d87931df4f227d0b"
+    },
+    "18963306/faq_index-12552-p1-rp50": {
+      "kind": "supplement",
+      "official_cid": 12552,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=12552&ope=4&rp=50&page=1&request_locale=ja",
+      "raw_path": "raw/faq_index-12552-p1-rp50.html",
+      "text_path": "text/faq_index-12552-p1-rp50.txt",
+      "raw_sha256": "083df010d24e4afd9c07b31259645e78bebbc50a5f8a7780491a3033ee92f858",
+      "text_sha256": "351de942c1f0289a303b0dd6fedd37e7254507909daa4d0ecf76af3a3394c8ba"
+    }
+  }
+}

@@ -39,7 +39,7 @@ ZONE_GROUPS = {'field': {'monster', 'opponent_monster', 'extra_monster_zone', 'o
 ACTION_TAGS = {'add_hand': 'etag:add-hand', 'draw': 'etag:draw', 'return_deck': 'etag:return-deck',
                'return_hand': 'etag:add-hand',
                'return_unsummoned': 'etag:add-hand',
-               'hand_reveal': 'etag:hand-look', 'deck_reveal': 'etag:deck-look',
+               'hand_reveal': 'etag:hand-look', 'deck_reveal': 'etag:deck-look', 'extra_reveal': 'etag:deck-look',
                'destroy': 'etag:destroy', 'banish': 'etag:banish', 'send_grave': 'etag:send-grave',
                'special_summon': 'etag:special-summon', 'normal_summon': 'etag:normal-summon',
                'negate_effect': 'etag:negate-effect', 'negate_activation': 'etag:negate-activation',
@@ -294,6 +294,7 @@ def _check_rule_action(item, where):
         if not item.get('from_zones'): raise ValueError(f'{where}须登记from_zones')
         if item.get('count') != 'all': integer('count')
         if action == 'change_attribute':
+            if 'mode' in item: choice('mode', {'replace', 'add'})
             choice('attribute_selection', {'activation', 'resolution', 'fixed'})
             text_field('duration')
             if item['attribute_selection'] == 'fixed':
@@ -467,6 +468,15 @@ def _check_processing(items, registry, where, reviewed=False, card_type=None):
     for item in items:
         if not isinstance(item, dict): raise ValueError(f'{where}处理项无效')
         registry.require('actions', item.get('action'), where)
+        if item.get('action') == 'extra_reveal' and (not item.get('from_zones')
+                or not set(item['from_zones']) <= {'extra', 'opponent_extra'}):
+            raise ValueError(f'{where}额外卡组确认须明确自己或对方额外区域')
+        if item.get('action') in ('burn', 'heal') and 'amount_rule' in item:
+            rule = item['amount_rule']
+            if ('amount' in item or not isinstance(rule, dict) or set(rule) != {'text', 'evaluated_at'}
+                    or rule.get('evaluated_at') != 'resolution'):
+                raise ValueError(f'{where}动态伤害／回复须有resolution文字依据且不能混用固定数值')
+            _check_text(rule.get('text'), f'{where}动态伤害／回复依据', 400)
         if 'recipient_rule' in item:
             _check_text(item['recipient_rule'], f'{where}受影响玩家规则', 400)
             if 'recipient' in item:

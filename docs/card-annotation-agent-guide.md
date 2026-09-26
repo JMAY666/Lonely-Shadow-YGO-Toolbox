@@ -1,6 +1,6 @@
 # 卡片标注交接指南
 
-适用版本：1.49.6。供后续智能体在现有 2,488 张内置效果参考样本上继续扩充，最新覆盖以[进度账本](card-annotation-progress.md)和实际资料为准。先读项目 `AGENTS.md` 与[体系规范](card-annotation-system.md)；旧优先清单已完成，现作为历史记录保留在[补卡提示词](card-annotation-next-batch.md)。只维护静态卡片知识，不启动已封存的 AI 学习计划。系列中文名、徽记与封面是独立展示资料，按[系列标识制作流程](card-series-production-guide.md)补充，不把系列样例核对计入完整效果标注数量。
+适用版本：1.49.7。供后续智能体在现有 2,569 张内置效果参考样本上继续扩充，最新覆盖以[进度账本](card-annotation-progress.md)和实际资料为准。先读项目 `AGENTS.md` 与[体系规范](card-annotation-system.md)；旧优先清单已完成，现作为历史记录保留在[补卡提示词](card-annotation-next-batch.md)。只维护静态卡片知识，不启动已封存的 AI 学习计划。系列中文名、徽记与封面是独立展示资料，按[系列标识制作流程](card-series-production-guide.md)补充，不把系列样例核对计入完整效果标注数量。
 
 2026-09-26用户确认改用[统一批次工具与续接流程](card-annotation-pipeline.md)：固定完整清单，机械准备并行，逐卡语义审核保留；每约20张检查，纯数据且机制稳定的完整发布阶段约300～500张统一测试、打包与审核发布。来源、词表或代码变化使检查缓存失效，合并前强制完整复查。新批次优先使用该工具，避免重复编写读取、分段和合并脚本；尚未审核的模板不得计入完成数量。
 
@@ -165,3 +165,7 @@ python scripts/check_annotation_source_batch.py --runtime .local/YGOPro-Lite --m
 ```powershell
 python scripts/check_annotation_source_batch.py --runtime .local/YGOPro-Lite --manifest docs/card-annotation-batch-2026-09-26-traps4.json --source-pack .local/annotation-handoff/20260925-catalog-all-14981
 ```
+
+## 1.49.7 首阶段续接
+
+原386张清单前100张已处理，81核准合并、19具体问题待核实；286张尚未处理。后续从.local/annotation-pipeline/fast-series-01/task.json第101项与最新规范库继续，不重复统计已入库81条。共用动作、次数、动态数值和未知查询字段门禁见体系规范；[逐卡清单](card-annotation-batch-2026-09-26-fast-series-stage01.json)及[本阶段验收](verification-1.49.7.md)保留结果。自动模板不计为审核，尚未核实独立单元不套用虚构获赋关系。

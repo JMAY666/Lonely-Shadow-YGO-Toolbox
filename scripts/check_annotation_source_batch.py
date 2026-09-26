@@ -16,6 +16,9 @@ from plan_tags import builtin_tags
 from annotation_batch_support import (atomic_json, cached_result, read_json,
                                       snapshot_hashes, validation_fingerprint)
 
+QUERY_FIELDS = {'q', 'status', 'etags', 'etag_mode', 'scope', 'offset', 'series', 'group_by',
+                'tag', 'kind', 'catalog_scope', 'action', 'from_zone', 'to_zone', 'usage', 'cost_kind', 'timing'}
+
 
 def check(runtime, manifest, source_pack=None, supplemental_root=None, *,
           document_path=None, cache_path=None, full=False):
@@ -112,6 +115,8 @@ def check(runtime, manifest, source_pack=None, supplemental_root=None, *,
         for case in batch['query_cases']:
             code = case['code']
             assert code in checked_codes
+            if set(case['query']) - QUERY_FIELDS:
+                raise ValueError(f'{code}: query case contains unsupported filter fields')
             found = service.search({**case['query'], 'q': str(code)})
             actual = {hit['key'] for row in found['cards'] if row['code'] == code for hit in row['hits']}
             assert actual == set(case['expected_keys']), (code, case['reason'], actual, case['expected_keys'])
