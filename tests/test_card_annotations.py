@@ -140,6 +140,129 @@ class CardAnnotationTests(unittest.TestCase):
         self.assertTrue(loose['cards'][0]['cross_effects'])
         self.assertEqual(sorted(loose['cards'][0]['hit_keys']), ['m1', 'm2'])
 
+    def test_action_and_zones_do_not_mix_sequential_processing_items(self):
+        effect = simple_effect('m1', 1, ['etag:banish', 'etag:add-hand'], [
+            {'action': 'banish', 'from_zones': ['deck'], 'to_zones': ['banished'], 'then': [
+                {'action': 'add_hand', 'from_zones': ['banished'], 'to_zones': ['hand'],
+                 'timing': '第二次自己的准备阶段'}]}])
+        self.install_grant_effect(effect)
+        for scope in ('effect', 'card'):
+            for conditions in (
+                {'action': 'add_hand', 'from_zone': 'deck'},
+                {'action': 'banish', 'to_zone': 'hand'},
+                {'from_zone': 'deck', 'to_zone': 'hand'},
+            ):
+                with self.subTest(scope=scope, conditions=conditions):
+                    self.assertEqual(self.service.search({'q': '20000001', 'scope': scope, **conditions})['total'], 0)
+            result = self.service.search({'q': '20000001', 'scope': scope, 'action': 'add_hand',
+                                          'from_zone': 'banished', 'to_zone': 'hand'})
+            self.assertEqual(result['total'], 1)
+            evidence = result['cards'][0]['hits'][0]['evidence']
+            self.assertEqual({item['condition'] for item in evidence}, {'action', 'from_zone', 'to_zone'})
+            self.assertEqual(len({item['processing_path'] for item in evidence}), 1)
+        self.assertEqual(self.service.search({'q': '20000001', 'action': 'add_hand'})['total'], 1)
+
+    def test_processing_match_searches_all_branches_and_keeps_implicit_destination(self):
+        effect = simple_effect('m1', 1, ['etag:add-hand', 'etag:destroy'], [
+            {'action': 'choose_branch', 'branches': [
+                {'condition': '回收墓地', 'actions': [{'action': 'add_hand', 'from_zones': ['grave']}]},
+                {'condition': '回收除外', 'actions': [{'action': 'add_hand', 'from_zones': ['banished']}]},
+                {'condition': '破坏', 'actions': [{'action': 'destroy', 'from_zones': ['opponent_monster']}]}]}])
+        self.install_grant_effect(effect)
+        found = self.service.search({'q': '20000001', 'action': 'add_hand', 'from_zone': 'banished', 'to_zone': 'hand'})
+        self.assertEqual(found['total'], 1)
+        evidence = found['cards'][0]['hits'][0]['evidence']
+        self.assertTrue(any('隐含去向' in item['basis'] for item in evidence))
+        self.assertEqual(len({item['processing_path'] for item in evidence}), 1)
+        self.assertEqual(self.service.search({'q': '20000001', 'action': 'add_hand', 'from_zone': 'opponent_monster'})['total'], 0)
+
+    def test_card_scope_keeps_movement_atomic_but_allows_other_effect_conditions(self):
+        def mutate(entries):
+            entry = entries['20000003']
+            entry['effects'][1]['structure']['processing'] = [{'action': 'add_hand', 'from_zones': ['grave']}]
+            entry['effects'][1]['tags'] = ['etag:add-hand']
+            entry['effects'][2]['structure']['processing'] = [{'action': 'destroy', 'from_zones': ['opponent_monster']}]
+        self.write_curated(mutate)
+        self.service.reload()
+        self.assertEqual(self.service.search({'q': '20000003', 'scope': 'card', 'action': 'add_hand',
+                                              'from_zone': 'opponent_monster'})['total'], 0)
+        result = self.service.search({'q': '20000003', 'scope': 'card', 'action': 'add_hand',
+                                      'from_zone': 'grave', 'etags': ['etag:destroy']})
+        self.assertEqual(result['total'], 1)
+        self.assertTrue(result['cards'][0]['cross_effects'])
+
+    def test_random_result_and_replacement_actions_require_their_distinct_contracts(self):
+        samples = {
+            'toss_coin': {'count': 1, 'executor': 'self', 'branches': [
+                {'condition': '表', 'actions': [{'action': 'draw', 'from_zones': ['deck']}]},
+                {'condition': '里', 'actions': [{'action': 'draw', 'from_zones': ['opponent_deck']}]}]},
+            'roll_dice': {'rolls': 2, 'faces': 6, 'executor': 'self', 'result': 'sum',
+                          'then': [{'action': 'destroy', 'from_zones': ['monster']}]},
+            'add_to_extra_faceup': {'count': 1, 'from_zones': ['deck'], 'to_zones': ['extra_faceup'],
+                                    'shuffle_source_after': True},
+            'set_lp': {'recipient': 'both', 'amount': 3000},
+            'replace_draw_with_discard': {'source_activation': 'draw_only_effect',
+                'quantity': 'cards_that_would_be_drawn', 'reveal_to': 'both', 'counts_as_draw': False,
+                'cards_enter_hand': False, 'from_zones': ['deck_top'], 'to_zones': ['grave']},
+            'redirect_effect_damage': {'source_player': 'opponent', 'recipient': 'opponent',
+                                       'source_effect': 'activated', 'duration': '本回合'},
+            'place_deck_bottom': {'executor': 'self', 'count': 1, 'from_zones': ['deck'],
+                                  'to_zones': ['deck_bottom'], 'shuffle_before_placement': True},
+        }
+        def entry_for(action):
+            tags = {'toss_coin': ['etag:draw'], 'roll_dice': ['etag:destroy'],
+                    'place_deck_bottom': ['etag:deck-look']}.get(action, [])
+            item = {'action': action, 'selector': {'text': '已核实的测试处理'}, **deepcopy(samples[action])}
+            return make_entry(20000001, SEARCHER, [simple_effect('m1', 1, tags, [item])])
+        for action in samples:
+            with self.subTest(valid=action):
+                validate_entry(entry_for(action), self.service.registry, {'m1'}, card_type=2)
+        invalid = [
+            ('toss_coin', 'count', True), ('toss_coin', 'count', 0), ('toss_coin', 'executor', 'unknown'),
+            ('toss_coin', 'branches', []), ('toss_coin', 'branches', 2),
+            ('toss_coin', 'branches', [{'condition': '表', 'actions': []}, {'condition': '里', 'actions': []}]),
+            ('roll_dice', 'rolls', -1), ('roll_dice', 'faces', 20), ('roll_dice', 'faces', True),
+            ('roll_dice', 'result', ''), ('roll_dice', 'then', []),
+            ('add_to_extra_faceup', 'to_zones', ['hand']), ('add_to_extra_faceup', 'from_zones', []),
+            ('add_to_extra_faceup', 'count', '1'), ('add_to_extra_faceup', 'shuffle_source_after', 'yes'),
+            ('set_lp', 'amount', -3000), ('set_lp', 'amount', True), ('set_lp', 'recipient', 'card'),
+            ('replace_draw_with_discard', 'source_activation', 'any_effect'),
+            ('replace_draw_with_discard', 'counts_as_draw', True),
+            ('replace_draw_with_discard', 'cards_enter_hand', True),
+            ('replace_draw_with_discard', 'reveal_to', 'self'),
+            ('replace_draw_with_discard', 'from_zones', ['hand']),
+            ('replace_draw_with_discard', 'to_zones', ['hand']),
+            ('redirect_effect_damage', 'source_effect', 'battle'),
+            ('redirect_effect_damage', 'duration', ''),
+            ('place_deck_bottom', 'to_zones', ['deck_top']),
+            ('place_deck_bottom', 'shuffle_before_placement', 'yes'),
+        ]
+        for action, field, value in invalid:
+            with self.subTest(action=action, field=field, value=value):
+                entry = entry_for(action)
+                entry['effects'][0]['structure']['processing'][0][field] = value
+                with self.assertRaises(ValueError):
+                    validate_entry(entry, self.service.registry, {'m1'}, card_type=2)
+
+    def test_random_branches_preserve_player_source_and_replacement_is_not_draw(self):
+        effect = simple_effect('m1', 1, ['etag:draw'], [
+            {'action': 'toss_coin', 'selector': {'text': '结算时掷一次'}, 'count': 1, 'executor': 'self',
+             'branches': [
+                 {'condition': '表', 'actions': [{'action': 'draw', 'from_zones': ['deck'], 'to_zones': ['hand']}]},
+                 {'condition': '里', 'actions': [{'action': 'draw', 'from_zones': ['opponent_deck'], 'to_zones': ['opponent_hand']}]}]}])
+        self.install_grant_effect(effect)
+        self.assertEqual(self.service.search({'q': '20000001', 'action': 'draw', 'from_zone': 'opponent_deck',
+                                              'to_zone': 'opponent_hand'})['total'], 1)
+        self.assertEqual(self.service.search({'q': '20000001', 'action': 'draw', 'from_zone': 'deck',
+                                              'to_zone': 'opponent_hand'})['total'], 0)
+        replacement = {'action': 'replace_draw_with_discard', 'selector': {'text': '原应抽卡直接丢墓'},
+                       'source_activation': 'draw_only_effect', 'quantity': 'cards_that_would_be_drawn',
+                       'reveal_to': 'both', 'counts_as_draw': False, 'cards_enter_hand': False,
+                       'from_zones': ['deck_top'], 'to_zones': ['grave']}
+        self.install_grant_effect(simple_effect('m1', 1, [], [replacement]))
+        for action in ('draw', 'discard_hand', 'negate_effect'):
+            self.assertEqual(self.service.search({'q': '20000001', 'action': action})['total'], 0)
+
     def test_unknown_cards_are_not_negatives(self):
         result = self.service.search({'etags': ['etag:add-hand']})
         self.assertEqual(result['catalog_total'], len(CARDS))
@@ -363,6 +486,169 @@ class CardAnnotationTests(unittest.TestCase):
         effect['structure']['processing'][0]['from_zones'] = ['opponent_grave']
         with self.assertRaisesRegex(ValueError, '场上卡回手'):
             validate_entry(entry, registry, {'m1'}, card_type=2)
+
+    def short_rule_actions(self):
+        # Minimal meaningful parameter sets from the reviewed short-card proposals.
+        return [
+            ({'action': 'remove_counter', 'counter_type': '魔力指示物', 'from_zones': ['field'], 'count': 'all'}, []),
+            ({'action': 'place_deck_top', 'executor': 'opponent', 'from_zones': ['opponent_deck'],
+              'to_zones': ['opponent_deck_top'], 'count': 1, 'shuffle_before_placement': True,
+              'inspects_opponent_deck': False}, ['etag:deck-look']),
+            ({'action': 'reveal_set_cards', 'from_zones': ['field'], 'controller': 'opponent',
+              'audience': 'self', 'changes_position': False, 'count': 'all'}, []),
+            ({'action': 'change_hand_limit', 'recipient': 'self', 'value': 7, 'duration': '本次决斗'}, []),
+            ({'action': 'skip_phase', 'player': 'self', 'phase': 'standby', 'count': 1, 'duration': '下次自己的准备阶段'}, []),
+            ({'action': 'advance_turn_count', 'amount': 1, 'count': 1}, []),
+            ({'action': 'repeat_phase', 'player': 'opponent', 'phase': 'battle', 'count': 2, 'duration': '下次实际进行战斗阶段的回合'}, []),
+            ({'action': 'redirect_spell_recipient', 'source_activation': 'spell_card_activation',
+              'recipient_rule': 'other_player', 'count': 1}, []),
+            ({'action': 'change_race', 'race': 'dragon', 'duration': '本回合', 'from_zones': ['monster'],
+              'count': 'all', 'applies_to_later_monsters': False}, ['etag:stat-change']),
+            ({'action': 'activate_field_spell', 'from_zones': ['deck'], 'to_zones': ['field_spell'],
+              'count': 1, 'resolve_activation_effect': False}, []),
+            ({'action': 'reveal_drawn_cards', 'player': 'opponent', 'duration': '对方第2次回合结束时'}, []),
+            ({'action': 'reverse_stat_modifiers', 'stats': ['atk', 'def'], 'duration': '本回合'}, ['etag:stat-change']),
+            ({'action': 'reroll_dice', 'player': 'both', 'duration': '本回合', 'applications': 1,
+              'dice_scope': 'entire_dice_procedure', 'stacking': 'non_cumulative'}, []),
+            ({'action': 'move_to_end_phase', 'phase': 'end', 'duration': '立即移行'}, []),
+            ({'action': 'redirect_spell_target', 'source_activation': 'spell_card_activation',
+              'original_target_kind': 'monster', 'new_target_rule': 'different_legal_target',
+              'from_zones': ['field'], 'count': 1}, []),
+        ]
+
+    def rule_action_entry(self, action, tags):
+        action = {'selector': {'text': '按官方资料记录的本卡处理'}, **deepcopy(action)}
+        effect = simple_effect('m1', 1, tags, [action])
+        effect['effect_type'] = 'spell_activation'
+        return make_entry(20000001, SEARCHER, [effect])
+
+    def test_short_rule_actions_require_parameters_not_just_registered_names(self):
+        for action, tags in self.short_rule_actions():
+            entry = self.rule_action_entry(action, tags)
+            validate_entry(entry, self.service.registry, card_type=2)
+            for field in {'selector', *action} - {'action', 'inspects_opponent_deck'}:
+                with self.subTest(action=action['action'], missing=field):
+                    invalid = deepcopy(entry)
+                    del invalid['effects'][0]['structure']['processing'][0][field]
+                    with self.assertRaises(ValueError):
+                        validate_entry(invalid, self.service.registry, card_type=2)
+
+    def test_short_rule_actions_reject_mechanically_different_parameter_values(self):
+        fixtures = {a['action']: (a, tags) for a, tags in self.short_rule_actions()}
+        mutations = [
+            ('remove_counter', 'counter_type', ''),
+            ('remove_counter', 'count', True),
+            ('place_deck_top', 'to_zones', ['grave']),
+            ('place_deck_top', 'shuffle_before_placement', 1),
+            ('place_deck_top', 'inspects_opponent_deck', 'false'),
+            ('place_deck_top', 'executor', 'owner'),
+            ('reveal_set_cards', 'changes_position', True),
+            ('reveal_set_cards', 'from_zones', ['hand']),
+            ('reveal_set_cards', 'audience', []),
+            ('change_hand_limit', 'value', -1),
+            ('change_hand_limit', 'value', True),
+            ('change_hand_limit', 'value', 7.0),
+            ('skip_phase', 'phase', 'whole_turn'),
+            ('skip_phase', 'count', 0),
+            ('skip_phase', 'count', '2'),
+            ('advance_turn_count', 'amount', False),
+            ('advance_turn_count', 'amount', -1),
+            ('repeat_phase', 'count', 1),
+            ('repeat_phase', 'duration', ''),
+            ('redirect_spell_recipient', 'source_activation', 'spell_effect'),
+            ('redirect_spell_recipient', 'recipient_rule', 'both_players'),
+            ('redirect_spell_target', 'original_target_kind', 'player'),
+            ('redirect_spell_target', 'new_target_rule', 'same_target'),
+            ('redirect_spell_target', 'from_zones', ['grave']),
+            ('redirect_spell_target', 'count', 2),
+            ('change_race', 'race', 8192),
+            ('change_race', 'applies_to_later_monsters', 'false'),
+            ('activate_field_spell', 'to_zones', ['spell']),
+            ('activate_field_spell', 'resolve_activation_effect', True),
+            ('reveal_drawn_cards', 'player', 'drawer'),
+            ('reverse_stat_modifiers', 'stats', ['level']),
+            ('reverse_stat_modifiers', 'stats', ['atk', 'atk']),
+            ('reroll_dice', 'applications', 0),
+            ('reroll_dice', 'dice_scope', 'keep_one_previous_result'),
+            ('reroll_dice', 'stacking', 'unknown'),
+            ('move_to_end_phase', 'phase', 'battle'),
+        ]
+        for name, field, value in mutations:
+            with self.subTest(action=name, field=field, value=value):
+                action, tags = deepcopy(fixtures[name])
+                action[field] = value
+                with self.assertRaises(ValueError):
+                    validate_entry(self.rule_action_entry(action, tags), self.service.registry, card_type=2)
+
+    def test_support_actions_cannot_borrow_later_cards_draw_destroy_or_negation_tags(self):
+        for action, tags in self.short_rule_actions():
+            for borrowed in ('etag:draw', 'etag:destroy', 'etag:negate-effect', 'etag:negate-activation'):
+                with self.subTest(action=action['action'], borrowed=borrowed):
+                    with self.assertRaisesRegex(ValueError, 'TAG 与处理'):
+                        validate_entry(self.rule_action_entry(action, [*tags, borrowed]), self.service.registry, card_type=2)
+        # A card which actually draws and then skips its next phases keeps its draw capability.
+        skip = next(a for a, _ in self.short_rule_actions() if a['action'] == 'skip_phase')
+        entry = self.rule_action_entry(skip, ['etag:draw'])
+        entry['effects'][0]['structure']['processing'].insert(0, {'action': 'draw', 'count': 2})
+        validate_entry(entry, self.service.registry, card_type=2)
+
+    def test_new_race_and_modifier_actions_use_existing_stat_tag_without_changing_legacy_rules(self):
+        for action, tags in self.short_rule_actions():
+            if action['action'] not in ('change_race', 'reverse_stat_modifiers'): continue
+            self.assertEqual(tags, ['etag:stat-change'])
+            with self.assertRaisesRegex(ValueError, 'etag:stat-change'):
+                validate_entry(self.rule_action_entry(action, []), self.service.registry, card_type=2)
+        # Existing stat_change annotations do not gain new required fields or tag rules.
+        validate_entry(self.rule_action_entry({'action': 'stat_change'}, []), self.service.registry, card_type=2)
+
+    def test_opponent_extra_is_not_self_extra_or_a_field_zone(self):
+        action = {'action': 'return_deck', 'from_zones': ['opponent_monster'], 'to_zones': ['opponent_extra']}
+        entry = self.rule_action_entry(action, ['etag:return-deck'])
+        self.write_curated(mutate=lambda entries: entries.update({'20000001': entry}))
+        self.service.reload()
+        self.assertEqual(self.service.search({'q': '20000001', 'to_zone': 'opponent_extra'})['total'], 1)
+        for zone in ('extra', 'extra_faceup', 'opponent_extra_monster_zone', 'field'):
+            self.assertFalse(zone_matches(zone, ['opponent_extra']))
+            self.assertEqual(self.service.search({'q': '20000001', 'to_zone': zone})['total'], 0)
+        self.assertIn('opponent_deck_top', self.service.registry.vocab['zones'])
+        self.assertFalse(zone_matches('deck_top', ['opponent_deck_top']))
+
+    def test_target_ranges_are_explicit_and_preserve_fixed_and_unbounded_quantities(self):
+        effect = simple_effect('m1', 1, ['etag:return-deck'], [
+            {'action': 'return_deck', 'from_zones': ['grave'], 'to_zones': ['deck']}])
+        effect['effect_type'] = 'spell_activation'
+        entry = make_entry(20000001, SEARCHER, [effect])
+        for quantity in ({'count': 2}, {'count': 0}, {'min_count': 1, 'max_count': 3},
+                         {'min_count': 0, 'max_count': 0}, {'min_count': 2, 'max_count': None}):
+            with self.subTest(quantity=quantity):
+                effect['structure']['targeting'] = [{**quantity, 'filter': '符合条件的墓地怪兽'}]
+                validate_entry(entry, self.service.registry, card_type=2)
+                self.write_curated(mutate=lambda entries: entries.update({'20000001': entry}))
+                self.service.reload()
+                self.assertEqual(self.service.search({'q': '20000001', 'action': 'return_deck', 'from_zone': 'grave'})['total'], 1)
+                self.assertEqual(self.service.view(20000001)['effects'][0]['structure']['targeting'], effect['structure']['targeting'])
+        effect['structure']['targeting'] = [{'min_count': 1, 'max_count': 3, 'filter': '自己墓地火山怪兽'}]
+        self.assertEqual(effect['structure']['targeting'][0]['min_count'], 1, '33725271必须是1至3，不是0至3')
+
+    def test_target_ranges_reject_missing_bounds_ambiguity_and_non_integer_counts(self):
+        entry = self.rule_action_entry({'action': 'return_deck'}, ['etag:return-deck'])
+        invalid_quantities = [
+            {}, {'min_count': 1}, {'max_count': 3}, {'max_count': None},
+            {'count': 3, 'min_count': 1, 'max_count': 3},
+            {'count': 2, 'min_count': 2, 'variable_count': True},
+            {'count': None, 'min_count': 1, 'max_count': None},
+            {'min_count': 3, 'max_count': 2}, {'min_count': -1, 'max_count': 3},
+            {'min_count': 0, 'max_count': -1}, {'min_count': 1.0, 'max_count': 3},
+            {'min_count': 1, 'max_count': 3.0}, {'min_count': '1', 'max_count': 3},
+            {'min_count': None, 'max_count': 3}, {'min_count': True, 'max_count': 3},
+            {'min_count': 0, 'max_count': False}, {'count': True}, {'count': False},
+            {'count': -1}, {'count': 1.0}, {'count': '1'},
+        ]
+        for quantity in invalid_quantities:
+            with self.subTest(quantity=quantity):
+                entry['effects'][0]['structure']['targeting'] = [{**quantity, 'filter': '对象'}]
+                with self.assertRaisesRegex(ValueError, '对象'):
+                    validate_entry(entry, self.service.registry, card_type=2)
 
     def test_usage_and_action_filters(self):
         locked = self.service.search({'etags': ['etag:special-summon'], 'usage': 'per_effect_name_soft_opt'})

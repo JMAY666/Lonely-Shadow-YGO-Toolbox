@@ -33,6 +33,36 @@ class CapabilityTests(unittest.TestCase):
         self.assertEqual(before, self.service.document)
         self.assertFalse(self.service.path.exists())
 
+    def test_target_facts_preserve_closed_open_and_fixed_quantities_in_snapshots(self):
+        targets = [{'min_count': 1, 'max_count': 3, 'filter': '墓地火山怪兽'},
+                   {'min_count': 2, 'max_count': None, 'filter': 'RR超量怪兽'},
+                   {'count': 2, 'filter': '固定2张对象卡'}]
+        def change(entries): entries['20000001']['effects'][0]['structure']['targeting'] = deepcopy(targets)
+        self.write_curated(change)
+        self.service.reload()
+        projected = self.capabilities.card(20000001)
+        effect = projected['effects'][0]
+        target_fact = next(row['text'] for row in effect['facts'] if row['label'] == '对象')
+        self.assertIn('1至3个 墓地火山怪兽', target_fact)
+        self.assertIn('至少2个 RR超量怪兽', target_fact)
+        self.assertIn('2 固定2张对象卡', target_fact)
+        self.assertEqual(effect['structure']['targeting'], targets)
+        report = {'catalog': {'20000001': {'desc': SEARCHER}}, 'branches': []}
+        self.capabilities.freeze_report(report)
+        frozen = deepcopy(report)
+        self.assertEqual(report['annotation_snapshot']['20000001']['effects'][0]['structure']['targeting'], targets)
+        effect['structure']['targeting'][0]['max_count'] = 99
+        self.assertEqual(self.capabilities.card(20000001)['effects'][0]['structure']['targeting'], targets)
+        self.capabilities.freeze_report(report)
+        self.assertEqual(report, frozen)
+        self.assertFalse(self.service.path.exists())
+
+    def test_legacy_target_facts_do_not_silently_infer_an_open_upper_bound(self):
+        legacy = simple_effect('m1', 1, [], [])
+        legacy['structure']['targeting'] = [{'count': 2, 'min_count': 2, 'variable_count': True, 'filter': '原快照2只以上的文字'}]
+        fact = next(row['text'] for row in self.capabilities.facts(legacy) if row['label'] == '对象')
+        self.assertEqual(fact, '2 原快照2只以上的文字')
+
     def test_unknown_and_missing_do_not_mean_no_effect(self):
         unknown = self.capabilities.card(20000004)
         self.assertEqual(unknown['status'], 'none')

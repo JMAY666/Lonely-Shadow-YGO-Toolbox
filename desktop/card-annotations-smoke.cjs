@@ -114,9 +114,14 @@ module.exports = async ({page, application, root, evidence, pass}) => {
   }
   // Capability queries still separate source zones and effects after the sample set expands.
   const byGrave = await page.evaluate(() => api('/api/annotations', {op:'query',etags:['etag:add-hand'],from_zone:'grave'}));
-  const graveCodes=byGrave.cards.map(card=>card.code);
-  assert.ok(graveCodes.includes(674561)&&graveCodes.includes(16509007));
-  assert.ok(!graveCodes.includes(213326));
+  assert.ok(byGrave.total >= 2);
+  // Results are paginated; specific examples need their own query as coverage grows.
+  for (const [code, expected] of [[674561,1],[16509007,1],[213326,0]]) {
+    const result=await page.evaluate(code=>api('/api/annotations',{
+      op:'query',q:String(code),etags:['etag:add-hand'],from_zone:'grave'
+    }),code);
+    assert.equal(result.total,expected);
+  }
   const strict=await page.evaluate(()=>api('/api/annotations',{op:'query',q:'16387555',etags:['etag:special-summon','etag:banish']}));
   assert.equal(strict.total,0);
   const loose=await page.evaluate(()=>api('/api/annotations',{op:'query',q:'16387555',etags:['etag:special-summon','etag:banish'],scope:'card'}));
@@ -141,6 +146,8 @@ module.exports = async ({page, application, root, evidence, pass}) => {
   await page.locator('#anno-from').selectOption('grave');
   await page.locator('#anno-form button[type="submit"]').first().click();
   await page.waitForFunction(total=>annoUI.results?.total===total,byGrave.total);
+  await search('674561');
+  await page.waitForFunction(()=>annoUI.detail?.code===674561&&!annoUI.busy);
   assert.match(await page.locator('#anno-results').textContent(),/暗黑爆发/);
   assert.match(await page.locator('#anno-detail').textContent(),/来源区域：墓地/);
   assert.equal(await page.locator('#anno-advanced').getAttribute('open'),null);

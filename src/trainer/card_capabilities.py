@@ -81,7 +81,14 @@ class CardCapabilities:
         add('时点', registry.vocab['timings'].get(activation.get('timing'), ''))
         add('条件', '；'.join(activation.get('conditions') or []))
         add('费用', '；'.join(row.get('text') or registry.vocab['cost_kinds'].get(row.get('kind'), '') for row in structure.get('cost') or []))
-        add('对象', '；'.join(str(row.get('count', '')) + ' ' + row.get('filter', '') for row in structure.get('targeting') or []))
+        def target_text(row):
+            if 'count' in row: quantity = str(row['count'])
+            elif 'min_count' in row and 'max_count' in row:
+                quantity = (f"至少{row['min_count']}个" if row['max_count'] is None
+                            else f"{row['min_count']}至{row['max_count']}个")
+            else: quantity = ''
+            return quantity + ' ' + row.get('filter', '')
+        add('对象', '；'.join(target_text(row) for row in structure.get('targeting') or []))
         add('次数', '；'.join(registry.usage_label(v) for v in structure.get('usage') or []))
         add('次数说明', structure.get('usage_text'))
         def processing(items, prefix='处理'):

@@ -57,7 +57,8 @@ tags[]                        通用效果 TAG（见 §4；只表达共性能力
 structure.activation          发动条件：timing（受控词表）、zones（发动区域）、
                               conditions（原文条件列表）、fast_effect（是否属于快速效果；不是对方回合可发动的充分条件）
 structure.cost[]              费用：kind（受控词表）＋原文短句
-structure.targeting[]         对象要求：count ＋ filter 描述
+structure.targeting[]         对象要求：固定 count 或 min_count/max_count 区间 ＋ filter 描述；
+                              max_count: null 显式表示无固定上界
 structure.processing[]        处理内容：action（受控词表）＋count（1 / up_to_1 / all…）＋
                               from_zones / to_zones（资源来源与去向区域）＋
                               selector（可选范围：点名卡、系列 set: id、排除项）＋
@@ -173,6 +174,52 @@ notes[]                       效果级备注（含来源引用）
 - 查询时可与**系列 TAG／自定义 TAG／用途 TAG** 组合：`tag` 参数接受标签库任意 id（`set:`／`custom:`／`purpose:`），按其成员集过滤；效果 TAG 与结构参数在效果层过滤，两层叠加；
 - 反向指向：效果标注的 `selector.series` 可引用系列 setcode（如 `set:1d5` 杀手级调整曲），身份仍是数字系列码。
 
+### 短魔法／陷阱的规则与辅助动作（2026-09-26）
+
+下面新增 15 个动作，沿用既有逐效果结构。它们描述本卡实际进行的处理；不会把被影响、被转移或后来发动的另一张卡的抽卡、破坏、无效等能力自动赋给本卡。每个新增动作都须有非空 `selector.text`。字段里的玩家取值为 `self`／`opponent`／`both`；`executor` 指处理执行者，`recipient`、`player`、`controller` 则按各字段说明指受影响玩家或卡片控制者。
+
+| 新动作 | 定义与必需参数 | 正例 | 反例与 TAG 边界 |
+| --- | --- | --- | --- |
+| `remove_counter` | 效果处理取除指示物；记录 `counter_type`（种类文字或 `all`）、`from_zones`、`count`（正整数或 `all`） | 指示物吸除器（38834303）取除全部指示物；魔力枯竭（95451366）只取除魔力指示物 | 发动时取除用 `cost_kinds.remove_counter`；不推导破坏／送墓／除外 |
+| `place_deck_top` | 将选定卡放至卡组最上面；须有 `executor`、`from_zones`、`to_zones`（仅 `deck_top`／`opponent_deck_top`）、`count`、布尔值 `shuffle_before_placement`；提供 `inspects_opponent_deck` 时须为布尔值 | 翡翠虫笛（95214051）由对方选择并洗切后置顶 | 不是主动确认卡组的 `deck_reveal`。沿用包含卡组顺序操作的 `etag:deck-look`；该 TAG 本身不证明可以查看对方整副卡组 |
+| `reveal_set_cards` | 确认场上盖卡内容而不改变表示形式；须有场上 `from_zones`、`count`、`controller`、`audience` 和 `changes_position=false` | 旧神之印（97809599）、心灵透视（75392615）确认对方盖卡 | 翻成表侧用 `set_position`；不借用确认手卡 TAG |
+| `change_hand_limit` | 改变规则手卡上限；记录 `recipient`、非负整数 `value`、`duration` | 圣书体石板（10248192）本决斗自己上限7张 | 不是抽到指定手卡数，也不立即丢弃手卡 |
+| `skip_phase` | 跳过指定玩家的指定阶段；记录 `player`、`phase`、正整数 `count`、`duration`，重叠适用规则另放 `restrictions` | 刻之封印（35316708）跳过下次对方抽卡阶段 | 不是抽卡能力，也不是结束当前战斗阶段 |
+| `repeat_phase` | 指定阶段重复进行；字段同上，`count` 为总次数且至少2，`duration` 明确适用起点 | 不运的报告（19763315）令对方下次实际进行的战斗阶段进行2次 | 不是追加攻击次数，也不强迫对方进入战斗阶段 |
+| `advance_turn_count` | 推进单张卡正在计算的回合数；记录所选卡 `count` 和推进量 `amount`，均为正整数 | 命运之火钟（1082946）推进1张卡的回合计数1回合 | 不推进真实回合、不代替准备阶段次数，不推导计数届满后的破坏能力 |
+| `redirect_spell_recipient` | 将只适用于一位玩家的魔法卡效果改为适用于另一位玩家；`source_activation=spell_card_activation`、`recipient_rule=other_player`、`count=1` | 精灵之镜（35563539）改变魔法效果适用者 | 不取卡片对象；不同于改变魔法对象，不是无效或效果改写 |
+| `redirect_spell_target` | 改变魔法卡的单张卡对象；记录 `source_activation=spell_card_activation`、`original_target_kind`（`monster`／`spell_trap`／`card`）、`new_target_rule=different_legal_target`、场上 `from_zones`、`count=1` | 天使的手镜（17653779）原对象为怪兽；恶魔的手镜（58607704）原对象为魔陷 | 新对象须满足原魔法条件，不能继续选原对象；不是改变适用玩家或继承原魔法能力 |
+| `change_race` | 改变怪兽种族；记录非空种族标识 `race`、`from_zones`、`count`、`duration` 和布尔值 `applies_to_later_monsters` | 龙之血族（2833249）将处理时己方表侧怪兽变龙族，后出现者不适用 | `treat_as_name` 只改变卡名。已有 `etag:stat-change` 明确包含种族／属性，应继续使用，不另造 TAG |
+| `activate_field_spell` | 在本效果处理中从来源区域发动场地魔法；记录 `from_zones`、`to_zones=['field_spell']`、`count=1`、`resolve_activation_effect=false` | 虚拟世界（89208725）的发动分支 | 仍须满足发动条件，但不另起连锁或进行该场地魔法的卡发动时处理；`place_field_spell` 仅表侧放置，不能代替；不继承场地魔法的检索能力 |
+| `reveal_drawn_cards` | 在规定期间公开指定玩家将抽到的卡；记录 `player`、`duration` | 绒儿的读心术（58015506）公开对方此后抽到的卡 | 本卡不进行抽卡，不等于确认已在手卡的卡，不自动挂抽卡 TAG |
+| `reverse_stat_modifiers` | 令攻守上升／下降效果反向；记录 `duration`、非空且不重复的 `stats`（`atk`／`def`） | 天邪鬼的诅咒（77622396）反向攻守增减 | 不反转设置原本数值的处理，不等于效果无效；使用既有 `etag:stat-change` |
+| `reroll_dice` | 已适用效果允许以后重新掷骰；记录 `player`、`duration`、正整数 `applications`、`dice_scope=entire_dice_procedure`、`stacking`（`non_cumulative`／`cumulative`） | 反转骰子（83241722）本回合一次完整重掷，同类效果不累计 | 当前协议只表达完整掷骰流程，不能保留连续多次中某一次的结果；不产生新连锁，也不继承骰子结果决定的能力 |
+| `move_to_end_phase` | 当前回合直接移行至结束阶段；须有 `phase=end` 与 `duration` | 闪光弹（9267769）直接攻击受伤后直接进入结束阶段 | 不进行被越过的主要阶段2；`end_battle_phase` 本身仍允许通常进入主要阶段2，不是相同动作 |
+
+`phase` 取 `draw`／`standby`／`main1`／`battle`／`main2`／`end`。所有新动作的整数参数拒绝布尔值、字符串、负数及不符合上述下限的数值；上述 `count` 中只有移除指示物、卡顶放置、盖卡确认与种族改变允许 `all`。种族和指示物种类仍是须由逐卡官方资料核对的文本参数，不把任意字符串当作已验证裁定。
+
+新增区域 `opponent_extra` 表示对方额外卡组。正例为《融合失败》（58392024）让对方融合怪兽回其额外卡组；反例为 `extra`（自己额外卡组）和 `opponent_extra_monster_zone`（场上的对方额外怪兽区域）。这三个区域不互作子区域，也不修改原有区域查询扩展。`opponent_deck_top` 已存在，本轮沿用，不重复登记。需要裁定补查的《成功确率0%》（6859683）不能仅因区域已登记就转为已核对。
+
+### 发动对象的数量区间
+
+`structure.targeting` 的旧 `count` 仍表示固定数量。新对象可以使用 `min_count` 与 `max_count` 表示区间，两字段必须同时存在；`min_count` 为非负整数，有限 `max_count` 必须为整数且 `min_count <= max_count`。`max_count: null` 明确表示没有固定上界，不能用缺省字段暗示无上界；不得同时提供 `count`。布尔值、负数、其他非整数、只给一端或反向区间均拒绝。区间最小值允许0仅是结构表达能力，不替具体卡片证明0对象可以发动。
+
+第二组短卡文还使用以下受控动作，均由官方卡文及补足逐卡核对，不由名称或关键词推断：
+
+| 动作 | 必填语义与示例 | 与相近能力的区别 |
+| --- | --- | --- |
+| `toss_coin` | `count` 为正整数，`executor` 指掷币玩家；结果用至少两个非空 `branches` 或 `then` 后续表达。圣杯A按表里决定哪一方抽2张 | 随机结果不同于玩家任意选择的 `choose_branch`；两方抽卡不能串用来源与去向 |
+| `roll_dice` | `rolls` 为正整数，`faces=6`，`executor`、结果计算说明 `result` 及结果后续／分支。无差别崩坏按两次总和判断 | 不同于允许以后重掷的 `reroll_dice`；具体破坏另有独立处理项 |
+| `add_to_extra_faceup` | 来源区域、正整数 `count`、`to_zones=['extra_faceup']`；可用布尔 `shuffle_source_after` 记录后续洗牌。灵摆宝藏从主卡组表侧加入额外 | 不属于检索、特殊召唤、送墓或返回主卡组 |
+| `set_lp` | `recipient` 为 self／opponent／both，`amount` 为非负整数。生命转换将双方基本分设为3000 | 不视为伤害、回复或支付费用，不自动赋予这些 TAG |
+| `replace_draw_with_discard` | `source_activation=draw_only_effect`，`quantity=cards_that_would_be_drawn`，`reveal_to=both`；`counts_as_draw=false`、`cards_enter_hand=false`；来源只可为卡组顶，去向只可为墓地 | 《无效》把原应抽的卡公开后直接丢去墓地；不是先抽卡再丢手卡，也不无效原效果 |
+| `redirect_effect_damage` | `source_player`、`recipient`、`duration` 和 `source_effect`（activated／continuous／all）。自然反射只转移对方发动效果原本给予自己的伤害 | 不新建一份固定数值伤害，不覆盖战斗伤害；不继承原伤害来源的其他能力 |
+| `place_deck_bottom` | 沿用 `place_deck_top` 的执行者、来源、数量、洗牌顺序参数，去向限定 deck_bottom／opponent_deck_bottom；沿用 `etag:deck-look` | 天地返将选定卡留在卡组最下面，不伪装成回卡组或卡顶放置 |
+
+所有新整数参数均拒绝布尔值；随机处理必须保留结果如何决定后续的说明。任何一张卡的具体发动条件和例外仍由其标注与来源承担，不以受控动作校验代替规则判定。
+
+正例：《火山充能》（33725271）应写 `{min_count: 1, max_count: 3, filter: '自己墓地火山怪兽'}`，不能保留 `count: 3` 或改成0至3。《起翼升阶魔法-急袭猛禽之力》（38044854）的2只以上写 `{min_count: 2, max_count: null, filter: '包含己方场上怪兽的自己场上／墓地RR超量怪兽'}`，不能编造上限。反例：《希望之光》（82529174）固定2只，继续使用 `count: 2`。能力事实和标注详情分别显示“1至3个”“至少2个”；查询不新增或改变数量求解规则，快照完整保留原对象结构。旧固定数量条目不迁移、不重绑卡文；本轮新动作与区域也不会自动重写旧标注。历史快照原有 `count` 展示保持；38044854旧 `count:2 + min_count:2 + variable_count:true` 混合描述须经来源复核迁移到显式无上界结构，不能继续作为新的有效内置条目。
+
 ## 5. 审核状态与来源追溯
 
 1.47.3 增加直接处理与 TAG 一致性检查：对加入手卡、抽卡、回卡组、确认手卡／卡组、破坏、除外、送墓、召唤、无效、效果伤害和回复的明确处理递归核对标签，包括分支与后续处理；不会从关键词自动生成已核对数据。规则段、数值变更和行动限制可能在其他结构字段表达，不套用这项一一对应规则。已核对的诱发即时效果、陷阱发动及速攻魔法发动必须使用正确的 `fast_effect`；带条件的起动／快速时点转换仍保留其条件，不按整个文件统一替换。
@@ -190,7 +237,8 @@ notes[]                       效果级备注（含来源引用）
 
 - 条件分两层：卡片层（关键词、类型、标签库 TAG、状态）与效果层（效果 TAG 多选 any/all、动作、来源区域、去向区域、次数限制、费用、发动时点）。
 - **默认范围 `scope=effect`**：所有效果层条件必须在**同一效果**内成立；同一张卡的不同效果不串用条件。
-- `scope=card`：允许各条件由不同效果分别满足，但每个条件仍须指出由哪个效果命中；命中跨多个效果时结果明确标注「跨效果命中」。
+- 动作、来源区域、去向区域构成一组处理条件，必须由同一个处理项满足；会遍历顺序后续与分支，但不从其他处理项借用区域。例如封印之黄金柜先从卡组除外、以后从除外状态加手，不能命中 `action=add_hand + from_zone=deck`。
+- `scope=card`：允许 TAG、次数、费用、时点等条件由不同效果分别满足，但动作与来源／去向组合仍保持上述同一处理项约束。每个条件须指出由哪个效果命中；确需跨效果时结果明确标注「跨效果命中」。
 - 每个命中给出依据：条件名、取值、依据文案（TAG 定义／处理项选择器／隐含去向等）、效果原文与编号、状态与来源；`to_zone` 未显式标注时按动作隐含去向匹配并注明「隐含去向」。
 - 查询只在已标注范围内进行，结果同时给出 `annotated_total` 与 `catalog_total`：**未标注卡片不代表没有该能力**。
 - `actions.choose_branch` 明确把同一效果中的多个处理标成互斥选项；当前组合查询仍只保证条件在同一效果内，不求解是否位于同一分支，故多个 TAG 同时命中不能解释为一次发动会同时执行各分支。
@@ -218,7 +266,7 @@ notes[]                       效果级备注（含来源引用）
 - `effect_type` 来自新增受控词表，区分起动、诱发、诱发即时、永续、魔法／陷阱卡发动、陷阱效果、灵摆效果与非效果文本。`kind` 仍仅表示分段形式；没有编号不能据此判成非效果。
 - `usage_limits` 的旧 `name_soft_opt` 等键仅为兼容名称；同名次数限制不得因键里有 soft 一词而理解为单卡限制。按原文区分「使用」与「发动」，已有标签 ID 不改名。
 - 总库数包含衍生物；可标注数与七种状态统计排除衍生物。详情与筛选中的 `partial` 保持一致。`catalog_scope=all` 可浏览未标注卡；无能力条件时无效果卡也可命中。
-- 「跨效果命中」只在整卡查询确实需要不同效果满足条件时显示；普通多效果展示不显示。条件仍在效果层逐项匹配，不是同一处理项、同一分支同时可执行的证明。
+- 「跨效果命中」只在整卡查询确实需要不同效果满足条件时显示；普通多效果展示不显示。动作与区域按同一处理项匹配；TAG、费用、次数、时点仍属于效果层，不证明同一分支同时可执行。仅选 TAG 与区域、未选动作时，也不把 TAG 自动绑定到某个处理动作。
 - 改正了墓指的盖放前提、泡影纵列处理前提、提示员的处理后自锁、自奏圣乐之阶的整回合限制、旋钮手召唤对象与二选一、托马斯的 DDD 子系列与对方全体战斗伤害减半范围。
 - 官方规则链接、分类范例与后续智能体的具体交付要求见[标注交接指南](card-annotation-agent-guide.md)。静态参考样本并非穷尽所有特殊裁定。
 

@@ -116,6 +116,41 @@ test('detail marks stale entries, unannotated segments and drafts as auto', () =
   assert.match(fresh, /data-anno-op="draft"/);
 });
 
+test('target quantities distinguish ranges and explicit open bounds from fixed counts', () => {
+  const e = setup();
+  const effect = {structure: {targeting: [
+    {min_count: 1, max_count: 3, filter: '墓地火山怪兽'},
+    {min_count: 2, max_count: null, filter: 'RR超量怪兽'},
+    {count: 2, filter: '固定数量对象'},
+    {min_count: 0, max_count: 0, filter: '结构允许0端点'},
+  ]}};
+  const before = structuredClone(effect);
+  const lines = e.annoStructureLines(effect, registry);
+  assert.ok(lines.includes('对象：1至3个；墓地火山怪兽'));
+  assert.ok(lines.includes('对象：至少2个；RR超量怪兽'));
+  assert.ok(lines.includes('对象：2×固定数量对象'));
+  assert.ok(lines.includes('对象：0至0个；结构允许0端点'));
+  assert.ok(!lines.includes('对象：3×墓地火山怪兽'));
+  assert.doesNotMatch(lines.join('\n'), /undefined|null/);
+  assert.deepEqual(effect, before);
+});
+
+test('fixed granted and historical target quantities render without dropping constraints', () => {
+  const e = setup();
+  const child = {effect_type: 'trigger', structure: {targeting: [
+    {min_count: 1, max_count: 3, filter: '固定获赋效果的对象'},
+  ]}};
+  const lines = e.annoStructureLines({structure: {processing: [
+    {action: 'grant_effect', granted_effect: child, then: []},
+  ]}}, registry);
+  assert.equal(lines.filter(line => line.includes('对象：1至3个；固定获赋效果的对象')).length, 1);
+  const historical = e.annoStructureLines({structure: {targeting: [
+    {count: 2, min_count: 2, variable_count: true, filter: '原快照2只以上的文字'},
+  ]}}, registry);
+  assert.ok(historical.includes('对象：2×原快照2只以上的文字'));
+  assert.doesNotMatch(historical.join('\n'), /至少|undefined/);
+});
+
 test('fixed granted effects show their own timing, costs and limits without duplicating immediate processing', () => {
   const e = setup();
   const vocab = {...registry, actions: {...registry.actions, grant_effect: '获得效果', burn: '效果伤害'},

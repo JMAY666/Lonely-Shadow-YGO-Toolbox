@@ -44,7 +44,8 @@ ACTION_TAGS = {'add_hand': 'etag:add-hand', 'draw': 'etag:draw', 'return_deck': 
                'special_summon': 'etag:special-summon', 'normal_summon': 'etag:normal-summon',
                'negate_effect': 'etag:negate-effect', 'negate_activation': 'etag:negate-activation',
                'burn': 'etag:effect-damage', 'heal': 'etag:recover-lp',
-               'prevent_damage': 'etag:prevent-damage'}
+               'prevent_damage': 'etag:prevent-damage', 'place_deck_top': 'etag:deck-look',
+               'place_deck_bottom': 'etag:deck-look'}
 
 
 def zone_matches(query, zones):
@@ -185,6 +186,127 @@ def _check_notes(value, where):
             raise ValueError(f'{where}备注来源无效')
 
 
+def _check_rule_action(item, where):
+    """Parameters that distinguish the newer rule/support actions from other abilities."""
+    action = item['action']
+    supported = {'remove_counter', 'place_deck_top', 'reveal_set_cards', 'change_hand_limit',
+                 'skip_phase', 'advance_turn_count', 'repeat_phase', 'redirect_spell_recipient',
+                 'change_race', 'activate_field_spell', 'reveal_drawn_cards', 'reverse_stat_modifiers',
+                 'reroll_dice', 'move_to_end_phase', 'redirect_spell_target', 'toss_coin', 'roll_dice',
+                 'add_to_extra_faceup', 'set_lp', 'replace_draw_with_discard', 'redirect_effect_damage',
+                 'place_deck_bottom'}
+    if action not in supported: return
+    where = f'{where} {action}'
+    _check_text((item.get('selector') or {}).get('text', ''), f'{where}选择器')
+    def integer(field, minimum=1):
+        if type(item.get(field)) is not int or item[field] < minimum:
+            raise ValueError(f'{where} {field}须为不小于{minimum}的整数')
+    def choice(field, values):
+        if not isinstance(item.get(field), str) or item[field] not in values:
+            raise ValueError(f'{where} {field}取值无效')
+    def text_field(field): _check_text(item.get(field, ''), f'{where} {field}', 400)
+    def boolean(field):
+        if type(item.get(field)) is not bool: raise ValueError(f'{where} {field}须为布尔值')
+    players = {'self', 'opponent', 'both'}
+    if action in {'remove_counter', 'place_deck_top', 'place_deck_bottom', 'reveal_set_cards', 'change_race',
+                  'activate_field_spell', 'redirect_spell_target', 'add_to_extra_faceup',
+                  'replace_draw_with_discard'} and not item.get('from_zones'):
+        raise ValueError(f'{where}须登记 from_zones')
+    if action in {'remove_counter', 'place_deck_top', 'place_deck_bottom', 'reveal_set_cards', 'change_race'}:
+        if item.get('count') != 'all': integer('count')
+    if action in {'change_hand_limit', 'skip_phase', 'repeat_phase', 'change_race',
+                  'reveal_drawn_cards', 'reverse_stat_modifiers', 'reroll_dice', 'move_to_end_phase',
+                  'redirect_effect_damage'}:
+        text_field('duration')
+    if action in {'skip_phase', 'repeat_phase', 'reveal_drawn_cards', 'reroll_dice'}:
+        choice('player', players)
+    if action == 'remove_counter': text_field('counter_type')
+    elif action in {'place_deck_top', 'place_deck_bottom'}:
+        choice('executor', players)
+        destinations = {'deck_top', 'opponent_deck_top'} if action == 'place_deck_top' else {'deck_bottom', 'opponent_deck_bottom'}
+        if not item.get('to_zones') or not set(item['to_zones']) <= destinations:
+            raise ValueError(f'{where} to_zones须为对应的卡组顶／底区域')
+        boolean('shuffle_before_placement')
+        if 'inspects_opponent_deck' in item: boolean('inspects_opponent_deck')
+    elif action == 'reveal_set_cards':
+        choice('controller', players)
+        choice('audience', players)
+        if item.get('changes_position') is not False:
+            raise ValueError(f'{where} changes_position须为false，不改变表示形式')
+    elif action == 'change_hand_limit':
+        choice('recipient', players)
+        integer('value', 0)
+    elif action in {'skip_phase', 'repeat_phase'}:
+        choice('phase', {'draw', 'standby', 'main1', 'battle', 'main2', 'end'})
+        integer('count', 2 if action == 'repeat_phase' else 1)
+    elif action == 'advance_turn_count':
+        integer('amount')
+        integer('count')
+    elif action in {'redirect_spell_recipient', 'redirect_spell_target'}:
+        choice('source_activation', {'spell_card_activation'})
+        integer('count')
+        if item['count'] != 1: raise ValueError(f'{where}只对应一个适用者或卡片对象')
+        if action == 'redirect_spell_recipient': choice('recipient_rule', {'other_player'})
+        else:
+            choice('original_target_kind', {'monster', 'spell_trap', 'card'})
+            choice('new_target_rule', {'different_legal_target'})
+    elif action == 'change_race':
+        text_field('race')
+        boolean('applies_to_later_monsters')
+    elif action == 'activate_field_spell':
+        integer('count')
+        if item['count'] != 1 or item.get('to_zones') != ['field_spell']:
+            raise ValueError(f'{where}须发动1张卡到 field_spell')
+        if item.get('resolve_activation_effect') is not False:
+            raise ValueError(f'{where} resolve_activation_effect须为false')
+    elif action == 'reverse_stat_modifiers':
+        stats = item.get('stats')
+        if not isinstance(stats, list) or not stats or any(v not in ('atk', 'def') for v in stats) or len(set(stats)) != len(stats):
+            raise ValueError(f'{where} stats须为不重复的atk/def列表')
+    elif action == 'reroll_dice':
+        integer('applications')
+        choice('dice_scope', {'entire_dice_procedure'})
+        choice('stacking', {'non_cumulative', 'cumulative'})
+        if 'optional' in item: boolean('optional')
+    elif action == 'move_to_end_phase': choice('phase', {'end'})
+    elif action in {'toss_coin', 'roll_dice'}:
+        choice('executor', players)
+        if action == 'toss_coin': integer('count')
+        else:
+            integer('rolls')
+            integer('faces')
+            if item['faces'] != 6: raise ValueError(f'{where}须使用六面骰')
+            text_field('result')
+        branches = item.get('branches') or []
+        if not isinstance(branches, list): raise ValueError(f'{where}随机结果分支须为列表')
+        if not item.get('then') and (len(branches) < 2 or any(not isinstance(b, dict) or not b.get('actions') for b in branches)):
+            raise ValueError(f'{where}须登记随机结果的后续处理或至少两个结果分支')
+    elif action == 'add_to_extra_faceup':
+        integer('count')
+        if item.get('to_zones') != ['extra_faceup']:
+            raise ValueError(f'{where} to_zones须为extra_faceup')
+        if 'shuffle_source_after' in item: boolean('shuffle_source_after')
+    elif action == 'set_lp':
+        choice('recipient', players)
+        integer('amount', 0)
+    elif action == 'replace_draw_with_discard':
+        choice('source_activation', {'draw_only_effect'})
+        choice('quantity', {'cards_that_would_be_drawn'})
+        choice('reveal_to', {'both'})
+        if item.get('counts_as_draw') is not False or item.get('cards_enter_hand') is not False:
+            raise ValueError(f'{where}既不算抽卡也不经过手卡')
+        if not set(item['from_zones']) <= {'deck_top', 'opponent_deck_top'} or not item.get('to_zones') \
+                or not set(item['to_zones']) <= {'grave', 'opponent_grave'}:
+            raise ValueError(f'{where}须从卡组顶直接丢去墓地')
+    elif action == 'redirect_effect_damage':
+        choice('source_player', players)
+        choice('recipient', players)
+        choice('source_effect', {'activated', 'continuous', 'all'})
+    if action in {'reveal_set_cards', 'redirect_spell_target'}:
+        if not set(item['from_zones']) <= {'field'} | ZONE_GROUPS['field']:
+            raise ValueError(f'{where}来源必须是场上区域')
+
+
 def _check_processing(items, registry, where, reviewed=False, card_type=None):
     if not isinstance(items, list): raise ValueError(f'{where}处理无效')
     for item in items:
@@ -201,6 +323,7 @@ def _check_processing(items, registry, where, reviewed=False, card_type=None):
         selector = item.get('selector')
         if selector is not None and (not isinstance(selector, dict) or not selector.get('text')):
             raise ValueError(f'{where}选择器缺少文字说明')
+        _check_rule_action(item, where)
         granted = item.get('granted_effect')
         if 'granted_effect' in item:
             if item['action'] != 'grant_effect' or not isinstance(granted, dict):
@@ -324,7 +447,15 @@ def _check_effect_payload(effect, registry, where, reviewed=False, card_type=Non
         registry.require('cost_kinds', cost.get('kind'), f'{where}费用')
         if cost.get('text'): _check_text(cost['text'], f'{where}费用', 400)
     for target in structure.get('targeting', []):
-        if not isinstance(target, dict) or not isinstance(target.get('count'), int) or target['count'] < 0:
+        if not isinstance(target, dict): raise ValueError(f'{where}对象数量无效')
+        has_range = 'min_count' in target or 'max_count' in target
+        if has_range:
+            if 'count' in target or 'min_count' not in target or 'max_count' not in target:
+                raise ValueError(f'{where}对象范围须同时提供min_count/max_count且不混用count')
+            minimum, maximum = target['min_count'], target['max_count']
+            if type(minimum) is not int or minimum < 0 or (maximum is not None and (type(maximum) is not int or maximum < minimum)):
+                raise ValueError(f'{where}对象范围无效；max_count为null才表示无固定上界')
+        elif type(target.get('count')) is not int or target['count'] < 0:
             raise ValueError(f'{where}对象数量无效')
         _check_text(target.get('filter', '对象'), f'{where}对象', 400)
     processing = structure.get('processing', [])
@@ -358,6 +489,8 @@ def _check_effect_payload(effect, registry, where, reviewed=False, card_type=Non
         actual_tags = set(own_tags) & set(ACTION_TAGS.values())
         if actual_tags != expected_tags:
             raise ValueError(f'{where} TAG 与处理不一致：缺少 {sorted(expected_tags - actual_tags)}；多余 {sorted(actual_tags - expected_tags)}')
+        if any(item['action'] in ('change_race', 'reverse_stat_modifiers') for _, item in own_nodes) and 'etag:stat-change' not in own_tags:
+            raise ValueError(f'{where}种族改变或攻守增减反转须登记etag:stat-change')
     for usage in structure.get('usage', []): registry.require('usage_limits', usage, where)
     _check_notes(effect.get('notes', []), where)
     if effect.get('engine') is not None and not isinstance(effect['engine'], dict):
@@ -641,8 +774,32 @@ class CardAnnotations:
             return evidence
         return None
 
+    def _processing_conditions(self, effect, body):
+        """Bind an action and its source/destination to one processing item."""
+        conditions = {name: body[name] for name in ('action', 'from_zone', 'to_zone') if body.get(name)}
+        if not conditions: return []
+        for path, item in self._iter_processing(effect.get('structure', {}).get('processing'), include_granted=False):
+            evidence = []
+            for name, value in conditions.items():
+                if name == 'action':
+                    if item.get('action') != value: break
+                    basis = (f"处理：{self.registry.action_label(value)}"
+                             f"（{item.get('selector', {}).get('text') or item.get('evidence', '')}）")
+                else:
+                    zones = item.get('from_zones' if name == 'from_zone' else 'to_zones')
+                    if zones and zone_matches(value, zones):
+                        basis = self.registry.zone_label(value)
+                    elif name == 'to_zone' and not zones and zone_matches(value, [DEFAULT_DESTINATION.get(item.get('action'))]):
+                        basis = f"隐含去向：{self.registry.action_label(item.get('action'))}"
+                    else:
+                        break
+                evidence.append({'condition': name, 'value': value, 'basis': basis, 'processing_path': path})
+            else:
+                return evidence
+        return None
+
     def _unit_conditions(self, effect, body):
-        """Existing same-effect matching; does not solve mutually exclusive branches."""
+        """Match one effect; action/zone filters share a processing item."""
         evidence = []
         etags = body.get('etags') or []
         if etags:
@@ -654,29 +811,15 @@ class CardAnnotations:
                 if not set(etags) <= tags: return None
                 hit = list(etags)
             evidence.append({'condition': 'tag', 'value': hit, 'basis': '效果 TAG'})
+        processing = self._processing_conditions(effect, body)
+        if processing is None: return None
+        evidence.extend(processing)
         for name in CONDITION_FIELDS:
+            if name in ('action', 'from_zone', 'to_zone'): continue
             value = body.get(name)
             if not value: continue
             found = None
-            if name == 'action':
-                for _, item in self._iter_processing(effect.get('structure', {}).get('processing'), include_granted=False):
-                    if item.get('action') == value:
-                        found = {'condition': name, 'value': value,
-                                 'basis': f"处理：{self.registry.action_label(value)}"
-                                          f"（{item.get('selector', {}).get('text') or item.get('evidence', '')}）"}
-                        break
-            elif name in ('from_zone', 'to_zone'):
-                field = 'from_zones' if name == 'from_zone' else 'to_zones'
-                for _, item in self._iter_processing(effect.get('structure', {}).get('processing'), include_granted=False):
-                    zones = item.get(field)
-                    if zones and zone_matches(value, zones):
-                        found = {'condition': name, 'value': value, 'basis': self.registry.zone_label(value)}
-                        break
-                    if name == 'to_zone' and not zones and zone_matches(value, [DEFAULT_DESTINATION.get(item.get('action'))]):
-                        found = {'condition': name, 'value': value,
-                                 'basis': f"隐含去向：{self.registry.action_label(item.get('action'))}"}
-                        break
-            elif name == 'usage':
+            if name == 'usage':
                 if value in (effect.get('structure', {}).get('usage') or []):
                     found = {'condition': name, 'value': value, 'basis': self.registry.usage_label(value)}
             elif name == 'cost_kind':
@@ -693,14 +836,17 @@ class CardAnnotations:
         return evidence
 
     def _single_conditions(self, body):
-        """Card-scope evaluation unit: one tag or one structure field each."""
+        """Card scope may cross effects, but a movement query stays atomic."""
         singles = []
         etags = body.get('etags') or []
         if body.get('etag_mode') == 'any' and etags:
             singles.append({'etags': etags, 'etag_mode': 'any'})
         else:
             singles.extend({'etags': [tag]} for tag in etags)
-        singles.extend({name: body[name]} for name in CONDITION_FIELDS if body.get(name))
+        processing = {name: body[name] for name in ('action', 'from_zone', 'to_zone') if body.get(name)}
+        if processing: singles.append(processing)
+        singles.extend({name: body[name]} for name in CONDITION_FIELDS
+                       if name not in ('action', 'from_zone', 'to_zone') and body.get(name))
         return singles
 
     def search(self, body):
@@ -801,7 +947,7 @@ class CardAnnotations:
         return {'total': len(matched), 'offset': offset, 'scope': scope,
                 'annotated_total': len(self.annotated_codes()),
                 'catalog_total': len(self.store.catalog.cards),
-                'note': '查询只在已标注范围内命中；未标注卡片不代表没有该能力。同一卡的不同效果不串用条件：默认范围下所有条件须在同一效果内成立。',
+                'note': '查询只在已标注范围内命中；未标注卡片不代表没有该能力。默认所有条件须在同一效果内成立；动作与来源、去向须匹配同一个处理项。',
                 'cards': matched[offset:offset + 30]}
 
     # ---- personal layer -------------------------------------------------

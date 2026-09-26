@@ -228,7 +228,10 @@
       "category": "protection",
       "definition": "令指定玩家承受的伤害变为0，具体战斗伤害或效果伤害范围由结构明确。",
       "scope": "效果处理防止承受伤害；不包括给予效果伤害、回复基本分或单纯扣减基本分。",
-      "synonyms": ["伤害变0", "不受伤害"]
+      "synonyms": [
+        "伤害变0",
+        "不受伤害"
+      ]
     }
   ],
   "vocabularies": {
@@ -256,6 +259,7 @@
       "field": "场上（未细分）",
       "opponent_hand": "对方手卡",
       "opponent_deck": "对方卡组",
+      "opponent_extra": "对方额外卡组（表侧／里侧等范围由选择器说明）",
       "opponent_grave": "对方墓地",
       "opponent_monster": "对方怪兽区",
       "pendulum": "灵摆区域",
@@ -331,7 +335,29 @@
       "place_pendulum": "把指定卡从明确来源表侧放置到灵摆区域，不视为发动灵摆卡或特殊召唤",
       "redirect_attack": "将正在进行的攻击转移到指定攻击对象；是否立即进行伤害计算按具体处理记录",
       "copy_effect": "在规定时限内获得指定卡的效果；记录复制来源，不从可选卡片自动推导具体能力 TAG",
-      "prevent_damage": "令指定玩家承受的战斗伤害、效果伤害或两者变为0；damage_scope、recipient 和 duration 必须明确"
+      "prevent_damage": "令指定玩家承受的战斗伤害、效果伤害或两者变为0；damage_scope、recipient 和 duration 必须明确",
+      "remove_counter": "效果处理时取除指定区域、种类与数量的指示物；不是发动费用",
+      "place_deck_top": "由指定执行者把选定卡放在卡组最上面，明确来源、去向及洗牌顺序；不自动赋予确认整副卡组的权限",
+      "reveal_set_cards": "确认指定场上盖放卡的内容，不改变表示形式或发动那些卡",
+      "change_hand_limit": "在规定时限内改变指定玩家的规则手卡上限，不立即抽卡或丢弃",
+      "skip_phase": "跳过指定玩家明确次数的指定阶段；不是结束当前阶段或进行抽卡",
+      "advance_turn_count": "推进指定卡正在计算的回合数，不推进真实回合或准备阶段次数",
+      "repeat_phase": "使指定玩家实际进行的指定阶段重复，count为该阶段总次数；不强迫进入该阶段",
+      "redirect_spell_recipient": "把魔法卡发动中仅对一位玩家适用的效果改为对另一位玩家适用，不改变卡片对象或继承原效果能力",
+      "change_race": "在规定期间改变明确怪兽集合的种族，记录后出现怪兽是否适用；使用既有攻守·等级变更TAG的种族语义",
+      "activate_field_spell": "效果处理中从来源区域发动场地魔法，须满足发动条件但不处理卡发动时效果；不同于表侧放置",
+      "reveal_drawn_cards": "持续要求指定玩家公开所抽之卡后再加入手卡，本动作不使其抽卡",
+      "reverse_stat_modifiers": "在规定期间把指定攻守的增加与减少效果反向适用，不等于无效或改变原本数值",
+      "reroll_dice": "在规定时限和次数内重新进行完整掷骰流程，保留适用玩家与叠加规则，不继承掷骰结果的其他能力",
+      "move_to_end_phase": "使当前回合直接移行到结束阶段，越过主要阶段2，区别于只结束战斗阶段",
+      "redirect_spell_target": "把魔法卡发动的单张卡对象改为另外一个合法对象，记录原对象种类和新对象条件；不改写其效果",
+      "toss_coin": "掷硬币并按结果处理",
+      "roll_dice": "掷骰子并按结果处理",
+      "add_to_extra_faceup": "表侧加入额外卡组",
+      "set_lp": "设置基本分",
+      "replace_draw_with_discard": "将抽卡替换为公开后直接丢去墓地",
+      "redirect_effect_damage": "转移效果伤害",
+      "place_deck_bottom": "放到卡组最下面"
     },
     "cost_kinds": {
       "discard_self": "把这张卡从手卡丢弃",

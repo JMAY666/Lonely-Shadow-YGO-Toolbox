@@ -180,7 +180,13 @@ function annoStructureLines(effect, registry) {
     lines.push(`${passive ? '适用' : '发动'}：${[timing, zonesText && `区域 ${zonesText}`, ...(activation.conditions || [])].filter(Boolean).join('；')}${activation.fast_effect ? '（快速效果；仍须满足发动条件）' : ''}`);
   }
   for (const cost of structure.cost || []) lines.push(`费用：${registry.cost_kinds[cost.kind] || cost.kind}${cost.text ? ` — ${cost.text}` : ''}`);
-  for (const target of structure.targeting || []) lines.push(`对象：${target.count}×${target.filter}`);
+  for (const target of structure.targeting || []) {
+    if (target.count !== undefined) lines.push(`对象：${target.count}×${target.filter}`);
+    else if (target.min_count !== undefined && target.max_count !== undefined) {
+      const quantity = target.max_count === null ? `至少${target.min_count}个` : `${target.min_count}至${target.max_count}个`;
+      lines.push(`对象：${quantity}；${target.filter}`);
+    } else lines.push(`对象：${target.filter || ''}`);
+  }
   for (const line of annoProcessingLines(structure.processing, registry)) lines.push(`处理：${line}`);
   for (const usage of structure.usage || []) lines.push(`次数：${registry.usage_limits[usage] || usage}`);
   if (structure.usage_text) lines.push(`次数说明：${structure.usage_text}`);
