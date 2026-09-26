@@ -63,6 +63,38 @@ class CapabilityTests(unittest.TestCase):
         fact = next(row['text'] for row in self.capabilities.facts(legacy) if row['label'] == '对象')
         self.assertEqual(fact, '2 原快照2只以上的文字')
 
+    def test_dynamic_target_facts_show_exact_or_upper_bound_basis_and_freeze_the_rule(self):
+        targets = [
+            {'count_rule': {'mode': 'exact', 'text': '作为费用解放的连接怪兽的连接标记数量',
+                            'evaluated_at': 'activation'}, 'filter': '场上卡'},
+            {'count_rule': {'mode': 'up_to', 'text': '双方相互连接怪兽数量',
+                            'evaluated_at': 'activation', 'minimum': 1}, 'filter': '场上魔法陷阱卡'},
+        ]
+        def change(entries): entries['20000001']['effects'][0]['structure']['targeting'] = deepcopy(targets)
+        self.write_curated(change)
+        self.service.reload()
+        projected = self.capabilities.card(20000001)
+        fact = next(row['text'] for row in projected['effects'][0]['facts'] if row['label'] == '对象')
+        self.assertIn('动态固定：N个，N＝作为费用解放的连接怪兽的连接标记数量（发动时确定）', fact)
+        self.assertIn('动态上限：1至N个，N＝双方相互连接怪兽数量（发动时确定）', fact)
+        self.assertEqual(projected['effects'][0]['structure']['targeting'], targets)
+        report = {'catalog': {'20000001': {'desc': SEARCHER}}, 'branches': []}
+        self.capabilities.freeze_report(report)
+        before = deepcopy(report)
+        projected['effects'][0]['structure']['targeting'][0]['count_rule']['text'] = '外部修改'
+        self.assertEqual(self.capabilities.card(20000001)['effects'][0]['structure']['targeting'], targets)
+        self.capabilities.freeze_report(report)
+        self.assertEqual(report, before)
+        self.assertEqual(report['annotation_snapshot']['20000001']['effects'][0]['structure']['targeting'], targets)
+
+    def test_unrecognized_historical_count_rule_does_not_claim_an_activation_time(self):
+        effect = simple_effect('m1', 1, [], [])
+        effect['structure']['targeting'] = [{'count_rule': {'mode': 'exact', 'text': '旧规则',
+                                                        'evaluated_at': 'resolution'}, 'filter': '旧快照对象说明'}]
+        fact = next(row['text'] for row in self.capabilities.facts(effect) if row['label'] == '对象')
+        self.assertIn('旧快照对象说明', fact)
+        self.assertNotIn('发动时确定', fact)
+
     def test_unknown_and_missing_do_not_mean_no_effect(self):
         unknown = self.capabilities.card(20000004)
         self.assertEqual(unknown['status'], 'none')
@@ -147,6 +179,31 @@ class CapabilityTests(unittest.TestCase):
         self.assertEqual(roles, {'breakers'})
         effect['structure']['activation']['fast_effect'] = True
         self.assertIn('handtraps', {row['role'] for row in purpose_candidates(effect)})
+
+    def test_self_restriction_and_summon_response_lock_are_not_endboard_interactions(self):
+        for qualifier in ('self_only', 'summon_response_only'):
+            with self.subTest(qualifier=qualifier):
+                effect = simple_effect('m1', 1, ['etag:lock'], [
+                    {'action': 'lock', qualifier: True, 'selector': {'text': '仅自身不能攻击或本次召唤成功响应封锁'}}])
+                effect['effect_type'] = 'continuous'
+                effect['structure']['activation']['zones'] = ['monster']
+                self.assertEqual(purpose_candidates(effect), [])
+                # A future hand-activated self restriction is not a handtrap either.
+                effect['structure']['activation'].update(zones=['hand'], fast_effect=True)
+                self.assertEqual(purpose_candidates(effect), [])
+        hound = simple_effect('m1', 1, ['etag:lock'], [
+            {'action': 'lock', 'selector': {'text': '自己手卡0期间对方不能发动魔法卡'}}])
+        hound['effect_type'] = 'continuous'
+        hound['structure']['activation']['zones'] = ['monster']
+        self.assertEqual({row['role'] for row in purpose_candidates(hound)}, {'endboards'})
+        hound['structure']['processing'][0].update(self_only=False, summon_response_only=False)
+        self.assertEqual({row['role'] for row in purpose_candidates(hound)}, {'endboards'})
+
+    def test_excluding_one_lock_does_not_hide_an_independent_interruption(self):
+        effect = simple_effect('m1', 1, ['etag:lock', 'etag:negate-activation'], [
+            {'action': 'lock', 'self_only': True}, {'action': 'negate_activation'}])
+        effect['structure']['activation'].update(zones=['monster'], fast_effect=True)
+        self.assertIn('endboards', {row['role'] for row in purpose_candidates(effect)})
 
     def test_multiline_crlf_card_keeps_same_effect_reference(self):
         text = SEARCHER + '\n处理范围的补充说明。'

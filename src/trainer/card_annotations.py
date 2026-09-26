@@ -45,7 +45,7 @@ ACTION_TAGS = {'add_hand': 'etag:add-hand', 'draw': 'etag:draw', 'return_deck': 
                'negate_effect': 'etag:negate-effect', 'negate_activation': 'etag:negate-activation',
                'burn': 'etag:effect-damage', 'heal': 'etag:recover-lp',
                'prevent_damage': 'etag:prevent-damage', 'place_deck_top': 'etag:deck-look',
-               'place_deck_bottom': 'etag:deck-look'}
+               'place_deck_bottom': 'etag:deck-look', 'shuffle_deck': 'etag:deck-look'}
 
 
 def zone_matches(query, zones):
@@ -194,7 +194,9 @@ def _check_rule_action(item, where):
                  'change_race', 'activate_field_spell', 'reveal_drawn_cards', 'reverse_stat_modifiers',
                  'reroll_dice', 'move_to_end_phase', 'redirect_spell_target', 'toss_coin', 'roll_dice',
                  'add_to_extra_faceup', 'set_lp', 'replace_draw_with_discard', 'redirect_effect_damage',
-                 'place_deck_bottom'}
+                 'place_deck_bottom', 'increase_pendulum_summon_limit', 'win_duel',
+                 'place_and_use_spell', 'return_to_field'}
+    supported.update({'skip_turn', 'swap_lp', 'change_attribute', 'change_equip_target', 'shuffle_deck'})
     if action not in supported: return
     where = f'{where} {action}'
     _check_text((item.get('selector') or {}).get('text', ''), f'{where}选择器')
@@ -208,9 +210,45 @@ def _check_rule_action(item, where):
     def boolean(field):
         if type(item.get(field)) is not bool: raise ValueError(f'{where} {field}须为布尔值')
     players = {'self', 'opponent', 'both'}
+    if action == 'shuffle_deck':
+        choice('executor', players)
+        if not item.get('from_zones') or not set(item['from_zones']) <= {'deck', 'opponent_deck'}:
+            raise ValueError(f'{where}须明确洗切哪一方的卡组')
+        if 'to_zones' in item or ('count' in item and item['count'] != 'all'):
+            raise ValueError(f'{where}洗切整副卡组，不移动指定数量的卡')
+        return
+    if action in {'change_attribute', 'change_equip_target'}:
+        if not item.get('from_zones'): raise ValueError(f'{where}须登记from_zones')
+        if item.get('count') != 'all': integer('count')
+        if action == 'change_attribute':
+            choice('attribute_selection', {'activation', 'resolution', 'fixed'})
+            text_field('duration')
+            if item['attribute_selection'] == 'fixed':
+                choice('attribute', {'earth', 'water', 'fire', 'wind', 'light', 'dark', 'divine'})
+            elif 'attribute' in item:
+                raise ValueError(f'{where}按时点选择属性时不能又写固定attribute')
+        else:
+            if not set(item['from_zones']) <= {'field'} | ZONE_GROUPS['field']:
+                raise ValueError(f'{where}须选择场上已存在的装备卡')
+            if item.get('keeps_controller') is not True or 'to_zones' in item:
+                raise ValueError(f'{where}只改变装备对象，保持控制权且不登记区域移动')
+        return
+    if action == 'skip_turn':
+        choice('player', players)
+        integer('count')
+        text_field('duration')
+        choice('stacking', {'non_cumulative', 'cumulative'})
+        return
+    if action == 'swap_lp':
+        sides = item.get('players')
+        if not isinstance(sides, list) or len(sides) != 2 or any(not isinstance(side, str) for side in sides) \
+                or set(sides) != {'self', 'opponent'}:
+            raise ValueError(f'{where} players须明确自己与对方各一次')
+        return
     if action in {'remove_counter', 'place_deck_top', 'place_deck_bottom', 'reveal_set_cards', 'change_race',
                   'activate_field_spell', 'redirect_spell_target', 'add_to_extra_faceup',
-                  'replace_draw_with_discard'} and not item.get('from_zones'):
+                  'replace_draw_with_discard', 'increase_pendulum_summon_limit',
+                  'place_and_use_spell', 'return_to_field'} and not item.get('from_zones'):
         raise ValueError(f'{where}须登记 from_zones')
     if action in {'remove_counter', 'place_deck_top', 'place_deck_bottom', 'reveal_set_cards', 'change_race'}:
         if item.get('count') != 'all': integer('count')
@@ -302,6 +340,41 @@ def _check_rule_action(item, where):
         choice('source_player', players)
         choice('recipient', players)
         choice('source_effect', {'activated', 'continuous', 'all'})
+    elif action == 'increase_pendulum_summon_limit':
+        choice('executor', players)
+        integer('count')
+        text_field('duration')
+        if not set(item['from_zones']) <= {'hand', 'extra_faceup'}:
+            raise ValueError(f'{where}须明确hand或extra_faceup的灵摆召唤来源')
+    elif action == 'win_duel':
+        choice('recipient', {'self', 'opponent'})
+        boolean('delayed')
+        boolean('creates_chain')
+        text_field('resolution_timing')
+        turn_fields = ('turn_count', 'count_both_players_turns', 'start_turn_inclusive')
+        if any(field in item for field in turn_fields):
+            if not all(field in item for field in turn_fields):
+                raise ValueError(f'{where}回合计数的turn_count及两个计数标志须成组登记')
+            integer('turn_count')
+            boolean('count_both_players_turns')
+            boolean('start_turn_inclusive')
+    elif action == 'place_and_use_spell':
+        choice('executor', {'self', 'opponent'})
+        integer('count')
+        if item['count'] != 1 or not item.get('to_zones') or not set(item['to_zones']) <= {'spell', 'field_spell'}:
+            raise ValueError(f'{where}须将1张魔法本体置于spell或field_spell')
+        choice('used_spell_cost_timing', {'resolution'})
+        choice('used_spell_targeting_timing', {'resolution'})
+    elif action == 'return_to_field':
+        if item.get('count') != 'all': integer('count')
+        if item['from_zones'] != ['banished'] or not item.get('to_zones') \
+                or not set(item['to_zones']) <= {'field'} | ZONE_GROUPS['field']:
+            raise ValueError(f'{where}须从banished返回场上区域')
+        text_field('position')
+        text_field('resolution_timing')
+        boolean('delayed')
+        if item.get('creates_chain') is not False or item.get('counts_as_special_summon') is not False:
+            raise ValueError(f'{where}回场不新建连锁且不算特殊召唤')
     if action in {'reveal_set_cards', 'redirect_spell_target'}:
         if not set(item['from_zones']) <= {'field'} | ZONE_GROUPS['field']:
             raise ValueError(f'{where}来源必须是场上区域')
@@ -312,6 +385,10 @@ def _check_processing(items, registry, where, reviewed=False, card_type=None):
     for item in items:
         if not isinstance(item, dict): raise ValueError(f'{where}处理项无效')
         registry.require('actions', item.get('action'), where)
+        if item.get('action') == 'lock':
+            for qualifier in ('self_only', 'summon_response_only'):
+                if qualifier in item and type(item[qualifier]) is not bool:
+                    raise ValueError(f'{where}限制范围 {qualifier} 须为布尔值')
         count = item.get('count')
         if count is not None and not (isinstance(count, int) or count in ('all', 'up_to_1') or re.fullmatch(r'\d+', str(count))):
             raise ValueError(f'{where}数量无效')
@@ -447,9 +524,24 @@ def _check_effect_payload(effect, registry, where, reviewed=False, card_type=Non
         registry.require('cost_kinds', cost.get('kind'), f'{where}费用')
         if cost.get('text'): _check_text(cost['text'], f'{where}费用', 400)
     for target in structure.get('targeting', []):
+        if isinstance(target, dict) and any(key in target for key in ('count_min', 'count_max')):
+            raise ValueError(f'{where}对象数量须使用min_count/max_count或count_rule，不能使用count_min/count_max')
         if not isinstance(target, dict): raise ValueError(f'{where}对象数量无效')
         has_range = 'min_count' in target or 'max_count' in target
-        if has_range:
+        if 'count_rule' in target:
+            if any(field in target for field in ('count', 'min_count', 'max_count')):
+                raise ValueError(f'{where}对象count_rule不能与固定数量或常量范围混用')
+            rule = target['count_rule']
+            if not isinstance(rule, dict) or set(rule) - {'mode', 'text', 'evaluated_at', 'minimum'}:
+                raise ValueError(f'{where}对象count_rule格式或字段无效')
+            if rule.get('mode') not in ('exact', 'up_to') or rule.get('evaluated_at') != 'activation':
+                raise ValueError(f'{where}对象count_rule须明确exact/up_to并在activation取值')
+            _check_text(rule.get('text', ''), f'{where}对象count_rule计算依据', 400)
+            if rule['mode'] == 'exact':
+                if 'minimum' in rule: raise ValueError(f'{where}动态固定对象数不能含minimum')
+            elif type(rule.get('minimum')) is not int or rule['minimum'] < 0:
+                raise ValueError(f'{where}动态对象上限须登记非负整数minimum')
+        elif has_range:
             if 'count' in target or 'min_count' not in target or 'max_count' not in target:
                 raise ValueError(f'{where}对象范围须同时提供min_count/max_count且不混用count')
             minimum, maximum = target['min_count'], target['max_count']
@@ -489,8 +581,8 @@ def _check_effect_payload(effect, registry, where, reviewed=False, card_type=Non
         actual_tags = set(own_tags) & set(ACTION_TAGS.values())
         if actual_tags != expected_tags:
             raise ValueError(f'{where} TAG 与处理不一致：缺少 {sorted(expected_tags - actual_tags)}；多余 {sorted(actual_tags - expected_tags)}')
-        if any(item['action'] in ('change_race', 'reverse_stat_modifiers') for _, item in own_nodes) and 'etag:stat-change' not in own_tags:
-            raise ValueError(f'{where}种族改变或攻守增减反转须登记etag:stat-change')
+        if any(item['action'] in ('change_race', 'change_attribute', 'reverse_stat_modifiers') for _, item in own_nodes) and 'etag:stat-change' not in own_tags:
+            raise ValueError(f'{where}种族／属性改变或攻守增减反转须登记etag:stat-change')
     for usage in structure.get('usage', []): registry.require('usage_limits', usage, where)
     _check_notes(effect.get('notes', []), where)
     if effect.get('engine') is not None and not isinstance(effect['engine'], dict):

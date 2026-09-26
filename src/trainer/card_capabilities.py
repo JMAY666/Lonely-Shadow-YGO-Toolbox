@@ -38,7 +38,9 @@ def purpose_candidates(effect):
     zones = set(activation.get('zones') or [])
     nodes = list(processing_nodes(structure.get('processing')))
     actions = {row.get('action') for row in nodes}
-    interaction = bool(actions & {'negate_effect', 'negate_activation', 'lock'})
+    disruptive_lock = any(row.get('action') == 'lock' and not row.get('self_only')
+                          and not row.get('summon_response_only') for row in nodes)
+    interaction = bool(actions & {'negate_effect', 'negate_activation'}) or disruptive_lock
     removal = {'destroy', 'banish', 'send_grave', 'return_deck', 'return_hand', 'add_hand', 'take_control', 'set_position'}
     opposing_removal = any(row.get('action') in removal and (
         any(zone.startswith('opponent_') for zone in row.get('from_zones') or [])
@@ -54,7 +56,7 @@ def purpose_candidates(effect):
                        'reason': '存在处理对方卡牌的分支；对象、费用与能否使用需要另行核对。'})
     if zones & {'monster', 'spell', 'field', 'field_spell', 'pendulum', 'grave', 'banished'} and (
             activation.get('fast_effect') and (interaction or opposing_removal)
-            or effect.get('effect_type') in ('continuous', 'spell_continuous') and bool(actions & {'lock', 'protect'})):
+            or effect.get('effect_type') in ('continuous', 'spell_continuous') and (disruptive_lock or 'protect' in actions)):
         result.append({'role': 'endboards', 'label': ROLE_NAMES['endboards'],
                        'reason': '具有可供终场考虑的干扰或持续能力；是否作为本方案目标由你选择。'})
     return result
@@ -86,6 +88,12 @@ class CardCapabilities:
             elif 'min_count' in row and 'max_count' in row:
                 quantity = (f"至少{row['min_count']}个" if row['max_count'] is None
                             else f"{row['min_count']}至{row['max_count']}个")
+            elif isinstance(row.get('count_rule'), dict) and row['count_rule'].get('mode') in ('exact', 'up_to') \
+                    and row['count_rule'].get('evaluated_at') == 'activation':
+                rule = row['count_rule']
+                quantity = ('动态固定：N个' if rule.get('mode') == 'exact'
+                            else f"动态上限：{rule.get('minimum', '')}至N个")
+                quantity += f"，N＝{rule.get('text', '')}（发动时确定）"
             else: quantity = ''
             return quantity + ' ' + row.get('filter', '')
         add('对象', '；'.join(target_text(row) for row in structure.get('targeting') or []))

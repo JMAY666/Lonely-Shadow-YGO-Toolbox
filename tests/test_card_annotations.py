@@ -263,6 +263,82 @@ class CardAnnotationTests(unittest.TestCase):
         for action in ('draw', 'discard_hand', 'negate_effect'):
             self.assertEqual(self.service.search({'q': '20000001', 'action': action})['total'], 0)
 
+    def test_whole_turn_skip_lp_swap_and_lock_qualifiers_have_explicit_parameters(self):
+        skip = {'action': 'skip_turn', 'selector': {'text': '跳过对方下回合'}, 'player': 'opponent',
+                'duration': '下次对方回合', 'count': 1, 'stacking': 'non_cumulative'}
+        swap = {'action': 'swap_lp', 'selector': {'text': '双方当前基本分互换'}, 'players': ['self', 'opponent']}
+        for item in (skip, swap):
+            entry = make_entry(20000001, SEARCHER, [simple_effect('m1', 1, [], [deepcopy(item)])])
+            validate_entry(entry, self.service.registry, {'m1'}, card_type=2)
+        for sample, field, value in (
+            (skip, 'count', 0), (skip, 'count', True), (skip, 'player', 'card'),
+            (skip, 'duration', ''), (skip, 'stacking', 'unknown'),
+            (swap, 'players', ['self', 'self']), (swap, 'players', ['self']),
+            (swap, 'players', [[], {}]), (swap, 'players', 'both'),
+        ):
+            with self.subTest(field=field, value=value):
+                item = deepcopy(sample); item[field] = value
+                with self.assertRaises(ValueError):
+                    validate_entry(make_entry(20000001, SEARCHER, [simple_effect('m1', 1, [], [item])]),
+                                   self.service.registry, {'m1'}, card_type=2)
+        for qualifier in ('self_only', 'summon_response_only'):
+            for value in (0, 1, 'false', None):
+                with self.subTest(qualifier=qualifier, value=value):
+                    effect = simple_effect('m1', 1, ['etag:lock'], [{'action': 'lock', qualifier: value}])
+                    with self.assertRaises(ValueError):
+                        validate_entry(make_entry(20000001, SEARCHER, [effect]), self.service.registry, {'m1'})
+
+    def test_misspelled_target_range_fields_cannot_silently_render_as_fixed_one(self):
+        for target in (
+            {'count': 1, 'count_min': 1, 'count_max': 2, 'filter': '1至2张对象'},
+            {'count_min': 1, 'count_max': 5, 'filter': '1至5张对象'},
+            {'min_count': 1, 'max_count': 2, 'count_max': 2, 'filter': '新旧字段混用'},
+        ):
+            with self.subTest(target=target):
+                effect = simple_effect('m1', 1, [], [])
+                effect['structure']['targeting'] = [target]
+                with self.assertRaisesRegex(ValueError, 'count_min/count_max'):
+                    validate_entry(make_entry(20000001, SEARCHER, [effect]), self.service.registry, {'m1'})
+
+    def test_attribute_equip_target_and_shuffle_contracts_do_not_imply_other_actions(self):
+        samples = {
+            'change_attribute': ({'from_zones': ['monster'], 'count': 1,
+                                  'attribute_selection': 'resolution', 'duration': '表侧存在期间'}, ['etag:stat-change']),
+            'change_equip_target': ({'from_zones': ['field'], 'count': 'all', 'keeps_controller': True}, []),
+            'shuffle_deck': ({'from_zones': ['deck'], 'executor': 'self'}, ['etag:deck-look']),
+        }
+        def entry_for(action):
+            fields, tags = samples[action]
+            effect = simple_effect('m1', 1, tags, [
+                {'action': action, 'selector': {'text': '经来源核实的处理'}, **deepcopy(fields)}])
+            effect['effect_type'] = 'spell_activation'
+            return make_entry(20000001, SEARCHER, [effect])
+        for action in samples:
+            validate_entry(entry_for(action), self.service.registry, {'m1'}, card_type=2)
+        for action, field, value in (
+            ('change_attribute', 'attribute_selection', 'any_time'), ('change_attribute', 'attribute', 'light'),
+            ('change_attribute', 'count', True), ('change_attribute', 'duration', ''),
+            ('change_equip_target', 'from_zones', ['hand']), ('change_equip_target', 'keeps_controller', False),
+            ('change_equip_target', 'to_zones', ['spell']), ('change_equip_target', 'count', 0),
+            ('shuffle_deck', 'from_zones', ['grave']), ('shuffle_deck', 'from_zones', ['deck_top']),
+            ('shuffle_deck', 'executor', 'card'), ('shuffle_deck', 'to_zones', ['deck']),
+            ('shuffle_deck', 'count', 1),
+        ):
+            with self.subTest(action=action, field=field, value=value):
+                entry = entry_for(action); entry['effects'][0]['structure']['processing'][0][field] = value
+                with self.assertRaises(ValueError): validate_entry(entry, self.service.registry, {'m1'}, card_type=2)
+        for action in ('change_attribute', 'shuffle_deck'):
+            entry = entry_for(action); entry['effects'][0]['tags'] = []
+            with self.assertRaises(ValueError): validate_entry(entry, self.service.registry, {'m1'}, card_type=2)
+        fixed = entry_for('change_attribute')
+        fixed['effects'][0]['structure']['processing'][0].update(attribute_selection='fixed', attribute='water')
+        validate_entry(fixed, self.service.registry, {'m1'}, card_type=2)
+        self.write_curated(lambda entries: entries.update({'20000001': entry_for('shuffle_deck')}))
+        self.service.reload()
+        self.assertEqual(self.service.search({'q': '20000001', 'action': 'shuffle_deck'})['total'], 1)
+        for action in ('deck_reveal', 'return_deck', 'draw'):
+            self.assertEqual(self.service.search({'q': '20000001', 'action': action})['total'], 0)
+
     def test_unknown_cards_are_not_negatives(self):
         result = self.service.search({'etags': ['etag:add-hand']})
         self.assertEqual(result['catalog_total'], len(CARDS))
@@ -648,6 +724,157 @@ class CardAnnotationTests(unittest.TestCase):
             with self.subTest(quantity=quantity):
                 entry['effects'][0]['structure']['targeting'] = [{**quantity, 'filter': '对象'}]
                 with self.assertRaisesRegex(ValueError, '对象'):
+                    validate_entry(entry, self.service.registry, card_type=2)
+
+    def short_03_actions(self):
+        return [
+            {'action': 'increase_pendulum_summon_limit', 'executor': 'self', 'count': 1,
+             'from_zones': ['extra_faceup'], 'duration': '本回合'},
+            {'action': 'win_duel', 'recipient': 'self', 'delayed': True, 'creates_chain': False,
+             'turn_count': 20, 'count_both_players_turns': True, 'start_turn_inclusive': True,
+             'resolution_timing': 'end_of_20th_turn_including_activation_turn'},
+            {'action': 'place_and_use_spell', 'count': 1, 'from_zones': ['opponent_grave'],
+             'to_zones': ['spell', 'field_spell'], 'executor': 'self',
+             'used_spell_cost_timing': 'resolution', 'used_spell_targeting_timing': 'resolution'},
+            {'action': 'return_to_field', 'count': 1, 'from_zones': ['banished'], 'to_zones': ['monster'],
+             'delayed': True, 'creates_chain': False, 'resolution_timing': 'next_own_standby',
+             'position': 'same_as_before_banish', 'counts_as_special_summon': False},
+        ]
+
+    def test_short_03_actions_require_explicit_semantic_parameters(self):
+        for action in self.short_03_actions():
+            entry = self.rule_action_entry(action, [])
+            validate_entry(entry, self.service.registry, card_type=2)
+            for field in {'selector', *action} - {'action'}:
+                with self.subTest(action=action['action'], missing=field):
+                    invalid = deepcopy(entry)
+                    del invalid['effects'][0]['structure']['processing'][0][field]
+                    with self.assertRaises(ValueError):
+                        validate_entry(invalid, self.service.registry, card_type=2)
+        immediate_win = next(a for a in self.short_03_actions() if a['action'] == 'win_duel')
+        for field in ('turn_count', 'count_both_players_turns', 'start_turn_inclusive'): del immediate_win[field]
+        immediate_win.update(delayed=False, resolution_timing='符合指定胜利条件时')
+        validate_entry(self.rule_action_entry(immediate_win, []), self.service.registry, card_type=2)
+
+    def test_short_03_actions_reject_wrong_sources_timings_and_boolean_integers(self):
+        fixtures = {a['action']: a for a in self.short_03_actions()}
+        changes = [
+            ('increase_pendulum_summon_limit', 'count', True),
+            ('increase_pendulum_summon_limit', 'count', 0),
+            ('increase_pendulum_summon_limit', 'from_zones', ['grave']),
+            ('increase_pendulum_summon_limit', 'from_zones', ['extra']),
+            ('increase_pendulum_summon_limit', 'duration', ''),
+            ('win_duel', 'turn_count', True), ('win_duel', 'turn_count', 20.0),
+            ('win_duel', 'turn_count', -1), ('win_duel', 'recipient', 'both'),
+            ('win_duel', 'count_both_players_turns', 'true'),
+            ('win_duel', 'start_turn_inclusive', 1), ('win_duel', 'delayed', 'true'),
+            ('win_duel', 'creates_chain', 'false'), ('win_duel', 'resolution_timing', ''),
+            ('place_and_use_spell', 'count', 2), ('place_and_use_spell', 'count', True),
+            ('place_and_use_spell', 'to_zones', ['monster']),
+            ('place_and_use_spell', 'executor', 'both'),
+            ('place_and_use_spell', 'used_spell_cost_timing', 'activation'),
+            ('place_and_use_spell', 'used_spell_targeting_timing', 'activation'),
+            ('return_to_field', 'count', False), ('return_to_field', 'count', 0),
+            ('return_to_field', 'from_zones', ['grave']),
+            ('return_to_field', 'to_zones', ['hand']),
+            ('return_to_field', 'creates_chain', True),
+            ('return_to_field', 'counts_as_special_summon', True),
+            ('return_to_field', 'position', ''), ('return_to_field', 'delayed', 1),
+        ]
+        for action, field, value in changes:
+            with self.subTest(action=action, field=field, value=value):
+                changed = {**fixtures[action], field: value}
+                with self.assertRaises(ValueError):
+                    validate_entry(self.rule_action_entry(changed, []), self.service.registry, card_type=2)
+
+    def test_short_03_actions_do_not_claim_summons_damage_or_unknown_used_spell_abilities(self):
+        for action in self.short_03_actions():
+            for borrowed in ('etag:special-summon', 'etag:normal-summon', 'etag:draw', 'etag:effect-damage', 'etag:recover-lp'):
+                with self.subTest(action=action['action'], borrowed=borrowed):
+                    with self.assertRaisesRegex(ValueError, 'TAG 与处理'):
+                        validate_entry(self.rule_action_entry(action, [borrowed]), self.service.registry, card_type=2)
+            entry = self.rule_action_entry(action, [])
+            self.write_curated(mutate=lambda entries: entries.update({'20000001': entry}))
+            self.service.reload()
+            self.assertEqual(self.service.search({'q': '20000001', 'action': action['action']})['total'], 1)
+            self.assertEqual(self.service.search({'q': '20000001', 'action': 'special_summon'})['total'], 0)
+            self.assertEqual(self.service.search({'q': '20000001', 'action': 'draw'})['total'], 0)
+        used = self.rule_action_entry(next(a for a in self.short_03_actions() if a['action'] == 'place_and_use_spell'), [])
+        used['effects'][0]['structure']['processing'][0]['granted_effect'] = fixed_grant(
+            'trigger', ['etag:draw'], [{'action': 'draw'}])['granted_effect']
+        with self.assertRaisesRegex(ValueError, '只能登记在 grant_effect'):
+            validate_entry(used, self.service.registry, card_type=2)
+
+    def test_return_to_field_keeps_temporary_banish_and_return_zones_bound_to_their_own_actions(self):
+        returned = self.rule_action_entry(next(a for a in self.short_03_actions() if a['action'] == 'return_to_field'), [])['effects'][0]['structure']['processing'][0]
+        entry = self.rule_action_entry({'action': 'banish', 'from_zones': ['monster'],
+                                        'to_zones': ['banished'], 'then': [returned]}, ['etag:banish'])
+        self.write_curated(mutate=lambda entries: entries.update({'20000001': entry}))
+        self.service.reload()
+        self.assertEqual(self.service.search({'q': '20000001', 'action': 'return_to_field', 'from_zone': 'banished', 'to_zone': 'monster'})['total'], 1)
+        self.assertEqual(self.service.search({'q': '20000001', 'action': 'return_to_field', 'from_zone': 'monster'})['total'], 0)
+        self.assertEqual(self.service.search({'q': '20000001', 'action': 'banish', 'to_zone': 'monster'})['total'], 0)
+        self.assertEqual(self.service.search({'q': '20000001', 'action': 'special_summon'})['total'], 0)
+
+    def test_return_deck_cost_supports_explicit_non_hand_origin_without_an_effect_tag(self):
+        label = self.service.registry.vocab['cost_kinds']['return_deck']
+        self.assertIn('明确来源', label)
+        self.assertIn('额外卡组', label)
+        effect = simple_effect('m1', 1, ['etag:draw'], [{'action': 'draw', 'count': 1}])
+        effect['effect_type'] = 'spell_activation'
+        for text in ('把手卡1张指定卡放回持有者主卡组最下面', '把自己墓地1只融合怪兽返回持有者额外卡组'):
+            effect['structure']['cost'] = [{'kind': 'return_deck', 'text': text}]
+            entry = make_entry(20000001, SEARCHER, [effect])
+            validate_entry(entry, self.service.registry, card_type=2)
+            self.write_curated(mutate=lambda entries: entries.update({'20000001': entry}))
+            self.service.reload()
+            self.assertEqual(self.service.search({'q': '20000001', 'cost_kind': 'return_deck'})['total'], 1)
+            self.assertEqual(self.service.search({'q': '20000001', 'action': 'return_deck'})['total'], 0)
+
+    def test_dynamic_target_count_distinguishes_exact_n_from_up_to_n_without_evaluating(self):
+        rules = [
+            {'mode': 'exact', 'text': '作为费用解放的暗属性连接怪兽的连接标记数量', 'evaluated_at': 'activation'},
+            {'mode': 'up_to', 'text': '发动时双方相互连接怪兽的数量', 'evaluated_at': 'activation', 'minimum': 1},
+            {'mode': 'up_to', 'text': '指定数量的计算说明，不是表达式执行', 'evaluated_at': 'activation', 'minimum': 0},
+        ]
+        for rule in rules:
+            with self.subTest(rule=rule):
+                entry = self.rule_action_entry({'action': 'destroy', 'from_zones': ['field']}, ['etag:destroy'])
+                target = {'count_rule': deepcopy(rule), 'filter': '满足卡文的场上卡'}
+                entry['effects'][0]['structure']['targeting'] = [target]
+                validate_entry(entry, self.service.registry, card_type=2)
+                self.write_curated(mutate=lambda entries: entries.update({'20000001': entry}))
+                self.service.reload()
+                self.assertEqual(self.service.search({'q': '20000001', 'action': 'destroy', 'from_zone': 'field'})['total'], 1)
+                self.assertEqual(self.service.view(20000001)['effects'][0]['structure']['targeting'], [target])
+                self.assertNotIn('count', target)
+                self.assertNotIn('max_count', target)
+
+    def test_dynamic_target_count_rejects_mixed_modes_missing_basis_and_boolean_minimum(self):
+        exact = {'mode': 'exact', 'text': '作为费用解放怪兽的连接标记数', 'evaluated_at': 'activation'}
+        upto = {'mode': 'up_to', 'text': '双方相互连接怪兽数', 'evaluated_at': 'activation', 'minimum': 1}
+        bad_rules = [None, [], False, 'N', {},
+                     {**exact, 'mode': 'fixed'}, {**exact, 'mode': True},
+                     {**exact, 'text': ''}, {**exact, 'text': '   '}, {**exact, 'text': 2},
+                     {**exact, 'evaluated_at': 'resolution'}, {**exact, 'evaluated_at': False},
+                     {**exact, 'minimum': 0}, {**exact, 'minimum': None},
+                     {**exact, 'source': 'legacy_formula_id'},
+                     {**upto, 'minimum': -1}, {**upto, 'minimum': True},
+                     {**upto, 'minimum': False}, {**upto, 'minimum': 1.0}, {**upto, 'minimum': '1'}]
+        bad_rules.extend({k: v for k, v in upto.items() if k != missing}
+                         for missing in ('mode', 'text', 'evaluated_at', 'minimum'))
+        for rule in bad_rules:
+            with self.subTest(rule=rule):
+                entry = self.rule_action_entry({'action': 'destroy'}, ['etag:destroy'])
+                entry['effects'][0]['structure']['targeting'] = [{'count_rule': rule, 'filter': '对象'}]
+                with self.assertRaisesRegex(ValueError, '对象'):
+                    validate_entry(entry, self.service.registry, card_type=2)
+        for mixed in ({'count': 1}, {'count': None}, {'min_count': 1}, {'max_count': None},
+                      {'min_count': 1, 'max_count': 3}):
+            with self.subTest(mixed=mixed):
+                entry = self.rule_action_entry({'action': 'destroy'}, ['etag:destroy'])
+                entry['effects'][0]['structure']['targeting'] = [{'count_rule': exact, 'filter': '对象', **mixed}]
+                with self.assertRaisesRegex(ValueError, '不能与固定数量或常量范围混用'):
                     validate_entry(entry, self.service.registry, card_type=2)
 
     def test_usage_and_action_filters(self):

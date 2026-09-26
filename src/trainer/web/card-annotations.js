@@ -185,6 +185,10 @@ function annoStructureLines(effect, registry) {
     else if (target.min_count !== undefined && target.max_count !== undefined) {
       const quantity = target.max_count === null ? `至少${target.min_count}个` : `${target.min_count}至${target.max_count}个`;
       lines.push(`对象：${quantity}；${target.filter}`);
+    } else if (target.count_rule?.evaluated_at === 'activation' && ['exact', 'up_to'].includes(target.count_rule.mode)) {
+      const rule = target.count_rule;
+      const quantity = rule.mode === 'exact' ? '动态固定：N个' : `动态上限：${rule.minimum}至N个`;
+      lines.push(`对象：${quantity}，N＝${rule.text}（发动时确定）；${target.filter}`);
     } else lines.push(`对象：${target.filter || ''}`);
   }
   for (const line of annoProcessingLines(structure.processing, registry)) lines.push(`处理：${line}`);

@@ -151,6 +151,39 @@ test('fixed granted and historical target quantities render without dropping con
   assert.doesNotMatch(historical.join('\n'), /至少|undefined/);
 });
 
+test('dynamic target counts distinguish exact N and an N upper bound without computing either', () => {
+  const e = setup();
+  const effect = {structure: {targeting: [
+    {count_rule: {mode: 'exact', text: '所解放怪兽的连接标记数量', evaluated_at: 'activation'}, filter: '场上卡'},
+    {count_rule: {mode: 'up_to', text: '双方相互连接怪兽数量', evaluated_at: 'activation', minimum: 1}, filter: '场上魔陷'},
+    {count_rule: {mode: 'up_to', text: '卡文规定数量', evaluated_at: 'activation', minimum: 0}, filter: '允许0端点的结构'},
+  ]}};
+  const before = structuredClone(effect);
+  const lines = e.annoStructureLines(effect, registry);
+  assert.ok(lines.includes('对象：动态固定：N个，N＝所解放怪兽的连接标记数量（发动时确定）；场上卡'));
+  assert.ok(lines.includes('对象：动态上限：1至N个，N＝双方相互连接怪兽数量（发动时确定）；场上魔陷'));
+  assert.ok(lines.some(line => line.includes('动态上限：0至N个')));
+  assert.doesNotMatch(lines.join('\n'), /undefined|Infinity|至少null/);
+  assert.deepEqual(effect, before);
+  const old = e.annoStructureLines({structure: {targeting: [
+    {count_rule: {mode: 'exact', text: '旧规则', evaluated_at: 'resolution'}, filter: '旧快照对象说明'},
+  ]}}, registry);
+  assert.deepEqual(Array.from(old), ['对象：旧快照对象说明']);
+});
+
+test('dynamic count calculation text stays escaped text in the full detail view', () => {
+  const e = setup();
+  const text = '<img src=x onerror=alert(1)>＋连接标记数量';
+  const html = e.annoDetailHTML({code: 1, name: '动态对象', type: 4, status: 'reviewed', digest_ok: true,
+    text_digest: 'a'.repeat(64), no_effect: false, full: true, missing_keys: [], relations: [], notes: [],
+    effects: [{key: 'm1', number: 1, block: 'm', kind: 'numbered', annotated: true, text: '效果原文', tags: [],
+      structure: {targeting: [{count_rule: {mode: 'exact', text, evaluated_at: 'activation'}, filter: '场上卡'}]}}]
+  }, registry);
+  assert.match(html, /动态固定：N个/);
+  assert.match(html, /&lt;img src=x onerror=alert\(1\)&gt;/);
+  assert.doesNotMatch(html, /<img src=x/);
+});
+
 test('fixed granted effects show their own timing, costs and limits without duplicating immediate processing', () => {
   const e = setup();
   const vocab = {...registry, actions: {...registry.actions, grant_effect: '获得效果', burn: '效果伤害'},

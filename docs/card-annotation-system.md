@@ -57,7 +57,7 @@ tags[]                        通用效果 TAG（见 §4；只表达共性能力
 structure.activation          发动条件：timing（受控词表）、zones（发动区域）、
                               conditions（原文条件列表）、fast_effect（是否属于快速效果；不是对方回合可发动的充分条件）
 structure.cost[]              费用：kind（受控词表）＋原文短句
-structure.targeting[]         对象要求：固定 count 或 min_count/max_count 区间 ＋ filter 描述；
+structure.targeting[]         对象要求：固定 count、min_count/max_count 区间或动态 count_rule ＋ filter 描述；
                               max_count: null 显式表示无固定上界
 structure.processing[]        处理内容：action（受控词表）＋count（1 / up_to_1 / all…）＋
                               from_zones / to_zones（资源来源与去向区域）＋
@@ -165,7 +165,7 @@ notes[]                       效果级备注（含来源引用）
 
 白森林系列新增 `actions.treat_as_tuner`：把对象暂时视作调整，正例《白森林的魔女》③；反例为本身原本就是调整的《白森林的阿斯忒瑞亚》，无需此处理。此项必须记录适用时限；离开怪兽区或变里侧后的中止条件在处理限制中写明。新增 `actions.use_as_synchro_material`：效果处理后立即以己方场上怪兽为素材进行同调召唤，正例《白森林的幻妖》②；反例为卡片本身的同调素材要求，后者只属于规则段。新动作需登记怪兽区素材来源和后续同调特殊召唤，素材不是发动费用。新增 `actions.return_hand`：场上卡经效果回持有者手卡，额外卡组怪兽按规则回额外卡组，正例《蓟花之赦免》①；反例为《影灵衣的万华镜》从墓地回收仪式卡，用 `add_hand`。场上来源必须显式登记，查询层把这类处理映射为「加入手卡」TAG；这三个动作均不自动迁移旧标注。
 
-本轮同时登记 `zones.xyz_material` 表示附在超量怪兽下的素材，正例是驱魔姐妹们的圣母颂歌③作为素材的己方超量怪兽返回额外卡组，反例是墓地中的怪兽；已有墓地/怪兽区标注不自动迁移。`cost_kinds.return_deck` 表示将手卡送回卡组顶底作为发动费用，正例为驱魔姐妹・伊雷娜①的手卡「驱魔姐妹」回卡组底，反例为效果处理的回卡组；旧条目不自动迁移。
+本轮同时登记 `zones.xyz_material` 表示附在超量怪兽下的素材，正例是驱魔姐妹们的圣母颂歌③作为素材的己方超量怪兽返回额外卡组，反例是墓地中的怪兽；已有墓地/怪兽区标注不自动迁移。`cost_kinds.return_deck` 表示把明确来源的卡返回主卡组或额外卡组作为发动费用，不限于手卡；来源、持有者、去向以及适用的顶底／洗牌方式须在 `cost.text` 中说明。正例包括驱魔姐妹・伊雷娜①的手卡「驱魔姐妹」回卡组底；若官方卡文要求墓地卡回额外卡组作为费用，也沿用该 ID 并明确来源及去向。反例为效果处理的回卡组，仍用 `actions.return_deck`；费用不产生回卡组能力 TAG。旧条目不自动迁移，不通过新定义替旧资料补全未知来源。
 `timings.end_phase` 只用于明确在结束阶段发动的效果，正例为转生炎兽・郊狼①，反例为先前发动、结束阶段才执行延迟处理的卡尔麦尔①；旧时点不自动迁移。
 
 与现有 TAG 的关系：
@@ -219,6 +219,35 @@ notes[]                       效果级备注（含来源引用）
 所有新整数参数均拒绝布尔值；随机处理必须保留结果如何决定后续的说明。任何一张卡的具体发动条件和例外仍由其标注与来源承担，不以受控动作校验代替规则判定。
 
 正例：《火山充能》（33725271）应写 `{min_count: 1, max_count: 3, filter: '自己墓地火山怪兽'}`，不能保留 `count: 3` 或改成0至3。《起翼升阶魔法-急袭猛禽之力》（38044854）的2只以上写 `{min_count: 2, max_count: null, filter: '包含己方场上怪兽的自己场上／墓地RR超量怪兽'}`，不能编造上限。反例：《希望之光》（82529174）固定2只，继续使用 `count: 2`。能力事实和标注详情分别显示“1至3个”“至少2个”；查询不新增或改变数量求解规则，快照完整保留原对象结构。旧固定数量条目不迁移、不重绑卡文；本轮新动作与区域也不会自动重写旧标注。历史快照原有 `count` 展示保持；38044854旧 `count:2 + min_count:2 + variable_count:true` 混合描述须经来源复核迁移到显式无上界结构，不能继续作为新的有效内置条目。
+
+### 03批新动作与动态对象数量
+
+本批新增以下九个动作，不新增 TAG，也不从可选卡片的未来效果推导抽卡、破坏、回复或特召能力。每项仍须提供非空 `selector.text`。
+
+| 动作 | 参数协议与正例 | 反例与兼容边界 |
+| --- | --- | --- |
+| `increase_pendulum_summon_limit` | `executor=self/opponent/both`、正整数 `count`、`from_zones`（`hand`／`extra_faceup`的明确集合）、`duration`。额外灵摆（58308221）本回合额外从表侧额外卡组进行1次P召唤 | 不在本效果结算中立即召唤，不等于 `special_summon` 或增加通常召唤次数；本卡实际不包含手卡来源 |
+| `win_duel` | `recipient=self/opponent`、布尔值 `delayed`／`creates_chain`、非空 `resolution_timing`。若按回合计数，则正整数 `turn_count` 与布尔值 `count_both_players_turns`／`start_turn_inclusive` 三者必须成组出现。终焉的倒计时（95308449）从发动回合计第20个双方回合结束时胜利，不另起连锁 | 不等于给予致胜伤害，也不等于使基本分变0；不自动执行回合计数或胜负判定 |
+| `place_and_use_spell` | `executor=self/opponent`、`count=1`、明确 `from_zones`、`to_zones`仅为 `spell`／`field_spell`、`used_spell_cost_timing=resolution`、`used_spell_targeting_timing=resolution`。二重魔法（24096228）使用对方墓地魔法，本体放入自己的正确卡区，其费用和对象在本效果处理时另行处理 | 不只是取得效果的 `copy_effect`，也不只限场地魔法；不能省略被使用魔法的条件、费用及对象，不能借未知魔法添加能力 TAG |
+| `return_to_field` | `count`为正整数或`all`、`from_zones=['banished']`、场上 `to_zones`、非空 `position`／`resolution_timing`、布尔值 `delayed`、`creates_chain=false`、`counts_as_special_summon=false`。虫洞（22959079）下次自己准备阶段按回场规则返回 | 不属于从除外区特殊召唤；不从旧卡文推断额外怪兽区应回到哪个具体格子，正常放置条件仍交给规则判断 |
+| `skip_turn` | `player=self/opponent/both`、正整数 `count`、非空 `duration`、`stacking=non_cumulative/cumulative`。忍之六武（6357341）跳过下次对方整个回合，多个适用于同一下次回合的效果不累加 | 不等于只跳过战斗阶段；不执行真实回合调度 |
+| `swap_lp` | `players`必须各含一次`self`和`opponent`。大逆转谜题（5990062）在条件满足时交换双方当前基本分 | 不是效果伤害、回复或支付基本分，不借此赋予这些TAG |
+| `change_attribute` | 明确`from_zones`、正整数或`all`的`count`、非空`duration`、`attribute_selection=activation/resolution/fixed`；固定属性时登记`attribute=earth/water/fire/wind/light/dark/divine`，选择属性时不同时写固定值。炼金生物 人工生命体（40410110）在处理时选择属性 | 使用既有`etag:stat-change`的属性语义；不改种族、不冒充攻击力处理 |
+| `change_equip_target` | 场上`from_zones`、正整数或`all`的`count`、`keeps_controller=true`，禁止`to_zones`。力之集约（7565547）把场上能合法装备的既有装备卡改装给对象 | 保持装备卡控制权；不是新发动装备卡、放置卡片或取得控制权，不能省略装备关系的合法条件 |
+| `shuffle_deck` | `executor=self/opponent/both`、`from_zones`只能为明确的`deck`／`opponent_deck`，不使用`to_zones`或指定张数；若含`count`只能为`all`。恶魔的智慧（28725004）洗切自己整副卡组 | 使用既有`etag:deck-look`的卡组操作语义，不赋予查看卡组、抽卡或回卡组能力 |
+
+依据为各卡 [KONAMI OCG补足：额外灵摆](https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=17163&ope=4&request_locale=ja)、[终焉的倒计时](https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=5788&ope=4&request_locale=ja)、[二重魔法](https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=5629&ope=4&request_locale=ja)、[虫洞](https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=5132&ope=4&request_locale=ja)。这些类型及参数描述静态处理，不实现真实时点调度、额外召唤执行或自动宣告胜利。
+
+`structure.targeting[].count_rule` 表示必须在发动时按卡文计算的对象数量，不能与同一对象项的 `count`、`min_count` 或 `max_count` 同时出现。该对象必须含 `mode`、非空 `text`（计算依据）及 `evaluated_at: 'activation'`，且不接纳其他未定义键：
+
+- `mode: 'exact'`：恰好选择计算得到的N个对象，禁止 `minimum`。正例《零日冲击波》（93014827）按作为费用解放的暗属性连接怪兽的连接标记数量取恰好N张对象，不是最多N张。
+- `mode: 'up_to'`：以上述计算结果N为上限，必须给非负整数 `minimum`，排除布尔值。正例《对星遗物的抵抗》（58374719）以发动时双方相互连接怪兽数量为上限、至少选1张魔陷。处理时怪兽数量改变不重新选择对象。
+
+数量依据只作为文字显示，不解析为表达式、不读取当前局面求值，也不证明该局面有足够合法对象。能力事实和详情分别显示“动态固定：N个，N＝…（发动时确定）”与“动态上限：minimum至N个，N＝…（发动时确定）”。常量数量继续使用固定 `count`、常量闭区间或显式 `max_count:null` 的开放上界；不能用无上界隐藏动态上限，也不能把计算得到的最大值误标为固定数量。原有查询的同处理项动作／区域绑定及固定获赋效果匹配不改变；旧快照不重新求值或改写。
+
+行动限制仍保留`etag:lock`，具体处理项可用布尔值`self_only=true`表示仅自身的负面限制，或`summon_response_only=true`表示仅本次召唤成功的响应窗口。它们可按限制TAG检索，但不能因此推导持续终场干扰或手坑用途；同一效果的独立无效或除去能力仍可生成用途候选。未带这些字段的历史条目保留原行为，不通过新字段推断或改写历史快照。
+
+本轮怪兽批次的攻守变化、保护、限制与战斗伤害变化须保留对应既有TAG。34张漏标已补齐，并逐张保存TAG单独筛选及TAG与动作组合的68条真实查询回归；仅增加这些已审核处理的标签，不通过卡文关键词生成规则。完整逐卡与来源绑定见[本轮清单](card-annotation-batch-2026-09-26-short2.json)。
 
 ## 5. 审核状态与来源追溯
 

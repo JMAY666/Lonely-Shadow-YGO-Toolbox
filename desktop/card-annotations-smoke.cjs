@@ -204,6 +204,27 @@ module.exports = async ({page, application, root, evidence, pass}) => {
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
   await page.screenshot({path:path.join(evidence,'annotations-narrow-folders.png')});
   await application.evaluate(({BrowserWindow})=>{const w=BrowserWindow.getAllWindows().find(w=>!w.getParentWindow());w.setMinimumSize(900,650);w.setContentSize(1280,900);});
+  await page.waitForFunction(()=>innerWidth===1280);
+  // Phase 3: common TAGs must find the actual reviewed cards, not only action queries.
+  for (const [code,tag] of [[27762803,'etag:stat-change'],[41589166,'etag:protect'],
+                           [64892035,'etag:lock'],[50823978,'etag:damage-modify']]) {
+    const result=await page.evaluate(([code,tag])=>api('/api/annotations',{
+      op:'query',q:String(code),etags:[tag]
+    }),[code,tag]);
+    assert.equal(result.total,1,`${code} common TAG remains searchable`);
+  }
+  for (const [code,quantity] of [[15609017,/动态固定：N个.*发动时确定/],
+                               [58374719,/动态上限：1至N个.*发动时确定/],
+                               [82542267,/对象：1至2个/]]) {
+    await reset();
+    await selectCard(code);
+    await page.waitForFunction(()=>!annoUI.busy);
+    assert.match(await page.locator('#anno-detail .anno-struct').allTextContents().then(lines=>lines.join(' ')),quantity);
+    if(code===15609017) {
+      await page.locator('#anno-detail .anno-more > summary').first().click();
+      await page.screenshot({path:path.join(evidence,'annotations-dynamic-target.png')});
+    }
+  }
   assert.ok(fs.existsSync(path.join(root,'runtime','_trainer','card-annotations.json')));
   pass('Card annotations: Chinese series folders, aliases, covers, colours, collapsed filters/art, monster symbols, queries and personal corrections');
 };

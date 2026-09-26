@@ -133,3 +133,15 @@ node --test tests/card_annotations_view.test.cjs
 数据审核须区分卡片实例与卡名：“不包括正在发动的此卡”不能写成 `selector.exclude_codes=[本卡号]`，否则错误排除了同名其他盖卡。动作与来源／去向组合已绑定同一处理项；例如黄金柜的加手来源只能是除外状态，不能借用前一步的卡组来源。静态查询仍不判定当前局面可发动与否，完整检查见[1.49.3验收](verification-1.49.3.md)。
 
 固定获赋效果以 `grant_effect.granted_effect` 记录自己的类别、标签、完整结构和费用／次数；父段 `own_tags` 明确自身标签，段落 `tags` 保留自身与子效果的展示并集。兼容 `then` 必须与子处理树一致。查询在同一个自身／固定获赋单元内匹配并显示依据，不把不同层的条件拼接；动态复制不推导未知对象能力。旧无此元数据条目保持原行为，个人TAG覆盖与卡文版本边界保留。新增受控值见[体系规范](card-annotation-system.md)。
+
+## 2026-09-26 接续短卡文第二阶段
+
+暂停断点的四组400张完成整合审核，接纳397张（通常魔法199、通常陷阱99、效果怪兽99），累计2294条；灵魂消灭、增压与连爆魔人仍待核实。34张新怪兽漏掉的通用TAG已补齐，68条TAG查询回归保留于[清单](card-annotation-batch-2026-09-26-short2.json)。旧1897条仅修正3张对象数量范围，不重写其他资料。
+
+动态数量使用`count_rule`说明发动时计算依据，不能与固定数量或常量范围混用；查询和界面不执行表达式或求解实际局面。自身限制及仅召唤成功响应窗口封锁虽可检索，但不视为持续终场干扰。新动作定义、参数与反例见[体系规范](card-annotation-system.md)，重验来源时运行：
+
+```powershell
+python scripts/check_annotation_source_batch.py --runtime .local/YGOPro-Lite --manifest docs/card-annotation-batch-2026-09-26-short2.json --source-pack .local/annotation-handoff/20260925-catalog-all-14981 --supplemental-root .local/annotation-integration-20260926/phase3-supplemental
+```
+
+没有本地采集包时省略两个来源目录参数，只能验证结构和查询，不能声称来源快照已重新核验。完整范围和本次结果见[1.49.4验收](verification-1.49.4.md)；下一批继续读取当前Catalog与本地检查点，不把未完成候选计入正式覆盖。
