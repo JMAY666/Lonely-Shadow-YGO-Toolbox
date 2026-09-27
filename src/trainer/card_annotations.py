@@ -30,6 +30,7 @@ RELATION_KINDS = {'material_rule', 'summon_condition', 'shared_limit', 'usage_li
                   'exclusive_choice', 'choose_branch', 'order', 'depends_on'}
 STATUSES = ('none', 'auto', 'partial', 'reviewed', 'confirmed', 'pending', 'stale')
 CONDITION_FIELDS = ('action', 'from_zone', 'to_zone', 'usage', 'cost_kind', 'timing')
+EFFECT_BOUNDARIES = {'granted_effect': '固定获赋效果', 'scheduled_effect': '延迟处理'}
 
 # Only promote explicitly recorded child zones to a broader query. A generic
 # field annotation never proves that a particular child zone is eligible.
@@ -57,6 +58,9 @@ def _processing_nodes(items, include_granted=True):
     """Walk processing paths; fixed grants can form a separate effect boundary."""
     for index, item in enumerate(items or []):
         yield str(index), item
+        if include_granted and 'scheduled_effect' in item:
+            for sub_index, sub in _processing_nodes(item['scheduled_effect']['structure']['processing']):
+                yield f'{index}.scheduled_effect.{sub_index}', sub
         if include_granted or 'granted_effect' not in item:
             for sub_index, sub in _processing_nodes(item.get('then'), include_granted):
                 yield f'{index}.then.{sub_index}', sub
@@ -70,6 +74,32 @@ def _processing_nodes(items, include_granted=True):
 def processing_actions(items):
     for _, item in _processing_nodes(items):
         yield item['action']
+
+
+def effect_units(effect, path='', visible_tags=None):
+    """Semantic boundaries stay inside the original, text-version-bound segment."""
+    visible = set(effect.get('tags', []))
+    if visible_tags is not None: visible &= visible_tags
+    if 'units' in effect:
+        declared = set().union(*(set(unit['tags']) for unit in effect['units']))
+        # A personal segment tag has no unit provenance: it can match on its
+        # own, but must never qualify an unrelated unit's action or cost.
+        yield path, {'tags': sorted(visible - declared), 'structure': {}}
+        for unit in effect['units']:
+            child_path = f'{path + "." if path else ""}units.{unit["id"]}'
+            yield from effect_units(unit, child_path, visible)
+        return
+    children = [(index, field, item[field]) for index, item in
+                _processing_nodes(effect.get('structure', {}).get('processing'), include_granted=False)
+                for field in EFFECT_BOUNDARIES if field in item]
+    own_tags = set(effect.get('own_tags', effect.get('tags', [])))
+    if children or 'own_tags' in effect:
+        declared = own_tags.union(*(set(child['tags']) for _, _, child in children))
+        own_tags |= set(effect.get('tags', [])) - declared
+    yield path, {**effect, 'tags': sorted(own_tags & visible)}
+    for index, field, child in children:
+        child_path = f'{path + "." if path else ""}{index}.{field}'
+        yield from effect_units(child, child_path, visible)
 
 # Implied destinations keep queries honest when an annotation omits to_zones:
 # the action itself names the zone it moves a card to.
@@ -200,6 +230,7 @@ def _check_rule_action(item, where):
     supported.update({'skip_turn', 'swap_lp', 'change_attribute', 'change_equip_target', 'shuffle_deck',
                       'require_attack_return', 'convert_battle_damage', 'reverse_coin_effect',
                       'require_player_send_grave', 'replace_damage_with_recovery', 'perform_battle_damage_calculation'})
+    supported.add('redirect_battle_damage')
     if action not in supported: return
     where = f'{where} {action}'
     _check_text((item.get('selector') or {}).get('text', ''), f'{where}选择器')
@@ -213,6 +244,15 @@ def _check_rule_action(item, where):
     def boolean(field):
         if type(item.get(field)) is not bool: raise ValueError(f'{where} {field}须为布尔值')
     players = {'self', 'opponent', 'both'}
+    if action == 'redirect_battle_damage':
+        choice('source_player', {'self', 'opponent'})
+        choice('recipient', {'self', 'opponent'})
+        choice('damage_scope', {'battle'})
+        text_field('duration')
+        if (item['source_player'] == item['recipient'] or item.get('is_effect_damage') is not False
+                or item.get('creates_chain') is not False or 'amount' in item):
+            raise ValueError(f'{where}战斗伤害转移须改变承受者，保留战斗伤害且不新建连锁')
+        return
     if action == 'reverse_coin_effect':
         if item.get('from_zones') != ['monster']:
             raise ValueError(f'{where}须登记己方怪兽区来源')
@@ -295,9 +335,14 @@ def _check_rule_action(item, where):
         if item.get('count') != 'all': integer('count')
         if action == 'change_attribute':
             if 'mode' in item: choice('mode', {'replace', 'add'})
-            choice('attribute_selection', {'activation', 'resolution', 'fixed'})
+            choice('attribute_selection', {'activation', 'resolution', 'fixed', 'material_attributes'})
             text_field('duration')
-            if item['attribute_selection'] == 'fixed':
+            if item['attribute_selection'] == 'material_attributes':
+                if (item.get('mode') != 'add' or item.get('attribute_source') != 'xyz_material_monsters'
+                        or item.get('evaluated_at') != 'continuous' or 'attribute' in item
+                        or item.get('preserves_original') is not True):
+                    raise ValueError(f'{where}动态属性集合须持续追加超量素材怪兽的各属性并保留原属性')
+            elif item['attribute_selection'] == 'fixed':
                 choice('attribute', {'earth', 'water', 'fire', 'wind', 'light', 'dark', 'divine'})
             elif 'attribute' in item:
                 raise ValueError(f'{where}按时点选择属性时不能又写固定attribute')
@@ -325,7 +370,9 @@ def _check_rule_action(item, where):
                   'place_and_use_spell', 'return_to_field'} and not item.get('from_zones'):
         raise ValueError(f'{where}须登记 from_zones')
     if action in {'remove_counter', 'place_deck_top', 'place_deck_bottom', 'reveal_set_cards', 'change_race'}:
-        if item.get('count') != 'all': integer('count')
+        variable_placement = action in {'place_deck_top', 'place_deck_bottom'} and any(
+            key in item for key in ('min_count', 'max_count', 'count_rule'))
+        if not variable_placement and item.get('count') != 'all': integer('count')
     if action in {'change_hand_limit', 'skip_phase', 'repeat_phase', 'change_race',
                   'reveal_drawn_cards', 'reverse_stat_modifiers', 'reroll_dice', 'move_to_end_phase',
                   'redirect_effect_damage'}:
@@ -468,6 +515,20 @@ def _check_processing(items, registry, where, reviewed=False, card_type=None):
     for item in items:
         if not isinstance(item, dict): raise ValueError(f'{where}处理项无效')
         registry.require('actions', item.get('action'), where)
+        if item['action'] == 'schedule_resolution' or 'scheduled_effect' in item:
+            scheduled = item.get('scheduled_effect')
+            if (item['action'] != 'schedule_resolution' or not isinstance(scheduled, dict)
+                    or scheduled.get('effect_type') != 'delayed_resolution'
+                    or item.get('creates_chain') is not False
+                    or any(field in item for field in ('then', 'branches', 'granted_effect'))):
+                raise ValueError(f'{where}延迟处理须由独立的无新连锁预约单元承载')
+            _check_text(item.get('delay', ''), f'{where}延迟时点', 400)
+            _check_effect_payload(scheduled, registry, f'{where}延迟处理', reviewed, card_type, fixed=True, scheduled=True)
+            activation = scheduled['structure']['activation']
+            if (activation.get('timing') != 'scheduled' or activation.get('zones')
+                    or scheduled['structure'].get('cost') or scheduled['structure'].get('usage')
+                    or scheduled['structure'].get('targeting')):
+                raise ValueError(f'{where}延迟处理不能借用发动区域、费用、次数或发动对象')
         if item['action'] == 'halve_lp':
             selector = item.get('selector')
             if not isinstance(selector, dict): raise ValueError(f'{where}基本分减半须有选择说明')
@@ -616,9 +677,38 @@ def _check_processing(items, registry, where, reviewed=False, card_type=None):
             _check_text(restriction, f'{where}限制', 400)
 
 
-def _check_effect_payload(effect, registry, where, reviewed=False, card_type=None, fixed=False):
+def _check_effect_payload(effect, registry, where, reviewed=False, card_type=None, fixed=False, scheduled=False):
     """Validate the same semantic fields for segments and known granted effects."""
     effect_type = effect.get('effect_type')
+    if effect_type == 'delayed_resolution' and not scheduled:
+        raise ValueError(f'{where}延迟处理只能位于预约动作的 scheduled_effect 内')
+    if 'units' in effect or effect_type == 'composite':
+        units = effect.get('units')
+        if (fixed or effect_type != 'composite' or not isinstance(units, list) or len(units) < 2
+                or 'structure' in effect or 'own_tags' in effect):
+            raise ValueError(f'{where}复合段须有至少两个独立单元，不能混用父段结构')
+        if effect.get('unit_mode') not in ('independent', 'choose_one'):
+            raise ValueError(f'{where}须明确独立单元或选择其一')
+        if effect['unit_mode'] == 'choose_one':
+            _check_text(effect.get('selection_rule', ''), f'{where}选择及共享次数规则', 400)
+        identifiers = set()
+        for unit in units:
+            if (not isinstance(unit, dict) or not isinstance(unit.get('id'), str)
+                    or not re.fullmatch(r'[a-z][a-z0-9_-]{0,63}', unit['id'])
+                    or unit['id'] in identifiers or 'units' in unit):
+                raise ValueError(f'{where}独立单元标识无效或重复')
+            identifiers.add(unit['id'])
+            _check_text(unit.get('label', ''), f'{where}单元说明', 120)
+            _check_text(unit.get('text', ''), f'{where}单元原文')
+            if not isinstance(unit.get('structure'), dict) or not {
+                    'activation', 'cost', 'targeting', 'processing', 'usage'} <= unit['structure'].keys():
+                raise ValueError(f'{where}独立单元须显式登记完整结构，空费用／对象也应写列表')
+            if not unit.get('notes'): raise ValueError(f'{where}独立单元须有核对依据')
+            _check_effect_payload(unit, registry, f'{where}单元 {unit["id"]}', reviewed, card_type, fixed=True)
+        if not isinstance(effect.get('tags'), list) or set(effect['tags']) != set().union(*(set(u['tags']) for u in units)):
+            raise ValueError(f'{where}复合段 TAG 须与独立单元并集一致')
+        _check_notes(effect.get('notes', []), where)
+        return
     if fixed or effect_type: registry.require('effect_types', effect_type, where)
     if fixed and effect_type == 'unclassified':
         raise ValueError(f'{where}须明确效果类别')
@@ -675,10 +765,10 @@ def _check_effect_payload(effect, registry, where, reviewed=False, card_type=Non
             raise ValueError(f'{where}对象数量无效')
         _check_text(target.get('filter', '对象'), f'{where}对象', 400)
     processing = structure.get('processing', [])
-    if fixed and not processing: raise ValueError(f'{where}须登记固定处理')
+    if fixed and not processing and effect_type != 'non_effect': raise ValueError(f'{where}须登记固定处理')
     _check_processing(processing, registry, where, reviewed, card_type)
     own_nodes = list(_processing_nodes(processing, include_granted=False))
-    grants = [item['granted_effect'] for _, item in own_nodes if 'granted_effect' in item]
+    grants = [item[field] for _, item in own_nodes for field in EFFECT_BOUNDARIES if field in item]
     own_tags = effect.get('own_tags', tags)
     if grants or 'own_tags' in effect:
         if 'own_tags' not in effect or not isinstance(own_tags, list):
@@ -695,7 +785,7 @@ def _check_effect_payload(effect, registry, where, reviewed=False, card_type=Non
         expected_fast = False if fixed else None
         if effect_type in ('quick', 'trap_activation', 'trap_effect'): expected_fast = True
         elif effect_type == 'trigger': expected_fast = False
-        elif effect_type == 'spell_activation' and card_type is not None: expected_fast = bool(card_type & 0x10000)
+        elif effect_type == 'spell_activation': expected_fast = bool(card_type & 0x10000) if card_type is not None else None
         if expected_fast is not None and fast is not expected_fast:
             raise ValueError(f'{where}类别与快速效果标记不一致')
     # New explicit units must not borrow their granted children's capability tags,
@@ -707,6 +797,8 @@ def _check_effect_payload(effect, registry, where, reviewed=False, card_type=Non
             raise ValueError(f'{where} TAG 与处理不一致：缺少 {sorted(expected_tags - actual_tags)}；多余 {sorted(actual_tags - expected_tags)}')
         if any(item['action'] in ('change_race', 'change_attribute', 'reverse_stat_modifiers') for _, item in own_nodes) and 'etag:stat-change' not in own_tags:
             raise ValueError(f'{where}种族／属性改变或攻守增减反转须登记etag:stat-change')
+        if any(item['action'] == 'redirect_battle_damage' for _, item in own_nodes) and 'etag:damage-modify' not in own_tags:
+            raise ValueError(f'{where}战斗伤害转移须登记etag:damage-modify')
     for usage in structure.get('usage', []): registry.require('usage_limits', usage, where)
     _check_notes(effect.get('notes', []), where)
     if effect.get('engine') is not None and not isinstance(effect['engine'], dict):
@@ -745,6 +837,19 @@ def validate_entry(entry, registry, segment_keys=None, where='', card_type=None)
             raise ValueError(f'{where}效果键 {key} 不在当前卡文分段中，请核对卡文')
         if effect.get('kind') not in ('numbered', 'unnumbered', 'ambiguous'): raise ValueError(f'{where}效果 {key} 类型无效')
         _check_effect_payload(effect, registry, f'{where}效果 {key}', review.get('status') == 'reviewed', card_type)
+        if effect.get('units'):
+            frozen = entry.get('frozen_text')
+            if not frozen: raise ValueError(f'{where}独立单元必须绑定冻结卡文')
+            # Unit excerpts must belong to this segment, not another effect.
+            frozen_type = card_type if card_type is not None else (
+                0x1000000 if PENDULUM_MONSTER_MARKER.search(frozen) or PENDULUM_HEADER.search(frozen) else 0)
+            texts = {s['key']: s['text'] for s in segments(frozen, frozen_type)}
+            segment_text = texts.get(key, '')
+            for unit in effect['units']:
+                if unit['text'] not in segment_text:
+                    raise ValueError(f'{where}独立单元原文不属于当前分段')
+                if any(not note.get('source_refs') or not set(note['source_refs']) <= source_ids for note in unit['notes']):
+                    raise ValueError(f'{where}独立单元依据须引用本卡登记来源')
     for relation in entry.get('relations', []):
         if relation.get('kind') not in RELATION_KINDS: raise ValueError(f'{where}效果关系类型无效')
         _check_text(relation.get('text', '关系'), f'{where}效果关系', 800)
@@ -962,22 +1067,7 @@ class CardAnnotations:
         yield from _processing_nodes(items, include_granted)
 
     def _effect_units(self, effect, path='', visible_tags=None):
-        """Keep each fixed granted effect separate from its granting effect."""
-        grants = [(index, item['granted_effect']) for index, item in
-                  self._iter_processing(effect.get('structure', {}).get('processing'), include_granted=False)
-                  if 'granted_effect' in item]
-        own_tags = set(effect.get('own_tags', effect.get('tags', [])))
-        if grants or 'own_tags' in effect:
-            declared = own_tags.union(*(set(grant['tags']) for _, grant in grants))
-            # view() applies segment-level personal tags only to the displayed
-            # aggregate. New tags belong to its own unit; removals mask all units.
-            own_tags |= set(effect.get('tags', [])) - declared
-        visible = set(effect.get('tags', []))
-        if visible_tags is not None: visible &= visible_tags
-        yield path, {**effect, 'tags': sorted(own_tags & visible)}
-        for index, granted in grants:
-            child_path = f'{path + "." if path else ""}{index}.granted_effect'
-            yield from self._effect_units(granted, child_path, visible)
+        yield from effect_units(effect, path, visible_tags)
 
     def _effect_conditions(self, effect, body):
         """All conditions must match one own or fixed-granted effect unit."""
@@ -985,8 +1075,11 @@ class CardAnnotations:
             evidence = self._unit_conditions(unit, body)
             if evidence is None: continue
             if path:
-                return [{**item, 'effect_source': 'granted_effect', 'effect_path': path,
-                         'basis': f'固定获赋效果（{path}）：{item["basis"]}'} for item in evidence]
+                source = ('scheduled_effect' if 'scheduled_effect' in path else
+                          'granted_effect' if 'granted_effect' in path else 'independent_unit')
+                label = EFFECT_BOUNDARIES.get(source, '独立效果单元')
+                return [{**item, 'effect_source': source, 'effect_path': path,
+                         'basis': f'{label}（{unit.get("label") or path}）：{item["basis"]}'} for item in evidence]
             return evidence
         return None
 

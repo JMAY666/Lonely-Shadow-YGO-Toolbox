@@ -7,8 +7,8 @@ from copy import deepcopy
 import json
 from pathlib import Path
 
-from card_annotations import digest, processing_actions
-from card_capabilities import fingerprint, purpose_candidates
+from card_annotations import digest, effect_units
+from card_capabilities import fingerprint, purpose_candidates, processing_nodes
 from intelligence import CARD_LIBRARIES, data, handtrap_data, main_card, purpose_tag
 from intelligence_marks import notes_value, normalize_mark
 from intelligence_staples import load_catalog
@@ -62,9 +62,11 @@ class AnnotationKnowledge:
                 raw = raw_effects[effect['key']]
                 label = chr(0x245f + raw['number']) if raw.get('number') else 'text'
                 seed = seeds.get(code)
-                known = bool(seed and digest(seed['desc']) == capability['text_digest'] and label in seed['effects'])
+                known = bool(seed and not raw.get('units') and digest(seed['desc']) == capability['text_digest'] and label in seed['effects'])
                 roles = {row['role'] for row in purpose_candidates(raw)}
-                actions = list(processing_actions(raw.get('structure', {}).get('processing', [])))
+                active_units = [unit for _, unit in effect_units(raw) if unit.get('effect_type') != 'delayed_resolution']
+                actions = [node['action'] for unit in active_units for node in
+                           processing_nodes(unit.get('structure', {}).get('processing', []))]
                 if known:
                     # A card-level purpose must not leak onto its unrelated search
                     # or follow-up effect merely because the old notes include it.
@@ -89,7 +91,7 @@ class AnnotationKnowledge:
                 if 'draw' in actions or any(row.get('action') == 'add_hand' and
                         set(row.get('from_zones', [])) & {'deck', 'grave', 'banished'} and
                         '对方' not in row.get('selector', {}).get('text', '')
-                        for row in raw.get('structure', {}).get('processing', [])):
+                        for unit in active_units for row in unit.get('structure', {}).get('processing', [])):
                     opening_roles.append('resource')
                 if opening_roles:
                     sources = capability['sources']
@@ -144,7 +146,7 @@ class AnnotationKnowledge:
     def conditions(effects):
         lines = list(dict.fromkeys(f'{row["label"]}：{row["text"]}' for effect in effects for row in effect['facts']
                                   if str(row.get('label') or '').rsplit('·', 1)[-1]
-                                  in ('条件', '时点', '费用', '次数', '次数说明', '固定获赋效果')))
+                                  in ('条件', '时点', '费用', '次数', '次数说明', '固定获赋效果', '延迟处理', '选择规则')))
         text = '\n'.join(lines)
         return text if len(text) <= 3800 else text[:3780] + '…完整条件见统一标注。'
 

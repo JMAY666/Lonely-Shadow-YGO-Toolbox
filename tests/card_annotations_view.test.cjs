@@ -32,6 +32,29 @@ const registry = {
   categories: {resource: '资源与检索', removal: '除去与转移'},
 };
 
+test('reviewed independent units, scheduled effects and dynamic parameters remain visible and escaped', () => {
+  const e = setup();
+  const document = JSON.parse(fs.readFileSync(path.join(__dirname, '../src/trainer/card-annotations.json'), 'utf8'));
+  const vocabulary = JSON.parse(fs.readFileSync(path.join(__dirname, '../src/trainer/annotation-tags.json'), 'utf8'));
+  const vocab = {...vocabulary.vocabularies, tags:Object.fromEntries(vocabulary.tags.map(tag=>[tag.id,tag]))};
+  const lines = code => document.cards[code].effects.flatMap(effect=>e.annoStructureLines(effect,vocab)).join('\n');
+  assert.match(lines('88820235'), /独立单元：融合素材与召唤限制/);
+  assert.match(lines('88820235'), /独立单元：战斗破坏耐性/);
+  assert.match(lines('89642993'), /选择规则：.*两分支共用/);
+  assert.match(lines('89642993'), /延迟处理：下次对方准备阶段开始时；届时不另开连锁/);
+  assert.match(lines('89642993'), /处理：预约指定的后续时点/);
+  assert.match(lines('93108839'), /对象：1×自己怪兽区1只表侧超量怪兽/);
+  assert.match(lines('92015800'), /动态属性：持续追加/);
+  assert.match(lines('97403510'), /承受者：自己 → 对方（仍为战斗伤害/);
+  assert.match(lines('46552140'), /数量：1至5个/);
+  const view = structuredClone(document.cards['88820235']);
+  view.effects[0].units[0].label='<script>alert(1)</script>';
+  view.status='reviewed';view.digest_ok=true;view.effects[0].annotated=true;
+  const html=e.annoDetailHTML(view,vocab);
+  assert.match(html,/&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
+  assert.doesNotMatch(html,/<script>alert/);
+});
+
 test('effect labels distinguish numbered, leading text and pendulum blocks', () => {
   const e = setup();
   assert.equal(e.annoEffectLabel({number: 2, key: 'm2', block: 'm'}), '②');

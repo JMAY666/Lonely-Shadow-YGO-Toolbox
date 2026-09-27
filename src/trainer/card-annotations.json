@@ -2,7 +2,7 @@
   "version": 1,
   "id": "card-annotations-2026-09-24",
   "title": "卡片标注参考样本 · 官方资料复核",
-  "checked_on": "2026-09-26",
+  "checked_on": "2026-09-27",
   "verified_against": {
     "cards.cdb": "5f13245de4e665450858f66ef2f736a3d2f48cc7f0036961373a96a650cb6797"
   },
@@ -340570,6 +340570,1726 @@
       "code": 99927991,
       "frozen_text": "①：把自己场上的岩石族怪兽数量＋5张从自己卡组上面翻开。可以从那之中选持有翻开的卡数量以下的等级的1只岩石族怪兽加入手卡。剩下的卡用喜欢的顺序回到卡组最下面。这张卡的发动后，直到回合结束时自己不是岩石族怪兽不能特殊召唤。",
       "text_digest": "732a075863f9bf39c9a4cc506cbd72a635b0f25f9bd1fb2d87c3ab70ec06e2e0"
+    },
+    "88820235": {
+      "code": 88820235,
+      "frozen_text": "「元素英雄 凤凰人」＋「元素英雄 电光侠」\r\n这只怪兽不能作融合召唤以外的特殊召唤。自己墓地每有1张名字带有「元素英雄」的卡，这张卡的攻击力上升300。这张卡不会被战斗破坏。",
+      "text_digest": "59b0cdf2a7a20c36933fc496d39fe64c4e4c58f6e418ed29214c98d87b34430d",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-27",
+        "basis": "按KONAMI OCG卡文及补足复核此前结构缺口，拆开独立单元、选择分支与延迟处理。"
+      },
+      "effects": [
+        {
+          "key": "m-all",
+          "block": "m",
+          "number": null,
+          "kind": "unnumbered",
+          "effect_type": "composite",
+          "unit_mode": "independent",
+          "units": [
+            {
+              "id": "fusion_rule",
+              "label": "融合素材与召唤限制",
+              "text": "「元素英雄 凤凰人」＋「元素英雄 电光侠」\n这只怪兽不能作融合召唤以外的特殊召唤。",
+              "effect_type": "non_effect",
+              "tags": [
+                "etag:material-rule"
+              ],
+              "structure": {
+                "activation": {
+                  "timing": "condition_text",
+                  "zones": [],
+                  "conditions": [
+                    "指定融合素材；只能融合召唤；正规出场后仍不能由其他方式特殊召唤"
+                  ],
+                  "fast_effect": false
+                },
+                "cost": [],
+                "targeting": [],
+                "processing": [],
+                "usage": []
+              },
+              "notes": [
+                {
+                  "text": "官方卡文与补足按本单元的类别、区域、时点及处理边界核对。",
+                  "source_refs": [
+                    "faq-index-88820235-p1"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "grave_attack",
+              "label": "按墓地英雄卡数增攻",
+              "text": "自己墓地每有1张名字带有「元素英雄」的卡，这张卡的攻击力上升300。",
+              "effect_type": "continuous",
+              "tags": [
+                "etag:stat-change"
+              ],
+              "structure": {
+                "activation": {
+                  "timing": "condition_text",
+                  "zones": [
+                    "monster"
+                  ],
+                  "conditions": [],
+                  "fast_effect": false
+                },
+                "cost": [],
+                "targeting": [],
+                "processing": [
+                  {
+                    "action": "stat_change",
+                    "selector": {
+                      "text": "本卡攻击力持续上升自己墓地E・HERO卡数量×300；不限怪兽卡"
+                    }
+                  }
+                ],
+                "usage": []
+              },
+              "notes": [
+                {
+                  "text": "官方卡文与补足按本单元的类别、区域、时点及处理边界核对。",
+                  "source_refs": [
+                    "faq-index-88820235-p1"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "battle_protection",
+              "label": "战斗破坏耐性",
+              "text": "这张卡不会被战斗破坏。",
+              "effect_type": "continuous",
+              "tags": [
+                "etag:protect"
+              ],
+              "structure": {
+                "activation": {
+                  "timing": "condition_text",
+                  "zones": [
+                    "monster"
+                  ],
+                  "conditions": [],
+                  "fast_effect": false
+                },
+                "cost": [],
+                "targeting": [],
+                "processing": [
+                  {
+                    "action": "protect",
+                    "selector": {
+                      "text": "本卡不会被战斗破坏"
+                    }
+                  }
+                ],
+                "usage": []
+              },
+              "notes": [
+                {
+                  "text": "官方卡文与补足按本单元的类别、区域、时点及处理边界核对。",
+                  "source_refs": [
+                    "faq-index-88820235-p1"
+                  ]
+                }
+              ]
+            }
+          ],
+          "tags": [
+            "etag:material-rule",
+            "etag:protect",
+            "etag:stat-change"
+          ],
+          "notes": [
+            {
+              "text": "同一卡文段内各真实单元分别核对；保留原分段键，不虚构卡文编号或获赋关系。",
+              "source_refs": [
+                "faq-index-88820235-p1"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [],
+      "notes": [
+        {
+          "text": "静态能力资料；不代表当前局面的发动或处理保证。",
+          "source_refs": [
+            "faq-index-88820235-p1"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "id": "card-88820235",
+          "title": "KONAMI OCG卡文",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=6656&ope=2&request_locale=ja",
+          "checked_on": "2026-09-27",
+          "format": "OCG"
+        },
+        {
+          "id": "faq-index-88820235-p1",
+          "title": "KONAMI OCG补足与FAQ",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=6656&ope=4&request_locale=ja",
+          "checked_on": "2026-09-27",
+          "format": "OCG"
+        }
+      ]
+    },
+    "98263709": {
+      "code": 98263709,
+      "frozen_text": "反转：自己回复自己墓地的名字带有「银河」的怪兽数量×500基本分。此外，反转过的这张卡被破坏送去墓地时，可以从自己的卡组·墓地选1只4星以下的名字带有「银河」的怪兽里侧守备表示特殊召唤。这个效果特殊召唤的怪兽从场上离开的场合从游戏中除外。",
+      "text_digest": "d20daed7ab1e745ff92f5564a58012983b9ea63f632790f7202475f6ec50054d",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-27",
+        "basis": "按KONAMI OCG卡文及补足复核此前结构缺口，拆开独立单元、选择分支与延迟处理。"
+      },
+      "effects": [
+        {
+          "key": "m-all",
+          "block": "m",
+          "number": null,
+          "kind": "unnumbered",
+          "effect_type": "composite",
+          "unit_mode": "independent",
+          "units": [
+            {
+              "id": "flip_heal",
+              "label": "反转时必须回复",
+              "text": "反转：自己回复自己墓地的名字带有「银河」的怪兽数量×500基本分。",
+              "effect_type": "trigger",
+              "tags": [
+                "etag:recover-lp"
+              ],
+              "structure": {
+                "activation": {
+                  "timing": "condition_text",
+                  "zones": [
+                    "monster"
+                  ],
+                  "conditions": [
+                    "反转时必发；伤害步骤也发动"
+                  ],
+                  "fast_effect": false
+                },
+                "cost": [],
+                "targeting": [],
+                "processing": [
+                  {
+                    "action": "heal",
+                    "selector": {
+                      "text": "自己回复墓地银河怪兽数×500基本分"
+                    },
+                    "recipient": "self",
+                    "amount_rule": {
+                      "text": "自己墓地银河怪兽数量×500",
+                      "evaluated_at": "resolution"
+                    }
+                  }
+                ],
+                "usage": []
+              },
+              "notes": [
+                {
+                  "text": "官方卡文与补足按本单元的类别、区域、时点及处理边界核对。",
+                  "source_refs": [
+                    "faq-index-98263709-p1"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "destroyed_summon",
+              "label": "破坏送墓后的可选特召",
+              "text": "反转过的这张卡被破坏送去墓地时，可以从自己的卡组·墓地选1只4星以下的名字带有「银河」的怪兽里侧守备表示特殊召唤。这个效果特殊召唤的怪兽从场上离开的场合从游戏中除外。",
+              "effect_type": "trigger",
+              "tags": [
+                "etag:special-summon"
+              ],
+              "structure": {
+                "activation": {
+                  "timing": "condition_text",
+                  "zones": [
+                    "grave"
+                  ],
+                  "conditions": [
+                    "反转过的本卡被破坏送墓时可选；伤害步骤也可发动",
+                    "时的可选诱发：破坏送墓后有其他处理则错过时点；之后回合被破坏也可触发"
+                  ],
+                  "fast_effect": false
+                },
+                "cost": [],
+                "targeting": [],
+                "processing": [
+                  {
+                    "action": "special_summon",
+                    "selector": {
+                      "text": "自己卡组或墓地1只4星以下银河怪兽；不取对象，卡组选出时须展示"
+                    },
+                    "count": 1,
+                    "from_zones": [
+                      "deck",
+                      "grave"
+                    ],
+                    "to_zones": [
+                      "monster"
+                    ],
+                    "position": "里侧守备表示",
+                    "restrictions": [
+                      "该怪兽离场时除外"
+                    ]
+                  }
+                ],
+                "usage": []
+              },
+              "notes": [
+                {
+                  "text": "官方卡文与补足按本单元的类别、区域、时点及处理边界核对。",
+                  "source_refs": [
+                    "faq-index-98263709-p1"
+                  ]
+                }
+              ]
+            }
+          ],
+          "tags": [
+            "etag:recover-lp",
+            "etag:special-summon"
+          ],
+          "notes": [
+            {
+              "text": "同一卡文段内各真实单元分别核对；保留原分段键，不虚构卡文编号或获赋关系。",
+              "source_refs": [
+                "faq-index-98263709-p1"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [],
+      "notes": [
+        {
+          "text": "静态能力资料；不代表当前局面的发动或处理保证。",
+          "source_refs": [
+            "faq-index-98263709-p1"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "id": "card-98263709",
+          "title": "KONAMI OCG卡文",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=11031&ope=2&request_locale=ja",
+          "checked_on": "2026-09-27",
+          "format": "OCG"
+        },
+        {
+          "id": "faq-index-98263709-p1",
+          "title": "KONAMI OCG补足与FAQ",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=11031&ope=4&request_locale=ja",
+          "checked_on": "2026-09-27",
+          "format": "OCG"
+        }
+      ]
+    },
+    "92015800": {
+      "code": 92015800,
+      "frozen_text": "7星怪兽×2\r\n这个卡名的③的效果1回合只能使用1次。\r\n①：这张卡的属性也当作这张卡作为超量素材中的怪兽的各自属性使用。\r\n②：这张卡不会被和持有和这张卡相同属性的怪兽的战斗破坏，不会被持有和这张卡相同属性的对方怪兽发动的效果破坏。\r\n③：以对方墓地1只怪兽为对象才能发动。这张卡1个超量素材取除，把作为对象的怪兽在这张卡下面重叠作为超量素材。这个效果在对方回合也能发动。",
+      "text_digest": "83e23ccfc362527809ec587a8c44670fc38ee424ce1a38ab1fa7235a4202465c",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-27",
+        "basis": "按KONAMI OCG卡文及补足复核此前结构缺口，拆开独立单元、选择分支与延迟处理。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "block": "m",
+          "number": null,
+          "kind": "unnumbered",
+          "effect_type": "non_effect",
+          "tags": [
+            "etag:material-rule"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "condition_text",
+              "zones": [],
+              "conditions": [
+                "7星怪兽×2；③同名每回合一次"
+              ],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [],
+            "processing": [],
+            "usage": []
+          },
+          "notes": [
+            {
+              "text": "官方卡文与补足按本单元的类别、区域、时点及处理边界核对。",
+              "source_refs": [
+                "faq-index-92015800-p1"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "block": "m",
+          "number": 1,
+          "kind": "numbered",
+          "effect_type": "continuous",
+          "tags": [
+            "etag:stat-change"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "condition_text",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "change_attribute",
+                "selector": {
+                  "text": "本卡同时当作所持超量素材怪兽各自的属性"
+                },
+                "from_zones": [
+                  "monster"
+                ],
+                "count": 1,
+                "mode": "add",
+                "attribute_selection": "material_attributes",
+                "attribute_source": "xyz_material_monsters",
+                "evaluated_at": "continuous",
+                "preserves_original": true,
+                "duration": "本卡在怪兽区表侧存在且效果适用期间；随当前素材变化"
+              }
+            ],
+            "usage": []
+          },
+          "notes": [
+            {
+              "text": "官方卡文与补足按本单元的类别、区域、时点及处理边界核对。",
+              "source_refs": [
+                "faq-index-92015800-p1"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "block": "m",
+          "number": 2,
+          "kind": "numbered",
+          "effect_type": "continuous",
+          "tags": [
+            "etag:protect"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "condition_text",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "protect",
+                "selector": {
+                  "text": "不被同属性怪兽战斗破坏，也不被同属性对方怪兽发动的效果破坏"
+                }
+              }
+            ],
+            "usage": []
+          },
+          "notes": [
+            {
+              "text": "官方卡文与补足按本单元的类别、区域、时点及处理边界核对。",
+              "source_refs": [
+                "faq-index-92015800-p1"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m3",
+          "block": "m",
+          "number": 3,
+          "kind": "numbered",
+          "effect_type": "quick",
+          "tags": [],
+          "structure": {
+            "activation": {
+              "timing": "fast_window",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "双方回合；伤害步骤不能发动"
+              ],
+              "fast_effect": true
+            },
+            "cost": [],
+            "targeting": [
+              {
+                "count": 1,
+                "filter": "对方墓地1只怪兽"
+              }
+            ],
+            "processing": [
+              {
+                "action": "detach_material",
+                "selector": {
+                  "text": "处理时取除本卡1个素材，非发动费用"
+                },
+                "count": 1,
+                "from_zones": [
+                  "xyz_material"
+                ],
+                "then": [
+                  {
+                    "action": "attach_material",
+                    "selector": {
+                      "text": "成功取除后把对象怪兽叠为本卡素材；两处理视为同时"
+                    },
+                    "count": 1,
+                    "from_zones": [
+                      "opponent_grave"
+                    ],
+                    "to_zones": [
+                      "xyz_material"
+                    ],
+                    "condition": "成功取除本卡素材"
+                  }
+                ]
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "官方卡文与补足按本单元的类别、区域、时点及处理边界核对。",
+              "source_refs": [
+                "faq-index-92015800-p1"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [],
+      "notes": [
+        {
+          "text": "静态能力资料；不代表当前局面的发动或处理保证。",
+          "source_refs": [
+            "faq-index-92015800-p1"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "id": "card-92015800",
+          "title": "KONAMI OCG卡文",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=14565&ope=2&request_locale=ja",
+          "checked_on": "2026-09-27",
+          "format": "OCG"
+        },
+        {
+          "id": "faq-index-92015800-p1",
+          "title": "KONAMI OCG补足与FAQ",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14565&ope=4&request_locale=ja",
+          "checked_on": "2026-09-27",
+          "format": "OCG"
+        }
+      ]
+    },
+    "93108839": {
+      "code": 93108839,
+      "frozen_text": "4星怪兽×2\r\n①：1回合1次，可以从以下效果选择1个发动。\r\n●以自己场上1只超量怪兽为对象，把这张卡当作装备卡使用给那只怪兽装备。\r\n●装备的这张卡攻击表示特殊召唤。\r\n②：装备怪兽可以向对方直接攻击。\r\n③：装备怪兽给与对方战斗伤害时，丢弃1张手卡才能发动。给与对方500伤害。",
+      "text_digest": "a1054cfeec51b3ba9c2c7b6882b3338f6e8e2decb773c10079f06bfa56c47a56",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-27",
+        "basis": "按KONAMI OCG卡文及补足复核此前结构缺口，拆开独立单元、选择分支与延迟处理。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "block": "m",
+          "number": null,
+          "kind": "unnumbered",
+          "effect_type": "non_effect",
+          "tags": [
+            "etag:material-rule"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "condition_text",
+              "zones": [],
+              "conditions": [
+                "4星怪兽×2"
+              ],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [],
+            "processing": [],
+            "usage": []
+          },
+          "notes": [
+            {
+              "text": "官方卡文与补足按本单元的类别、区域、时点及处理边界核对。",
+              "source_refs": [
+                "faq-index-93108839-p1"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "block": "m",
+          "number": 1,
+          "kind": "numbered",
+          "effect_type": "composite",
+          "unit_mode": "choose_one",
+          "units": [
+            {
+              "id": "equip",
+              "label": "怪兽区发动装备",
+              "text": "●以自己场上1只超量怪兽为对象，把这张卡当作装备卡使用给那只怪兽装备。",
+              "effect_type": "ignition",
+              "tags": [],
+              "structure": {
+                "activation": {
+                  "timing": "main_phase_self",
+                  "zones": [
+                    "monster"
+                  ],
+                  "conditions": [],
+                  "fast_effect": false
+                },
+                "cost": [],
+                "targeting": [
+                  {
+                    "count": 1,
+                    "filter": "自己怪兽区1只表侧超量怪兽"
+                  }
+                ],
+                "processing": [
+                  {
+                    "action": "equip_as_spell",
+                    "selector": {
+                      "text": "本卡作为装备魔法装备给对象超量怪兽"
+                    },
+                    "count": 1,
+                    "from_zones": [
+                      "monster"
+                    ],
+                    "to_zones": [
+                      "spell"
+                    ]
+                  }
+                ],
+                "usage": [
+                  "soft_opt"
+                ]
+              },
+              "notes": [
+                {
+                  "text": "官方卡文与补足按本单元的类别、区域、时点及处理边界核对。",
+                  "source_refs": [
+                    "faq-index-93108839-p1"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "unequip",
+              "label": "装备状态发动特召",
+              "text": "●装备的这张卡攻击表示特殊召唤。",
+              "effect_type": "spell_effect",
+              "tags": [
+                "etag:special-summon"
+              ],
+              "structure": {
+                "activation": {
+                  "timing": "main_phase_self",
+                  "zones": [
+                    "spell"
+                  ],
+                  "conditions": [
+                    "本卡正作为装备卡使用；不取对象"
+                  ],
+                  "fast_effect": false
+                },
+                "cost": [],
+                "targeting": [],
+                "processing": [
+                  {
+                    "action": "special_summon",
+                    "selector": {
+                      "text": "装备状态的本卡攻击表示特殊召唤"
+                    },
+                    "count": 1,
+                    "from_zones": [
+                      "spell"
+                    ],
+                    "to_zones": [
+                      "monster"
+                    ],
+                    "position": "表侧攻击表示"
+                  }
+                ],
+                "usage": [
+                  "soft_opt"
+                ]
+              },
+              "notes": [
+                {
+                  "text": "官方卡文与补足按本单元的类别、区域、时点及处理边界核对。",
+                  "source_refs": [
+                    "faq-index-93108839-p1"
+                  ]
+                }
+              ]
+            }
+          ],
+          "tags": [
+            "etag:special-summon"
+          ],
+          "notes": [
+            {
+              "text": "同一卡文段内各真实单元分别核对；保留原分段键，不虚构卡文编号或获赋关系。",
+              "source_refs": [
+                "faq-index-93108839-p1"
+              ]
+            }
+          ],
+          "selection_rule": "①发动时选择一个●，每回合一次；装备和离开装备状态分别按所在地、类别与对象条件核对。"
+        },
+        {
+          "key": "m2",
+          "block": "m",
+          "number": 2,
+          "kind": "numbered",
+          "effect_type": "spell_continuous",
+          "tags": [],
+          "structure": {
+            "activation": {
+              "timing": "condition_text",
+              "zones": [
+                "spell"
+              ],
+              "conditions": [
+                "本卡作为装备卡持续适用"
+              ],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "allow_direct_attack",
+                "selector": {
+                  "text": "装备怪兽可以向对方直接攻击"
+                }
+              }
+            ],
+            "usage": []
+          },
+          "notes": [
+            {
+              "text": "官方卡文与补足按本单元的类别、区域、时点及处理边界核对。",
+              "source_refs": [
+                "faq-index-93108839-p1"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m3",
+          "block": "m",
+          "number": 3,
+          "kind": "numbered",
+          "effect_type": "spell_effect",
+          "tags": [
+            "etag:effect-damage"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "condition_text",
+              "zones": [
+                "spell"
+              ],
+              "conditions": [
+                "装备怪兽给予对方战斗伤害时可选发动"
+              ],
+              "fast_effect": false
+            },
+            "cost": [
+              {
+                "kind": "discard",
+                "text": "丢弃1张手卡"
+              }
+            ],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "burn",
+                "selector": {
+                  "text": "给予对方500效果伤害"
+                },
+                "amount": 500,
+                "recipient": "opponent"
+              }
+            ],
+            "usage": []
+          },
+          "notes": [
+            {
+              "text": "官方卡文与补足按本单元的类别、区域、时点及处理边界核对。",
+              "source_refs": [
+                "faq-index-93108839-p1"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [],
+      "notes": [
+        {
+          "text": "静态能力资料；不代表当前局面的发动或处理保证。",
+          "source_refs": [
+            "faq-index-93108839-p1"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "id": "card-93108839",
+          "title": "KONAMI OCG卡文",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=11025&ope=2&request_locale=ja",
+          "checked_on": "2026-09-27",
+          "format": "OCG"
+        },
+        {
+          "id": "faq-index-93108839-p1",
+          "title": "KONAMI OCG补足与FAQ",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=11025&ope=4&request_locale=ja",
+          "checked_on": "2026-09-27",
+          "format": "OCG"
+        }
+      ]
+    },
+    "46552140": {
+      "code": 46552140,
+      "frozen_text": "①：自己场上的岩石族怪兽的攻击力·守备力上升500。\r\n②：1回合1次，自己主要阶段才能发动。从卡组选最多5张「魔救」卡用喜欢的顺序在卡组最上面放置。",
+      "text_digest": "971feedb19b910f8499f86ca0ec08d833deef44041a8d4f6cb8613f4031a757d",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-27",
+        "basis": "按KONAMI OCG卡文及补足复核此前结构缺口，拆开独立单元、选择分支与延迟处理。"
+      },
+      "effects": [
+        {
+          "key": "m1",
+          "block": "m",
+          "number": 1,
+          "kind": "numbered",
+          "effect_type": "spell_continuous",
+          "tags": [
+            "etag:stat-change"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "condition_text",
+              "zones": [
+                "field_spell"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "stat_change",
+                "selector": {
+                  "text": "自己场上岩石族怪兽攻击力、守备力上升500"
+                }
+              }
+            ],
+            "usage": []
+          },
+          "notes": [
+            {
+              "text": "官方卡文与补足按本单元的类别、区域、时点及处理边界核对。",
+              "source_refs": [
+                "faq-index-46552140-p1"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "block": "m",
+          "number": 2,
+          "kind": "numbered",
+          "effect_type": "spell_effect",
+          "tags": [
+            "etag:deck-look"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "field_spell"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "place_deck_top",
+                "selector": {
+                  "text": "从自己卡组选1至5张魔救卡，以喜欢的顺序放到卡组顶"
+                },
+                "min_count": 1,
+                "max_count": 5,
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "deck_top"
+                ],
+                "executor": "self",
+                "shuffle_before_placement": true
+              }
+            ],
+            "usage": [
+              "soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "官方卡文与补足按本单元的类别、区域、时点及处理边界核对。",
+              "source_refs": [
+                "faq-index-46552140-p1"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [],
+      "notes": [
+        {
+          "text": "静态能力资料；不代表当前局面的发动或处理保证。",
+          "source_refs": [
+            "faq-index-46552140-p1"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "id": "card-46552140",
+          "title": "KONAMI OCG卡文",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=15106&ope=2&request_locale=ja",
+          "checked_on": "2026-09-27",
+          "format": "OCG"
+        },
+        {
+          "id": "faq-index-46552140-p1",
+          "title": "KONAMI OCG补足与FAQ",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=15106&ope=4&request_locale=ja",
+          "checked_on": "2026-09-27",
+          "format": "OCG"
+        }
+      ]
+    },
+    "89642993": {
+      "code": 89642993,
+      "frozen_text": "1星怪兽×2\r\n这个卡名的效果1回合只能使用1次。\r\n①：可以把这张卡1个超量素材取除，从以下效果选择1个发动。\r\n●下次的对方准备阶段开始时，双方玩家从卡组抽1张。\r\n●双方玩家回复1000基本分。",
+      "text_digest": "9a8596e7ce5808877226ca7fda8be289d3de5c1636e4966399e2fd8f047a8c20",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-27",
+        "basis": "按KONAMI OCG卡文及补足复核此前结构缺口，拆开独立单元、选择分支与延迟处理。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "block": "m",
+          "number": null,
+          "kind": "unnumbered",
+          "effect_type": "non_effect",
+          "tags": [
+            "etag:material-rule"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "condition_text",
+              "zones": [],
+              "conditions": [
+                "1星怪兽×2；本卡名效果每回合一次"
+              ],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [],
+            "processing": [],
+            "usage": []
+          },
+          "notes": [
+            {
+              "text": "官方卡文与补足按本单元的类别、区域、时点及处理边界核对。",
+              "source_refs": [
+                "faq-index-89642993-p1"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "block": "m",
+          "number": 1,
+          "kind": "numbered",
+          "effect_type": "composite",
+          "unit_mode": "choose_one",
+          "units": [
+            {
+              "id": "reserve_draw",
+              "label": "预约双方抽卡",
+              "text": "●下次的对方准备阶段开始时，双方玩家从卡组抽1张。",
+              "effect_type": "ignition",
+              "tags": [
+                "etag:draw"
+              ],
+              "structure": {
+                "activation": {
+                  "timing": "main_phase_self",
+                  "zones": [
+                    "monster"
+                  ],
+                  "conditions": [
+                    "发动时即选择此分支；卡组为空或已有禁止准备阶段抽卡效果也可选择"
+                  ],
+                  "fast_effect": false
+                },
+                "cost": [
+                  {
+                    "kind": "detach_material",
+                    "text": "取除本卡1个超量素材"
+                  }
+                ],
+                "targeting": [],
+                "processing": [
+                  {
+                    "action": "schedule_resolution",
+                    "selector": {
+                      "text": "本次处理只建立预约状态"
+                    },
+                    "delay": "下次对方准备阶段开始时",
+                    "creates_chain": false,
+                    "scheduled_effect": {
+                      "effect_type": "delayed_resolution",
+                      "tags": [
+                        "etag:draw"
+                      ],
+                      "structure": {
+                        "activation": {
+                          "timing": "scheduled",
+                          "zones": [],
+                          "conditions": [
+                            "下次对方准备阶段开始时"
+                          ],
+                          "fast_effect": false
+                        },
+                        "cost": [],
+                        "targeting": [],
+                        "processing": [
+                          {
+                            "action": "draw",
+                            "selector": {
+                              "text": "自己从卡组抽1张，与对方同时进行"
+                            },
+                            "count": 1,
+                            "from_zones": [
+                              "deck"
+                            ],
+                            "to_zones": [
+                              "hand"
+                            ],
+                            "simultaneous_group": "both_draw"
+                          },
+                          {
+                            "action": "draw",
+                            "selector": {
+                              "text": "对方从卡组抽1张，与自己同时进行"
+                            },
+                            "count": 1,
+                            "from_zones": [
+                              "opponent_deck"
+                            ],
+                            "to_zones": [
+                              "opponent_hand"
+                            ],
+                            "simultaneous_group": "both_draw"
+                          }
+                        ],
+                        "usage": []
+                      },
+                      "notes": [
+                        {
+                          "text": "官方卡文与补足按本单元的类别、区域、时点及处理边界核对。",
+                          "source_refs": [
+                            "faq-index-89642993-p1"
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "usage": [
+                  "name_soft_opt"
+                ]
+              },
+              "notes": [
+                {
+                  "text": "官方卡文与补足按本单元的类别、区域、时点及处理边界核对。",
+                  "source_refs": [
+                    "faq-index-89642993-p1"
+                  ]
+                }
+              ],
+              "own_tags": []
+            },
+            {
+              "id": "heal_both",
+              "label": "双方立即回复",
+              "text": "●双方玩家回复1000基本分。",
+              "effect_type": "ignition",
+              "tags": [
+                "etag:recover-lp"
+              ],
+              "structure": {
+                "activation": {
+                  "timing": "main_phase_self",
+                  "zones": [
+                    "monster"
+                  ],
+                  "conditions": [],
+                  "fast_effect": false
+                },
+                "cost": [
+                  {
+                    "kind": "detach_material",
+                    "text": "取除本卡1个超量素材"
+                  }
+                ],
+                "targeting": [],
+                "processing": [
+                  {
+                    "action": "heal",
+                    "selector": {
+                      "text": "双方各回复1000基本分"
+                    },
+                    "amount": 1000,
+                    "recipient": "both"
+                  }
+                ],
+                "usage": [
+                  "name_soft_opt"
+                ]
+              },
+              "notes": [
+                {
+                  "text": "官方卡文与补足按本单元的类别、区域、时点及处理边界核对。",
+                  "source_refs": [
+                    "faq-index-89642993-p1"
+                  ]
+                }
+              ]
+            }
+          ],
+          "tags": [
+            "etag:draw",
+            "etag:recover-lp"
+          ],
+          "notes": [
+            {
+              "text": "同一卡文段内各真实单元分别核对；保留原分段键，不虚构卡文编号或获赋关系。",
+              "source_refs": [
+                "faq-index-89642993-p1"
+              ]
+            }
+          ],
+          "selection_rule": "发动时选择一个●；两分支共用本卡名每回合一次使用限制，不可一次同时适用。"
+        }
+      ],
+      "relations": [],
+      "notes": [
+        {
+          "text": "静态能力资料；不代表当前局面的发动或处理保证。",
+          "source_refs": [
+            "faq-index-89642993-p1"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "id": "card-89642993",
+          "title": "KONAMI OCG卡文",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=10705&ope=2&request_locale=ja",
+          "checked_on": "2026-09-27",
+          "format": "OCG"
+        },
+        {
+          "id": "faq-index-89642993-p1",
+          "title": "KONAMI OCG补足与FAQ",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=10705&ope=4&request_locale=ja",
+          "checked_on": "2026-09-27",
+          "format": "OCG"
+        }
+      ]
+    },
+    "97403510": {
+      "code": 97403510,
+      "frozen_text": "9星怪兽×3\r\n①：这张卡不会被战斗破坏，这张卡的战斗发生的对自己的战斗伤害由对方代受。\r\n②：对方结束阶段把这张卡1个超量素材取除才能发动。把这个回合召唤·特殊召唤·盖放的对方场上的卡全部除外。\r\n③：持有超量素材的这张卡被破坏送去墓地的场合才能发动。这张卡特殊召唤。\r\n④：这张卡用自身的效果特殊召唤的场合发动。这张卡的攻击力上升除外中的卡数量×1000。",
+      "text_digest": "e527644154d24a9786a2b9e40c36674c5f3b15433c10f75d1c1f9284fa18cb8f",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-27",
+        "basis": "按KONAMI OCG卡文及补足复核此前结构缺口，拆开独立单元、选择分支与延迟处理。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "block": "m",
+          "number": null,
+          "kind": "unnumbered",
+          "effect_type": "non_effect",
+          "tags": [
+            "etag:material-rule"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "condition_text",
+              "zones": [],
+              "conditions": [
+                "9星怪兽×3"
+              ],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [],
+            "processing": [],
+            "usage": []
+          },
+          "notes": [
+            {
+              "text": "官方卡文与补足按本单元的类别、区域、时点及处理边界核对。",
+              "source_refs": [
+                "faq-index-97403510-p1"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "block": "m",
+          "number": 1,
+          "kind": "numbered",
+          "effect_type": "continuous",
+          "tags": [
+            "etag:protect",
+            "etag:damage-modify"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "condition_text",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "protect",
+                "selector": {
+                  "text": "本卡不会被战斗破坏"
+                }
+              },
+              {
+                "action": "redirect_battle_damage",
+                "selector": {
+                  "text": "本卡进行战斗而使自己应受的战斗伤害由对方代受"
+                },
+                "source_player": "self",
+                "recipient": "opponent",
+                "damage_scope": "battle",
+                "is_effect_damage": false,
+                "creates_chain": false,
+                "duration": "本卡此永续效果适用期间"
+              }
+            ],
+            "usage": []
+          },
+          "notes": [
+            {
+              "text": "官方卡文与补足按本单元的类别、区域、时点及处理边界核对。",
+              "source_refs": [
+                "faq-index-97403510-p1"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "block": "m",
+          "number": 2,
+          "kind": "numbered",
+          "effect_type": "trigger",
+          "tags": [
+            "etag:banish"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "end_phase",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "对方结束阶段可选发动一次"
+              ],
+              "fast_effect": false
+            },
+            "cost": [
+              {
+                "kind": "detach_material",
+                "text": "取除本卡1个超量素材"
+              }
+            ],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "banish",
+                "selector": {
+                  "text": "这个回合召唤、特殊召唤或盖放的对方场上全部卡；不取对象"
+                },
+                "count": "all",
+                "from_zones": [
+                  "field"
+                ],
+                "to_zones": [
+                  "banished",
+                  "opponent_banished"
+                ]
+              }
+            ],
+            "usage": [
+              "soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "官方卡文与补足按本单元的类别、区域、时点及处理边界核对。",
+              "source_refs": [
+                "faq-index-97403510-p1"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m3",
+          "block": "m",
+          "number": 3,
+          "kind": "numbered",
+          "effect_type": "trigger",
+          "tags": [
+            "etag:special-summon"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "condition_text",
+              "zones": [
+                "grave"
+              ],
+              "conditions": [
+                "怪兽区的本卡持有素材被破坏送墓的场合；伤害步骤可发动"
+              ],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "special_summon",
+                "selector": {
+                  "text": "墓地的本卡特殊召唤"
+                },
+                "count": 1,
+                "from_zones": [
+                  "grave"
+                ],
+                "to_zones": [
+                  "monster"
+                ]
+              }
+            ],
+            "usage": []
+          },
+          "notes": [
+            {
+              "text": "官方卡文与补足按本单元的类别、区域、时点及处理边界核对。",
+              "source_refs": [
+                "faq-index-97403510-p1"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m4",
+          "block": "m",
+          "number": 4,
+          "kind": "numbered",
+          "effect_type": "trigger",
+          "tags": [
+            "etag:stat-change"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "on_summon",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "以自身③特殊召唤成功时必发；伤害步骤也发动"
+              ],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "stat_change",
+                "selector": {
+                  "text": "按处理时双方除外卡总数（含里侧）×1000使本卡攻击力上升"
+                }
+              }
+            ],
+            "usage": []
+          },
+          "notes": [
+            {
+              "text": "官方卡文与补足按本单元的类别、区域、时点及处理边界核对。",
+              "source_refs": [
+                "faq-index-97403510-p1"
+              ]
+            }
+          ]
+        }
+      ],
+      "relations": [],
+      "notes": [
+        {
+          "text": "静态能力资料；不代表当前局面的发动或处理保证。",
+          "source_refs": [
+            "faq-index-97403510-p1"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "id": "card-97403510",
+          "title": "KONAMI OCG卡文",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=10404&ope=2&request_locale=ja",
+          "checked_on": "2026-09-27",
+          "format": "OCG"
+        },
+        {
+          "id": "faq-index-97403510-p1",
+          "title": "KONAMI OCG补足与FAQ",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=10404&ope=4&request_locale=ja",
+          "checked_on": "2026-09-27",
+          "format": "OCG"
+        }
+      ]
+    },
+    "60461804": {
+      "code": 60461804,
+      "frozen_text": "6星以上的「英雄」怪兽＋「命运英雄」怪兽\r\n这个卡名的②③的效果1回合各能使用1次。\r\n①：对方场上的怪兽的攻击力下降自己墓地的「英雄」卡数量×200。\r\n②：自己·对方回合可以发动。自己场上1张卡和场上1张卡破坏。\r\n③：这张卡被战斗·效果破坏的场合才能发动。下个回合的准备阶段，从自己墓地把1只「命运英雄」怪兽特殊召唤。",
+      "text_digest": "0172baa3d1f9d74cae8a4fdea213e83fc4c5a05a1583f35cce7d4e408213be13",
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-27",
+        "basis": "按KONAMI OCG卡文及补足复核此前结构缺口，拆开独立单元、选择分支与延迟处理。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "block": "m",
+          "number": null,
+          "kind": "unnumbered",
+          "effect_type": "non_effect",
+          "tags": [
+            "etag:material-rule"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "condition_text",
+              "zones": [],
+              "conditions": [
+                "6星以上HERO怪兽＋D-HERO怪兽；②③各同名每回合一次"
+              ],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [],
+            "processing": [],
+            "usage": []
+          },
+          "notes": [
+            {
+              "text": "官方卡文与补足按本单元的类别、区域、时点及处理边界核对。",
+              "source_refs": [
+                "faq-index-60461804-p1"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "block": "m",
+          "number": 1,
+          "kind": "numbered",
+          "effect_type": "continuous",
+          "tags": [
+            "etag:stat-change"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "condition_text",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "stat_change",
+                "selector": {
+                  "text": "对方场上怪兽攻击力持续下降自己墓地HERO卡数量×200"
+                },
+                "from_zones": [
+                  "opponent_monster"
+                ]
+              }
+            ],
+            "usage": []
+          },
+          "notes": [
+            {
+              "text": "官方卡文与补足按本单元的类别、区域、时点及处理边界核对。",
+              "source_refs": [
+                "faq-index-60461804-p1"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "block": "m",
+          "number": 2,
+          "kind": "numbered",
+          "effect_type": "quick",
+          "tags": [
+            "etag:destroy"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "fast_window",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "双方回合；伤害步骤不能发动"
+              ],
+              "fast_effect": true
+            },
+            "cost": [],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "destroy",
+                "selector": {
+                  "text": "处理时选自己场上1张和自己或对方场上另1张，共两个不同实例；不取对象"
+                },
+                "count": 2,
+                "from_zones": [
+                  "field"
+                ],
+                "condition": "处理时自己场上有卡；若己方无卡则一张也不破坏"
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "官方卡文与补足按本单元的类别、区域、时点及处理边界核对。",
+              "source_refs": [
+                "faq-index-60461804-p1"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m3",
+          "block": "m",
+          "number": 3,
+          "kind": "numbered",
+          "effect_type": "trigger",
+          "tags": [
+            "etag:special-summon"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "condition_text",
+              "zones": [
+                "grave",
+                "banished"
+              ],
+              "conditions": [
+                "被战斗或效果破坏并最初送到墓地或表侧除外时；伤害步骤可发动"
+              ],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "schedule_resolution",
+                "selector": {
+                  "text": "本次处理只建立预约状态"
+                },
+                "delay": "下个回合的准备阶段",
+                "creates_chain": false,
+                "scheduled_effect": {
+                  "effect_type": "delayed_resolution",
+                  "tags": [
+                    "etag:special-summon"
+                  ],
+                  "structure": {
+                    "activation": {
+                      "timing": "scheduled",
+                      "zones": [],
+                      "conditions": [
+                        "下个回合的准备阶段"
+                      ],
+                      "fast_effect": false
+                    },
+                    "cost": [],
+                    "targeting": [],
+                    "processing": [
+                      {
+                        "action": "special_summon",
+                        "selector": {
+                          "text": "届时从自己墓地选择1只命运英雄怪兽特殊召唤；不取对象"
+                        },
+                        "count": 1,
+                        "from_zones": [
+                          "grave"
+                        ],
+                        "to_zones": [
+                          "monster"
+                        ]
+                      }
+                    ],
+                    "usage": []
+                  },
+                  "notes": [
+                    {
+                      "text": "官方卡文与补足按本单元的类别、区域、时点及处理边界核对。",
+                      "source_refs": [
+                        "faq-index-60461804-p1"
+                      ]
+                    }
+                  ]
+                }
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "官方卡文与补足按本单元的类别、区域、时点及处理边界核对。",
+              "source_refs": [
+                "faq-index-60461804-p1"
+              ]
+            }
+          ],
+          "own_tags": []
+        }
+      ],
+      "relations": [],
+      "notes": [
+        {
+          "text": "静态能力资料；不代表当前局面的发动或处理保证。",
+          "source_refs": [
+            "faq-index-60461804-p1"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "id": "card-60461804",
+          "title": "KONAMI OCG卡文",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=16524&ope=2&request_locale=ja",
+          "checked_on": "2026-09-27",
+          "format": "OCG"
+        },
+        {
+          "id": "faq-index-60461804-p1",
+          "title": "KONAMI OCG补足与FAQ",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=16524&ope=4&request_locale=ja",
+          "checked_on": "2026-09-27",
+          "format": "OCG"
+        }
+      ]
     }
   },
   "revision": 34

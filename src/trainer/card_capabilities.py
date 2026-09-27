@@ -7,7 +7,7 @@ from copy import deepcopy
 import hashlib
 import json
 
-from card_annotations import digest
+from card_annotations import digest, effect_units, _processing_nodes
 from intelligence_marks import effect_parts
 
 
@@ -23,15 +23,20 @@ def fingerprint(value):
 
 
 def processing_nodes(items):
-    for item in items or []:
+    for _, item in _processing_nodes(items, include_granted=False):
         yield item
-        yield from processing_nodes(item.get('then'))
-        for branch in item.get('branches') or []:
-            yield from processing_nodes(branch.get('actions'))
-            yield from processing_nodes(branch.get('then'))
 
 
 def purpose_candidates(effect):
+    result = []
+    for path, unit in effect_units(effect):
+        if unit.get('effect_type') == 'delayed_resolution': continue
+        for row in _unit_purpose_candidates(unit):
+            result.append({**row, **({'effect_path': path, 'unit_label': unit.get('label', '')} if path else {})})
+    return result
+
+
+def _unit_purpose_candidates(effect):
     """Conservative, explained suggestions from structure, not personal TAGs."""
     structure = effect.get('structure') or {}
     activation = structure.get('activation') or {}
@@ -76,6 +81,15 @@ class CardCapabilities:
 
     def facts(self, effect):
         registry = self.annotations.registry
+        if effect.get('units'):
+            rows = [{'label': '效果单元', 'text': '各单元分别匹配条件、费用与次数；不互相借用。'}]
+            if effect.get('selection_rule'):
+                rows.append({'label': '选择规则', 'text': effect['selection_rule']})
+            for unit in effect['units']:
+                rows.append({'label': '独立单元', 'text': unit['label']})
+                rows.extend({'label': unit['label'] + '·' + row['label'], 'text': row['text']}
+                            for row in self.facts(unit))
+            return rows
         structure = effect.get('structure') or {}
         activation = structure.get('activation') or {}
         rows = []
@@ -83,7 +97,8 @@ class CardCapabilities:
             if value: rows.append({'label': label, 'text': value})
         add('效果类别', registry.vocab.get('effect_types', {}).get(effect.get('effect_type'), ''))
         passive = effect.get('effect_type') in ('continuous', 'spell_continuous', 'non_effect', 'no_chain_effect')
-        add('适用区域' if passive else '发动区域', '、'.join(registry.zone_label(v) for v in activation.get('zones') or []))
+        add('处理区域' if effect.get('effect_type') == 'delayed_resolution' else '适用区域' if passive else '发动区域',
+            '、'.join(registry.zone_label(v) for v in activation.get('zones') or []))
         add('时点', registry.vocab['timings'].get(activation.get('timing'), ''))
         add('条件', '；'.join(activation.get('conditions') or []))
         add('费用', '；'.join(row.get('text') or registry.vocab['cost_kinds'].get(row.get('kind'), '') for row in structure.get('cost') or []))
@@ -121,9 +136,18 @@ class CardCapabilities:
                 if row.get('restrictions'): value += '；限制 ' + '；'.join(row['restrictions'])
                 if row.get('condition'): value += f'；前提 {row["condition"]}'
                 if row.get('duration'): value += '；持续 ' + row['duration']
+                if row.get('attribute_selection') == 'material_attributes':
+                    value += '；动态追加素材怪兽的各属性，持续更新并保留原属性'
+                if row.get('action') == 'redirect_battle_damage':
+                    names = {'self': '自己', 'opponent': '对方'}
+                    value += f'；承受者 {names[row["source_player"]]} → {names[row["recipient"]]}（仍为战斗伤害）'
                 add(prefix, value)
                 granted = row.get('granted_effect')
-                if row.get('action') == 'grant_effect' and isinstance(granted, dict) and isinstance(granted.get('structure'), dict):
+                if row.get('action') == 'schedule_resolution' and row.get('scheduled_effect'):
+                    add('延迟处理', row['delay'] + '；届时不另开连锁，不支付本次发动费用。')
+                    for fact in self.facts(row['scheduled_effect']):
+                        add('延迟处理·' + fact['label'], fact['text'])
+                elif row.get('action') == 'grant_effect' and isinstance(granted, dict) and isinstance(granted.get('structure'), dict):
                     add('固定获赋效果', '以下效果须另行满足自己的发动或适用条件。')
                     for fact in self.facts(granted):
                         add('固定获赋效果·' + fact['label'], fact['text'])
@@ -169,6 +193,9 @@ class CardCapabilities:
                                'notes': deepcopy(effect.get('notes') or []),
                                'structure': deepcopy(effect.get('structure') or {}),
                                'candidates': purpose_candidates(effect) if result['trusted'] else []}
+                        if effect.get('units'):
+                            row.update(units=deepcopy(effect['units']), unit_mode=effect['unit_mode'],
+                                       selection_rule=effect.get('selection_rule', ''))
                         result['effects'].append(row)
                     result['relations'] = deepcopy(view['relations'])
                     result['sources'] = deepcopy(view['sources'])
@@ -205,12 +232,14 @@ class CardCapabilities:
                 # Both filters must match the SAME effect; never join different abilities.
                 for effect in view['effects']:
                     if not effect.get('annotated'): continue
-                    if tag and tag not in effect.get('tags', []): continue
-                    if role:
-                        if classified is not None:
-                            if effect['key'] not in classified.get(str(code), {}).get('effect_keys', []): continue
-                        elif not any(row['role'] == role for row in purpose_candidates(effect)): continue
-                    result.add(code); break
+                    for path, unit in effect_units(effect):
+                        if tag and tag not in unit.get('tags', []): continue
+                        if role:
+                            if classified is not None and not effect.get('units') and not path:
+                                if effect['key'] not in classified.get(str(code), {}).get('effect_keys', []): continue
+                            elif not any(row['role'] == role for row in _unit_purpose_candidates(unit)) \
+                                    or unit.get('effect_type') == 'delayed_resolution': continue
+                        result.add(code); break
             return result
 
     def freeze_report(self, report):

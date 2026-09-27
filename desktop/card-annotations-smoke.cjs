@@ -321,7 +321,7 @@ module.exports = async ({page, application, root, evidence, pass}) => {
   assert.deepEqual(kragen.effects.find(e=>e.key==='m2').structure.targeting,[]);
   const poisoner=await page.evaluate(()=>api('/api/annotations',{op:'card',code:83414006}));
   assert.equal(poisoner.effects.find(e=>e.key==='m2').effect_type,'trap_effect');
-  for(const code of [88820235,89252153]) {
+  for(const code of [89252153]) {
     const unmerged=await page.evaluate(code=>api('/api/annotations',{op:'card',code}),code);
     assert.equal(unmerged.status,'none','unreviewed stage04 candidates must stay out of built-in data');
   }
@@ -353,7 +353,7 @@ module.exports = async ({page, application, root, evidence, pass}) => {
   assert.equal(photon.effects.find(e=>e.key==='m1').effect_type,'no_chain_effect');
   const multiply=await page.evaluate(()=>api('/api/annotations',{op:'card',code:96693371}));
   assert.equal(multiply.effects.find(e=>e.key==='m2').effect_type,'trap_effect');
-  for(const code of [46552140,89813287]) {
+  for(const code of [89813287]) {
     assert.equal((await page.evaluate(code=>api('/api/annotations',{op:'card',code}),code)).status,'none');
   }
   await reset();
@@ -364,5 +364,26 @@ module.exports = async ({page, application, root, evidence, pass}) => {
   assert.ok(divaFacts.effects.some(e=>e.facts.some(f=>/实际成功给予效果伤害/.test(f.text))));
   await page.screenshot({path:path.join(evidence,'annotations-continuation-diva.png')});
   pass('Continuation: reviewed API data, TAG queries, P/monster isolation, damage-dependent destruction and pending exclusion');
+  const expansion = require('../docs/card-annotation-batch-2026-09-27-model-expansion.json');
+  for(const {code,query,expected_keys,reason} of expansion.query_cases) {
+    const result=await page.evaluate(([code,query])=>api('/api/annotations',{op:'query',q:String(code),...query}),[code,query]);
+    assert.deepEqual(result.cards.flatMap(card=>card.hit_keys),expected_keys,reason);
+  }
+  for(const [code,pattern] of [[88820235,/独立单元.*融合素材与召唤限制/],
+      [89642993,/延迟处理.*下次对方准备阶段开始时/], [92015800,/动态属性/],
+      [97403510,/自己 → 对方（仍为战斗伤害/], [46552140,/1至5个/]]) {
+    await reset(); await selectCard(code);
+    await page.locator('#anno-detail details').evaluateAll(nodes=>nodes.forEach(node=>node.open=true));
+    assert.match(await page.locator('#anno-detail').textContent(),pattern);
+    if(code===89642993 || code===88820235) {
+      const key=code===89642993?'m1':'m-all';
+      await page.locator(`#anno-detail [data-effect-key="${key}"] .anno-struct`).evaluate(el=>el.scrollIntoView({block:'start'}));
+      await page.screenshot({path:path.join(evidence,code===89642993?'annotations-delayed-units.png':'annotations-independent-units.png'),preserveScroll:true});
+    }
+  }
+  const unitFacts=await page.evaluate(()=>api('/api/capabilities',{op:'card',code:88820235}));
+  assert.equal(unitFacts.effects[0].units.length,3);
+  assert.ok(unitFacts.effects[0].facts.some(row=>row.label==='独立单元'));
+  pass('Model expansion: 21 real queries, independent units, modal boundaries, scheduled resolution, attribute sets, damage transfer and 1–5 placement');
   pass('Card annotations: Chinese series folders, aliases, covers, colours, collapsed filters/art, monster symbols, queries and personal corrections');
 };

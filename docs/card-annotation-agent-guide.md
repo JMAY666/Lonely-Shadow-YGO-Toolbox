@@ -1,6 +1,6 @@
 # 卡片标注交接指南
 
-适用版本：1.49.9。供后续智能体在现有 2,770 张内置效果参考样本上继续扩充，最新覆盖以[进度账本](card-annotation-progress.md)和实际资料为准。先读项目 `AGENTS.md` 与[体系规范](card-annotation-system.md)；旧优先清单已完成，现作为历史记录保留在[补卡提示词](card-annotation-next-batch.md)。只维护静态卡片知识，不启动已封存的 AI 学习计划。系列中文名、徽记与封面是独立展示资料，按[系列标识制作流程](card-series-production-guide.md)补充，不把系列样例核对计入完整效果标注数量。
+适用版本：1.50.0。供后续智能体在现有 2,881 张内置效果参考样本上继续扩充，最新覆盖以[进度账本](card-annotation-progress.md)和实际资料为准。先读项目 `AGENTS.md` 与[体系规范](card-annotation-system.md)；旧优先清单已完成，现作为历史记录保留在[补卡提示词](card-annotation-next-batch.md)。只维护静态卡片知识，不启动已封存的 AI 学习计划。系列中文名、徽记与封面是独立展示资料，按[系列标识制作流程](card-series-production-guide.md)补充，不把系列样例核对计入完整效果标注数量。
 
 2026-09-26用户确认改用[统一批次工具与续接流程](card-annotation-pipeline.md)：固定完整清单，机械准备并行，逐卡语义审核保留；每约20张检查，纯数据且机制稳定的完整发布阶段约300～500张统一测试、打包与审核发布。来源、词表或代码变化使检查缓存失效，合并前强制完整复查。新批次优先使用该工具，避免重复编写读取、分段和合并脚本；尚未审核的模板不得计入完成数量。
 
@@ -191,3 +191,13 @@ python scripts/check_annotation_source_batch.py --runtime .local/YGOPro-Lite --m
 ```
 
 缺本地来源目录时只能省略来源参数做结构／查询检查；当前刷新返回403的来源沿用经哈希和身份核对的原始快照，不能宣称全部页面已经重新在线获取。魔救之奇迹-提亚玛特晶石没有可靠快照，仍待核实。完整界限与结果见[验收](verification-1.49.10.md)。
+
+## 1.50.0 结构适配后的续接
+
+已实现同段 `units`、不同发动条件的选择项、无新连锁的 `scheduled_effect`、动态素材属性集合、战斗伤害转移及置顶／置底数量区间。先阅读[体系规范第3节](card-annotation-system.md)，再判断历史 `requires_schema` 是否已经具备表达条件。不能把“软件支持表达”视为某张卡已经审核，也不能批量回放旧作者脚本。
+
+本轮重新核对并接纳8张，见[结构适配清单](card-annotation-batch-2026-09-27-model-expansion.json)。正式累计2,881张；原386项现为327接纳、59暂缓。1.49.10的10个暂缓项中7项已接纳，死灵暗侠、No.31及缺少可靠快照的提亚玛特晶石仍待核对。本次未处理其他历史待核对项，原始清单不改写；继续时以当前正式资料和这份后续决策去重。
+
+```powershell
+python scripts/check_annotation_source_batch.py --runtime .local/YGOPro-Lite --manifest docs/card-annotation-batch-2026-09-27-model-expansion.json --source-pack .local/annotation-handoff/20260925-catalog-all-14981 --full
+```

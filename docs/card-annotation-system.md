@@ -73,6 +73,30 @@ notes[]                       效果级备注（含来源引用）
 
 无法可靠结构化的内容**不猜**：保留原文于分段文本，未覆盖的分段在详情中显示「未标注」，可加备注说明待处理点。
 
+### 3.1 同段独立单元与延迟处理（1.50.0）
+
+原分段键仍与冻结卡文绑定。一个 `m-all` 或编号段实际含多个效果／非效果规则时，可以使用 `effect_type: composite`、`unit_mode: independent` 和 `units[]`。这只是标注容器，不是新的游戏王效果类别。每个单元必须包含稳定的 `id`、可读 `label`、属于该冻结分段的原文 `text`、真实 `effect_type`、完整 `structure`（空费用／对象也显式写空数组）、`tags` 和引用本卡来源的 `notes`。父段不再登记 `structure` 或 `own_tags`，父段 `tags` 必须等于单元标签并集。非效果规则单元可以没有处理动作，不伪造特召处理。
+
+同一效果的选择项有不同发动类别、区域或对象要求时，使用 `unit_mode: choose_one` 和必填 `selection_rule`，各选项仍保存完整结构，包括真实共用的次数和费用。此字段描述选择及共享限制，不执行局面判定。正例：No.58①怪兽区起动装备／装备状态的魔法效果特召；反例：同一个效果内连续执行的处理仍用 `then`，不能拆成独立发动。
+
+默认查询分别匹配每个真实单元、固定获赋效果和延迟处理；全部条件必须落在同一单元，动作与移动区域还必须属于同一处理节点。结果保留原分段键，并以 `effect_source`／`effect_path` 标明单元路径。只有显式 `scope: card` 才允许跨单元。个人移除标签屏蔽该段所有单元；个人新增标签没有细分依据，只能作为段级标签查询，不能借给某个子单元去组合动作。备注和确认仍绑定原段及卡文指纹，不迁移个人文件。
+
+延迟处理用 `schedule_resolution`，必填 `delay`（后续时点）、`creates_chain: false` 和 `scheduled_effect`。子项为 `effect_type: delayed_resolution`、`activation.timing: scheduled`，明确列出届时处理；不登记新的发动区域、费用、对象或次数。父效果保存预约时真正的发动条件与费用，用 `own_tags` 区分当前处理和延迟能力，父标签为两者并集。子处理有自己的选择范围与条件。双方同时处理可在对应动作上保存相同 `simultaneous_group` 文字标识；这仅记录处理关系，不是运行时调度器。
+
+正例：No.63预约下次对方准备阶段抽卡；毁灭凤凰人③预约下回合准备阶段苏生。它们不命中“主要阶段立即抽卡／破坏时立即苏生”，后续处理也不借用预约发动的素材费用或次数。反例：到期需要另开连锁的诱发效果、动态复制的未知能力不能放进这个无连锁延迟字段；仍需分别核对，不自动展开或核准。
+
+界面及跨模块摘要逐单元展示类别、时点、对象、条件及处理；新保存的能力快照包含 `units`、选择规则和延迟树，旧快照不回填。用途推导按单元进行；延迟处理不计为当前手坑或终场干扰，旧用途证据不能直接套给复合段内任意单元。
+
+### 3.2 本轮新增参数边界
+
+| 内容 | 字段与约束 | 正反例 |
+| --- | --- | --- |
+| 动态属性集合 | `change_attribute.attribute_selection: material_attributes`，`mode: add`、`attribute_source: xyz_material_monsters`、`evaluated_at: continuous`、`preserves_original: true`；保留适用区域和时限，不能同时填固定 `attribute` | No.76①随素材变化追加各属性；固定变水属性仍用 `fixed` |
+| 战斗伤害转移 | `redirect_battle_damage`，不同的 `source_player`／`recipient`，`damage_scope: battle`、`is_effect_damage: false`、`creates_chain: false` 和时限；使用 `etag:damage-modify` | No.92①自己应受战伤由对方代受；不是新造成的效果伤害 |
+| 置顶／置底数量 | `place_deck_top`／`place_deck_bottom` 复用互斥的固定 `count`、完整 `min_count/max_count` 或 `count_rule`；仍须明确来源、去向、执行者及洗切关系 | 魔救之勒皮他晶石②为1至5张；不是固定5张、也不是全部卡组 |
+
+本轮八张完整复核见[清单](card-annotation-batch-2026-09-27-model-expansion.json)。旧待核对清单保留历史，未列入这次接纳的条目不因模型可表达而自动转为已核对。
+
 固定且内容已知的获赋效果可放入 `structure.processing[].granted_effect`，只允许对应动作是 `grant_effect`，其内部必须有 `effect_type`、`tags` 和完整 `structure`。父段使用 `own_tags` 明确自身标签，父段 `tags` 是自身与固定子效果标签的并集；子效果也经过词表、费用、快速标志与 TAG／处理一致性校验。为保留旧处理树遍历，`grant_effect.then` 须与子 `structure.processing` 完全一致，防止两份描述分叉。
 
 查询分别在父段自身及各固定子效果内匹配所有条件，命中仍返回原分段键，但依据标明固定获赋来源和路径。个人 TAG 移除对整个段的匹配生效，个人新增标签按父段保留；不写回或迁移个人资料。没有这组元数据的旧 `grant_effect.then` 保持原行为；`copy_effect` 的对象和能力未知，不允许借固定获赋字段展开。详情页单独显示获赋效果的时点、费用、次数及另行发动／适用边界。

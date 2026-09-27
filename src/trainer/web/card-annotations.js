@@ -159,9 +159,17 @@ function annoProcessingLines(items, registry, indent = '') {
       lines.push(`${indent}　数量：${quantity}，N＝${rule.text}（${rule.evaluated_at === 'activation' ? '发动' : '处理'}时确定）`);
     }
     if (item.duration) lines.push(`${indent}　持续：${item.duration}`);
+    if (item.attribute_selection === 'material_attributes') lines.push(`${indent}　动态属性：持续追加超量素材怪兽的各属性，保留原属性`);
+    if (item.action === 'redirect_battle_damage') {
+      const players = {self:'自己',opponent:'对方'};
+      lines.push(`${indent}　承受者：${players[item.source_player]} → ${players[item.recipient]}（仍为战斗伤害，不另开连锁）`);
+    }
     if (item.position) lines.push(`${indent}　表示形式：${item.position}`);
     for (const restriction of item.restrictions || []) lines.push(`${indent}　限制：${restriction}`);
-    if (item.action === 'grant_effect' && item.granted_effect?.structure) {
+    if (item.action === 'schedule_resolution' && item.scheduled_effect?.structure) {
+      lines.push(`${indent}　延迟处理：${item.delay}；届时不另开连锁，不支付本次发动费用`);
+      lines.push(...annoStructureLines(item.scheduled_effect, registry).map(line => `${indent}　　${line}`));
+    } else if (item.action === 'grant_effect' && item.granted_effect?.structure) {
       const granted = item.granted_effect;
       const label = registry.effect_types?.[granted.effect_type] || granted.effect_type || '';
       lines.push(`${indent}　获得后的固定效果${label ? `（${label}）` : ''}：须另行满足发动或适用条件`);
@@ -178,6 +186,17 @@ function annoProcessingLines(items, registry, indent = '') {
   return lines;
 }
 function annoStructureLines(effect, registry) {
+  if (effect.units?.length) {
+    const lines = ['各效果单元分别匹配，条件、费用和次数不互相借用'];
+    if (effect.selection_rule) lines.push(`选择规则：${effect.selection_rule}`);
+    for (const unit of effect.units) {
+      lines.push(`独立单元：${unit.label}（${registry.effect_types?.[unit.effect_type] || unit.effect_type}）`);
+      lines.push(`　原文：${unit.text}`);
+      lines.push(...annoStructureLines(unit, registry).map(line => `　${line}`));
+      for (const note of unit.notes || []) lines.push(`　依据：${note.text}`);
+    }
+    return lines;
+  }
   const structure = effect.structure || {};
   const lines = [];
   const activation = structure.activation;
@@ -185,7 +204,8 @@ function annoStructureLines(effect, registry) {
     const timing = registry.timings[activation.timing] || activation.timing || '';
     const zonesText = (activation.zones || []).map(zone => registry.zones[zone] || zone).join('／');
     const passive = ['continuous', 'spell_continuous', 'non_effect', 'no_chain_effect'].includes(effect.effect_type);
-    lines.push(`${passive ? '适用' : '发动'}：${[timing, zonesText && `区域 ${zonesText}`, ...(activation.conditions || [])].filter(Boolean).join('；')}${activation.fast_effect ? '（快速效果；仍须满足发动条件）' : ''}`);
+    const verb = effect.effect_type === 'delayed_resolution' ? '处理' : passive ? '适用' : '发动';
+    lines.push(`${verb}：${[timing, zonesText && `区域 ${zonesText}`, ...(activation.conditions || [])].filter(Boolean).join('；')}${activation.fast_effect ? '（快速效果；仍须满足发动条件）' : ''}`);
   }
   for (const cost of structure.cost || []) lines.push(`费用：${registry.cost_kinds[cost.kind] || cost.kind}${cost.text ? ` — ${cost.text}` : ''}`);
   for (const target of structure.targeting || []) {

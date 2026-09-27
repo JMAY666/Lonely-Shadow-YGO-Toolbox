@@ -375,7 +375,9 @@
       "replace_damage_with_recovery": "将指定伤害事件替换为等量回复，不表示本卡在当前处理直接回复或无效来源效果",
       "perform_battle_damage_calculation": "依指定两个不同怪兽实例直接进行战斗伤害计算，不当作效果伤害或固定数值烧血",
       "extra_reveal": "公开、展示或确认指明的自己或对方额外卡组全部/部分卡片；数量与查看者由处理说明，不等同主卡组翻开",
-      "halve_lp": "将明确玩家处理时的当前基本分减半，不是效果伤害、回复或基本分支付；不执行真实基本分或端数计算"
+      "halve_lp": "将明确玩家处理时的当前基本分减半，不是效果伤害、回复或基本分支付；不执行真实基本分或端数计算",
+      "schedule_resolution": "预约后续时点的处理；本次不立即执行预约内容",
+      "redirect_battle_damage": "将原玩家应受的战斗伤害改由另一玩家承受，仍为战斗伤害"
     },
     "cost_kinds": {
       "discard_self": "把这张卡从手卡丢弃",
@@ -425,7 +427,8 @@
       "condition_text": "条件文本（见条件说明）",
       "on_card_or_monster_effect": "魔法·陷阱卡的发动或怪兽效果发动时",
       "fast_window": "满足规则的快速效果时点",
-      "end_phase": "结束阶段"
+      "end_phase": "结束阶段",
+      "scheduled": "预约指定的后续时点（不另行发动）"
     },
     "effect_types": {
       "ignition": "起动效果",
@@ -440,7 +443,9 @@
       "no_chain_effect": "不产生连锁块的效果（官方裁定不属于起动／诱发／诱发即时／永续任一类）",
       "spell_effect": "魔法效果的发动（非卡片放置时的发动，如从墓地发动的魔法效果）",
       "spell_continuous": "魔法卡或作为魔法卡使用的卡在魔法陷阱区持续适用、不产生连锁块的效果",
-      "unclassified": "待核对效果类别"
+      "unclassified": "待核对效果类别",
+      "composite": "同段多个效果／规则单元",
+      "delayed_resolution": "已预约的延迟处理（不另行发动）"
     }
   }
 }

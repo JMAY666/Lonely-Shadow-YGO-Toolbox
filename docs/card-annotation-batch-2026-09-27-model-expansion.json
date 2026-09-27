@@ -1,0 +1,488 @@
+{
+  "id": "model-expansion-20260927",
+  "checked_on": "2026-09-27",
+  "source_manifest_sha256": "3c192fb0eecc3fa7f3283dcd564223e2996491fb71c13d43884bf66ad9720933",
+  "cards": [
+    {
+      "code": 88820235,
+      "local_name": "元素英雄 闪光凤凰人",
+      "local_type": 97,
+      "text_digest": "59b0cdf2a7a20c36933fc496d39fe64c4e4c58f6e418ed29214c98d87b34430d",
+      "official_cid": 6656
+    },
+    {
+      "code": 98263709,
+      "local_name": "银河魔镜士",
+      "local_type": 2097185,
+      "text_digest": "d20daed7ab1e745ff92f5564a58012983b9ea63f632790f7202475f6ec50054d",
+      "official_cid": 11031
+    },
+    {
+      "code": 92015800,
+      "local_name": "No.76 谐调光师 渐变天乐斗士",
+      "local_type": 8388641,
+      "text_digest": "83e23ccfc362527809ec587a8c44670fc38ee424ce1a38ab1fa7235a4202465c",
+      "official_cid": 14565
+    },
+    {
+      "code": 93108839,
+      "local_name": "No.58 炎压鬼",
+      "local_type": 8388641,
+      "text_digest": "a1054cfeec51b3ba9c2c7b6882b3338f6e8e2decb773c10079f06bfa56c47a56",
+      "official_cid": 11025
+    },
+    {
+      "code": 46552140,
+      "local_name": "魔救之勒皮他晶石",
+      "local_type": 524290,
+      "text_digest": "971feedb19b910f8499f86ca0ec08d833deef44041a8d4f6cb8613f4031a757d",
+      "official_cid": 15106
+    },
+    {
+      "code": 89642993,
+      "local_name": "No.63 饭勺战士",
+      "local_type": 8388641,
+      "text_digest": "9a8596e7ce5808877226ca7fda8be289d3de5c1636e4966399e2fd8f047a8c20",
+      "official_cid": 10705
+    },
+    {
+      "code": 97403510,
+      "local_name": "No.92 伪骸神龙 心地心龙",
+      "local_type": 8388641,
+      "text_digest": "e527644154d24a9786a2b9e40c36674c5f3b15433c10f75d1c1f9284fa18cb8f",
+      "official_cid": 10404
+    },
+    {
+      "code": 60461804,
+      "local_name": "命运英雄 毁灭凤凰人",
+      "local_type": 97,
+      "text_digest": "0172baa3d1f9d74cae8a4fdea213e83fc4c5a05a1583f35cce7d4e408213be13",
+      "official_cid": 16524
+    }
+  ],
+  "pending": [],
+  "query_cases": [
+    {
+      "code": 88820235,
+      "query": {
+        "etags": [
+          "etag:stat-change",
+          "etag:protect"
+        ]
+      },
+      "expected_keys": [],
+      "reason": "两个永续效果不能互借TAG"
+    },
+    {
+      "code": 88820235,
+      "query": {
+        "etags": [
+          "etag:stat-change",
+          "etag:protect"
+        ],
+        "scope": "card"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "整卡范围显式允许跨单元"
+    },
+    {
+      "code": 98263709,
+      "query": {
+        "action": "heal"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "反转回复单元"
+    },
+    {
+      "code": 98263709,
+      "query": {
+        "etags": [
+          "etag:recover-lp"
+        ],
+        "action": "special_summon"
+      },
+      "expected_keys": [],
+      "reason": "两个诱发不能拼接"
+    },
+    {
+      "code": 93108839,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "spell"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "装备状态从魔陷区特召"
+    },
+    {
+      "code": 93108839,
+      "query": {
+        "action": "equip_as_spell",
+        "from_zone": "spell"
+      },
+      "expected_keys": [],
+      "reason": "装备分支不能借用解除装备的来源"
+    },
+    {
+      "code": 93108839,
+      "query": {
+        "action": "burn",
+        "cost_kind": "discard"
+      },
+      "expected_keys": [
+        "m3"
+      ],
+      "reason": "装备状态伤害效果的费用独立"
+    },
+    {
+      "code": 46552140,
+      "query": {
+        "action": "place_deck_top",
+        "from_zone": "deck",
+        "to_zone": "deck_top"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "1至5张置顶"
+    },
+    {
+      "code": 92015800,
+      "query": {
+        "action": "change_attribute"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "动态素材属性集合"
+    },
+    {
+      "code": 92015800,
+      "query": {
+        "action": "attach_material",
+        "cost_kind": "detach_material"
+      },
+      "expected_keys": [],
+      "reason": "取除是处理不是费用"
+    },
+    {
+      "code": 89642993,
+      "query": {
+        "action": "draw",
+        "timing": "scheduled"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "预约到期抽卡"
+    },
+    {
+      "code": 89642993,
+      "query": {
+        "action": "draw",
+        "timing": "main_phase_self"
+      },
+      "expected_keys": [],
+      "reason": "不在主要阶段立即抽卡"
+    },
+    {
+      "code": 89642993,
+      "query": {
+        "action": "draw",
+        "cost_kind": "detach_material"
+      },
+      "expected_keys": [],
+      "reason": "延迟处理不借用预约发动费用"
+    },
+    {
+      "code": 89642993,
+      "query": {
+        "action": "heal",
+        "cost_kind": "detach_material"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "立即回复分支保留发动费用"
+    },
+    {
+      "code": 89642993,
+      "query": {
+        "etags": [
+          "etag:draw",
+          "etag:recover-lp"
+        ]
+      },
+      "expected_keys": [],
+      "reason": "互斥分支不能同时匹配"
+    },
+    {
+      "code": 89642993,
+      "query": {
+        "action": "draw",
+        "from_zone": "opponent_deck",
+        "to_zone": "hand"
+      },
+      "expected_keys": [],
+      "reason": "双方抽卡不能串用来源和去向"
+    },
+    {
+      "code": 97403510,
+      "query": {
+        "action": "redirect_battle_damage"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "战伤转移有明确受伤者"
+    },
+    {
+      "code": 97403510,
+      "query": {
+        "etags": [
+          "etag:effect-damage"
+        ]
+      },
+      "expected_keys": [],
+      "reason": "战伤转移不是效果伤害"
+    },
+    {
+      "code": 60461804,
+      "query": {
+        "action": "special_summon",
+        "timing": "scheduled"
+      },
+      "expected_keys": [
+        "m3"
+      ],
+      "reason": "预约后续苏生"
+    },
+    {
+      "code": 60461804,
+      "query": {
+        "action": "special_summon",
+        "usage": "per_effect_name_soft_opt"
+      },
+      "expected_keys": [],
+      "reason": "预约效果次数不属于后续处理"
+    },
+    {
+      "code": 60461804,
+      "query": {
+        "action": "schedule_resolution",
+        "usage": "per_effect_name_soft_opt"
+      },
+      "expected_keys": [
+        "m3"
+      ],
+      "reason": "本次预约才消耗次数"
+    }
+  ],
+  "semantic_cases": [
+    {
+      "code": 88820235,
+      "path": [
+        "effects",
+        0,
+        "units",
+        0,
+        "effect_type"
+      ],
+      "expected": "non_effect",
+      "reason": "融合限制不是永续效果"
+    },
+    {
+      "code": 88820235,
+      "path": [
+        "effects",
+        0,
+        "units",
+        2,
+        "effect_type"
+      ],
+      "expected": "continuous",
+      "reason": "战斗保护是另一个永续单元"
+    },
+    {
+      "code": 98263709,
+      "path": [
+        "effects",
+        0,
+        "units",
+        1,
+        "structure",
+        "activation",
+        "zones"
+      ],
+      "expected": [
+        "grave"
+      ],
+      "reason": "特召诱发在墓地发动"
+    },
+    {
+      "code": 93108839,
+      "path": [
+        "effects",
+        1,
+        "unit_mode"
+      ],
+      "expected": "choose_one",
+      "reason": "装备和解除装备是选择项"
+    },
+    {
+      "code": 93108839,
+      "path": [
+        "effects",
+        1,
+        "units",
+        1,
+        "structure",
+        "targeting"
+      ],
+      "expected": [],
+      "reason": "装备状态特召不取对象"
+    },
+    {
+      "code": 92015800,
+      "path": [
+        "effects",
+        1,
+        "structure",
+        "processing",
+        0,
+        "attribute_selection"
+      ],
+      "expected": "material_attributes",
+      "reason": "属性来自所有素材怪兽"
+    },
+    {
+      "code": 92015800,
+      "path": [
+        "effects",
+        3,
+        "structure",
+        "cost"
+      ],
+      "expected": [],
+      "reason": "取除素材属于处理"
+    },
+    {
+      "code": 46552140,
+      "path": [
+        "effects",
+        1,
+        "structure",
+        "processing",
+        0,
+        "min_count"
+      ],
+      "expected": 1,
+      "reason": "最少选一张"
+    },
+    {
+      "code": 46552140,
+      "path": [
+        "effects",
+        1,
+        "structure",
+        "processing",
+        0,
+        "max_count"
+      ],
+      "expected": 5,
+      "reason": "最多选五张"
+    },
+    {
+      "code": 89642993,
+      "path": [
+        "effects",
+        1,
+        "units",
+        0,
+        "structure",
+        "processing",
+        0,
+        "creates_chain"
+      ],
+      "expected": false,
+      "reason": "到期不另起连锁"
+    },
+    {
+      "code": 89642993,
+      "path": [
+        "effects",
+        1,
+        "units",
+        0,
+        "structure",
+        "processing",
+        0,
+        "scheduled_effect",
+        "structure",
+        "processing",
+        1,
+        "to_zones"
+      ],
+      "expected": [
+        "opponent_hand"
+      ],
+      "reason": "对方抽卡进入对方手卡"
+    },
+    {
+      "code": 97403510,
+      "path": [
+        "effects",
+        1,
+        "structure",
+        "processing",
+        1,
+        "is_effect_damage"
+      ],
+      "expected": false,
+      "reason": "仍为战斗伤害"
+    },
+    {
+      "code": 60461804,
+      "path": [
+        "effects",
+        3,
+        "structure",
+        "processing",
+        0,
+        "scheduled_effect",
+        "structure",
+        "usage"
+      ],
+      "expected": [],
+      "reason": "苏生处理不再次消耗发动次数"
+    }
+  ],
+  "purpose_cases": [
+    {
+      "code": 60461804,
+      "effect_key": "m2",
+      "role": "breakers",
+      "expected": true,
+      "reason": "真实破坏处理"
+    },
+    {
+      "code": 60461804,
+      "effect_key": "m3",
+      "role": "endboards",
+      "expected": false,
+      "reason": "延迟苏生不算当前干扰"
+    },
+    {
+      "code": 98263709,
+      "effect_key": "m-all",
+      "role": "handtraps",
+      "expected": false,
+      "reason": "两个诱发均非手坑"
+    }
+  ]
+}

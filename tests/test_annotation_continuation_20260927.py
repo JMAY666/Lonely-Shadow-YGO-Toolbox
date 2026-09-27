@@ -73,9 +73,15 @@ class ContinuationRuleTests(unittest.TestCase):
                 if any(p['action'] in ('damage_modify', 'grant_piercing') for _, p in nodes):
                     self.assertIn('etag:damage-modify', effect.get('own_tags', effect['tags']))
 
-    def test_pending_cards_are_not_formal_annotations(self):
+    def test_pending_cards_require_an_explicit_later_review_before_admission(self):
+        resolved = json.loads((ROOT / 'docs/card-annotation-batch-2026-09-27-model-expansion.json').read_text('utf-8'))
+        accepted = {row['code'] for row in resolved['cards']}
         for row in self.batch['pending']:
-            self.assertNotIn(str(row['code']), self.cards)
+            if row['code'] in accepted:
+                self.assertEqual(self.cards[str(row['code'])]['review']['status'], 'reviewed')
+                self.assertEqual(self.cards[str(row['code'])]['review']['origin'], 'manual')
+            else:
+                self.assertNotIn(str(row['code']), self.cards)
 
 
 if __name__ == '__main__':
