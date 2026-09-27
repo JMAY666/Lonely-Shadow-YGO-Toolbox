@@ -74,6 +74,23 @@ class AnnotationPipelineTests(unittest.TestCase):
         self.assertTrue(self.root.resolve().is_relative_to(ROOT / '.local/test-runs'))
         self.temporary.cleanup()
 
+    def test_released_only_skips_before_draft_creation(self):
+        from card_release_dates import ReleaseDates
+        dates = ReleaseDates({'retrieved_on': '2026-09-27', 'cards': {
+            '20000001': ['2026-01-01', ''],
+            '20000002': ['2026-10-01', '2026-01-01'],
+        }, 'aliases': {}})
+        with patch('annotation_release_queue.ReleaseDates', return_value=dates):
+            result = self.pipeline.prepare('released', self.runtime, self.pack,
+                                           codes=[20000001, 20000002, 20000003, 20000005],
+                                           released_only=True, as_of='2026-09-27')
+        self.assertEqual(result['prepared'], 1)
+        task = read_json(self.pipeline.folder('released') / 'task.json')
+        self.assertEqual([r['code'] for r in task['cards']], [20000001])
+        self.assertEqual({r['reason'] for r in task['skipped']},
+                         {'ocg_not_released', 'token', 'release_date_unknown'})
+        self.assertTrue(task['selection']['released_only'])
+
     def entry(self, code):
         from card_annotations import digest
         source = read_json(self.pack / 'manifest.json')['cards'][code - 20000001]['sources'][0]

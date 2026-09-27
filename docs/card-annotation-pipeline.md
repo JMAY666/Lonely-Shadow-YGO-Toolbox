@@ -2,7 +2,22 @@
 
 用户于2026-09-26确认采用统一批次工具、资料复用、按机制整理、提前登记模型缺口，以及分开检查批次和发布阶段的方法。正式目标仍是处理当前启用卡库的全部可核实非衍生物；本工具处理重复的准备、组装、检查和合并工作。身份候选、来源可读、自动模板和机械验证通过不能代替逐卡规则审核。
 
-## 目录与续接状态
+## 发售筛选与排序（2026-09-27）
+
+后续选卡按系列完整成员最早已知 OCG／TCG 实体首发日期由新到旧；相同日期使用稳定系列 ID 顺序，未知日期单列待补，不以编号大小猜新旧。新系列先补完整，再处理旧系列；旧批次仍保留为历史证据。程序中的全库展示保持原口径，批次符合条件范围另算。
+
+```powershell
+python -X utf8 scripts/annotation_release_queue.py --runtime .local/YGOPro-Lite --as-of 2026-09-27 --output .local/annotation-pipeline/release-queue-20260927.json
+python -X utf8 scripts/annotation_pipeline.py prepare --batch <新批次名> --runtime .local/YGOPro-Lite --source-pack .local/annotation-handoff/20260925-catalog-all-14981 --series <队列中的完整系列ID> --released-only --as-of 2026-09-27
+```
+
+执行时换成实际审核日期和未使用过的输出名。队列保留每系列符合条件、尚未标注和排除／待核对卡号；任务的 `skipped` 保留原因。`released_only` 是新批次必须使用的模式，旧批次回放保留原范围，不自动迁移已冻结任务。
+
+`preview_source` 表示补丁来源；`ocg_not_released` 表示 OCG 日期晚于筛选日期；`tcg_only_or_ocg_date_unknown` 与 `release_date_unknown` 仅表示缺少 OCG 发售依据，不能据此断言未发售。离线数据缺漏时先核对官方日文卡页收录记录，保留来源再补足日期，重新生成候选。日期通过也不等于效果审核通过；正式接纳仍须逐卡来源、分段和规则检查。已有标注和用户文件均不删除。
+
+1.50.1 完成最新同日首发的艮神鬼 10 张、无垢大艺术 5 张。下一组按当前队列核对雷盟、暗黑调整，再核对基因组混合等因离线 OCG 日期缺失而待确认的系列；不将这些缺日期系列当作已完成或直接略过。下一发布阶段仍以完整系列组成约百张以上清单，15 张是本次顺序／筛选流程变更的完整两系列回归批次，不是后续总量上限。
+
+## 目录与续接状态（历史命令兼容）
 
 入口为 `python -X utf8 scripts/annotation_pipeline.py`。固定输入、模板、忠实全文包、候选、断点、缓存和备份均写入 `.local/annotation-pipeline/<批次名>/`。原始采集包不改写，不执行包内代码；不写真实用户的个人运行数据。
 

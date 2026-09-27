@@ -342290,6 +342290,3268 @@
           "format": "OCG"
         }
       ]
+    },
+    "1710647": {
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-27",
+        "basis": "主Agent逐卡重核所引官方日本OCG全文与补足；机械检查不代替规则审核。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "block": "m",
+          "number": null,
+          "kind": "unnumbered",
+          "effect_type": "non_effect",
+          "tags": [],
+          "structure": {
+            "rule_text": "这个卡名的①的方法的特殊召唤1回合只能有1次，②③的效果1回合各能使用1次。"
+          },
+          "notes": [
+            {
+              "text": "①指定方法同名每回合特殊召唤1次；②③同名各使用1次。方法特召被无效时本回合可再次按该法特召。",
+              "source_refs": [
+                "card-23333",
+                "faq_index-23333"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "block": "m",
+          "number": 1,
+          "kind": "numbered",
+          "effect_type": "no_chain_effect",
+          "tags": [
+            "etag:special-summon"
+          ],
+          "structure": {
+            "processing": [
+              {
+                "action": "special_summon",
+                "selector": {
+                  "text": "手卡本卡；先展示并将自己场上1张里侧卡返回手卡或额外卡组，再特殊召唤本卡"
+                },
+                "restrictions": [
+                  "展示及返回是无连锁特召手续，非效果回手能力；先返回再特召，不同时；特召被无效不消耗该方法次数"
+                ],
+                "from_zones": [
+                  "hand"
+                ],
+                "to_zones": [
+                  "monster"
+                ],
+                "count": 1
+              }
+            ],
+            "usage": [
+              "name_summon_method_once"
+            ]
+          },
+          "notes": [
+            {
+              "text": "官方明确是不属于四类的无连锁效果；不是起动效果，不把手续回手登记为效果回手。",
+              "source_refs": [
+                "card-23333",
+                "faq_index-23333"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "block": "m",
+          "number": 2,
+          "kind": "numbered",
+          "effect_type": "ignition",
+          "tags": [],
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "set_card",
+                "selector": {
+                  "text": "卡组1张艮神鬼魔法陷阱"
+                },
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "spell"
+                ],
+                "count": 1
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "不取对象；主阶段起动。",
+              "source_refs": [
+                "card-23333",
+                "faq_index-23333"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m3",
+          "block": "m",
+          "number": 3,
+          "kind": "numbered",
+          "effect_type": "quick",
+          "tags": [
+            "etag:stat-change"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "fast_window",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "对方回合；伤害步骤外"
+              ],
+              "fast_effect": true
+            },
+            "cost": [],
+            "targeting": [
+              {
+                "count": 1,
+                "filter": "场上1只表侧有等级的怪兽"
+              }
+            ],
+            "processing": [
+              {
+                "action": "choose_branch",
+                "selector": {
+                  "text": "处理时选择等级上升或下降1星"
+                },
+                "branches": [
+                  {
+                    "condition": "上升",
+                    "actions": [
+                      {
+                        "action": "change_level",
+                        "selector": {
+                          "text": "对象等级上升1星"
+                        },
+                        "duration": "无指定时限；依等级改变通常规则",
+                        "amount": 1,
+                        "from_zones": [
+                          "monster",
+                          "opponent_monster"
+                        ],
+                        "count": 1
+                      }
+                    ]
+                  },
+                  {
+                    "condition": "下降",
+                    "actions": [
+                      {
+                        "action": "change_level",
+                        "selector": {
+                          "text": "对象等级下降1星，不能降至0星"
+                        },
+                        "duration": "无指定时限；依等级改变通常规则",
+                        "amount": -1,
+                        "from_zones": [
+                          "monster",
+                          "opponent_monster"
+                        ],
+                        "count": 1
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "对方回合的诱发即时效果；不能在伤害步骤发动；对象须能改变等级。",
+              "source_refs": [
+                "card-23333",
+                "faq_index-23333"
+              ]
+            }
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "id": "card-23333",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=23333&ope=2&request_locale=ja",
+          "title": "疫神の依鬼 ヨア | カード詳細 | 遊戯王ニューロン(オフィシャルカードゲーム カードデータベース)",
+          "format": "OCG",
+          "region": "Japan",
+          "locale": "ja",
+          "checked_on": "2026-09-27"
+        },
+        {
+          "id": "faq_index-23333",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=23333&ope=4&request_locale=ja",
+          "title": "疫神の依鬼 ヨア | カードに関連するＱ＆Ａ | 遊戯王ニューロン(オフィシャルカードゲーム カードデータベース)",
+          "format": "OCG",
+          "region": "Japan",
+          "locale": "ja",
+          "checked_on": "2026-09-27"
+        }
+      ],
+      "notes": [
+        {
+          "text": "逐卡对照冻结卡文、类型与官方全文；保留本地整数身份。",
+          "source_refs": [
+            "card-23333",
+            "faq_index-23333"
+          ]
+        }
+      ],
+      "relations": [],
+      "code": 1710647,
+      "frozen_text": "这个卡名的①的方法的特殊召唤1回合只能有1次，②③的效果1回合各能使用1次。\r\n①：这张卡可以把自己场上1张里侧表示卡给对方观看并回到手卡·额外卡组，从手卡特殊召唤。\r\n②：自己主要阶段才能发动。从卡组把1张「艮神鬼」魔法·陷阱卡在自己场上盖放。\r\n③：对方回合，以场上1只表侧表示怪兽为对象才能发动。那只怪兽的等级上升或下降1星。",
+      "text_digest": "0aa674a979bd9fb92a4993ba8a9ff92f91ebff33e98a1672acc0925395c43d4b"
+    },
+    "2906939": {
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-27",
+        "basis": "主Agent逐卡重核所引官方日本OCG全文与补足；机械检查不代替规则审核。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "block": "m",
+          "number": null,
+          "kind": "unnumbered",
+          "effect_type": "non_effect",
+          "tags": [],
+          "structure": {
+            "rule_text": "这个卡名的①②的效果1回合各能使用1次。"
+          },
+          "notes": [
+            {
+              "text": "同名①②各每回合使用1次。",
+              "source_refs": [
+                "card-23379",
+                "faq_index-23379"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "block": "m",
+          "number": 1,
+          "kind": "numbered",
+          "effect_type": "spell_effect",
+          "tags": [
+            "etag:add-hand",
+            "etag:send-grave"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "field_spell"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [
+              {
+                "min_count": 1,
+                "max_count": null,
+                "filter": "自己场上的里侧表示卡"
+              }
+            ],
+            "processing": [
+              {
+                "action": "add_hand",
+                "selector": {
+                  "text": "场地魔法以外的艮神鬼卡；同名最多1张"
+                },
+                "count_rule": {
+                  "mode": "exact",
+                  "text": "处理时仍为里侧表示的对象卡数量",
+                  "evaluated_at": "resolution"
+                },
+                "then": [
+                  {
+                    "action": "send_grave",
+                    "selector": {
+                      "text": "作为对象的己方里侧卡"
+                    },
+                    "count_rule": {
+                      "mode": "exact",
+                      "text": "对象卡数量",
+                      "evaluated_at": "resolution"
+                    },
+                    "condition": "至少1张卡成功加入手卡后执行；不同时处理",
+                    "from_zones": [
+                      "field"
+                    ],
+                    "to_zones": [
+                      "grave"
+                    ]
+                  }
+                ],
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "hand"
+                ]
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "主要阶段发动；对象至少1张己方里侧卡；检索后送墓是处理而非费用。",
+              "source_refs": [
+                "card-23379",
+                "faq_index-23379"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "block": "m",
+          "number": 2,
+          "kind": "numbered",
+          "effect_type": "spell_effect",
+          "tags": [
+            "etag:add-hand"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "condition_text",
+              "zones": [
+                "field_spell"
+              ],
+              "conditions": [
+                "己方有艮神鬼怪兽及里侧表示卡的状态下，场上有卡盖放；伤害步骤外"
+              ],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [
+              {
+                "count": 1,
+                "filter": "场上1张卡"
+              }
+            ],
+            "processing": [
+              {
+                "action": "return_hand",
+                "selector": {
+                  "text": "对象场上卡回持有者手卡；额外怪兽回额外"
+                },
+                "from_zones": [
+                  "field"
+                ],
+                "to_zones": [
+                  "hand",
+                  "opponent_hand",
+                  "extra",
+                  "opponent_extra"
+                ],
+                "count": 1
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "满足己方艮神鬼怪兽和里侧卡存在时有卡盖放的事件效果；对方回合也可，但不是任意快速效果；伤害步骤不可。",
+              "source_refs": [
+                "card-23379",
+                "faq_index-23379"
+              ]
+            }
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "id": "card-23379",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=23379&ope=2&request_locale=ja",
+          "title": "艮神鬼門 三千世界 | カード詳細 | 遊戯王ニューロン(オフィシャルカードゲーム カードデータベース)",
+          "format": "OCG",
+          "region": "Japan",
+          "locale": "ja",
+          "checked_on": "2026-09-27"
+        },
+        {
+          "id": "faq_index-23379",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=23379&ope=4&request_locale=ja",
+          "title": "艮神鬼門 三千世界 | カードに関連するＱ＆Ａ | 遊戯王ニューロン(オフィシャルカードゲーム カードデータベース)",
+          "format": "OCG",
+          "region": "Japan",
+          "locale": "ja",
+          "checked_on": "2026-09-27"
+        }
+      ],
+      "notes": [
+        {
+          "text": "逐卡对照冻结卡文、类型与官方全文；保留本地整数身份。",
+          "source_refs": [
+            "card-23379",
+            "faq_index-23379"
+          ]
+        }
+      ],
+      "relations": [],
+      "code": 2906939,
+      "frozen_text": "这个卡名的①②的效果1回合各能使用1次。\r\n①：以自己场上的里侧表示卡任意数量为对象才能发动。那些里侧表示卡数量的场地魔法卡以外的「艮神鬼」卡从卡组加入手卡（同名卡最多1张）。那之后，作为对象的里侧表示卡送去墓地。\r\n②：自己场上有「艮神鬼」怪兽以及里侧表示卡存在的状态，场上有卡被盖放的场合，以场上1张卡为对象才能发动。那张卡回到手卡。",
+      "text_digest": "186addc96dee28ea9ea849883f0a1551d786b279f3cdc53364aeaac285470198"
+    },
+    "17020474": {
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-27",
+        "basis": "主Agent逐卡重核所引官方日本OCG全文与补足；机械检查不代替规则审核。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "block": "m",
+          "number": null,
+          "kind": "unnumbered",
+          "effect_type": "non_effect",
+          "tags": [
+            "etag:material-rule"
+          ],
+          "structure": {
+            "rule_text": "调整＋调整以外的怪兽1只以上\n这个卡名的①②的效果1回合各能使用1次。"
+          },
+          "notes": [
+            {
+              "text": "调整＋调整以外怪兽1只以上；同名①②各每回合使用1次。",
+              "source_refs": [
+                "card-23361",
+                "faq_index-23361"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "block": "m",
+          "number": 1,
+          "kind": "numbered",
+          "effect_type": "trigger",
+          "tags": [
+            "etag:banish"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "on_summon",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "本卡同调召唤成功"
+              ],
+              "fast_effect": false
+            },
+            "cost": [
+              {
+                "kind": "banish",
+                "text": "自己墓地任意数量陷阱除外，至少1张"
+              }
+            ],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "banish",
+                "selector": {
+                  "text": "场上卡不取对象除外"
+                },
+                "count_rule": {
+                  "mode": "exact",
+                  "text": "费用实际除外的墓地陷阱数量",
+                  "evaluated_at": "activation"
+                },
+                "restrictions": [
+                  "处理时场上卡数少于费用张数则完全不处理，不能改为尽量除外"
+                ],
+                "from_zones": [
+                  "field"
+                ],
+                "to_zones": [
+                  "banished",
+                  "opponent_banished"
+                ]
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "同调召唤成功诱发；费用至少1张墓地陷阱；不取对象，处理数量须等于费用数量。",
+              "source_refs": [
+                "card-23361",
+                "faq_index-23361"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "block": "m",
+          "number": 2,
+          "kind": "numbered",
+          "effect_type": "trigger",
+          "tags": [
+            "etag:add-hand",
+            "etag:return-deck",
+            "etag:special-summon"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "end_phase",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "自己或对方结束阶段"
+              ],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [
+              {
+                "min_count": 1,
+                "max_count": 2,
+                "filter": "自己墓地或表侧除外的艮神鬼怪兽、陷阱卡"
+              }
+            ],
+            "processing": [
+              {
+                "action": "choose_branch",
+                "selector": {
+                  "text": "每张对象分别选择加入手卡或盖放；不同对象可选择不同处理"
+                },
+                "branches": [
+                  {
+                    "condition": "该对象选择加入手卡",
+                    "actions": [
+                      {
+                        "action": "add_hand",
+                        "selector": {
+                          "text": "对象艮神鬼怪兽或陷阱；额外怪兽回额外"
+                        },
+                        "from_zones": [
+                          "grave",
+                          "banished"
+                        ],
+                        "to_zones": [
+                          "hand",
+                          "extra"
+                        ],
+                        "count": 1
+                      }
+                    ]
+                  },
+                  {
+                    "condition": "该对象是陷阱且选择盖放",
+                    "actions": [
+                      {
+                        "action": "set_card",
+                        "selector": {
+                          "text": "对象艮神鬼陷阱"
+                        },
+                        "from_zones": [
+                          "grave",
+                          "banished"
+                        ],
+                        "to_zones": [
+                          "spell"
+                        ],
+                        "count": 1
+                      }
+                    ]
+                  },
+                  {
+                    "condition": "该对象是怪兽且选择盖放",
+                    "actions": [
+                      {
+                        "action": "special_summon",
+                        "selector": {
+                          "text": "对象艮神鬼怪兽以里侧守备特殊召唤"
+                        },
+                        "position": "facedown_defense",
+                        "restrictions": [
+                          "怪兽须可合法里侧特殊召唤；同调怪兽不能里侧盖放，只能选择回额外；不是通常召唤"
+                        ],
+                        "from_zones": [
+                          "grave",
+                          "banished"
+                        ],
+                        "to_zones": [
+                          "monster"
+                        ],
+                        "count": 1
+                      }
+                    ]
+                  }
+                ],
+                "then": [
+                  {
+                    "action": "return_deck",
+                    "selector": {
+                      "text": "本卡返回额外"
+                    },
+                    "condition": "发动时选了2张对象且至少1张成功回收或盖放后；非同时",
+                    "from_zones": [
+                      "monster"
+                    ],
+                    "to_zones": [
+                      "extra"
+                    ],
+                    "count": 1
+                  }
+                ]
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "双方结束阶段诱发，1至2张对象须为墓地或表侧除外的艮神鬼怪兽或陷阱。部分对象离开仍处理剩余对象；选2张且至少1张成功才回额外。",
+              "source_refs": [
+                "card-23361",
+                "faq_index-23361"
+              ]
+            }
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "id": "card-23361",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=23361&ope=2&request_locale=ja",
+          "title": "鬼神 朱沙之王 | カード詳細 | 遊戯王ニューロン(オフィシャルカードゲーム カードデータベース)",
+          "format": "OCG",
+          "region": "Japan",
+          "locale": "ja",
+          "checked_on": "2026-09-27"
+        },
+        {
+          "id": "faq_index-23361",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=23361&ope=4&request_locale=ja",
+          "title": "鬼神 朱沙之王 | カードに関連するＱ＆Ａ | 遊戯王ニューロン(オフィシャルカードゲーム カードデータベース)",
+          "format": "OCG",
+          "region": "Japan",
+          "locale": "ja",
+          "checked_on": "2026-09-27"
+        }
+      ],
+      "notes": [
+        {
+          "text": "逐卡对照冻结卡文、类型与官方全文；保留本地整数身份。",
+          "source_refs": [
+            "card-23361",
+            "faq_index-23361"
+          ]
+        }
+      ],
+      "relations": [],
+      "code": 17020474,
+      "frozen_text": "调整＋调整以外的怪兽1只以上\r\n这个卡名的①②的效果1回合各能使用1次。\r\n①：这张卡同调召唤的场合，从自己墓地把陷阱卡任意数量除外才能发动。那个数量的场上的卡除外。\r\n②：自己·对方的结束阶段，以自己的墓地·除外状态的最多2张「艮神鬼」怪兽·陷阱卡为对象才能发动。那些卡各加入手卡或在自己场上盖放。以2张卡为对象发动的场合，再让这张卡回到额外卡组。",
+      "text_digest": "c386d61e2ae2b11f5d6dc1376dd4b329122c5da0443effda71b5206bcf000091"
+    },
+    "36270527": {
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-27",
+        "basis": "主Agent逐卡重核所引官方日本OCG全文与补足；机械检查不代替规则审核。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "block": "m",
+          "number": null,
+          "kind": "unnumbered",
+          "effect_type": "non_effect",
+          "tags": [],
+          "structure": {
+            "rule_text": "这个卡名的①②③的效果1回合各能使用1次。"
+          },
+          "notes": [
+            {
+              "text": "同名①②③各每回合使用1次。",
+              "source_refs": [
+                "card-23340",
+                "faq_index-23340"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "block": "m",
+          "number": 1,
+          "kind": "numbered",
+          "effect_type": "ignition",
+          "tags": [
+            "etag:add-hand",
+            "etag:stat-change"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "hand"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [
+              {
+                "kind": "banish",
+                "text": "将手卡的本卡除外"
+              }
+            ],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "add_hand",
+                "selector": {
+                  "text": "卡组1只战士族以外的无垢大艺术怪兽"
+                },
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "hand"
+                ],
+                "count": 1
+              },
+              {
+                "action": "stat_change",
+                "selector": {
+                  "text": "己方狱神连接怪兽原本攻击力变成3倍"
+                },
+                "duration": "本回合结束",
+                "amount": "原本攻击力×3",
+                "restrictions": [
+                  "检索成功与否不影响适用；包括处理后出场的狱神连接怪兽；本效果须未被无效"
+                ],
+                "from_zones": [
+                  "monster"
+                ],
+                "count": "all"
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "手卡起动，除外手卡本卡为费用；不取对象。后半段加成独立于前半处理成功，亦作用于后来出场的指定怪兽。",
+              "source_refs": [
+                "card-23340",
+                "faq_index-23340"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "block": "m",
+          "number": 2,
+          "kind": "numbered",
+          "effect_type": "trigger",
+          "tags": [
+            "etag:special-summon"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "on_summon",
+              "zones": [
+                "banished"
+              ],
+              "conditions": [
+                "本卡为表侧除外状态时，融合或连接怪兽特殊召唤；伤害步骤外"
+              ],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "special_summon",
+                "selector": {
+                  "text": "表侧除外的本卡"
+                },
+                "from_zones": [
+                  "banished"
+                ],
+                "to_zones": [
+                  "monster"
+                ],
+                "count": 1
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "除外状态诱发；融合或连接怪兽特召不限双方、不要求正规召唤；伤害步骤不可。",
+              "source_refs": [
+                "card-23340",
+                "faq_index-23340"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m3",
+          "block": "m",
+          "number": 3,
+          "kind": "numbered",
+          "effect_type": "ignition",
+          "tags": [
+            "etag:banish"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "自己场上有狱神连接怪兽"
+              ],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [
+              {
+                "count": 1,
+                "filter": "场上1只怪兽"
+              }
+            ],
+            "processing": [
+              {
+                "action": "banish",
+                "selector": {
+                  "text": "对象怪兽除外"
+                },
+                "from_zones": [
+                  "monster",
+                  "opponent_monster"
+                ],
+                "to_zones": [
+                  "banished",
+                  "opponent_banished"
+                ],
+                "count": 1
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "起动效果，须己方有狱神连接怪兽，取场上1只怪兽对象。",
+              "source_refs": [
+                "card-23340",
+                "faq_index-23340"
+              ]
+            }
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "id": "card-23340",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=23340&ope=2&request_locale=ja",
+          "title": "無限と有限のアルス＝マグナ | カード詳細 | 遊戯王ニューロン(オフィシャルカードゲーム カードデータベース)",
+          "format": "OCG",
+          "region": "Japan",
+          "locale": "ja",
+          "checked_on": "2026-09-27"
+        },
+        {
+          "id": "faq_index-23340",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=23340&ope=4&request_locale=ja",
+          "title": "無限と有限のアルス＝マグナ | カードに関連するＱ＆Ａ | 遊戯王ニューロン(オフィシャルカードゲーム カードデータベース)",
+          "format": "OCG",
+          "region": "Japan",
+          "locale": "ja",
+          "checked_on": "2026-09-27"
+        }
+      ],
+      "notes": [
+        {
+          "text": "逐卡对照冻结卡文、类型与官方全文；保留本地整数身份。",
+          "source_refs": [
+            "card-23340",
+            "faq_index-23340"
+          ]
+        }
+      ],
+      "relations": [],
+      "code": 36270527,
+      "frozen_text": "这个卡名的①②③的效果1回合各能使用1次。\r\n①：把这张卡从手卡除外才能发动。从卡组把1只战士族以外的「无垢大艺术」怪兽加入手卡。这个回合中，自己场上的「狱神」连接怪兽的原本攻击力变成3倍。\r\n②：这张卡是除外状态，融合·连接怪兽特殊召唤的场合才能发动。这张卡特殊召唤。\r\n③：自己场上有「狱神」连接怪兽存在的场合，以场上1只怪兽为对象才能发动。那只怪兽除外。",
+      "text_digest": "570fa142a0a281e2210405de344830f7387a4989c0ecfea7f73a2088cd30a8f1"
+    },
+    "37279096": {
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-27",
+        "basis": "主Agent逐卡重核所引官方日本OCG全文与补足；机械检查不代替规则审核。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "block": "m",
+          "number": null,
+          "kind": "unnumbered",
+          "effect_type": "non_effect",
+          "tags": [],
+          "structure": {
+            "rule_text": "这个卡名在规则上也当作「神艺」、「终刻」、「耀圣」卡使用。这个卡名的②的效果1回合只能使用1次。"
+          },
+          "notes": [
+            {
+              "text": "规则上也作神艺、终刻、耀圣卡；无效时仍保留此系列规则。②同名每回合使用1次。",
+              "source_refs": [
+                "card-23383",
+                "faq_index-23383"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "block": "m",
+          "number": 1,
+          "kind": "numbered",
+          "effect_type": "spell_continuous",
+          "tags": [],
+          "structure": {
+            "processing": [
+              {
+                "action": "modify_activation_window",
+                "selector": {
+                  "text": "原本卡名含无垢大艺术的己方场上怪兽的起动效果改为诱发即时效果"
+                },
+                "condition": "己方有狱神连接怪兽",
+                "restrictions": [
+                  "不作用于怪兽本身；不受魔法效果影响的对应怪兽也适用；不赋予对任意时点或伤害步骤发动许可"
+                ],
+                "from_zones": [
+                  "monster"
+                ]
+              }
+            ]
+          },
+          "notes": [
+            {
+              "text": "魔陷区无连锁适用；并非把所有无垢大艺术效果复制到本卡，也不是本卡直接发动其他怪兽效果。",
+              "source_refs": [
+                "card-23383",
+                "faq_index-23383"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "block": "m",
+          "number": 2,
+          "kind": "numbered",
+          "effect_type": "spell_effect",
+          "tags": [
+            "etag:add-hand"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "spell"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "add_hand",
+                "selector": {
+                  "text": "卡组1只米底乌斯或无垢大艺术怪兽"
+                },
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "hand"
+                ],
+                "count": 1
+              }
+            ],
+            "usage": [
+              "name_soft_opt",
+              "field_once"
+            ]
+          },
+          "notes": [
+            {
+              "text": "自己主阶段、不取对象；同名②每回合1次且本实体表侧存在期间1次，两重限制。",
+              "source_refs": [
+                "card-23383",
+                "faq_index-23383"
+              ]
+            }
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "id": "card-23383",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=23383&ope=2&request_locale=ja",
+          "title": "無垢なる芸術－「黄昏の変幻」 | カード詳細 | 遊戯王ニューロン(オフィシャルカードゲーム カードデータベース)",
+          "format": "OCG",
+          "region": "Japan",
+          "locale": "ja",
+          "checked_on": "2026-09-27"
+        },
+        {
+          "id": "faq_index-23383",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=23383&ope=4&request_locale=ja",
+          "title": "無垢なる芸術－「黄昏の変幻」 | カードに関連するＱ＆Ａ | 遊戯王ニューロン(オフィシャルカードゲーム カードデータベース)",
+          "format": "OCG",
+          "region": "Japan",
+          "locale": "ja",
+          "checked_on": "2026-09-27"
+        }
+      ],
+      "notes": [
+        {
+          "text": "逐卡对照冻结卡文、类型与官方全文；保留本地整数身份。",
+          "source_refs": [
+            "card-23383",
+            "faq_index-23383"
+          ]
+        }
+      ],
+      "relations": [],
+      "code": 37279096,
+      "frozen_text": "这个卡名在规则上也当作「神艺」、「终刻」、「耀圣」卡使用。这个卡名的②的效果1回合只能使用1次。\r\n①：只要自己场上有「狱神」连接怪兽存在，原本卡名包含「无垢大艺术」的自己场上的怪兽发动的效果变成对方回合也能发动的效果。\r\n②：只在这张卡表侧表示存在才有1次，自己主要阶段才能发动。从卡组把1只「米底乌斯」怪兽或「无垢大艺术」怪兽加入手卡。",
+      "text_digest": "9d923c7c2f8737635d326454bba64c54ee9a676628bdaece9749fffd9039bf36"
+    },
+    "37839434": {
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-27",
+        "basis": "主Agent逐卡重核所引官方日本OCG全文与补足；机械检查不代替规则审核。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "block": "m",
+          "number": null,
+          "kind": "unnumbered",
+          "effect_type": "non_effect",
+          "tags": [],
+          "structure": {
+            "rule_text": "这个卡名的卡在1回合只能发动1张。"
+          },
+          "notes": [
+            {
+              "text": "同名卡每回合只能发动1张。",
+              "source_refs": [
+                "card-23397",
+                "faq_index-23397"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "block": "m",
+          "number": 1,
+          "kind": "numbered",
+          "effect_type": "composite",
+          "unit_mode": "choose_one",
+          "selection_rule": "发动时从两个选项选择一个；同名卡每回合只能发动1张，共享卡片发动次数，不是各选项各1次。",
+          "units": [
+            {
+              "id": "summon",
+              "label": "变怪兽并可同调",
+              "text": "这张卡变成通常怪兽（水族·调整·水·1星·攻/守0）在怪兽区域特殊召唤（不当作陷阱卡使用）。那之后，可以进行1只同调怪兽的同调召唤。",
+              "effect_type": "trap_activation",
+              "tags": [
+                "etag:special-summon"
+              ],
+              "structure": {
+                "activation": {
+                  "timing": "fast_window",
+                  "zones": [
+                    "spell"
+                  ],
+                  "conditions": [
+                    "伤害步骤外"
+                  ],
+                  "fast_effect": true
+                },
+                "cost": [],
+                "targeting": [],
+                "processing": [
+                  {
+                    "action": "special_summon",
+                    "selector": {
+                      "text": "本陷阱变通常怪兽：水族、调整、水、1星、攻守0；不当陷阱使用"
+                    },
+                    "then": [
+                      {
+                        "action": "use_as_synchro_material",
+                        "selector": {
+                          "text": "成功特召后，此效果处理后立即可进行1次合法同调召唤；不是仍在本效果处理中的同调召唤"
+                        },
+                        "optional": true,
+                        "condition": "本陷阱成功特殊召唤；选做",
+                        "then": [
+                          {
+                            "action": "special_summon",
+                            "selector": {
+                              "text": "1只同调怪兽按同调手续从额外特殊召唤"
+                            },
+                            "from_zones": [
+                              "extra"
+                            ],
+                            "to_zones": [
+                              "monster"
+                            ],
+                            "count": 1
+                          }
+                        ],
+                        "from_zones": [
+                          "monster"
+                        ]
+                      }
+                    ],
+                    "from_zones": [
+                      "spell"
+                    ],
+                    "to_zones": [
+                      "monster"
+                    ],
+                    "count": 1
+                  }
+                ],
+                "usage": [
+                  "name_activation_once"
+                ]
+              },
+              "notes": [
+                {
+                  "text": "发动时选择此项，不取对象；不当陷阱的通常调整怪兽。特召成功后效果处理后立即可同调，两次召唤不同时；伤害步骤不可。",
+                  "source_refs": [
+                    "card-23397",
+                    "faq_index-23397"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "alternative",
+              "label": "另一发动选项",
+              "text": "对方把魔法·陷阱卡的效果发动时，若对方场上没有里侧表示卡存在则能发动。那个效果无效。",
+              "effect_type": "trap_activation",
+              "tags": [
+                "etag:negate-effect"
+              ],
+              "structure": {
+                "activation": {
+                  "timing": "fast_window",
+                  "zones": [
+                    "spell"
+                  ],
+                  "conditions": [
+                    "直接连锁对方发动的魔法或陷阱卡效果；对方场上没有里侧卡；伤害步骤外"
+                  ],
+                  "fast_effect": true
+                },
+                "cost": [],
+                "targeting": [],
+                "processing": [
+                  {
+                    "action": "negate_effect",
+                    "selector": {
+                      "text": "直接连锁的对方魔法陷阱效果"
+                    }
+                  }
+                ],
+                "usage": [
+                  "name_activation_once"
+                ]
+              },
+              "notes": [
+                {
+                  "text": "无效效果而非发动，不取对象；直接连锁对方魔陷效果且对方没有里侧卡。",
+                  "source_refs": [
+                    "card-23397",
+                    "faq_index-23397"
+                  ]
+                }
+              ]
+            }
+          ],
+          "tags": [
+            "etag:negate-effect",
+            "etag:special-summon"
+          ],
+          "notes": [
+            {
+              "text": "两个选项分别保存时点与对象，不互相借用。",
+              "source_refs": [
+                "card-23397",
+                "faq_index-23397"
+              ]
+            }
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "id": "card-23397",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=23397&ope=2&request_locale=ja",
+          "title": "剣鬼の神域 | カード詳細 | 遊戯王ニューロン(オフィシャルカードゲーム カードデータベース)",
+          "format": "OCG",
+          "region": "Japan",
+          "locale": "ja",
+          "checked_on": "2026-09-27"
+        },
+        {
+          "id": "faq_index-23397",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=23397&ope=4&request_locale=ja",
+          "title": "剣鬼の神域 | カードに関連するＱ＆Ａ | 遊戯王ニューロン(オフィシャルカードゲーム カードデータベース)",
+          "format": "OCG",
+          "region": "Japan",
+          "locale": "ja",
+          "checked_on": "2026-09-27"
+        }
+      ],
+      "notes": [
+        {
+          "text": "逐卡对照冻结卡文、类型与官方全文；保留本地整数身份。",
+          "source_refs": [
+            "card-23397",
+            "faq_index-23397"
+          ]
+        }
+      ],
+      "relations": [],
+      "code": 37839434,
+      "frozen_text": "这个卡名的卡在1回合只能发动1张。\r\n①：可以从以下效果选择1个发动。\r\n●这张卡变成通常怪兽（水族·调整·水·1星·攻/守0）在怪兽区域特殊召唤（不当作陷阱卡使用）。那之后，可以进行1只同调怪兽的同调召唤。\r\n●对方把魔法·陷阱卡的效果发动时，若对方场上没有里侧表示卡存在则能发动。那个效果无效。",
+      "text_digest": "cd6d8535eaeca8530118b25f25f5a63a828b34f9afc1433a8d64daeeffb479f1"
+    },
+    "38114652": {
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-27",
+        "basis": "主Agent逐卡重核所引官方日本OCG全文与补足；机械检查不代替规则审核。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "block": "m",
+          "number": null,
+          "kind": "unnumbered",
+          "effect_type": "non_effect",
+          "tags": [],
+          "structure": {
+            "rule_text": "这个卡名的①的方法的特殊召唤1回合只能有1次，②③的效果1回合各能使用1次。"
+          },
+          "notes": [
+            {
+              "text": "①指定方法同名每回合特殊召唤1次；②③同名各使用1次。方法特召被无效时本回合可再次按该法特召。",
+              "source_refs": [
+                "card-23334",
+                "faq_index-23334"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "block": "m",
+          "number": 1,
+          "kind": "numbered",
+          "effect_type": "no_chain_effect",
+          "tags": [
+            "etag:special-summon"
+          ],
+          "structure": {
+            "processing": [
+              {
+                "action": "special_summon",
+                "selector": {
+                  "text": "手卡本卡；先展示并将自己场上1张里侧卡返回手卡或额外卡组，再特殊召唤本卡"
+                },
+                "restrictions": [
+                  "展示及返回是无连锁特召手续，非效果回手能力；先返回再特召，不同时；特召被无效不消耗该方法次数"
+                ],
+                "from_zones": [
+                  "hand"
+                ],
+                "to_zones": [
+                  "monster"
+                ],
+                "count": 1
+              }
+            ],
+            "usage": [
+              "name_summon_method_once"
+            ]
+          },
+          "notes": [
+            {
+              "text": "官方明确是不属于四类的无连锁效果；不是起动效果，不把手续回手登记为效果回手。",
+              "source_refs": [
+                "card-23334",
+                "faq_index-23334"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "block": "m",
+          "number": 2,
+          "kind": "numbered",
+          "effect_type": "ignition",
+          "tags": [
+            "etag:add-hand"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "add_hand",
+                "selector": {
+                  "text": "卡组1只幻龙族以外的艮神鬼怪兽"
+                },
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "hand"
+                ],
+                "count": 1
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "不取对象检索，排除幻龙族。",
+              "source_refs": [
+                "card-23334",
+                "faq_index-23334"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m3",
+          "block": "m",
+          "number": 3,
+          "kind": "numbered",
+          "effect_type": "trigger",
+          "tags": [],
+          "structure": {
+            "activation": {
+              "timing": "on_material_sent",
+              "zones": [
+                "grave"
+              ],
+              "conditions": [
+                "本卡作为艮神鬼同调怪兽素材送墓；同调召唤成功"
+              ],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [
+              {
+                "count": 1,
+                "filter": "自己墓地1张通常陷阱"
+              }
+            ],
+            "processing": [
+              {
+                "action": "set_card",
+                "selector": {
+                  "text": "对象通常陷阱在自己场上盖放"
+                },
+                "from_zones": [
+                  "grave"
+                ],
+                "to_zones": [
+                  "spell"
+                ],
+                "count": 1
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "须作为艮神鬼同调素材送墓且同调召唤成功；取对象；不赋予盖放当回合发动许可。",
+              "source_refs": [
+                "card-23334",
+                "faq_index-23334"
+              ]
+            }
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "id": "card-23334",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=23334&ope=2&request_locale=ja",
+          "title": "封神の剣鬼 ミクマリ | カード詳細 | 遊戯王ニューロン(オフィシャルカードゲーム カードデータベース)",
+          "format": "OCG",
+          "region": "Japan",
+          "locale": "ja",
+          "checked_on": "2026-09-27"
+        },
+        {
+          "id": "faq_index-23334",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=23334&ope=4&request_locale=ja",
+          "title": "封神の剣鬼 ミクマリ | カードに関連するＱ＆Ａ | 遊戯王ニューロン(オフィシャルカードゲーム カードデータベース)",
+          "format": "OCG",
+          "region": "Japan",
+          "locale": "ja",
+          "checked_on": "2026-09-27"
+        }
+      ],
+      "notes": [
+        {
+          "text": "逐卡对照冻结卡文、类型与官方全文；保留本地整数身份。",
+          "source_refs": [
+            "card-23334",
+            "faq_index-23334"
+          ]
+        }
+      ],
+      "relations": [],
+      "code": 38114652,
+      "frozen_text": "这个卡名的①的方法的特殊召唤1回合只能有1次，②③的效果1回合各能使用1次。\r\n①：这张卡可以把自己场上1张里侧表示卡给对方观看并回到手卡·额外卡组，从手卡特殊召唤。\r\n②：自己主要阶段才能发动。从卡组把1只幻龙族以外的「艮神鬼」怪兽加入手卡。\r\n③：这张卡作为「艮神鬼」同调怪兽的同调素材送去墓地的场合，以自己墓地1张通常陷阱卡为对象才能发动。那张卡在自己场上盖放。",
+      "text_digest": "f645361d473927850fcbde728af17bf6c9676d390d6d0e3cf5ee0c3e26995538"
+    },
+    "38331244": {
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-27",
+        "basis": "主Agent逐卡重核所引官方日本OCG全文与补足；机械检查不代替规则审核。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "block": "m",
+          "number": null,
+          "kind": "unnumbered",
+          "effect_type": "non_effect",
+          "tags": [],
+          "structure": {
+            "rule_text": "这个卡名的①的方法的特殊召唤1回合只能有1次，②③的效果1回合各能使用1次。"
+          },
+          "notes": [
+            {
+              "text": "①指定方法同名每回合特殊召唤1次；②③同名各使用1次。方法特召被无效时本回合可再次按该法特召。",
+              "source_refs": [
+                "card-23331",
+                "faq_index-23331"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "block": "m",
+          "number": 1,
+          "kind": "numbered",
+          "effect_type": "no_chain_effect",
+          "tags": [
+            "etag:special-summon"
+          ],
+          "structure": {
+            "processing": [
+              {
+                "action": "special_summon",
+                "selector": {
+                  "text": "手卡本卡；先展示并将自己场上1张里侧卡返回手卡或额外卡组，再特殊召唤本卡"
+                },
+                "restrictions": [
+                  "展示及返回是无连锁特召手续，非效果回手能力；先返回再特召，不同时；特召被无效不消耗该方法次数"
+                ],
+                "from_zones": [
+                  "hand"
+                ],
+                "to_zones": [
+                  "monster"
+                ],
+                "count": 1
+              }
+            ],
+            "usage": [
+              "name_summon_method_once"
+            ]
+          },
+          "notes": [
+            {
+              "text": "官方明确是不属于四类的无连锁效果；不是起动效果，不把手续回手登记为效果回手。",
+              "source_refs": [
+                "card-23331",
+                "faq_index-23331"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "block": "m",
+          "number": 2,
+          "kind": "numbered",
+          "effect_type": "quick",
+          "tags": [],
+          "structure": {
+            "activation": {
+              "timing": "fast_window",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "自己或对方主要阶段"
+              ],
+              "fast_effect": true
+            },
+            "cost": [
+              {
+                "kind": "send_grave_cost",
+                "text": "自己的手卡或场上里侧表示的1张陷阱卡送墓"
+              }
+            ],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "set_position",
+                "selector": {
+                  "text": "对方全部表侧怪兽变里侧守备"
+                },
+                "position": "facedown_defense",
+                "from_zones": [
+                  "opponent_monster"
+                ],
+                "count": "all"
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "双方主要阶段；手卡或己方场上里侧陷阱送墓是费用，不能送表侧陷阱支付；不取对象。",
+              "source_refs": [
+                "card-23331",
+                "faq_index-23331"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m3",
+          "block": "m",
+          "number": 3,
+          "kind": "numbered",
+          "effect_type": "trigger",
+          "tags": [],
+          "structure": {
+            "activation": {
+              "timing": "end_phase",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "自己结束阶段"
+              ],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "set_card",
+                "selector": {
+                  "text": "卡组1张艮神鬼陷阱"
+                },
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "spell"
+                ],
+                "count": 1
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "自己结束阶段诱发，不取对象。",
+              "source_refs": [
+                "card-23331",
+                "faq_index-23331"
+              ]
+            }
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "id": "card-23331",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=23331&ope=2&request_locale=ja",
+          "title": "金神の戦鬼 アカスナ | カード詳細 | 遊戯王ニューロン(オフィシャルカードゲーム カードデータベース)",
+          "format": "OCG",
+          "region": "Japan",
+          "locale": "ja",
+          "checked_on": "2026-09-27"
+        },
+        {
+          "id": "faq_index-23331",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=23331&ope=4&request_locale=ja",
+          "title": "金神の戦鬼 アカスナ | カードに関連するＱ＆Ａ | 遊戯王ニューロン(オフィシャルカードゲーム カードデータベース)",
+          "format": "OCG",
+          "region": "Japan",
+          "locale": "ja",
+          "checked_on": "2026-09-27"
+        }
+      ],
+      "notes": [
+        {
+          "text": "逐卡对照冻结卡文、类型与官方全文；保留本地整数身份。",
+          "source_refs": [
+            "card-23331",
+            "faq_index-23331"
+          ]
+        }
+      ],
+      "relations": [],
+      "code": 38331244,
+      "frozen_text": "这个卡名的①的方法的特殊召唤1回合只能有1次，②③的效果1回合各能使用1次。\r\n①：这张卡可以把自己场上1张里侧表示卡给对方观看并回到手卡·额外卡组，从手卡特殊召唤。\r\n②：自己·对方的主要阶段，从自己的手卡·场上（里侧表示）把1张陷阱卡送去墓地才能发动。对方场上的表侧表示怪兽全部变成里侧守备表示。\r\n③：自己结束阶段才能发动。从卡组把1张「艮神鬼」陷阱卡在自己场上盖放。",
+      "text_digest": "3231ff090f3c685d6ca1ed22e9328054935291c628b148f411a4ae999a834ae7"
+    },
+    "43419178": {
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-27",
+        "basis": "主Agent逐卡重核所引官方日本OCG全文与补足；机械检查不代替规则审核。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "block": "m",
+          "number": null,
+          "kind": "unnumbered",
+          "effect_type": "non_effect",
+          "tags": [
+            "etag:material-rule"
+          ],
+          "structure": {
+            "rule_text": "调整＋调整以外的怪兽1只以上\n这个卡名的①的效果1回合只能使用1次。"
+          },
+          "notes": [
+            {
+              "text": "调整＋调整以外怪兽1只以上；只有①同名每回合使用1次。",
+              "source_refs": [
+                "card-23362",
+                "faq_index-23362"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "block": "m",
+          "number": 1,
+          "kind": "numbered",
+          "effect_type": "trigger",
+          "tags": [
+            "etag:send-grave"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "on_summon",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "本卡特殊召唤成功；伤害步骤可"
+              ],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "send_grave",
+                "selector": {
+                  "text": "卡组1张艮神鬼卡"
+                },
+                "simultaneous_group": "send-both",
+                "then": [
+                  {
+                    "action": "send_grave",
+                    "selector": {
+                      "text": "场上1张卡"
+                    },
+                    "condition": "卡组艮神鬼成功送墓才执行；视为同时",
+                    "simultaneous_group": "send-both",
+                    "from_zones": [
+                      "field"
+                    ],
+                    "to_zones": [
+                      "grave",
+                      "opponent_grave"
+                    ],
+                    "count": 1
+                  }
+                ],
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "grave"
+                ],
+                "count": 1
+              }
+            ],
+            "usage": [
+              "name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "特召成功诱发，不取对象；卡组送墓非费用，与场上送墓视为同时；伤害步骤可。",
+              "source_refs": [
+                "card-23362",
+                "faq_index-23362"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "block": "m",
+          "number": 2,
+          "kind": "numbered",
+          "effect_type": "trigger",
+          "tags": [],
+          "structure": {
+            "activation": {
+              "timing": "condition_text",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "本卡在怪兽区表侧存在时对方发动怪兽效果；该连锁处理后；伤害步骤外"
+              ],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [
+              {
+                "count": 1,
+                "filter": "自己墓地或表侧除外的艮神鬼陷阱；发动时双方里侧卡总计至少3张也可改选自己墓地任意陷阱"
+              }
+            ],
+            "processing": [
+              {
+                "action": "set_card",
+                "selector": {
+                  "text": "所选陷阱盖放于己方魔陷区"
+                },
+                "restrictions": [
+                  "非艮神鬼陷阱只能从自己墓地选择，不能从除外选"
+                ],
+                "from_zones": [
+                  "grave",
+                  "banished"
+                ],
+                "to_zones": [
+                  "spell"
+                ],
+                "count": 1
+              }
+            ],
+            "usage": []
+          },
+          "notes": [
+            {
+              "text": "对方怪兽效果发动的一连串连锁处理后另开连锁，非直接连锁的即时效果；无每回合次数限制，伤害步骤不可。",
+              "source_refs": [
+                "card-23362",
+                "faq_index-23362"
+              ]
+            }
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "id": "card-23362",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=23362&ope=2&request_locale=ja",
+          "title": "鬼神 水子守命 | カード詳細 | 遊戯王ニューロン(オフィシャルカードゲーム カードデータベース)",
+          "format": "OCG",
+          "region": "Japan",
+          "locale": "ja",
+          "checked_on": "2026-09-27"
+        },
+        {
+          "id": "faq_index-23362",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=23362&ope=4&request_locale=ja",
+          "title": "鬼神 水子守命 | カードに関連するＱ＆Ａ | 遊戯王ニューロン(オフィシャルカードゲーム カードデータベース)",
+          "format": "OCG",
+          "region": "Japan",
+          "locale": "ja",
+          "checked_on": "2026-09-27"
+        }
+      ],
+      "notes": [
+        {
+          "text": "逐卡对照冻结卡文、类型与官方全文；保留本地整数身份。",
+          "source_refs": [
+            "card-23362",
+            "faq_index-23362"
+          ]
+        }
+      ],
+      "relations": [],
+      "code": 43419178,
+      "frozen_text": "调整＋调整以外的怪兽1只以上\r\n这个卡名的①的效果1回合只能使用1次。\r\n①：这张卡特殊召唤的场合才能发动。从卡组把1张「艮神鬼」卡送去墓地，场上1张卡送去墓地。\r\n②：对方把怪兽的效果发动的场合，以自己的墓地·除外状态的1张「艮神鬼」陷阱卡为对象才能发动（场上的里侧表示卡是3张以上的场合，也能作为代替以自己墓地1张陷阱卡为对象）。那张卡在自己场上盖放。",
+      "text_digest": "5ad76c17e5fa220a36118cd2fb0d76f38eb3996b0c77f855847364a6ec0fbf0c"
+    },
+    "62368221": {
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-27",
+        "basis": "主Agent逐卡重核所引官方日本OCG全文与补足；机械检查不代替规则审核。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "block": "m",
+          "number": null,
+          "kind": "unnumbered",
+          "effect_type": "non_effect",
+          "tags": [],
+          "structure": {
+            "rule_text": "这个卡名的①②③的效果1回合各能使用1次。"
+          },
+          "notes": [
+            {
+              "text": "同名①②③各每回合使用1次。",
+              "source_refs": [
+                "card-23341",
+                "faq_index-23341"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "block": "m",
+          "number": 1,
+          "kind": "numbered",
+          "effect_type": "ignition",
+          "tags": [
+            "etag:add-hand",
+            "etag:protect"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "hand"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [
+              {
+                "kind": "banish",
+                "text": "将手卡的本卡除外"
+              }
+            ],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "add_hand",
+                "selector": {
+                  "text": "卡组1张无垢大艺术魔法陷阱"
+                },
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "hand"
+                ],
+                "count": 1
+              },
+              {
+                "action": "protect",
+                "selector": {
+                  "text": "己方狱神连接怪兽每只每回合最多3次不被战斗破坏"
+                },
+                "duration": "下个回合结束",
+                "restrictions": [
+                  "检索成功与否不影响适用；包括处理后出场的狱神连接怪兽；每只每回合各3次"
+                ],
+                "from_zones": [
+                  "monster"
+                ],
+                "count": "all"
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "手卡起动，除外手卡本卡为费用；不取对象。后半段加成独立于前半处理成功，亦作用于后来出场的指定怪兽。",
+              "source_refs": [
+                "card-23341",
+                "faq_index-23341"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "block": "m",
+          "number": 2,
+          "kind": "numbered",
+          "effect_type": "trigger",
+          "tags": [
+            "etag:special-summon"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "on_summon",
+              "zones": [
+                "banished"
+              ],
+              "conditions": [
+                "本卡为表侧除外状态时，超量或连接怪兽特殊召唤；伤害步骤外"
+              ],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "special_summon",
+                "selector": {
+                  "text": "表侧除外的本卡"
+                },
+                "from_zones": [
+                  "banished"
+                ],
+                "to_zones": [
+                  "monster"
+                ],
+                "count": 1
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "除外状态诱发；超量或连接怪兽特召不限双方、不要求正规召唤；伤害步骤不可。",
+              "source_refs": [
+                "card-23341",
+                "faq_index-23341"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m3",
+          "block": "m",
+          "number": 3,
+          "kind": "numbered",
+          "effect_type": "ignition",
+          "tags": [
+            "etag:banish"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [
+              {
+                "count_rule": {
+                  "mode": "up_to",
+                  "text": "发动时自己场上狱神连接怪兽数量",
+                  "evaluated_at": "activation",
+                  "minimum": 1
+                },
+                "filter": "场上魔法陷阱卡"
+              }
+            ],
+            "processing": [
+              {
+                "action": "banish",
+                "selector": {
+                  "text": "对象魔法陷阱除外"
+                },
+                "count_rule": {
+                  "mode": "exact",
+                  "text": "发动时所选对象卡数",
+                  "evaluated_at": "activation"
+                },
+                "from_zones": [
+                  "spell",
+                  "field_spell",
+                  "pendulum"
+                ],
+                "to_zones": [
+                  "banished",
+                  "opponent_banished"
+                ]
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "起动效果，依发动时己方狱神连接怪兽数决定对象上限。",
+              "source_refs": [
+                "card-23341",
+                "faq_index-23341"
+              ]
+            }
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "id": "card-23341",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=23341&ope=2&request_locale=ja",
+          "title": "浄化と腐敗のアルス＝マグナ | カード詳細 | 遊戯王ニューロン(オフィシャルカードゲーム カードデータベース)",
+          "format": "OCG",
+          "region": "Japan",
+          "locale": "ja",
+          "checked_on": "2026-09-27"
+        },
+        {
+          "id": "faq_index-23341",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=23341&ope=4&request_locale=ja",
+          "title": "浄化と腐敗のアルス＝マグナ | カードに関連するＱ＆Ａ | 遊戯王ニューロン(オフィシャルカードゲーム カードデータベース)",
+          "format": "OCG",
+          "region": "Japan",
+          "locale": "ja",
+          "checked_on": "2026-09-27"
+        }
+      ],
+      "notes": [
+        {
+          "text": "逐卡对照冻结卡文、类型与官方全文；保留本地整数身份。",
+          "source_refs": [
+            "card-23341",
+            "faq_index-23341"
+          ]
+        }
+      ],
+      "relations": [],
+      "code": 62368221,
+      "frozen_text": "这个卡名的①②③的效果1回合各能使用1次。\r\n①：把这张卡从手卡除外才能发动。从卡组把1张「无垢大艺术」魔法·陷阱卡加入手卡。直到下个回合的结束时，自己的「狱神」连接怪兽在1回合各有最多3次不会被战斗破坏。\r\n②：这张卡是除外状态，超量·连接怪兽特殊召唤的场合才能发动。这张卡特殊召唤。\r\n③：以最多有自己场上的「狱神」连接怪兽数量的场上的魔法·陷阱卡为对象才能发动。那些卡除外。",
+      "text_digest": "2f3bcef24a13590a98266e42ac4f0fd0341ae77b96f7ccf9213f43166b80598d"
+    },
+    "64455720": {
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-27",
+        "basis": "主Agent逐卡重核所引官方日本OCG全文与补足；机械检查不代替规则审核。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "block": "m",
+          "number": null,
+          "kind": "unnumbered",
+          "effect_type": "non_effect",
+          "tags": [],
+          "structure": {
+            "rule_text": "这个卡名的卡在1回合只能发动1张。"
+          },
+          "notes": [
+            {
+              "text": "同名卡每回合只能发动1张。",
+              "source_refs": [
+                "card-23395",
+                "faq_index-23395"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "block": "m",
+          "number": 1,
+          "kind": "numbered",
+          "effect_type": "composite",
+          "unit_mode": "choose_one",
+          "selection_rule": "发动时从两个选项选择一个；同名卡每回合只能发动1张，共享卡片发动次数，不是各选项各1次。",
+          "units": [
+            {
+              "id": "summon",
+              "label": "变怪兽并可同调",
+              "text": "这张卡变成通常怪兽（昆虫族·调整·暗·1星·攻/守0）在怪兽区域特殊召唤（不当作陷阱卡使用）。那之后，可以进行1只同调怪兽的同调召唤。",
+              "effect_type": "trap_activation",
+              "tags": [
+                "etag:special-summon"
+              ],
+              "structure": {
+                "activation": {
+                  "timing": "fast_window",
+                  "zones": [
+                    "spell"
+                  ],
+                  "conditions": [
+                    "伤害步骤外"
+                  ],
+                  "fast_effect": true
+                },
+                "cost": [],
+                "targeting": [],
+                "processing": [
+                  {
+                    "action": "special_summon",
+                    "selector": {
+                      "text": "本陷阱变通常怪兽：昆虫族、调整、暗、1星、攻守0；不当陷阱使用"
+                    },
+                    "then": [
+                      {
+                        "action": "use_as_synchro_material",
+                        "selector": {
+                          "text": "成功特召后，此效果处理后立即可进行1次合法同调召唤；不是仍在本效果处理中的同调召唤"
+                        },
+                        "optional": true,
+                        "condition": "本陷阱成功特殊召唤；选做",
+                        "then": [
+                          {
+                            "action": "special_summon",
+                            "selector": {
+                              "text": "1只同调怪兽按同调手续从额外特殊召唤"
+                            },
+                            "from_zones": [
+                              "extra"
+                            ],
+                            "to_zones": [
+                              "monster"
+                            ],
+                            "count": 1
+                          }
+                        ],
+                        "from_zones": [
+                          "monster"
+                        ]
+                      }
+                    ],
+                    "from_zones": [
+                      "spell"
+                    ],
+                    "to_zones": [
+                      "monster"
+                    ],
+                    "count": 1
+                  }
+                ],
+                "usage": [
+                  "name_activation_once"
+                ]
+              },
+              "notes": [
+                {
+                  "text": "发动时选择此项，不取对象；不当陷阱的通常调整怪兽。特召成功后效果处理后立即可同调，两次召唤不同时；伤害步骤不可。",
+                  "source_refs": [
+                    "card-23395",
+                    "faq_index-23395"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "alternative",
+              "label": "另一发动选项",
+              "text": "以自己墓地1只「艮神鬼」怪兽为对象才能发动。那只怪兽特殊召唤。",
+              "effect_type": "trap_activation",
+              "tags": [
+                "etag:special-summon"
+              ],
+              "structure": {
+                "activation": {
+                  "timing": "fast_window",
+                  "zones": [
+                    "spell"
+                  ],
+                  "conditions": [
+                    "伤害步骤外"
+                  ],
+                  "fast_effect": true
+                },
+                "cost": [],
+                "targeting": [
+                  {
+                    "count": 1,
+                    "filter": "自己墓地1只艮神鬼怪兽"
+                  }
+                ],
+                "processing": [
+                  {
+                    "action": "special_summon",
+                    "selector": {
+                      "text": "墓地对象艮神鬼怪兽"
+                    },
+                    "from_zones": [
+                      "grave"
+                    ],
+                    "to_zones": [
+                      "monster"
+                    ],
+                    "count": 1
+                  }
+                ],
+                "usage": [
+                  "name_activation_once"
+                ]
+              },
+              "notes": [
+                {
+                  "text": "发动时选择此项并取对象；伤害步骤不可。",
+                  "source_refs": [
+                    "card-23395",
+                    "faq_index-23395"
+                  ]
+                }
+              ]
+            }
+          ],
+          "tags": [
+            "etag:special-summon"
+          ],
+          "notes": [
+            {
+              "text": "两个选项分别保存时点与对象，不互相借用。",
+              "source_refs": [
+                "card-23395",
+                "faq_index-23395"
+              ]
+            }
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "id": "card-23395",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=23395&ope=2&request_locale=ja",
+          "title": "色鬼の蟲毒 | カード詳細 | 遊戯王ニューロン(オフィシャルカードゲーム カードデータベース)",
+          "format": "OCG",
+          "region": "Japan",
+          "locale": "ja",
+          "checked_on": "2026-09-27"
+        },
+        {
+          "id": "faq_index-23395",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=23395&ope=4&request_locale=ja",
+          "title": "色鬼の蟲毒 | カードに関連するＱ＆Ａ | 遊戯王ニューロン(オフィシャルカードゲーム カードデータベース)",
+          "format": "OCG",
+          "region": "Japan",
+          "locale": "ja",
+          "checked_on": "2026-09-27"
+        }
+      ],
+      "notes": [
+        {
+          "text": "逐卡对照冻结卡文、类型与官方全文；保留本地整数身份。",
+          "source_refs": [
+            "card-23395",
+            "faq_index-23395"
+          ]
+        }
+      ],
+      "relations": [],
+      "code": 64455720,
+      "frozen_text": "这个卡名的卡在1回合只能发动1张。\r\n①：可以从以下效果选择1个发动。\r\n●这张卡变成通常怪兽（昆虫族·调整·暗·1星·攻/守0）在怪兽区域特殊召唤（不当作陷阱卡使用）。那之后，可以进行1只同调怪兽的同调召唤。\r\n●以自己墓地1只「艮神鬼」怪兽为对象才能发动。那只怪兽特殊召唤。",
+      "text_digest": "3844f79e4032ac96a4ebde39725a040d92cf9fc166939e43b337aa1752f7a841"
+    },
+    "65325949": {
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-27",
+        "basis": "主Agent逐卡重核所引官方日本OCG全文与补足；机械检查不代替规则审核。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "block": "m",
+          "number": null,
+          "kind": "unnumbered",
+          "effect_type": "non_effect",
+          "tags": [],
+          "structure": {
+            "rule_text": "这个卡名的①的方法的特殊召唤1回合只能有1次，②③的效果1回合各能使用1次。"
+          },
+          "notes": [
+            {
+              "text": "①指定方法同名每回合特殊召唤1次；②③同名各使用1次。方法特召被无效时本回合可再次按该法特召。",
+              "source_refs": [
+                "card-23332",
+                "faq_index-23332"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "block": "m",
+          "number": 1,
+          "kind": "numbered",
+          "effect_type": "no_chain_effect",
+          "tags": [
+            "etag:special-summon"
+          ],
+          "structure": {
+            "processing": [
+              {
+                "action": "special_summon",
+                "selector": {
+                  "text": "手卡本卡；先展示并将自己场上1张里侧卡返回手卡或额外卡组，再特殊召唤本卡"
+                },
+                "restrictions": [
+                  "展示及返回是无连锁特召手续，非效果回手能力；先返回再特召，不同时；特召被无效不消耗该方法次数"
+                ],
+                "from_zones": [
+                  "hand"
+                ],
+                "to_zones": [
+                  "monster"
+                ],
+                "count": 1
+              }
+            ],
+            "usage": [
+              "name_summon_method_once"
+            ]
+          },
+          "notes": [
+            {
+              "text": "官方明确是不属于四类的无连锁效果；不是起动效果，不把手续回手登记为效果回手。",
+              "source_refs": [
+                "card-23332",
+                "faq_index-23332"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "block": "m",
+          "number": 2,
+          "kind": "numbered",
+          "effect_type": "ignition",
+          "tags": [
+            "etag:destroy"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [
+              {
+                "count_rule": {
+                  "mode": "up_to",
+                  "text": "发动时双方场上里侧卡总数每2张可选1张，向下取整",
+                  "evaluated_at": "activation",
+                  "minimum": 1
+                },
+                "filter": "场上卡；上限按双方里侧卡数每2张1张"
+              }
+            ],
+            "processing": [
+              {
+                "action": "destroy",
+                "selector": {
+                  "text": "已选对象卡"
+                },
+                "count_rule": {
+                  "mode": "exact",
+                  "text": "本次发动所选对象卡数",
+                  "evaluated_at": "activation"
+                },
+                "from_zones": [
+                  "field"
+                ]
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "起动效果，发动时依双方场上里侧卡合计确定对象上限。",
+              "source_refs": [
+                "card-23332",
+                "faq_index-23332"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m3",
+          "block": "m",
+          "number": 3,
+          "kind": "numbered",
+          "effect_type": "trigger",
+          "tags": [],
+          "structure": {
+            "activation": {
+              "timing": "end_phase",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [
+                "自己结束阶段"
+              ],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [
+              {
+                "count": 1,
+                "filter": "自己墓地1张艮神鬼陷阱"
+              }
+            ],
+            "processing": [
+              {
+                "action": "set_card",
+                "selector": {
+                  "text": "墓地对象艮神鬼陷阱"
+                },
+                "from_zones": [
+                  "grave"
+                ],
+                "to_zones": [
+                  "spell"
+                ],
+                "count": 1
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "仅自己结束阶段，取对象，盖放不等于当回合可发动。",
+              "source_refs": [
+                "card-23332",
+                "faq_index-23332"
+              ]
+            }
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "id": "card-23332",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=23332&ope=2&request_locale=ja",
+          "title": "蠱神の色鬼 クズハ | カード詳細 | 遊戯王ニューロン(オフィシャルカードゲーム カードデータベース)",
+          "format": "OCG",
+          "region": "Japan",
+          "locale": "ja",
+          "checked_on": "2026-09-27"
+        },
+        {
+          "id": "faq_index-23332",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=23332&ope=4&request_locale=ja",
+          "title": "蠱神の色鬼 クズハ | カードに関連するＱ＆Ａ | 遊戯王ニューロン(オフィシャルカードゲーム カードデータベース)",
+          "format": "OCG",
+          "region": "Japan",
+          "locale": "ja",
+          "checked_on": "2026-09-27"
+        }
+      ],
+      "notes": [
+        {
+          "text": "逐卡对照冻结卡文、类型与官方全文；保留本地整数身份。",
+          "source_refs": [
+            "card-23332",
+            "faq_index-23332"
+          ]
+        }
+      ],
+      "relations": [],
+      "code": 65325949,
+      "frozen_text": "这个卡名的①的方法的特殊召唤1回合只能有1次，②③的效果1回合各能使用1次。\r\n①：这张卡可以把自己场上1张里侧表示卡给对方观看并回到手卡·额外卡组，从手卡特殊召唤。\r\n②：以场上的里侧表示卡每2张最多1张的场上的卡为对象才能发动。那些卡破坏。\r\n③：自己结束阶段，以自己墓地1张「艮神鬼」陷阱卡为对象才能发动。那张卡在自己场上盖放。",
+      "text_digest": "47e74e4c383aba702dc42674e7cd9a76d8e8e91748f098bc2afdeaedc70f747c"
+    },
+    "90728287": {
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-27",
+        "basis": "主Agent逐卡重核所引官方日本OCG全文与补足；机械检查不代替规则审核。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "block": "m",
+          "number": null,
+          "kind": "unnumbered",
+          "effect_type": "non_effect",
+          "tags": [],
+          "structure": {
+            "rule_text": "这个卡名的①②的效果1回合只能有1次使用其中任意1个。"
+          },
+          "notes": [
+            {
+              "text": "同名①②每回合合计只能使用其中1个。",
+              "source_refs": [
+                "card-23399",
+                "faq_index-23399"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "block": "m",
+          "number": 1,
+          "kind": "numbered",
+          "effect_type": "trap_activation",
+          "tags": [
+            "etag:banish",
+            "etag:negate-effect"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "fast_window",
+              "zones": [
+                "spell"
+              ],
+              "conditions": [
+                "伤害步骤外"
+              ],
+              "fast_effect": true
+            },
+            "cost": [],
+            "targeting": [
+              {
+                "min_count": 1,
+                "max_count": 3,
+                "filter": "自己场上或墓地无垢大艺术怪兽"
+              }
+            ],
+            "processing": [
+              {
+                "action": "banish",
+                "selector": {
+                  "text": "所选自己场上或墓地的无垢大艺术怪兽"
+                },
+                "min_count": 1,
+                "max_count": 3,
+                "then": [
+                  {
+                    "action": "negate_effect",
+                    "selector": {
+                      "text": "场上其他表侧卡，处理时选，不是发动时对象"
+                    },
+                    "count_rule": {
+                      "mode": "up_to",
+                      "text": "前项实际成功除外的怪兽数量",
+                      "evaluated_at": "resolution",
+                      "minimum": 1
+                    },
+                    "optional": true,
+                    "condition": "至少1只成功除外后可选做；不同步处理",
+                    "duration": "本回合结束",
+                    "from_zones": [
+                      "field"
+                    ]
+                  }
+                ],
+                "from_zones": [
+                  "monster",
+                  "grave"
+                ],
+                "to_zones": [
+                  "banished"
+                ]
+              }
+            ],
+            "usage": [
+              "shared_name_once"
+            ]
+          },
+          "notes": [
+            {
+              "text": "发动对象1至3只；除外是效果非费用；部分对象离开仍处理余下对象；无效数量以实际除外数量为上限。",
+              "source_refs": [
+                "card-23399",
+                "faq_index-23399"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "block": "m",
+          "number": 2,
+          "kind": "numbered",
+          "effect_type": "trap_effect",
+          "tags": [
+            "etag:return-deck",
+            "etag:special-summon"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "fast_window",
+              "zones": [
+                "grave"
+              ],
+              "conditions": [
+                "伤害步骤外"
+              ],
+              "fast_effect": true
+            },
+            "cost": [
+              {
+                "kind": "banish_self_from_grave",
+                "text": "墓地本卡除外"
+              }
+            ],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "return_deck",
+                "selector": {
+                  "text": "墓地1只狱神连接怪兽"
+                },
+                "then": [
+                  {
+                    "action": "special_summon",
+                    "selector": {
+                      "text": "前项实际回到额外的那只狱神连接怪兽"
+                    },
+                    "optional": true,
+                    "condition": "成功回额外后可选择；非同时；不是连接召唤",
+                    "from_zones": [
+                      "extra"
+                    ],
+                    "to_zones": [
+                      "monster"
+                    ],
+                    "count": 1
+                  }
+                ],
+                "from_zones": [
+                  "grave"
+                ],
+                "to_zones": [
+                  "extra"
+                ],
+                "count": 1
+              }
+            ],
+            "usage": [
+              "shared_name_once"
+            ]
+          },
+          "notes": [
+            {
+              "text": "墓地陷阱效果、不取对象；除外本卡为费用；回额外成功才可特召同一只。",
+              "source_refs": [
+                "card-23399",
+                "faq_index-23399"
+              ]
+            }
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "id": "card-23399",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=23399&ope=2&request_locale=ja",
+          "title": "無垢なる芸術－「幻創の賢者」 | カード詳細 | 遊戯王ニューロン(オフィシャルカードゲーム カードデータベース)",
+          "format": "OCG",
+          "region": "Japan",
+          "locale": "ja",
+          "checked_on": "2026-09-27"
+        },
+        {
+          "id": "faq_index-23399",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=23399&ope=4&request_locale=ja",
+          "title": "無垢なる芸術－「幻創の賢者」 | カードに関連するＱ＆Ａ | 遊戯王ニューロン(オフィシャルカードゲーム カードデータベース)",
+          "format": "OCG",
+          "region": "Japan",
+          "locale": "ja",
+          "checked_on": "2026-09-27"
+        }
+      ],
+      "notes": [
+        {
+          "text": "逐卡对照冻结卡文、类型与官方全文；保留本地整数身份。",
+          "source_refs": [
+            "card-23399",
+            "faq_index-23399"
+          ]
+        }
+      ],
+      "relations": [],
+      "code": 90728287,
+      "frozen_text": "这个卡名的①②的效果1回合只能有1次使用其中任意1个。\r\n①：以自己的场上·墓地最多3只「无垢大艺术」怪兽为对象才能发动。那些怪兽除外。那之后，可以把最多有那个数量的场上的其他的表侧表示卡的效果直到回合结束时无效。\r\n②：把墓地的这张卡除外才能发动。从自己墓地让1只「狱神」连接怪兽回到额外卡组。那之后，可以把那只怪兽特殊召唤。",
+      "text_digest": "8e92f413b37bd7fb2bfbb02d85bf36fb6c96e2decb9696cbe2e162f59c5a101a"
+    },
+    "91444835": {
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-27",
+        "basis": "主Agent逐卡重核所引官方日本OCG全文与补足；机械检查不代替规则审核。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "block": "m",
+          "number": null,
+          "kind": "unnumbered",
+          "effect_type": "non_effect",
+          "tags": [],
+          "structure": {
+            "rule_text": "这个卡名的卡在1回合只能发动1张。"
+          },
+          "notes": [
+            {
+              "text": "同名卡每回合只能发动1张。",
+              "source_refs": [
+                "card-23396",
+                "faq_index-23396"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "block": "m",
+          "number": 1,
+          "kind": "numbered",
+          "effect_type": "composite",
+          "unit_mode": "choose_one",
+          "selection_rule": "发动时从两个选项选择一个；同名卡每回合只能发动1张，共享卡片发动次数，不是各选项各1次。",
+          "units": [
+            {
+              "id": "summon",
+              "label": "变怪兽并可同调",
+              "text": "这张卡变成通常怪兽（魔法师族·调整·暗·1星·攻/守0）在怪兽区域特殊召唤（不当作陷阱卡使用）。那之后，可以进行1只同调怪兽的同调召唤。",
+              "effect_type": "trap_activation",
+              "tags": [
+                "etag:special-summon"
+              ],
+              "structure": {
+                "activation": {
+                  "timing": "fast_window",
+                  "zones": [
+                    "spell"
+                  ],
+                  "conditions": [
+                    "伤害步骤外"
+                  ],
+                  "fast_effect": true
+                },
+                "cost": [],
+                "targeting": [],
+                "processing": [
+                  {
+                    "action": "special_summon",
+                    "selector": {
+                      "text": "本陷阱变通常怪兽：魔法师族、调整、暗、1星、攻守0；不当陷阱使用"
+                    },
+                    "then": [
+                      {
+                        "action": "use_as_synchro_material",
+                        "selector": {
+                          "text": "成功特召后，此效果处理后立即可进行1次合法同调召唤；不是仍在本效果处理中的同调召唤"
+                        },
+                        "optional": true,
+                        "condition": "本陷阱成功特殊召唤；选做",
+                        "then": [
+                          {
+                            "action": "special_summon",
+                            "selector": {
+                              "text": "1只同调怪兽按同调手续从额外特殊召唤"
+                            },
+                            "from_zones": [
+                              "extra"
+                            ],
+                            "to_zones": [
+                              "monster"
+                            ],
+                            "count": 1
+                          }
+                        ],
+                        "from_zones": [
+                          "monster"
+                        ]
+                      }
+                    ],
+                    "from_zones": [
+                      "spell"
+                    ],
+                    "to_zones": [
+                      "monster"
+                    ],
+                    "count": 1
+                  }
+                ],
+                "usage": [
+                  "name_activation_once"
+                ]
+              },
+              "notes": [
+                {
+                  "text": "发动时选择此项，不取对象；不当陷阱的通常调整怪兽。特召成功后效果处理后立即可同调，两次召唤不同时；伤害步骤不可。",
+                  "source_refs": [
+                    "card-23396",
+                    "faq_index-23396"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "alternative",
+              "label": "另一发动选项",
+              "text": "自己的场上或墓地有「艮神鬼」怪兽存在的场合，以对方场上1只怪兽为对象才能发动。那只怪兽破坏。",
+              "effect_type": "trap_activation",
+              "tags": [
+                "etag:destroy"
+              ],
+              "structure": {
+                "activation": {
+                  "timing": "fast_window",
+                  "zones": [
+                    "spell"
+                  ],
+                  "conditions": [
+                    "自己场上或墓地有艮神鬼怪兽；伤害步骤外"
+                  ],
+                  "fast_effect": true
+                },
+                "cost": [],
+                "targeting": [
+                  {
+                    "count": 1,
+                    "filter": "对方场上1只怪兽"
+                  }
+                ],
+                "processing": [
+                  {
+                    "action": "destroy",
+                    "selector": {
+                      "text": "对方对象怪兽"
+                    },
+                    "from_zones": [
+                      "opponent_monster"
+                    ],
+                    "count": 1
+                  }
+                ],
+                "usage": [
+                  "name_activation_once"
+                ]
+              },
+              "notes": [
+                {
+                  "text": "己方场上或墓地有艮神鬼怪兽，发动时选择此项并取对象。",
+                  "source_refs": [
+                    "card-23396",
+                    "faq_index-23396"
+                  ]
+                }
+              ]
+            }
+          ],
+          "tags": [
+            "etag:destroy",
+            "etag:special-summon"
+          ],
+          "notes": [
+            {
+              "text": "两个选项分别保存时点与对象，不互相借用。",
+              "source_refs": [
+                "card-23396",
+                "faq_index-23396"
+              ]
+            }
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "id": "card-23396",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=23396&ope=2&request_locale=ja",
+          "title": "依鬼の呪咆 | カード詳細 | 遊戯王ニューロン(オフィシャルカードゲーム カードデータベース)",
+          "format": "OCG",
+          "region": "Japan",
+          "locale": "ja",
+          "checked_on": "2026-09-27"
+        },
+        {
+          "id": "faq_index-23396",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=23396&ope=4&request_locale=ja",
+          "title": "依鬼の呪咆 | カードに関連するＱ＆Ａ | 遊戯王ニューロン(オフィシャルカードゲーム カードデータベース)",
+          "format": "OCG",
+          "region": "Japan",
+          "locale": "ja",
+          "checked_on": "2026-09-27"
+        }
+      ],
+      "notes": [
+        {
+          "text": "逐卡对照冻结卡文、类型与官方全文；保留本地整数身份。",
+          "source_refs": [
+            "card-23396",
+            "faq_index-23396"
+          ]
+        }
+      ],
+      "relations": [],
+      "code": 91444835,
+      "frozen_text": "这个卡名的卡在1回合只能发动1张。\r\n①：可以从以下效果选择1个发动。\r\n●这张卡变成通常怪兽（魔法师族·调整·暗·1星·攻/守0）在怪兽区域特殊召唤（不当作陷阱卡使用）。那之后，可以进行1只同调怪兽的同调召唤。\r\n●自己的场上或墓地有「艮神鬼」怪兽存在的场合，以对方场上1只怪兽为对象才能发动。那只怪兽破坏。",
+      "text_digest": "911fef0ede0a61c0b391398941a8ac04d93c9783e8f7b6762626929141bbeb0c"
+    },
+    "99753860": {
+      "review": {
+        "status": "reviewed",
+        "origin": "manual",
+        "checked_on": "2026-09-27",
+        "basis": "主Agent逐卡重核所引官方日本OCG全文与补足；机械检查不代替规则审核。"
+      },
+      "effects": [
+        {
+          "key": "m-pre",
+          "block": "m",
+          "number": null,
+          "kind": "unnumbered",
+          "effect_type": "non_effect",
+          "tags": [],
+          "structure": {
+            "rule_text": "这个卡名的①②③的效果1回合各能使用1次。"
+          },
+          "notes": [
+            {
+              "text": "同名①②③各每回合使用1次。",
+              "source_refs": [
+                "card-23342",
+                "faq_index-23342"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m1",
+          "block": "m",
+          "number": 1,
+          "kind": "numbered",
+          "effect_type": "ignition",
+          "tags": [
+            "etag:special-summon"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "hand"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [
+              {
+                "kind": "banish",
+                "text": "将手卡的本卡除外"
+              }
+            ],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "special_summon",
+                "selector": {
+                  "text": "己方墓地或表侧除外1只魔法师族以外的无垢大艺术怪兽"
+                },
+                "from_zones": [
+                  "grave",
+                  "banished"
+                ],
+                "to_zones": [
+                  "monster"
+                ],
+                "count": 1
+              },
+              {
+                "action": "grant_extra_attack",
+                "selector": {
+                  "text": "己方狱神连接怪兽在1次战斗阶段最多3次向怪兽攻击"
+                },
+                "duration": "本回合结束",
+                "restrictions": [
+                  "不是3次直接攻击；特召成功与否不影响适用；包括处理后出场的狱神连接怪兽"
+                ],
+                "from_zones": [
+                  "monster"
+                ],
+                "count": "all"
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "手卡起动，除外手卡本卡为费用；不取对象。后半段加成独立于前半处理成功，亦作用于后来出场的指定怪兽。",
+              "source_refs": [
+                "card-23342",
+                "faq_index-23342"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m2",
+          "block": "m",
+          "number": 2,
+          "kind": "numbered",
+          "effect_type": "trigger",
+          "tags": [
+            "etag:special-summon"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "on_summon",
+              "zones": [
+                "banished"
+              ],
+              "conditions": [
+                "本卡为表侧除外状态时，同调或连接怪兽特殊召唤；伤害步骤外"
+              ],
+              "fast_effect": false
+            },
+            "cost": [],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "special_summon",
+                "selector": {
+                  "text": "表侧除外的本卡"
+                },
+                "from_zones": [
+                  "banished"
+                ],
+                "to_zones": [
+                  "monster"
+                ],
+                "count": 1
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "除外状态诱发；同调或连接怪兽特召不限双方、不要求正规召唤；伤害步骤不可。",
+              "source_refs": [
+                "card-23342",
+                "faq_index-23342"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "m3",
+          "block": "m",
+          "number": 3,
+          "kind": "numbered",
+          "effect_type": "ignition",
+          "tags": [
+            "etag:draw"
+          ],
+          "structure": {
+            "activation": {
+              "timing": "main_phase_self",
+              "zones": [
+                "monster"
+              ],
+              "conditions": [],
+              "fast_effect": false
+            },
+            "cost": [
+              {
+                "kind": "banish",
+                "text": "自己墓地1张无垢大艺术卡除外"
+              }
+            ],
+            "targeting": [],
+            "processing": [
+              {
+                "action": "draw",
+                "selector": {
+                  "text": "自己抽1张"
+                },
+                "from_zones": [
+                  "deck"
+                ],
+                "to_zones": [
+                  "hand"
+                ],
+                "count": 1
+              }
+            ],
+            "usage": [
+              "per_effect_name_soft_opt"
+            ]
+          },
+          "notes": [
+            {
+              "text": "除外自己墓地1张无垢大艺术卡为费用；不取对象。",
+              "source_refs": [
+                "card-23342",
+                "faq_index-23342"
+              ]
+            }
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "id": "card-23342",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=23342&ope=2&request_locale=ja",
+          "title": "結合と乖離のアルス＝マグナ | カード詳細 | 遊戯王ニューロン(オフィシャルカードゲーム カードデータベース)",
+          "format": "OCG",
+          "region": "Japan",
+          "locale": "ja",
+          "checked_on": "2026-09-27"
+        },
+        {
+          "id": "faq_index-23342",
+          "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=23342&ope=4&request_locale=ja",
+          "title": "結合と乖離のアルス＝マグナ | カードに関連するＱ＆Ａ | 遊戯王ニューロン(オフィシャルカードゲーム カードデータベース)",
+          "format": "OCG",
+          "region": "Japan",
+          "locale": "ja",
+          "checked_on": "2026-09-27"
+        }
+      ],
+      "notes": [
+        {
+          "text": "逐卡对照冻结卡文、类型与官方全文；保留本地整数身份。",
+          "source_refs": [
+            "card-23342",
+            "faq_index-23342"
+          ]
+        }
+      ],
+      "relations": [],
+      "code": 99753860,
+      "frozen_text": "这个卡名的①②③的效果1回合各能使用1次。\r\n①：把这张卡从手卡除外才能发动。从自己的墓地·除外状态把1只魔法师族以外的「无垢大艺术」怪兽特殊召唤。这个回合中，自己的「狱神」连接怪兽在同1次的战斗阶段中最多3次可以向怪兽攻击。\r\n②：这张卡是除外状态，同调·连接怪兽特殊召唤的场合才能发动。这张卡特殊召唤。\r\n③：从自己墓地把1张「无垢大艺术」卡除外才能发动。自己抽1张。",
+      "text_digest": "1e3398f209a6633496f7f59f2b9a4b9da1a575ebea0f54e19363618e38f92064"
     }
   },
   "revision": 34

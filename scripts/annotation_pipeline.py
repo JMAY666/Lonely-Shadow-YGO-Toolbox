@@ -139,7 +139,7 @@ class Pipeline:
         return folder
 
     def prepare(self, batch_id, runtime, source_pack, *, codes=None, series_ids=None, all_remaining=False,
-                include_reviewed=False):
+                include_reviewed=False, released_only=False, as_of=None):
         folder = self.folder(batch_id)
         if folder.exists():
             raise ValueError('Batch already exists; use status/resume rather than replacing it')
@@ -164,8 +164,18 @@ class Pipeline:
         if selected - catalog.cards.keys():
             raise ValueError('Selected code is missing from the actual Catalog')
         rows, skipped = [], []
+        if as_of and not released_only:
+            raise ValueError('as_of requires released_only')
+        if released_only:
+            from annotation_release_queue import eligibility, ReleaseDates, date, valid_date
+            releases = ReleaseDates()
+            as_of = as_of or date.today().isoformat()
+            valid_date(as_of)
         for code in sorted(selected):
             card = catalog.cards[code]
+            if released_only and (reason := eligibility(code, card, releases, as_of)):
+                skipped.append({'code': code, 'reason': reason})
+                continue
             if card['type'] & 0x4000:
                 skipped.append({'code': code, 'reason': 'token'})
                 continue
@@ -188,7 +198,8 @@ class Pipeline:
                 'baseline_sha256': content_hash(self.formal.read_bytes()),
                 'vocabulary_sha256': content_hash(self.tags.read_bytes()),
                 'selection': {'series': series_ids or [], 'all_remaining': all_remaining,
-                              'complete_series': bool(series_ids), 'include_reviewed': include_reviewed},
+                              'complete_series': bool(series_ids), 'include_reviewed': include_reviewed,
+                              'released_only': released_only, 'as_of': as_of},
                 'scope': 'Mechanical preparation only; source candidates and templates are not reviewed annotations.',
                 'cards': rows, 'skipped': skipped}
         templates = {'version': 1, 'cards': {}, 'pending': [], 'query_cases': [], 'semantic_cases': [],
@@ -450,6 +461,8 @@ def main():
     prepare.add_argument('--runtime', required=True)
     prepare.add_argument('--source-pack', required=True)
     prepare.add_argument('--include-reviewed', action='store_true', help='Include existing cards for replay/revalidation; never overwrite them')
+    prepare.add_argument('--released-only', action='store_true', help='Exclude preview sources and cards without a past OCG release date')
+    prepare.add_argument('--as-of', help='Freeze release cutoff YYYY-MM-DD; requires --released-only')
     selection = prepare.add_mutually_exclusive_group(required=True)
     selection.add_argument('--codes', nargs='+', type=int)
     selection.add_argument('--series', nargs='+', dest='series_ids')
