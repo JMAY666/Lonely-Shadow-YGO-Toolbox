@@ -179,3 +179,15 @@ python scripts/check_annotation_source_batch.py --runtime .local/YGOPro-Lite --m
 ```
 
 无本地资料目录时省略两个来源参数，只可验证结构与查询，不能声称来源快照已重验。
+
+## 1.49.10 最新续接位置
+
+原386项最后46项已重新核对，38接纳、8具体结构缺口；全清单现为320核准、66待核实、0未处理。另处理完整海晶少女、幻奏和魔救的67项缺口，接纳65项；本轮合计新增103，正式累计2,873／14,716。海晶少女27／27与幻奏22／22完整覆盖，魔救17／19。后续按当前Catalog重新冻结下一组完整系列，同时保留现有具体待核实项，不回放隔离的旧stage04作者脚本。
+
+本轮权威清单为[103接纳／10待核实](card-annotation-batch-2026-09-27-continuation.json)，私有来源、断点和备份在`.local/annotation-pipeline/continuation-20260927/`。核对卡页全部区块，灵摆补足须读取`pen_supplement`，不能只读怪兽的`card_text/supplement`。处理条件必须保留在相应处理项：例如蒂娃实际造成伤害才破坏，暂除返回不等于特召，不同分支的伤害步骤许可分开。跨模块能力事实现在显示处理项的`condition`，仅展示依据，不求解当前局面。
+
+```powershell
+python scripts/check_annotation_source_batch.py --runtime .local/YGOPro-Lite --manifest docs/card-annotation-batch-2026-09-27-continuation.json --source-pack .local/annotation-handoff/20260925-catalog-all-14981 --supplemental-root .local/annotation-pipeline/continuation-20260927/sources --full
+```
+
+缺本地来源目录时只能省略来源参数做结构／查询检查；当前刷新返回403的来源沿用经哈希和身份核对的原始快照，不能宣称全部页面已经重新在线获取。魔救之奇迹-提亚玛特晶石没有可靠快照，仍待核实。完整界限与结果见[验收](verification-1.49.10.md)。

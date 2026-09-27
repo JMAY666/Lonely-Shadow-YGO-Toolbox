@@ -321,7 +321,7 @@ module.exports = async ({page, application, root, evidence, pass}) => {
   assert.deepEqual(kragen.effects.find(e=>e.key==='m2').structure.targeting,[]);
   const poisoner=await page.evaluate(()=>api('/api/annotations',{op:'card',code:83414006}));
   assert.equal(poisoner.effects.find(e=>e.key==='m2').effect_type,'trap_effect');
-  for(const code of [90162951,93431862]) {
+  for(const code of [88820235,89252153]) {
     const unmerged=await page.evaluate(code=>api('/api/annotations',{op:'card',code}),code);
     assert.equal(unmerged.status,'none','unreviewed stage04 candidates must stay out of built-in data');
   }
@@ -333,5 +333,36 @@ module.exports = async ({page, application, root, evidence, pass}) => {
   assert.ok(auditedFacts.effects.some(effect=>effect.facts.some(fact=>/取除本卡1个超量素材/.test(fact.text))));
   await page.screenshot({path:path.join(evidence,'annotations-stage03-audited-big-eye.png')});
   pass('Audited card data: exact material cost, non-targeting, no-chain summon, trap category, negative queries and unmerged draft isolation');
+  // 1.49.10: exercise newly reviewed data through the actual API and renderer.
+  for(const [code,query,keys] of [
+    [93431862,{action:'burn'},['m-all']],
+    [91691605,{action:'grant_piercing',etags:['etag:damage-modify']},['m2']],
+    [36492575,{action:'special_summon',from_zone:'grave'},[]],
+    [64881644,{action:'send_grave'},['p1']],
+    [64881644,{etags:['etag:add-hand','etag:send-grave'],etag_mode:'all'},[]],
+    [90276649,{action:'special_summon'},['m1']],
+    [24925387,{action:'return_deck'},[]],
+    [9464441,{action:'negate_activation'},['m2']]
+  ]) {
+    const result=await page.evaluate(([code,query])=>api('/api/annotations',{
+      op:'query',q:String(code),...query
+    }),[code,query]);
+    assert.deepEqual(result.cards.flatMap(card=>card.hit_keys),keys,`continuation ${code}`);
+  }
+  const photon=await page.evaluate(()=>api('/api/annotations',{op:'card',code:93717133}));
+  assert.equal(photon.effects.find(e=>e.key==='m1').effect_type,'no_chain_effect');
+  const multiply=await page.evaluate(()=>api('/api/annotations',{op:'card',code:96693371}));
+  assert.equal(multiply.effects.find(e=>e.key==='m2').effect_type,'trap_effect');
+  for(const code of [46552140,89813287]) {
+    assert.equal((await page.evaluate(code=>api('/api/annotations',{op:'card',code}),code)).status,'none');
+  }
+  await reset();
+  await selectCard(84988419);
+  await page.locator('#anno-detail details').evaluateAll(nodes=>nodes.forEach(node=>node.open=true));
+  assert.match(await page.locator('#anno-detail').textContent(),/伤害.*0.*不破坏/);
+  const divaFacts=await page.evaluate(()=>api('/api/capabilities',{op:'card',code:84988419}));
+  assert.ok(divaFacts.effects.some(e=>e.facts.some(f=>/实际成功给予效果伤害/.test(f.text))));
+  await page.screenshot({path:path.join(evidence,'annotations-continuation-diva.png')});
+  pass('Continuation: reviewed API data, TAG queries, P/monster isolation, damage-dependent destruction and pending exclusion');
   pass('Card annotations: Chinese series folders, aliases, covers, colours, collapsed filters/art, monster symbols, queries and personal corrections');
 };

@@ -119,6 +119,7 @@ class CardCapabilities:
                 if row.get('from_zones'): value += '；来源 ' + '、'.join(registry.zone_label(z) for z in row['from_zones'])
                 if row.get('to_zones'): value += '；去向 ' + '、'.join(registry.zone_label(z) for z in row['to_zones'])
                 if row.get('restrictions'): value += '；限制 ' + '；'.join(row['restrictions'])
+                if row.get('condition'): value += f'；前提 {row["condition"]}'
                 if row.get('duration'): value += '；持续 ' + row['duration']
                 add(prefix, value)
                 granted = row.get('granted_effect')

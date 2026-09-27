@@ -1,0 +1,6240 @@
+{
+  "version": 1,
+  "checked_on": "2026-09-27",
+  "source_pack": "20260925-catalog-all-14981",
+  "source_manifest_sha256": "3c192fb0eecc3fa7f3283dcd564223e2996491fb71c13d43884bf66ad9720933",
+  "scope": "Mechanical preparation only; source candidates and templates are not reviewed annotations.",
+  "groups": [
+    {
+      "name": "continuation-20260927",
+      "input_count": 113,
+      "accepted_count": 103,
+      "pending_count": 10
+    }
+  ],
+  "cards": [
+    {
+      "code": 3395226,
+      "local_name": "幻奏的音姬 天才之莫扎特",
+      "local_type": 33,
+      "text_digest": "a50dbf176f56643ae19759bb37f6a27110da53b7d02eabe04760f9e87188d717",
+      "official_cid": 11225,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 5524387,
+      "local_name": "海晶少女 石狗公",
+      "local_type": 67108897,
+      "text_digest": "2724fd4a16c6cd89647e36c40f15e2f36866803595ecd246edf7585693287177",
+      "official_cid": 14490,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 5908650,
+      "local_name": "幻奏的音姬 殊荣之弗朗索瓦",
+      "local_type": 33,
+      "text_digest": "a253283370432a889bb4c41a1c95656ddc53a86dc80e18c7b5a29fe1b68527cf",
+      "official_cid": 11339,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 9464441,
+      "local_name": "魔救之奇迹-巨龙晶石",
+      "local_type": 8225,
+      "text_digest": "0ec06b634cfaf3d2b8340acc1718ed26081db66280253c519ad3193ec6b5ad47",
+      "official_cid": 15105,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 10286023,
+      "local_name": "魔救之奇石-巨龙晶石",
+      "local_type": 33,
+      "text_digest": "d018ede11709d539da0a3e64246b9fc64e07fdde63489b6ee9dadb912d8a2e08",
+      "official_cid": 15102,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 11302671,
+      "local_name": "魔救之分析者",
+      "local_type": 4129,
+      "text_digest": "117da27b8fd0ad36cccc0e1a770c2e2a34c06aa545c51247f36a3ffd2d21a876",
+      "official_cid": 15099,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 14763299,
+      "local_name": "幻奏的歌姬 索萝",
+      "local_type": 33,
+      "text_digest": "a0341524c5071b8ee2a182fdf33d5d866541e385f986e59c59aaa9b2ef2b09e3",
+      "official_cid": 12120,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 16021142,
+      "local_name": "幻奏的音女 卡农",
+      "local_type": 33,
+      "text_digest": "8c9bc0f5d43f80785f04f255919b0865dd735fbcea808af13003b34353741470",
+      "official_cid": 11336,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 19712214,
+      "local_name": "海晶少女涡轮",
+      "local_type": 4,
+      "text_digest": "a987a3a3c16b0d3127fc93276968f8ba4913a09a1bfe9b709c510f65ab8b6ede",
+      "official_cid": 17059,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 20934852,
+      "local_name": "海晶少女 水波葵叶船蛸",
+      "local_type": 67108897,
+      "text_digest": "123c592d13afcf40592211acd86ee1e96d5f91d793e5aafa0efed51a19a2be9e",
+      "official_cid": 17056,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 21057444,
+      "local_name": "海晶少女 活跃少女斯氏金翅雀鲷",
+      "local_type": 33,
+      "text_digest": "6a8490299ca6fdaee882a3559a72e6539e2e9c026273798c484b83c8ed68f7fd",
+      "official_cid": 17053,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 24672164,
+      "local_name": "幻奏的华歌圣 花之普莉玛",
+      "local_type": 97,
+      "text_digest": "8a86c1bef51eecced0e7b76a5f3acf69b55e1ff434c778ecaaaab321d46a7c18",
+      "official_cid": 12317,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 24925387,
+      "local_name": "魔救之调律者",
+      "local_type": 4129,
+      "text_digest": "8719ca81ed6051b7d9b244478bec9242945715edc65e7051122907e02fa1cbd1",
+      "official_cid": 23346,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 27012990,
+      "local_name": "海晶少女瀑布",
+      "local_type": 4,
+      "text_digest": "921d0bba10b47f1d1d85e76cb5189c7555572ee46cb95bf9a347e7b0c99848dc",
+      "official_cid": 14695,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 28174796,
+      "local_name": "海晶少女 官服鱼",
+      "local_type": 33,
+      "text_digest": "7ca9eb4c859122b9f0c0a57fb99f70eeba48c45a7db34dea3f4cc3dce5ab09f5",
+      "official_cid": 14629,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 30068809,
+      "local_name": "魔救之合缘",
+      "local_type": 2,
+      "text_digest": "c8c0c15626a58cf6aaec794591ca64c8ed386b872f9f61b9e98d6809e0e6bb97",
+      "official_cid": 23385,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 30691817,
+      "local_name": "海晶少女 海天使",
+      "local_type": 67108897,
+      "text_digest": "da49b1caadf5bd90d09c05e1b92bcc2d102aa9a25da5ce8539bb1c679fef69cb",
+      "official_cid": 14669,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 31458630,
+      "local_name": "幻奏协奏曲",
+      "local_type": 2,
+      "text_digest": "c372baae61a1c68fa8a5a69ddb9546a1379c0f76cf1d2024fc061b3c69329ab4",
+      "official_cid": 19897,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 33945211,
+      "local_name": "海晶少女 角耳雪锉蛤",
+      "local_type": 33,
+      "text_digest": "5b013c9f68c940c51c6764513777c31edf52c16e72efca2af55902a4ddd3b813",
+      "official_cid": 14992,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 34974462,
+      "local_name": "幻奏的华乐圣 花之哈摩妮丝特",
+      "local_type": 67108897,
+      "text_digest": "719acac512244e990ad1eebd0e3de720d87457db90d8dd81d30bd1182ce1455f",
+      "official_cid": 14943,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 36492575,
+      "local_name": "海晶少女 海马",
+      "local_type": 33,
+      "text_digest": "38d6647d2bda541fe100a34889054a0e5f7f800a73b97f8e6b67ac559648acdc",
+      "official_cid": 14451,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 37405032,
+      "local_name": "淘气仙星·阿库阿安琪儿",
+      "local_type": 33,
+      "text_digest": "c3d12237b68a9496fdb359644d1b0ade03ae970f82cbd09165426f46fa627bde",
+      "official_cid": 20292,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 40502912,
+      "local_name": "幻奏的音女 阿莉娅",
+      "local_type": 33,
+      "text_digest": "5badd4efbbf54f3ee0e0c07c127a4eaeacc8ca4c557d46159847192e82fd9d6b",
+      "official_cid": 11223,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 41458361,
+      "local_name": "魔救之辉迹",
+      "local_type": 67108897,
+      "text_digest": "96ac67983d8e2fac2590c0dafa9cf9f3909829994aeac680e8589367429b54c0",
+      "official_cid": 23371,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 41767843,
+      "local_name": "幻奏的音女 丝可尔",
+      "local_type": 33,
+      "text_digest": "94f9e886f3ca590e11d44c5bb52eed734a0d1c20df4beb9a618ffd7c295b6127",
+      "official_cid": 12121,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 42029847,
+      "local_name": "幻奏的音女 塞瑞娜",
+      "local_type": 33,
+      "text_digest": "35316c57843e07eb1a4adb8e4559890f3cdf703c35a49a8b4e0802e51442b96c",
+      "official_cid": 11337,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 43268675,
+      "local_name": "幻奏的音女 欧佩拉",
+      "local_type": 33,
+      "text_digest": "e12b2e0cb41ee61ba66753baf5bb043c82f6ee53e2a603e7ac6ecbe54da5c8d6",
+      "official_cid": 11792,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 43735670,
+      "local_name": "海晶少女 青高海牛",
+      "local_type": 67108897,
+      "text_digest": "4a80fe95ca79d4aca0aecfea19ad68000bf31c4baa0cc1d26809ef4e88465334",
+      "official_cid": 14488,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 45730592,
+      "local_name": "魔救共振击",
+      "local_type": 1048580,
+      "text_digest": "65429b804083af19f70b9de5de14559920467d245e1e03a9fdbc46db1368588b",
+      "official_cid": 15109,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 47674738,
+      "local_name": "魔救之奇迹-狮子晶石",
+      "local_type": 8225,
+      "text_digest": "ed3d8fef5e934422c0fc78ec6ad33d723c3eeb11f8c0c8439620163b7403352f",
+      "official_cid": 15103,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 47897376,
+      "local_name": "魔救之奇石-狮子晶石",
+      "local_type": 33,
+      "text_digest": "de758a620bec5b625ec2966740f0c502e7adddad087d5ddd8d06a76c914ec085",
+      "official_cid": 15100,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 47910940,
+      "local_name": "海晶少女 大泡堡礁",
+      "local_type": 67108897,
+      "text_digest": "71d9778fe624f6fce323fde8ad2c9e98e4065aa62ed8f60eda0c37038e2cd2a9",
+      "official_cid": 15040,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 48519867,
+      "local_name": "魔救之追求者",
+      "local_type": 4129,
+      "text_digest": "2a6378abbe3ade5c9f4395d50a907042a7122c0ba122412476779933cb4f8f25",
+      "official_cid": 15097,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 51420096,
+      "local_name": "魔救之奇石-提亚玛特晶石",
+      "local_type": 33,
+      "text_digest": "ff4097e4338f831a57f047d5c03c8208bc7701a7ea9780e87e9d531b2c2f05d3",
+      "official_cid": 23347,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 52945066,
+      "local_name": "海晶少女波动",
+      "local_type": 4,
+      "text_digest": "ddc40d02e665c86fc06b6a979479e1d092263df7f74be46627b33129d525ef0c",
+      "official_cid": 14516,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 54569495,
+      "local_name": "海晶少女 冠尾斗鱼",
+      "local_type": 33,
+      "text_digest": "f67a2d294c6523b3d0d9bdb6ee451f24164a07231e924c286267c12f243ca875",
+      "official_cid": 14630,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 56208713,
+      "local_name": "幻奏的音姬 壮丽之巴赫",
+      "local_type": 97,
+      "text_digest": "2f26901d9721ffe794d7ec219abbc82fab2145ad0142c30d0db417fcbe55a683",
+      "official_cid": 19876,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 57329501,
+      "local_name": "海晶少女的潜逅",
+      "local_type": 2,
+      "text_digest": "4df5db367db244759c86e3bbcf3864f3e659b99af6810d2b28e5c9e3fc230444",
+      "official_cid": 17057,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 57541158,
+      "local_name": "海晶少女 沉睡处女拟态革鲀",
+      "local_type": 33,
+      "text_digest": "c7386bde0bf8c9f9789742fc546cedccfaae90519a2423dec02ffeb43a9b2b06",
+      "official_cid": 17054,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 57594700,
+      "local_name": "幻奏的音姬 巨匠之舒伯特",
+      "local_type": 97,
+      "text_digest": "16041743dff124d75641b8a0669233e6dfd2b90aaa8278bb6c47dd93405640d3",
+      "official_cid": 11714,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 62886670,
+      "local_name": "海晶少女 海星",
+      "local_type": 33,
+      "text_digest": "8712d4e3e74700b4a4acf691bcf016f94bfb41e5cfe8cf1cbfaa33094bb4ce57",
+      "official_cid": 14452,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 62895219,
+      "local_name": "幻奏的歌姬 索普拉诺",
+      "local_type": 33,
+      "text_digest": "9ec18e5b395a16759dabff82c07407b3c95aedf5a40a4fe21830dc3fcb74ede9",
+      "official_cid": 11685,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 63804637,
+      "local_name": "幻奏的幻像",
+      "local_type": 4,
+      "text_digest": "eea72d30d727057686467ab2b37c70bf1780952edc3812979b9b2b0010b6cf13",
+      "official_cid": 11742,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 64881644,
+      "local_name": "幻奏的歌姬 勒弗兰",
+      "local_type": 16777249,
+      "text_digest": "18800d63721afa1571d151de9e698806f1ec156feeffd6c7e55db707dd713172",
+      "official_cid": 19850,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 67712104,
+      "local_name": "海晶少女 水晶心",
+      "local_type": 67108897,
+      "text_digest": "4f5cc46e508fa63e1db5af3aab3555bf538fbba1bb591d835f963ccee0dbfde9",
+      "official_cid": 14667,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 72957245,
+      "local_name": "魔救之息吹",
+      "local_type": 2,
+      "text_digest": "e0f04c981d2db3ad0a53145d8c6e3c56cb9869740b4e0f747a616b2c078c79ee",
+      "official_cid": 15107,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 73079836,
+      "local_name": "魔救之奇迹-猛禽晶石",
+      "local_type": 8225,
+      "text_digest": "f79bc50e3986d91647dc7da26b7a4fd67bf78299f18f3855c5fbb0412422bf2c",
+      "official_cid": 15104,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 74891384,
+      "local_name": "魔救之奇石-猛禽晶石",
+      "local_type": 33,
+      "text_digest": "b049015f91e0039e7643bcc0c08d001d4924e51ce126182fa631c583d480e715",
+      "official_cid": 15101,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 76990617,
+      "local_name": "幻奏的音女 索娜塔",
+      "local_type": 33,
+      "text_digest": "531550305be305d03295a41018be57e2021161dc10f8e36593c6eb6a4db79e31",
+      "official_cid": 11224,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 79130389,
+      "local_name": "海晶少女 奶嘴海葵",
+      "local_type": 67108897,
+      "text_digest": "b3d41e4305c2c0a704c5472333e346df2906b2437744dc4fa0dcdf1ad2cf27c6",
+      "official_cid": 14489,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 79514956,
+      "local_name": "幻奏的音女 埃勒姬",
+      "local_type": 33,
+      "text_digest": "3d9423b8daf0921a7f9c9f42fb6405bb0310bf937c4a93683e9674b61f82c9ed",
+      "official_cid": 11338,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 79757784,
+      "local_name": "幻奏的音女 唐唐",
+      "local_type": 33,
+      "text_digest": "976cf798a730454d008dc4f6257c7ac284c20af6789e6013cd2105094fde63d2",
+      "official_cid": 11793,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 80627281,
+      "local_name": "海晶少女雪花",
+      "local_type": 4,
+      "text_digest": "39580edc3290b88650544d181a04a1681e3ebf12a8f817008fe5d515cbcf450f",
+      "official_cid": 14694,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 83723605,
+      "local_name": "海晶少女环流",
+      "local_type": 4,
+      "text_digest": "46751cde4a9f03abea7940435b19b6ce53017b5e7393568dbe4fd1e5f0ec95d4",
+      "official_cid": 17058,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 83793721,
+      "local_name": "幻奏的华歌神 花开之埃图瓦勒",
+      "local_type": 97,
+      "text_digest": "37a43cd84b4593d70b7eea52234f4c8c0ae34b8e352ff98339078c72b28f5efb",
+      "official_cid": 19877,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 84430165,
+      "local_name": "海晶少女潮流",
+      "local_type": 4,
+      "text_digest": "cd185afb35910417d724649757afeaa5d5440c174d72bef673b54006551b8470",
+      "official_cid": 14517,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 84546257,
+      "local_name": "海晶少女 珊瑚大三角",
+      "local_type": 67108897,
+      "text_digest": "93283c38594078e6868ae2e87e29d53901ec18d45a43415b2f55cbf336f83d12",
+      "official_cid": 17055,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 84988419,
+      "local_name": "幻奏的华歌圣 花之蒂娃",
+      "local_type": 97,
+      "text_digest": "fd49553cd4ffe567b5bbe2ae86a28f1f04d3a3fec7b39856dc67069964c1e6ac",
+      "official_cid": 11715,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 85914562,
+      "local_name": "魔救之探索者",
+      "local_type": 4129,
+      "text_digest": "186c20dc01b9c5aefe42ddcd712e98a7c4a2098d5be39a92e4823a13249fb6fa",
+      "official_cid": 15098,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 89312388,
+      "local_name": "元素英雄 棱镜侠",
+      "local_type": 33,
+      "text_digest": "e2be92cb160dec4f195e8934a9dd4cb920375e6265d9d41b44dd027b036f1719",
+      "official_cid": 7491,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 89477759,
+      "local_name": "混沌No.1000 梦幻虚神 原数天灵",
+      "local_type": 8388641,
+      "text_digest": "df69f779653fe9dc7c6909f948770c97e9d4530664602113b78b81d984fc8efe",
+      "official_cid": 16048,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 89516305,
+      "local_name": "No.87 雪月花美神 月下美人",
+      "local_type": 8388641,
+      "text_digest": "26a9bd6d51291e42b4adf4690ec3d1a7e5951d2e634a33d9a74a9fc948bf0aa3",
+      "official_cid": 10708,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 89789152,
+      "local_name": "时空银河螺旋",
+      "local_type": 4,
+      "text_digest": "70b83d0226b6af9ffa487913753fe50b4cc4ec555e35da72436a5119a88f3ef1",
+      "official_cid": 14700,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 89870349,
+      "local_name": "假面英雄 阵风",
+      "local_type": 97,
+      "text_digest": "cc3da0606beef77b5b5ece1eb14567ea1330d60dc4bf523c401e98b14c76b0a5",
+      "official_cid": 11930,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 90050480,
+      "local_name": "元素英雄 秩序新宇侠",
+      "local_type": 97,
+      "text_digest": "04ddcd524ab612a3c63703f87548b380f2738f00cca12297f3a1f6cd15afcf82",
+      "official_cid": 14113,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 90126061,
+      "local_name": "No.5 亡胧龙 死亡嵌合龙",
+      "local_type": 8388641,
+      "text_digest": "ae823bc3946f6f75a43accd2a11062ecf7bf7c20e5c07c62ebe0d8dc703383d3",
+      "official_cid": 13546,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 90162951,
+      "local_name": "No.35 极饿捕鸟蛛",
+      "local_type": 8388641,
+      "text_digest": "a7f3ff4418c4a6cf0305d8103683dcd4588eaebaac566dae9ad5b0730f8ac70c",
+      "official_cid": 12261,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 90276649,
+      "local_name": "幻奏的歌姬 库普莱",
+      "local_type": 16777249,
+      "text_digest": "61b51ca52b3df34267b0b0c68b94bd2e0be7d61e55be611cc3ade44bc74f409a",
+      "official_cid": 19851,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 90307498,
+      "local_name": "元素英雄 新宇智者",
+      "local_type": 97,
+      "text_digest": "06c29eaa415e4ca1e120f447d48bfd48202cc5d8e46e838e1a46dc96ab8bdc2f",
+      "official_cid": 14954,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 90579153,
+      "local_name": "命运英雄 敌托邦人",
+      "local_type": 97,
+      "text_digest": "1b5532672e1da826282390308f5ffdaedd4dc0ba55b1783c6b34995ab4e59570",
+      "official_cid": 12705,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 90590303,
+      "local_name": "No.41 泥睡魔兽 睡梦貘",
+      "local_type": 8388641,
+      "text_digest": "44e66778b7a002538f820e2e4b8ffd5c2453b6a973ae89e8b2dbfd9b036178be",
+      "official_cid": 13163,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 90590304,
+      "local_name": "No.41 泥睡魔兽 睡梦貘",
+      "local_type": 8388641,
+      "text_digest": "44e66778b7a002538f820e2e4b8ffd5c2453b6a973ae89e8b2dbfd9b036178be",
+      "official_cid": 13163,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 91027843,
+      "local_name": "海晶少女的斗海",
+      "local_type": 524290,
+      "text_digest": "c9c3cc352fa0e6357efc9295ab092a117700a95ac2dd6ea40ed76f201daab34c",
+      "official_cid": 14680,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 91691605,
+      "local_name": "命运英雄 钻头人",
+      "local_type": 33,
+      "text_digest": "50ef0493c6e9530688d28a7d789dca109411518327c970851f5e711d46d8fa82",
+      "official_cid": 12702,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 91714772,
+      "local_name": "银河防卫机器人·轨道 7",
+      "local_type": 33,
+      "text_digest": "76d6b09dccdf52f23dfab1c22799fea61f1efbc3ee682f15945a3edf5967398a",
+      "official_cid": 22727,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 91714773,
+      "local_name": "银河防卫机器人·轨道 7",
+      "local_type": 33,
+      "text_digest": "76d6b09dccdf52f23dfab1c22799fea61f1efbc3ee682f15945a3edf5967398a",
+      "official_cid": 22727,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 91953000,
+      "local_name": "海晶少女 蓝倒吊",
+      "local_type": 33,
+      "text_digest": "3cba78d131bc1465d77c87acf8b2c8f887fec7dc730a1629589140b70b218374",
+      "official_cid": 14631,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 92362073,
+      "local_name": "银河卫龙",
+      "local_type": 67108897,
+      "text_digest": "e6f22d3bccf8c813d4be1133ae00b67107760f4af16e490bd0593fdaf81775ce",
+      "official_cid": 14674,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 92517928,
+      "local_name": "银河眼反物质龙",
+      "local_type": 8388641,
+      "text_digest": "0e69376cf553499243d7cc584ec161b4062806ad9f273232d477a241bf724253",
+      "official_cid": 22214,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 93347961,
+      "local_name": "元素英雄 火焰翼侠-火焰一击",
+      "local_type": 97,
+      "text_digest": "ea5606ff23ac02efba886c8740a1d2bb1fdc189c426ac1738544b5e40655e86d",
+      "official_cid": 18663,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 93431862,
+      "local_name": "命运英雄 扣杀人",
+      "local_type": 33,
+      "text_digest": "00f3d450f8ba6912a92650b57342215b62231807ceb6e853e48c31ff2b972b2a",
+      "official_cid": 7416,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 93568288,
+      "local_name": "No.80 狂装霸王 狂想战曲王",
+      "local_type": 8388641,
+      "text_digest": "0292b905e43abb30b48cf4db90895e8a17792f77c728f0a8e5537acaf4097541",
+      "official_cid": 11074,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 93657021,
+      "local_name": "命运英雄 暮托邦人",
+      "local_type": 97,
+      "text_digest": "82774895243aa08a60a4f54a445c4f8d42161dece058454673e0ff016f60f626",
+      "official_cid": 13154,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 93713837,
+      "local_name": "No.24 龙血鬼 德拉古勒斯",
+      "local_type": 8388641,
+      "text_digest": "4c9d605b2590305c052c88e8fe94f706955f83b7275b94f9559f03d1031ac12f",
+      "official_cid": 12545,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 93717133,
+      "local_name": "银河眼光子龙",
+      "local_type": 33,
+      "text_digest": "a67b6449d84121eb31794f11388d2a679ec03a5b8915493ab3128548867ca35f",
+      "official_cid": 9729,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 93717134,
+      "local_name": "银河眼光子龙",
+      "local_type": 33,
+      "text_digest": "a67b6449d84121eb31794f11388d2a679ec03a5b8915493ab3128548867ca35f",
+      "official_cid": 9729,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 93717135,
+      "local_name": "银河眼光子龙",
+      "local_type": 33,
+      "text_digest": "a67b6449d84121eb31794f11388d2a679ec03a5b8915493ab3128548867ca35f",
+      "official_cid": 9729,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 93777634,
+      "local_name": "No.39 希望皇 霍普·升腾",
+      "local_type": 8388641,
+      "text_digest": "2abc03255c5c34b9b05baa50c9c7b81e434fafa5cdabf86cd7b34650e9a188de",
+      "official_cid": 17255,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 94207108,
+      "local_name": "海晶少女 妙晶心",
+      "local_type": 67108897,
+      "text_digest": "2f63cde4f88d23e3ead8efa9714b0b299420db0b3d2e75e143b5be3e321b4f4a",
+      "official_cid": 14668,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 94380860,
+      "local_name": "No.103 神葬零娘 暮零",
+      "local_type": 8388641,
+      "text_digest": "510a10003ff1c09e1330dfa774d2bb078647863857e1a9be8816d42bd2e79d0d",
+      "official_cid": 11071,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 95134948,
+      "local_name": "No.99 希望皇 霍普德拉戈纳",
+      "local_type": 8388641,
+      "text_digest": "e496df7776013122cdd698304ecf77c5fd59b8c4a580fe5a226b6ebacc5af6e2",
+      "official_cid": 16471,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 95134949,
+      "local_name": "No.99 希望皇 霍普德拉戈纳",
+      "local_type": 8388641,
+      "text_digest": "e496df7776013122cdd698304ecf77c5fd59b8c4a580fe5a226b6ebacc5af6e2",
+      "official_cid": 16471,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 95362816,
+      "local_name": "元素英雄 火焰女郎",
+      "local_type": 33,
+      "text_digest": "bfbc4cd98a694adb0d38fe37d5d49552c1ee7006f45fff91efa17c0bac0e3a92",
+      "official_cid": 7024,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 95474755,
+      "local_name": "No.89 电脑兽 系统破坏神",
+      "local_type": 8388641,
+      "text_digest": "a1415339c9bae47d5a40d1efe799209fffc6ce295d3e3fd561e2548781ee3f63",
+      "official_cid": 13166,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 95486586,
+      "local_name": "元素英雄 地核侠",
+      "local_type": 97,
+      "text_digest": "c7467652ad733c211a15c481a7f0dc09323e453f5cf6c3926401bd18d23cc320",
+      "official_cid": 11314,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 95943058,
+      "local_name": "邪心英雄 地狱连魔",
+      "local_type": 33,
+      "text_digest": "13599a633d98ad1d3e3812aedc96a67b277482260087bd05128cad5eb748bd46",
+      "official_cid": 7259,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 96693371,
+      "local_name": "幻影英雄 倍增人",
+      "local_type": 33,
+      "text_digest": "aad7581deb121a7edd1ba67572f9ff805c134d021bd7cee3a488b8493a7f6e8e",
+      "official_cid": 9059,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 96864105,
+      "local_name": "混沌No.73 激泷瀑神 渊涌",
+      "local_type": 8388641,
+      "text_digest": "bcc16edd9e9ecc82674f74005376df7737cbb16600481a8fe3826371a191dec2",
+      "official_cid": 11185,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 97617181,
+      "local_name": "银河零式",
+      "local_type": 262146,
+      "text_digest": "f46c5a614abd2d653d59bc723d5db823e3d69654bd9f425d7d7d592913fe1473",
+      "official_cid": 10344,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 98555327,
+      "local_name": "银河魔导师",
+      "local_type": 33,
+      "text_digest": "67f037aca5b3c6f6879f3802c57a8d413e755ba81dd5de6ddf64678cda64ef93",
+      "official_cid": 10338,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 98931282,
+      "local_name": "命运英雄 无惧从者",
+      "local_type": 33,
+      "text_digest": "f3aa6d6544f0f794958f3e00e92539eb20bab79f32af6f7b4e15a8e00f620802",
+      "official_cid": 23345,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 99885917,
+      "local_name": "海晶少女 紫红拟花鮨",
+      "local_type": 33,
+      "text_digest": "ba13c4beefb35f672b9a59b5c7234457d99d41198f9591a32fbcc5c228295aff",
+      "official_cid": 14788,
+      "group": "continuation-20260927"
+    },
+    {
+      "code": 99927991,
+      "local_name": "魔救之奇缘",
+      "local_type": 2,
+      "text_digest": "732a075863f9bf39c9a4cc506cbd72a635b0f25f9bd1fb2d87c3ab70ec06e2e0",
+      "official_cid": 15295,
+      "group": "continuation-20260927"
+    }
+  ],
+  "updated_cards": [],
+  "pending": [
+    {
+      "code": 46552140,
+      "name": "魔救之勒皮他晶石",
+      "status": "requires_schema",
+      "reason": "②从卡组选1至5张置顶，当前place_deck_top只能固定count或all，不能结构化表达该动作选择上界5；不把最多5张伪造成固定5张或整副卡组。"
+    },
+    {
+      "code": 88820235,
+      "name": "元素英雄 闪光凤凰人",
+      "status": "requires_schema",
+      "reason": "m-all无编号段同时包含融合素材／只能融合召唤的非效果手续与攻击力、战斗耐性两项永续效果；当前每段单一effect_type模型不能无损拆分，故不把整段误标成连续效果。"
+    },
+    {
+      "code": 89252153,
+      "name": "元素英雄 死灵暗侠",
+      "status": "requires_schema",
+      "reason": "①在墓地期间1次允许上级召唤高星E・HERO免除解放，是不发动的墓地召唤手续修改；现有词表有modify_summon_material但没有与该效果一致的官方类别和次数消耗模型，暂不将其猜标为永续或诱发效果。"
+    },
+    {
+      "code": 89642993,
+      "name": "No.63 饭勺战士",
+      "status": "requires_schema",
+      "reason": "①两个分支之一会在下一次对方准备阶段创建双方同时抽卡的延迟处理；当前批次模型没有经过官方裁定核实的跨阶段双玩家同时抽卡调度语义，不能把延迟抽卡误记为发动时立即处理。"
+    },
+    {
+      "code": 89813287,
+      "name": "魔救之奇迹-提亚玛特晶石",
+      "status": "missing_sources",
+      "reason": "官方CID23363已由官方网页检索核对名称、属性和全文，但当前卡页与FAQ原始HTML补采均返回403；原资料包无可靠完整快照，暂不升为核准条目。"
+    },
+    {
+      "code": 92015800,
+      "name": "No.76 谐调光师 渐变天乐斗士",
+      "status": "requires_schema",
+      "reason": "①永续效果同时动态取得本卡全部超量素材各自的属性，数量可随素材变化；当前change_attribute只记录单一固定或单次选择属性，无法无损登记属性集合及其来源，故本卡其余效果未单独晋级。"
+    },
+    {
+      "code": 93108839,
+      "name": "No.58 炎压鬼",
+      "status": "requires_schema",
+      "reason": "①在怪兽区与魔陷区之间选择将本卡装备给自场超量怪兽或从装备状态特殊召唤；单一编号段内这两分支的对象条件、发动区域及变区方式不同，当前targeting无法无损表达，避免把需取对象的装备分支误用到苏生分支。"
+    },
+    {
+      "code": 95442074,
+      "name": "No.31 亚伯恶魔",
+      "status": "requires_schema",
+      "reason": "②在持有素材且与No.13共存时，除战斗／效果破坏替代外，还把对本卡的战斗伤害改由对方承受；现有damage_modify未定义将自己应受战斗伤害转给对方的精确处理，故不只标破坏保护而遗漏伤害转移。"
+    },
+    {
+      "code": 97403510,
+      "name": "No.92 伪骸神龙 心地心龙",
+      "status": "requires_schema",
+      "reason": "①含将自己应受战斗伤害转给对方的规则，现有动作未正式定义战斗伤害转移来源玩家；不以普通伤害变更省略转移语义。"
+    },
+    {
+      "code": 98263709,
+      "name": "银河魔镜士",
+      "status": "requires_schema",
+      "reason": "同一m-all含怪兽区反转必发回复与墓地破坏后可选特召两个独立诱发，时点、区域、必发性不同；未实现独立单元隔离，不借串行或获赋结构拼接。"
+    }
+  ],
+  "query_cases": [
+    {
+      "code": 89312388,
+      "query": {
+        "cost_kind": "send_grave_cost"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①从卡组送墓是发动费用"
+    },
+    {
+      "code": 89312388,
+      "query": {
+        "action": "treat_as_name"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①直到结束阶段视为所送墓融合素材的卡名"
+    },
+    {
+      "code": 89477759,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [
+        "m1",
+        "m2"
+      ],
+      "reason": "①破坏1只其他怪兽；②战斗阶段结束破坏其他全部怪兽"
+    },
+    {
+      "code": 89477759,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "opponent_grave"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②破坏处理后可从对方墓地守备表示特殊召唤"
+    },
+    {
+      "code": 89516305,
+      "query": {
+        "action": "lock"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①第一分支锁定对象盖放魔陷的发动，不翻开或破坏"
+    },
+    {
+      "code": 89516305,
+      "query": {
+        "action": "set_position"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①第二分支将植物族对象变成里侧守备表示"
+    },
+    {
+      "code": 89789152,
+      "query": {
+        "action": "protect"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①保护自己龙族银河怪兽至回合结束"
+    },
+    {
+      "code": 89789152,
+      "query": {
+        "usage": "name_activation_once"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "同名陷阱卡每回合只能发动1张"
+    },
+    {
+      "code": 89870349,
+      "query": {
+        "action": "return_hand",
+        "from_zone": "field"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②对象对方魔陷返回其持有者手卡"
+    },
+    {
+      "code": 89870349,
+      "query": {
+        "cost_kind": "lp"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②支付500LP是发动费用"
+    },
+    {
+      "code": 90050480,
+      "query": {
+        "action": "lock"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①阻止对方场上发动效果并禁止对本效果直接连锁"
+    },
+    {
+      "code": 90050480,
+      "query": {
+        "action": "return_deck"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②本卡回额外成功后才破坏对方全场卡"
+    },
+    {
+      "code": 90126061,
+      "query": {
+        "action": "grant_extra_attack"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②对方每只怪兽最多各攻击一次且要求持有素材"
+    },
+    {
+      "code": 90126061,
+      "query": {
+        "action": "return_deck",
+        "from_zone": "opponent_grave"
+      },
+      "expected_keys": [
+        "m3"
+      ],
+      "reason": "③对方墓地额外怪兽按规则回额外卡组"
+    },
+    {
+      "code": 90162951,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②按特殊召唤事件次数适用，同次多只只造成600"
+    },
+    {
+      "code": 90162951,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①双方LP差不论高低均按绝对值增加攻守"
+    },
+    {
+      "code": 90307498,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①伤害计算前按战斗对方怪兽攻击力给予效果伤害"
+    },
+    {
+      "code": 90307498,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "deck"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②从手卡或卡组无视召唤条件特召ネオス・ワイズマン"
+    },
+    {
+      "code": 90579153,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①按对象墓地D-HERO攻击力烧血"
+    },
+    {
+      "code": 90579153,
+      "query": {
+        "action": "destroy",
+        "from_zone": "field"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②破坏对象后使本卡攻击力复原"
+    },
+    {
+      "code": 90590303,
+      "query": {
+        "action": "protect"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①攻击表示时防对方效果破坏和取对象"
+    },
+    {
+      "code": 90590303,
+      "query": {
+        "action": "negate_effect"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②守备表示时无效守备怪兽发动的效果"
+    },
+    {
+      "code": 90590304,
+      "query": {
+        "action": "protect"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①攻击表示时防对方效果破坏和取对象"
+    },
+    {
+      "code": 90590304,
+      "query": {
+        "action": "negate_effect"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②守备表示时无效守备怪兽发动的效果"
+    },
+    {
+      "code": 91691605,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "hand"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①从手卡特殊召唤合格D-HERO"
+    },
+    {
+      "code": 91691605,
+      "query": {
+        "action": "grant_piercing"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②守备怪兽战斗产生贯通，不是效果伤害"
+    },
+    {
+      "code": 91714772,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "deck"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①从卡组选光子与银河各1，择一加手"
+    },
+    {
+      "code": 91714772,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②银河眼特召成功后苏生自身"
+    },
+    {
+      "code": 91714773,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "deck"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①从卡组选光子与银河各1，择一加手"
+    },
+    {
+      "code": 91714773,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②银河眼特召成功后苏生自身"
+    },
+    {
+      "code": 92362073,
+      "query": {
+        "action": "damage_modify"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①将对方受到的战斗伤害减半"
+    },
+    {
+      "code": 92362073,
+      "query": {
+        "action": "place_deck_top",
+        "from_zone": "deck"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②对方结束阶段将自己选定卡片放到自己卡组顶"
+    },
+    {
+      "code": 92517928,
+      "query": {
+        "action": "damage_modify"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①持有素材时本卡给予对方的战斗伤害减半"
+    },
+    {
+      "code": 92517928,
+      "query": {
+        "action": "grant_extra_attack"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②同一战斗阶段最多向怪兽攻击2次"
+    },
+    {
+      "code": 93347961,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①可从墓地回收Favorite卡"
+    },
+    {
+      "code": 93347961,
+      "query": {
+        "cost_kind": "tribute"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②解放本卡是发动费用"
+    },
+    {
+      "code": 93431862,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "给对方固定500效果伤害"
+    },
+    {
+      "code": 93431862,
+      "query": {
+        "cost_kind": "send_grave_cost"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "从手卡送墓D-HERO卡是费用"
+    },
+    {
+      "code": 93568288,
+      "query": {
+        "usage": "up_to_two_per_turn"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①同名效果每回合最多使用2次"
+    },
+    {
+      "code": 93568288,
+      "query": {
+        "action": "equip_as_spell"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②把本卡作为装备卡装备给己方超量怪兽"
+    },
+    {
+      "code": 93657021,
+      "query": {
+        "action": "use_as_fusion_material"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①融合召唤成功后可立即用手卡／场上怪兽再融合"
+    },
+    {
+      "code": 93657021,
+      "query": {
+        "action": "damage_modify"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②对象怪兽战斗造成的双方战伤为0"
+    },
+    {
+      "code": 93713837,
+      "query": {
+        "action": "set_position"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①对象必须是从额外卡组特殊召唤的表侧怪兽"
+    },
+    {
+      "code": 93713837,
+      "query": {
+        "action": "send_grave"
+      },
+      "expected_keys": [
+        "m3"
+      ],
+      "reason": "③反转后处理时选择场上1张卡送墓"
+    },
+    {
+      "code": 93717133,
+      "query": {
+        "action": "banish"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②战斗步骤同时暂时除外本卡与战斗对象"
+    },
+    {
+      "code": 93717134,
+      "query": {
+        "action": "banish"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②战斗步骤同时暂时除外本卡与战斗对象"
+    },
+    {
+      "code": 93717135,
+      "query": {
+        "action": "banish"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②战斗步骤同时暂时除外本卡与战斗对象"
+    },
+    {
+      "code": 93777634,
+      "query": {
+        "action": "attach_material",
+        "from_zone": "xyz_material"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①可把本卡全部素材转移到复活的No.怪兽"
+    },
+    {
+      "code": 93777634,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m1",
+        "m2"
+      ],
+      "reason": "②自己超量召唤成功后从墓地苏生自身"
+    },
+    {
+      "code": 94380860,
+      "query": {
+        "action": "draw"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①对象成功破坏后才抽1张"
+    },
+    {
+      "code": 94380860,
+      "query": {
+        "action": "destroy",
+        "from_zone": "opponent_monster"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①必须以攻击表示且当前攻击力变化的怪兽为对象"
+    },
+    {
+      "code": 95134948,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "extra"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①从额外卡组选No.怪兽作超量召唤特殊召唤"
+    },
+    {
+      "code": 95134948,
+      "query": {
+        "action": "lock"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①本回合限制额外卡组特召种类及直接攻击"
+    },
+    {
+      "code": 95134949,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "extra"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①从额外卡组选No.怪兽作超量召唤特殊召唤"
+    },
+    {
+      "code": 95134949,
+      "query": {
+        "action": "lock"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①本回合限制额外卡组特召种类及直接攻击"
+    },
+    {
+      "code": 95362816,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [
+        "m-all"
+      ],
+      "reason": "结束阶段按自己表侧E-HERO数量×200烧血"
+    },
+    {
+      "code": 95474755,
+      "query": {
+        "action": "extra_reveal",
+        "from_zone": "opponent_extra"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①确认对方额外卡组再里侧除外1张"
+    },
+    {
+      "code": 95474755,
+      "query": {
+        "action": "banish",
+        "to_zone": "opponent_banished"
+      },
+      "expected_keys": [
+        "m1",
+        "m2",
+        "m3"
+      ],
+      "reason": "①②③均为里侧除外处理，来源区域各异"
+    },
+    {
+      "code": 95486586,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①攻击力变为2倍且只持续到该次伤害步骤结束"
+    },
+    {
+      "code": 95486586,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m3"
+      ],
+      "reason": "③战破／效破后无视召唤条件苏生墓地融合怪兽"
+    },
+    {
+      "code": 95943058,
+      "query": {
+        "action": "grant_extra_attack"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①目标恶魔族在表侧留场期间同阶段最多攻击2次"
+    },
+    {
+      "code": 95943058,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "banished"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②第二次自己的准备阶段复活发动①除外的本卡"
+    },
+    {
+      "code": 96693371,
+      "query": {
+        "action": "place_faceup_card",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①受到伤害后将自身作为永续陷阱表侧放置"
+    },
+    {
+      "code": 96693371,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "spell"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②解放HERO后从魔陷区特召自身"
+    },
+    {
+      "code": 96693371,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m3"
+      ],
+      "reason": "③处理时选择怪兽加攻800，不取对象"
+    },
+    {
+      "code": 96864105,
+      "query": {
+        "action": "stat_change",
+        "cost_kind": "detach_material"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "伤害计算加攻取除素材为费用"
+    },
+    {
+      "code": 96864105,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [],
+      "reason": "获赋保护不是特殊召唤"
+    },
+    {
+      "code": 97617181,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "卡发动苏生来自墓地"
+    },
+    {
+      "code": 97617181,
+      "query": {
+        "action": "negate_effect"
+      },
+      "expected_keys": [],
+      "reason": "禁止发动不等于效果无效"
+    },
+    {
+      "code": 98555327,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "deck"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②是检索，解放是费用"
+    },
+    {
+      "code": 98555327,
+      "query": {
+        "action": "change_level",
+        "usage": "soft_opt"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "只有①每回合1次"
+    },
+    {
+      "code": 98931282,
+      "query": {
+        "action": "destroy"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "破坏自己卡是可选处理，不是费用"
+    },
+    {
+      "code": 98931282,
+      "query": {
+        "action": "return_deck",
+        "cost_kind": "banish_self_from_grave"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "回卡组与墓地自身除外费用区分"
+    },
+    {
+      "code": 5524387,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "回收墓地卡不是抽卡"
+    },
+    {
+      "code": 5524387,
+      "query": {
+        "action": "send_grave"
+      },
+      "expected_keys": [],
+      "reason": "②手卡送墓是费用"
+    },
+    {
+      "code": 19712214,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "extra"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "水晶心特召不当连接召唤"
+    },
+    {
+      "code": 19712214,
+      "query": {
+        "action": "grant_extra_attack",
+        "cost_kind": "banish_self_from_grave"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "墓地追加攻击有自身除外费用"
+    },
+    {
+      "code": 20934852,
+      "query": {
+        "action": "negate_effect"
+      },
+      "expected_keys": [
+        "m3"
+      ],
+      "reason": "无效效果而非发动"
+    },
+    {
+      "code": 20934852,
+      "query": {
+        "action": "negate_activation"
+      },
+      "expected_keys": [],
+      "reason": "不能将效果无效视为发动无效"
+    },
+    {
+      "code": 21057444,
+      "query": {
+        "action": "send_grave",
+        "from_zone": "deck_top"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "卡组顶送墓是效果"
+    },
+    {
+      "code": 21057444,
+      "query": {
+        "action": "banish"
+      },
+      "expected_keys": [],
+      "reason": "①墓地除外是费用"
+    },
+    {
+      "code": 27012990,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "加攻为处理，暂除为费用"
+    },
+    {
+      "code": 27012990,
+      "query": {
+        "action": "banish"
+      },
+      "expected_keys": [],
+      "reason": "不能把暂除费用当除外能力"
+    },
+    {
+      "code": 28174796,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "墓地或手卡起动特召"
+    },
+    {
+      "code": 28174796,
+      "query": {
+        "action": "send_grave"
+      },
+      "expected_keys": [],
+      "reason": "无合法连接区时规则送墓不成为送墓能力"
+    },
+    {
+      "code": 30691817,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "deck"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "检索只限魔法"
+    },
+    {
+      "code": 30691817,
+      "query": {
+        "usage": "name_soft_opt"
+      },
+      "expected_keys": [],
+      "reason": "召唤次数限制不能伪装效果使用次数"
+    },
+    {
+      "code": 33945211,
+      "query": {
+        "action": "add_hand",
+        "cost_kind": "banish"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "陷阱除外费用不等于怪兽除外处理"
+    },
+    {
+      "code": 33945211,
+      "query": {
+        "action": "protect"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "替代保护是不入连锁效果"
+    },
+    {
+      "code": 36492575,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "hand"
+      },
+      "expected_keys": [
+        "m1",
+        "m2"
+      ],
+      "reason": "两效果资源均来自手卡"
+    },
+    {
+      "code": 36492575,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "grave"
+      },
+      "expected_keys": [],
+      "reason": "墓地发动不能拼成墓地苏生"
+    },
+    {
+      "code": 37405032,
+      "query": {
+        "action": "reveal_set_cards"
+      },
+      "expected_keys": [
+        "m3"
+      ],
+      "reason": "确认盖卡不翻成表侧"
+    },
+    {
+      "code": 37405032,
+      "query": {
+        "action": "set_position"
+      },
+      "expected_keys": [],
+      "reason": "确认盖卡不是表示变更"
+    },
+    {
+      "code": 43735670,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "墓地连接怪兽返回额外，其他回手"
+    },
+    {
+      "code": 43735670,
+      "query": {
+        "action": "draw"
+      },
+      "expected_keys": [],
+      "reason": "回收不是抽卡"
+    },
+    {
+      "code": 47910940,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "banished"
+      },
+      "expected_keys": [
+        "m3"
+      ],
+      "reason": "③从除外状态特召"
+    },
+    {
+      "code": 47910940,
+      "query": {
+        "action": "banish"
+      },
+      "expected_keys": [],
+      "reason": "①的除外只是费用"
+    },
+    {
+      "code": 52945066,
+      "query": {
+        "action": "negate_effect"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "无效当前效果"
+    },
+    {
+      "code": 52945066,
+      "query": {
+        "action": "negate_activation"
+      },
+      "expected_keys": [],
+      "reason": "不无效发动"
+    },
+    {
+      "code": 54569495,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "hand"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "伤害计算手卡特召"
+    },
+    {
+      "code": 54569495,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [],
+      "reason": "战伤变化不等于效果伤害"
+    },
+    {
+      "code": 57329501,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "deck"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "卡组分支取决于场地魔法条件"
+    },
+    {
+      "code": 57329501,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "hand"
+      },
+      "expected_keys": [],
+      "reason": "不能从手卡特召"
+    },
+    {
+      "code": 57541158,
+      "query": {
+        "action": "protect"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "固定取得永续保护可检索"
+    },
+    {
+      "code": 57541158,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "grave"
+      },
+      "expected_keys": [],
+      "reason": "墓地处理是装备不是苏生"
+    },
+    {
+      "code": 62886670,
+      "query": {
+        "action": "stat_change",
+        "usage": "up_to_two_per_turn"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "同名最多2次使用，不增加800以外数值"
+    },
+    {
+      "code": 62886670,
+      "query": {
+        "action": "send_grave"
+      },
+      "expected_keys": [],
+      "reason": "自身送墓费用不算处理"
+    },
+    {
+      "code": 67712104,
+      "query": {
+        "action": "protect",
+        "from_zone": "opponent_monster"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②保护战斗对方怪兽"
+    },
+    {
+      "code": 67712104,
+      "query": {
+        "action": "negate_effect"
+      },
+      "expected_keys": [],
+      "reason": "不受效果不等于无效效果"
+    },
+    {
+      "code": 79130389,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①苏生"
+    },
+    {
+      "code": 79130389,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②回收不是苏生"
+    },
+    {
+      "code": 80627281,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "extra"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "从额外连接召唤扱い特召"
+    },
+    {
+      "code": 80627281,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "grave"
+      },
+      "expected_keys": [],
+      "reason": "被破坏对象不是苏生来源"
+    },
+    {
+      "code": 83723605,
+      "query": {
+        "action": "return_deck",
+        "from_zone": "monster"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "对象返回额外是处理"
+    },
+    {
+      "code": 83723605,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "grave"
+      },
+      "expected_keys": [],
+      "reason": "不从墓地特召"
+    },
+    {
+      "code": 84430165,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "两步条件效果伤害保留顺序"
+    },
+    {
+      "code": 84430165,
+      "query": {
+        "action": "damage_modify"
+      },
+      "expected_keys": [],
+      "reason": "效果伤害不是战伤变更"
+    },
+    {
+      "code": 84546257,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "选择合计恰好3连接标记的墓地组合"
+    },
+    {
+      "code": 84546257,
+      "query": {
+        "action": "send_grave"
+      },
+      "expected_keys": [],
+      "reason": "①手卡送墓是费用"
+    },
+    {
+      "code": 91027843,
+      "query": {
+        "action": "protect",
+        "from_zone": "extra_monster_zone"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "保护限定额外怪兽区"
+    },
+    {
+      "code": 91027843,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [],
+      "reason": "③只装备，不苏生"
+    },
+    {
+      "code": 91953000,
+      "query": {
+        "action": "send_grave",
+        "from_zone": "deck"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①卡组送墓是处理"
+    },
+    {
+      "code": 91953000,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "grave"
+      },
+      "expected_keys": [],
+      "reason": "②翻开检索不借用发动墓地来源"
+    },
+    {
+      "code": 94207108,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "spell"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①从装备状态特召"
+    },
+    {
+      "code": 94207108,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②苏生，不借①来源"
+    },
+    {
+      "code": 99885917,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "hand"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "手卡特召资源与墓地发动区分"
+    },
+    {
+      "code": 99885917,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②回收魔陷"
+    },
+    {
+      "code": 3395226,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "hand"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "手卡特召"
+    },
+    {
+      "code": 3395226,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "deck"
+      },
+      "expected_keys": [],
+      "reason": "不从卡组特召"
+    },
+    {
+      "code": 5908650,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "墓地回收不是抽卡"
+    },
+    {
+      "code": 5908650,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [],
+      "reason": "没有特殊召唤能力"
+    },
+    {
+      "code": 14763299,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "hand"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "手卡不入连锁特召"
+    },
+    {
+      "code": 14763299,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "grave"
+      },
+      "expected_keys": [],
+      "reason": "墓地发动不能拼成苏生"
+    },
+    {
+      "code": 16021142,
+      "query": {
+        "action": "set_position"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "仅②改变表示"
+    },
+    {
+      "code": 16021142,
+      "query": {
+        "usage": "soft_opt"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "特召次数不同于起动次数"
+    },
+    {
+      "code": 24672164,
+      "query": {
+        "action": "grant_extra_attack"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "总计2次攻击"
+    },
+    {
+      "code": 24672164,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m3"
+      ],
+      "reason": "送墓诱发回收可选自身"
+    },
+    {
+      "code": 31458630,
+      "query": {
+        "action": "use_as_fusion_material",
+        "from_zone": "pendulum"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "灵摆区域也可作融合素材"
+    },
+    {
+      "code": 31458630,
+      "query": {
+        "action": "draw",
+        "from_zone": "grave"
+      },
+      "expected_keys": [],
+      "reason": "墓地发动不表示从墓地抽卡"
+    },
+    {
+      "code": 34974462,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "deck"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "两只等级不同同时特召"
+    },
+    {
+      "code": 34974462,
+      "query": {
+        "action": "discard_hand"
+      },
+      "expected_keys": [],
+      "reason": "丢弃是费用，不是处理"
+    },
+    {
+      "code": 40502912,
+      "query": {
+        "action": "protect"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "不取对象与战破保护"
+    },
+    {
+      "code": 40502912,
+      "query": {
+        "action": "negate_effect"
+      },
+      "expected_keys": [],
+      "reason": "耐性不是无效效果"
+    },
+    {
+      "code": 41767843,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "攻守归零是处理"
+    },
+    {
+      "code": 41767843,
+      "query": {
+        "action": "send_grave"
+      },
+      "expected_keys": [],
+      "reason": "送墓自身为费用"
+    },
+    {
+      "code": 42029847,
+      "query": {
+        "action": "increase_normal_summon_limit"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "提高召唤机会"
+    },
+    {
+      "code": 42029847,
+      "query": {
+        "action": "normal_summon"
+      },
+      "expected_keys": [],
+      "reason": "机会授予不是立即召唤"
+    },
+    {
+      "code": 43268675,
+      "query": {
+        "action": "protect"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "包括后来出现的合格怪兽"
+    },
+    {
+      "code": 43268675,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [],
+      "reason": "没有特殊召唤能力"
+    },
+    {
+      "code": 56208713,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m3"
+      ],
+      "reason": "③墓地苏生"
+    },
+    {
+      "code": 56208713,
+      "query": {
+        "action": "negate_effect"
+      },
+      "expected_keys": [],
+      "reason": "防止被无效不是自身无效能力"
+    },
+    {
+      "code": 57594700,
+      "query": {
+        "action": "banish",
+        "usage": "field_once"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "表侧存在1次而非每回合1次"
+    },
+    {
+      "code": 57594700,
+      "query": {
+        "usage": "soft_opt"
+      },
+      "expected_keys": [],
+      "reason": "不伪造每回合次数"
+    },
+    {
+      "code": 62895219,
+      "query": {
+        "action": "use_as_fusion_material",
+        "from_zone": "monster"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "包含本卡的场上素材"
+    },
+    {
+      "code": 62895219,
+      "query": {
+        "action": "use_as_fusion_material",
+        "from_zone": "hand"
+      },
+      "expected_keys": [],
+      "reason": "②不能使用手卡素材"
+    },
+    {
+      "code": 63804637,
+      "query": {
+        "action": "grant_extra_attack"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "追加攻击与耐性同效果"
+    },
+    {
+      "code": 63804637,
+      "query": {
+        "action": "negate_effect"
+      },
+      "expected_keys": [],
+      "reason": "耐性不是无效效果"
+    },
+    {
+      "code": 64881644,
+      "query": {
+        "action": "send_grave"
+      },
+      "expected_keys": [
+        "p1"
+      ],
+      "reason": "P效果送墓与怪兽效果独立"
+    },
+    {
+      "code": 64881644,
+      "query": {
+        "action": "send_grave",
+        "from_zone": "grave"
+      },
+      "expected_keys": [],
+      "reason": "怪兽效果不能借用P送墓能力"
+    },
+    {
+      "code": 76990617,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "hand"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "手卡不入连锁特召"
+    },
+    {
+      "code": 76990617,
+      "query": {
+        "action": "stat_change"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "持续提升攻守"
+    },
+    {
+      "code": 79514956,
+      "query": {
+        "action": "protect"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "特召过的幻奏效破保护"
+    },
+    {
+      "code": 79514956,
+      "query": {
+        "action": "draw"
+      },
+      "expected_keys": [],
+      "reason": "无抽卡能力"
+    },
+    {
+      "code": 79757784,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "墓地融合可回收"
+    },
+    {
+      "code": 79757784,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "降攻成功才伤害"
+    },
+    {
+      "code": 83793721,
+      "query": {
+        "action": "banish"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "暂除自身卡是效果处理"
+    },
+    {
+      "code": 83793721,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "banished"
+      },
+      "expected_keys": [],
+      "reason": "暂除返回不是特召"
+    },
+    {
+      "code": 84988419,
+      "query": {
+        "action": "burn"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "按原本攻击力差，不是当前攻差"
+    },
+    {
+      "code": 84988419,
+      "query": {
+        "action": "negate_attack"
+      },
+      "expected_keys": [],
+      "reason": "不无效攻击"
+    },
+    {
+      "code": 90276649,
+      "query": {
+        "action": "add_hand"
+      },
+      "expected_keys": [
+        "p2"
+      ],
+      "reason": "只有P②检索魔陷"
+    },
+    {
+      "code": 90276649,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "P区限制和检索不借怪兽特召能力"
+    },
+    {
+      "code": 9464441,
+      "query": {
+        "action": "return_hand"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "翻开岩石数决定回手上界"
+    },
+    {
+      "code": 9464441,
+      "query": {
+        "action": "negate_effect"
+      },
+      "expected_keys": [],
+      "reason": "②无效的是发动"
+    },
+    {
+      "code": 10286023,
+      "query": {
+        "action": "draw"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "魔救效果特召触发抽卡"
+    },
+    {
+      "code": 10286023,
+      "query": {
+        "action": "return_deck",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "自身回卡组顶取决于同调返回成功"
+    },
+    {
+      "code": 11302671,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "hand"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①手卡起动"
+    },
+    {
+      "code": 11302671,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "deck_top"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②从本次翻开的卡选特召"
+    },
+    {
+      "code": 48519867,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "hand"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①手卡起动"
+    },
+    {
+      "code": 48519867,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "deck_top"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②从本次翻开的卡选特召"
+    },
+    {
+      "code": 85914562,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "hand"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①手卡起动"
+    },
+    {
+      "code": 85914562,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "deck_top"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②从本次翻开的卡选特召"
+    },
+    {
+      "code": 24925387,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "deck_top"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "可以选择合格调整"
+    },
+    {
+      "code": 24925387,
+      "query": {
+        "action": "return_deck"
+      },
+      "expected_keys": [],
+      "reason": "①回顶为费用，②剩余回底使用位置动作"
+    },
+    {
+      "code": 30068809,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "墓地自回收"
+    },
+    {
+      "code": 30068809,
+      "query": {
+        "action": "return_deck"
+      },
+      "expected_keys": [],
+      "reason": "卡顶操作费用不赋予回卡组处理"
+    },
+    {
+      "code": 41458361,
+      "query": {
+        "action": "return_deck"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "回卡组不等于无效"
+    },
+    {
+      "code": 41458361,
+      "query": {
+        "action": "negate_activation"
+      },
+      "expected_keys": [],
+      "reason": "②不无效发动"
+    },
+    {
+      "code": 45730592,
+      "query": {
+        "action": "negate_activation"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "无效怪兽效果发动"
+    },
+    {
+      "code": 45730592,
+      "query": {
+        "action": "negate_effect"
+      },
+      "expected_keys": [],
+      "reason": "发动无效与效果无效不同"
+    },
+    {
+      "code": 47674738,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "deck_top"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "翻开选择加手"
+    },
+    {
+      "code": 47674738,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "对方回合条件苏生"
+    },
+    {
+      "code": 47897376,
+      "query": {
+        "action": "return_deck",
+        "from_zone": "hand"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①从手卡或墓地置顶"
+    },
+    {
+      "code": 47897376,
+      "query": {
+        "action": "return_deck",
+        "from_zone": "monster"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②对象同调回额外"
+    },
+    {
+      "code": 51420096,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "hand"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "检索成功后的可选特召"
+    },
+    {
+      "code": 51420096,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "grave"
+      },
+      "expected_keys": [],
+      "reason": "②不是苏生"
+    },
+    {
+      "code": 72957245,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "grave"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "墓地对象守备苏生"
+    },
+    {
+      "code": 72957245,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "deck"
+      },
+      "expected_keys": [],
+      "reason": "附加置顶不是卡组特召"
+    },
+    {
+      "code": 73079836,
+      "query": {
+        "action": "special_summon",
+        "from_zone": "deck_top"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "无4星上限，可选调整"
+    },
+    {
+      "code": 73079836,
+      "query": {
+        "action": "banish",
+        "from_zone": "opponent_grave"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "②除外对方墓地"
+    },
+    {
+      "code": 74891384,
+      "query": {
+        "action": "return_deck",
+        "from_zone": "hand"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "①不限魔救，可选岩石族"
+    },
+    {
+      "code": 74891384,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [],
+      "reason": "没有苏生处理"
+    },
+    {
+      "code": 99927991,
+      "query": {
+        "action": "add_hand",
+        "from_zone": "deck_top"
+      },
+      "expected_keys": [
+        "m1"
+      ],
+      "reason": "等级上界是实际翻开张数"
+    },
+    {
+      "code": 99927991,
+      "query": {
+        "action": "special_summon"
+      },
+      "expected_keys": [],
+      "reason": "检索与自锁不产生特召"
+    },
+    {
+      "code": 91691605,
+      "query": {
+        "etags": [
+          "etag:damage-modify"
+        ],
+        "action": "grant_piercing"
+      },
+      "expected_keys": [
+        "m2"
+      ],
+      "reason": "贯通能力同时按专用动作与通用战伤TAG检索"
+    },
+    {
+      "code": 54569495,
+      "query": {
+        "etags": [
+          "etag:damage-modify"
+        ]
+      },
+      "expected_keys": [
+        "m1",
+        "m2"
+      ],
+      "reason": "两个战伤变化效果都保留通用TAG"
+    },
+    {
+      "code": 27012990,
+      "query": {
+        "etags": [
+          "etag:banish"
+        ]
+      },
+      "expected_keys": [],
+      "reason": "暂除费用不产生除外TAG"
+    },
+    {
+      "code": 64881644,
+      "query": {
+        "etags": [
+          "etag:add-hand",
+          "etag:send-grave"
+        ],
+        "etag_mode": "all"
+      },
+      "expected_keys": [],
+      "reason": "不能把P送墓与怪兽检索合成同一效果"
+    },
+    {
+      "code": 90276649,
+      "query": {
+        "etags": [
+          "etag:add-hand",
+          "etag:special-summon"
+        ],
+        "etag_mode": "all"
+      },
+      "expected_keys": [],
+      "reason": "不能把P检索与怪兽特召合成同一效果"
+    },
+    {
+      "code": 24925387,
+      "query": {
+        "etags": [
+          "etag:return-deck"
+        ]
+      },
+      "expected_keys": [],
+      "reason": "调律者卡顶费用不产生回卡组TAG"
+    },
+    {
+      "code": 84988419,
+      "query": {
+        "action": "destroy",
+        "cost_kind": "send_grave_cost"
+      },
+      "expected_keys": [],
+      "reason": "蒂娃没有送墓费用，破坏依赖真实伤害成功"
+    }
+  ],
+  "semantic_cases": [
+    {
+      "code": 89312388,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "ignition",
+      "reason": "自己主要阶段支付费用发动的起动效果。"
+    },
+    {
+      "code": 89477759,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "non_effect",
+      "reason": "12星怪兽×5是超量召唤素材规则。"
+    },
+    {
+      "code": 89477759,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "quick",
+      "reason": "双方回合均可发动的快速效果。"
+    },
+    {
+      "code": 89477759,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "战斗阶段结束时必发的诱发效果。"
+    },
+    {
+      "code": 89477759,
+      "path": [
+        "effects",
+        3,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "被对方效果破坏送墓后发动的诱发效果。"
+    },
+    {
+      "code": 89516305,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "non_effect",
+      "reason": "8星怪兽×3是超量召唤素材规则。"
+    },
+    {
+      "code": 89516305,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "quick",
+      "reason": "①明确可以在对方回合发动。"
+    },
+    {
+      "code": 89789152,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "non_effect",
+      "reason": "同名卡发动次数限制不是卡片效果。"
+    },
+    {
+      "code": 89789152,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "trap_activation",
+      "reason": "通常陷阱卡发动。"
+    },
+    {
+      "code": 89870349,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "non_effect",
+      "reason": "只能由假面变化特殊召唤是召唤手续限制。"
+    },
+    {
+      "code": 89870349,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "特殊召唤成功时发动。"
+    },
+    {
+      "code": 89870349,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "quick",
+      "reason": "双方回合可发动的快速效果。"
+    },
+    {
+      "code": 90050480,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "non_effect",
+      "reason": "接触融合素材手续不是融合效果。"
+    },
+    {
+      "code": 90050480,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "从额外卡组特殊召唤成功时发动。"
+    },
+    {
+      "code": 90050480,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "双方结束阶段必发。"
+    },
+    {
+      "code": 90126061,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "non_effect",
+      "reason": "5星怪兽×2以上是超量素材规则。"
+    },
+    {
+      "code": 90126061,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "continuous",
+      "reason": "按素材数持续加攻。"
+    },
+    {
+      "code": 90126061,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "continuous",
+      "reason": "持有素材时持续赋予逐只攻击规则。"
+    },
+    {
+      "code": 90126061,
+      "path": [
+        "effects",
+        3,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "战斗阶段结束时发动的诱发效果。"
+    },
+    {
+      "code": 90162951,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "non_effect",
+      "reason": "10星怪兽×2是超量素材规则。"
+    },
+    {
+      "code": 90162951,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "continuous",
+      "reason": "按双方LP差额持续提升攻守。"
+    },
+    {
+      "code": 90162951,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "continuous",
+      "reason": "官方FAQ明确为永续伤害效果。"
+    },
+    {
+      "code": 90162951,
+      "path": [
+        "effects",
+        3,
+        "effect_type"
+      ],
+      "expected": "ignition",
+      "reason": "自己主要阶段支付素材发动。"
+    },
+    {
+      "code": 90307498,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "non_effect",
+      "reason": "融合素材与融合召唤限制不是效果。"
+    },
+    {
+      "code": 90307498,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "伤害计算前发动的诱发效果。"
+    },
+    {
+      "code": 90307498,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "表侧特殊召唤后离场或战破时发动。"
+    },
+    {
+      "code": 90579153,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "non_effect",
+      "reason": "融合素材及次数限制不是编号效果。"
+    },
+    {
+      "code": 90579153,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "特殊召唤成功时发动。"
+    },
+    {
+      "code": 90579153,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "quick",
+      "reason": "双方回合可以发动的快速效果。"
+    },
+    {
+      "code": 90590303,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "non_effect",
+      "reason": "4星素材及准备阶段取素材是规则文本。"
+    },
+    {
+      "code": 90590303,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "continuous",
+      "reason": "攻击表示时持续保护。"
+    },
+    {
+      "code": 90590303,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "continuous",
+      "reason": "守备表示时持续改变表示并无效效果。"
+    },
+    {
+      "code": 90590304,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "non_effect",
+      "reason": "4星素材及准备阶段取素材是规则文本。"
+    },
+    {
+      "code": 90590304,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "continuous",
+      "reason": "攻击表示时持续保护。"
+    },
+    {
+      "code": 90590304,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "continuous",
+      "reason": "守备表示时持续改变表示并无效效果。"
+    },
+    {
+      "code": 91691605,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "non_effect",
+      "reason": "同名效果次数限制不是卡片效果。"
+    },
+    {
+      "code": 91691605,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "通常召唤／特殊召唤成功时发动。"
+    },
+    {
+      "code": 91691605,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "continuous",
+      "reason": "贯通是持续战斗规则。"
+    },
+    {
+      "code": 91714772,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "non_effect",
+      "reason": "同名效果次数限制不是卡片效果。"
+    },
+    {
+      "code": 91714772,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "ignition",
+      "reason": "自己主要阶段解放发动。"
+    },
+    {
+      "code": 91714772,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "自己银河眼怪兽特殊召唤成功时发动。"
+    },
+    {
+      "code": 91714773,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "non_effect",
+      "reason": "同名效果次数限制不是卡片效果。"
+    },
+    {
+      "code": 91714773,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "ignition",
+      "reason": "自己主要阶段解放发动。"
+    },
+    {
+      "code": 91714773,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "自己银河眼怪兽特殊召唤成功时发动。"
+    },
+    {
+      "code": 92362073,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "non_effect",
+      "reason": "连接素材和次数限制不是编号效果。"
+    },
+    {
+      "code": 92362073,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "quick",
+      "reason": "自己／对方战斗阶段可发动。"
+    },
+    {
+      "code": 92362073,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "对方结束阶段发动。"
+    },
+    {
+      "code": 92517928,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "non_effect",
+      "reason": "9星素材及叠放超量召唤手续不是效果。"
+    },
+    {
+      "code": 92517928,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "continuous",
+      "reason": "持有素材期间持续改变伤害。"
+    },
+    {
+      "code": 92517928,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "ignition",
+      "reason": "自己主要阶段支付素材发动。"
+    },
+    {
+      "code": 93347961,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "non_effect",
+      "reason": "融合限制及同名效果次数限制不是编号效果。"
+    },
+    {
+      "code": 93347961,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "特殊召唤成功时发动。"
+    },
+    {
+      "code": 93347961,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "ignition",
+      "reason": "自己主要阶段解放自身发动。"
+    },
+    {
+      "code": 93431862,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "ignition",
+      "reason": "怪兽区发动；手卡是费用来源。"
+    },
+    {
+      "code": 93568288,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "non_effect",
+      "reason": "4星怪兽×2及次数限制是规则文本。"
+    },
+    {
+      "code": 93568288,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "ignition",
+      "reason": "自己主要阶段取除素材发动。"
+    },
+    {
+      "code": 93568288,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "ignition",
+      "reason": "自己主要阶段发动并以己方超量为对象。"
+    },
+    {
+      "code": 93657021,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "non_effect",
+      "reason": "融合素材要求不是效果。"
+    },
+    {
+      "code": 93657021,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "融合召唤成功时发动。"
+    },
+    {
+      "code": 93657021,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "quick",
+      "reason": "双方回合每回合1次的快速效果。"
+    },
+    {
+      "code": 93713837,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "non_effect",
+      "reason": "6星怪兽×2是超量召唤素材规则。"
+    },
+    {
+      "code": 93713837,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "quick",
+      "reason": "双方回合可发动的快速效果。"
+    },
+    {
+      "code": 93713837,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "仅因对方效果离场；战破不满足②。"
+    },
+    {
+      "code": 93713837,
+      "path": [
+        "effects",
+        3,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "反转成功时必发。"
+    },
+    {
+      "code": 93717133,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "no_chain_effect",
+      "reason": "①官方明确为不入连锁效果。"
+    },
+    {
+      "code": 93717133,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "quick",
+      "reason": "②战斗步骤对战斗对象发动的快速效果。"
+    },
+    {
+      "code": 93717134,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "no_chain_effect",
+      "reason": "①官方明确为不入连锁效果。"
+    },
+    {
+      "code": 93717134,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "quick",
+      "reason": "②战斗步骤对战斗对象发动的快速效果。"
+    },
+    {
+      "code": 93717135,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "no_chain_effect",
+      "reason": "①官方明确为不入连锁效果。"
+    },
+    {
+      "code": 93717135,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "quick",
+      "reason": "②战斗步骤对战斗对象发动的快速效果。"
+    },
+    {
+      "code": 93777634,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "non_effect",
+      "reason": "4星怪兽×2和次数限制不是效果。"
+    },
+    {
+      "code": 93777634,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "特殊召唤成功时发动。"
+    },
+    {
+      "code": 93777634,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "自己超量召唤成功时发动。"
+    },
+    {
+      "code": 94380860,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "non_effect",
+      "reason": "4星怪兽×2是超量素材规则。"
+    },
+    {
+      "code": 94380860,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "quick",
+      "reason": "双方回合每回合1次的快速效果。"
+    },
+    {
+      "code": 95134948,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "non_effect",
+      "reason": "12星怪兽×3以上和次数限制是规则说明。"
+    },
+    {
+      "code": 95134948,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "quick",
+      "reason": "双方回合均能发动的快速效果。"
+    },
+    {
+      "code": 95134948,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "对方攻击宣言时发动。"
+    },
+    {
+      "code": 95134949,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "non_effect",
+      "reason": "12星怪兽×3以上和次数限制是规则说明。"
+    },
+    {
+      "code": 95134949,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "quick",
+      "reason": "双方回合均能发动的快速效果。"
+    },
+    {
+      "code": 95134949,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "对方攻击宣言时发动。"
+    },
+    {
+      "code": 95362816,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "自己结束阶段必发的诱发效果。"
+    },
+    {
+      "code": 95474755,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "non_effect",
+      "reason": "7星怪兽×2及次数限制是规则说明。"
+    },
+    {
+      "code": 95474755,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "ignition",
+      "reason": "自己主要阶段支付素材发动。"
+    },
+    {
+      "code": 95474755,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "战斗破坏后于战斗阶段结束时发动。"
+    },
+    {
+      "code": 95474755,
+      "path": [
+        "effects",
+        3,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "对方卡里侧除外后发动。"
+    },
+    {
+      "code": 95486586,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "non_effect",
+      "reason": "融合素材及融合召唤限制不是效果。"
+    },
+    {
+      "code": 95486586,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "成为攻击对象时发动。"
+    },
+    {
+      "code": 95486586,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "实际战斗后于战斗阶段结束发动。"
+    },
+    {
+      "code": 95486586,
+      "path": [
+        "effects",
+        3,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "被战斗或效果破坏时发动。"
+    },
+    {
+      "code": 95943058,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "ignition",
+      "reason": "自己主要阶段1除外本卡发动。"
+    },
+    {
+      "code": 95943058,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "第二次自己准备阶段必发延迟诱发效果。"
+    },
+    {
+      "code": 96693371,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "non_effect",
+      "reason": "同名次数限制不是效果。"
+    },
+    {
+      "code": 96693371,
+      "path": [
+        "effects",
+        1,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "受到战斗或效果伤害后发动。"
+    },
+    {
+      "code": 96693371,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "trap_effect",
+      "reason": "永续陷阱状态的陷阱效果，仅双方主要阶段。"
+    },
+    {
+      "code": 96693371,
+      "path": [
+        "effects",
+        3,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "从魔陷区特殊召唤成功后发动。"
+    },
+    {
+      "code": 93431862,
+      "path": [
+        "effects",
+        0,
+        "structure",
+        "activation",
+        "zones"
+      ],
+      "expected": [
+        "monster"
+      ],
+      "reason": "扣杀人是怪兽区起动，不能借费用来源写成手卡发动"
+    },
+    {
+      "code": 93717133,
+      "path": [
+        "effects",
+        0,
+        "effect_type"
+      ],
+      "expected": "no_chain_effect",
+      "reason": "官方明确银河眼①为不入连锁效果"
+    },
+    {
+      "code": 96693371,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "trap_effect",
+      "reason": "倍增人在永续陷阱状态发动②是陷阱效果"
+    },
+    {
+      "code": 93713837,
+      "path": [
+        "effects",
+        2,
+        "structure",
+        "activation",
+        "zones"
+      ],
+      "expected": [
+        "grave",
+        "banished"
+      ],
+      "reason": "龙血鬼②只在墓地或表侧除外最初去向发动"
+    },
+    {
+      "code": 64881644,
+      "path": [
+        "effects",
+        1,
+        "block"
+      ],
+      "expected": "p",
+      "reason": "P效果与怪兽效果区块隔离"
+    },
+    {
+      "code": 64881644,
+      "path": [
+        "effects",
+        3,
+        "block"
+      ],
+      "expected": "m",
+      "reason": "检索怪兽属于怪兽效果"
+    },
+    {
+      "code": 90276649,
+      "path": [
+        "effects",
+        2,
+        "block"
+      ],
+      "expected": "p",
+      "reason": "魔陷检索属于P效果"
+    },
+    {
+      "code": 90276649,
+      "path": [
+        "effects",
+        4,
+        "block"
+      ],
+      "expected": "m",
+      "reason": "手卡墓地特召属于怪兽效果"
+    },
+    {
+      "code": 57594700,
+      "path": [
+        "effects",
+        1,
+        "structure",
+        "targeting"
+      ],
+      "expected": [
+        {
+          "min_count": 1,
+          "max_count": 3,
+          "filter": "双方墓地卡"
+        }
+      ],
+      "reason": "舒伯特取1至3个对象，不固定3张"
+    },
+    {
+      "code": 54569495,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "trigger",
+      "reason": "冠尾斗鱼②为墓地诱发，不是诱发即时"
+    },
+    {
+      "code": 33945211,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "no_chain_effect",
+      "reason": "角耳雪锉蛤②为不入连锁替代，不是永续"
+    },
+    {
+      "code": 10286023,
+      "path": [
+        "effects",
+        2,
+        "effect_type"
+      ],
+      "expected": "ignition",
+      "reason": "奇石自身回顶是墓地起动，不是苏生"
+    },
+    {
+      "code": 24925387,
+      "path": [
+        "effects",
+        1,
+        "structure",
+        "cost"
+      ],
+      "expected": [
+        {
+          "kind": "return_deck",
+          "text": "手卡另1张魔救卡回自己卡组顶"
+        }
+      ],
+      "reason": "调律者回顶为费用，不产生回卡组处理能力"
+    }
+  ],
+  "purpose_cases": [
+    {
+      "code": 91714772,
+      "effect_key": "m1",
+      "role": "endboards",
+      "expected": false,
+      "reason": "仅自己的特召、攻击或P召唤限制，不推导对手干扰用途"
+    },
+    {
+      "code": 95134948,
+      "effect_key": "m1",
+      "role": "endboards",
+      "expected": false,
+      "reason": "仅自己的特召、攻击或P召唤限制，不推导对手干扰用途"
+    },
+    {
+      "code": 84546257,
+      "effect_key": "m1",
+      "role": "endboards",
+      "expected": false,
+      "reason": "仅自己的特召、攻击或P召唤限制，不推导对手干扰用途"
+    },
+    {
+      "code": 3395226,
+      "effect_key": "m1",
+      "role": "endboards",
+      "expected": false,
+      "reason": "仅自己的特召、攻击或P召唤限制，不推导对手干扰用途"
+    },
+    {
+      "code": 90276649,
+      "effect_key": "p1",
+      "role": "endboards",
+      "expected": false,
+      "reason": "仅自己的特召、攻击或P召唤限制，不推导对手干扰用途"
+    }
+  ],
+  "source_bindings": {
+    "89312388/card-7491": {
+      "kind": "supplement",
+      "official_cid": 7491,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=7491&ope=2&request_locale=ja",
+      "raw_path": "raw/card-7491.html",
+      "text_path": "text/card-7491.txt",
+      "raw_sha256": "6f1911b00ce91a92cefccda9f0b0b66675e8aad746b7e4ea2d18989e56cdc2bc",
+      "text_sha256": "4e481eda52e9a4a9eae11ff388f4c2518fc87a61a350fbade648be5f85689c60"
+    },
+    "89312388/faq_index-7491": {
+      "kind": "supplement",
+      "official_cid": 7491,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=7491&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-7491.html",
+      "text_path": "text/faq_index-7491.txt",
+      "raw_sha256": "0c04a9632c283a9706daaf69be75c91797f804f1952ad5887d447f391fc9f3e5",
+      "text_sha256": "ecacd391be66739f409f19643c2d3cbf59f23ed33c4893e4ea64470b1882cb77"
+    },
+    "89477759/card-16048": {
+      "kind": "supplement",
+      "official_cid": 16048,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=16048&ope=2&request_locale=ja",
+      "raw_path": "raw/card-16048.html",
+      "text_path": "text/card-16048.txt",
+      "raw_sha256": "17ca3a979da38006a251868462501c57546e06aec8024b53294cf9bb754a0c0f",
+      "text_sha256": "9831b6ecc77cec64cd0bdddd089525dabec79a906c10a7c55984792099bd1d69"
+    },
+    "89477759/faq_index-16048": {
+      "kind": "supplement",
+      "official_cid": 16048,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=16048&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-16048.html",
+      "text_path": "text/faq_index-16048.txt",
+      "raw_sha256": "4ae615f0544e437dbc1fd28d7f947c362b73d4b55e3b83c5a793768f0ce99d45",
+      "text_sha256": "eb67f29dc6deeb5e416e0b79c87eabc1b8f326fe23725281bc95ba2a47fe858b"
+    },
+    "89516305/card-10708": {
+      "kind": "supplement",
+      "official_cid": 10708,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=10708&ope=2&request_locale=ja",
+      "raw_path": "raw/card-10708.html",
+      "text_path": "text/card-10708.txt",
+      "raw_sha256": "2552502cb3e859c122b0c5121ff3e06f78c7ce1aa74025b3fd87caaf0d640a91",
+      "text_sha256": "e49cbf772da6d277280b1c1d26ed7924b80af4c6b8fe241f34b162c8b417abf4"
+    },
+    "89516305/faq_index-10708": {
+      "kind": "supplement",
+      "official_cid": 10708,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=10708&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-10708.html",
+      "text_path": "text/faq_index-10708.txt",
+      "raw_sha256": "25406e22eca98c5c095b814fe24a3a984c1bb5130e0e5cee3af38e073aaee609",
+      "text_sha256": "3b6be7b799fdb8274cc557bac0670d5b0cd3a3d7ccc5b216f6c3d7bc7ead7159"
+    },
+    "89789152/card-14700": {
+      "kind": "supplement",
+      "official_cid": 14700,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=14700&ope=2&request_locale=ja",
+      "raw_path": "raw/card-14700.html",
+      "text_path": "text/card-14700.txt",
+      "raw_sha256": "7469cc8941903b1329ae5355a1f54e6c65a4fed9752dcf6b5d39a14f5545afab",
+      "text_sha256": "9ba35b867435f765478174165c4fc75e7f4e260b554af52177e13d4d9a1ab7b2"
+    },
+    "89789152/faq_index-14700": {
+      "kind": "supplement",
+      "official_cid": 14700,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14700&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-14700.html",
+      "text_path": "text/faq_index-14700.txt",
+      "raw_sha256": "b7d82997f0e93214bf59d7987ada7f3ac08f644f36915c671b70f3f6d08dcad2",
+      "text_sha256": "dae06380296081e1dc9ad27a0a286683d915d51f1218f1a80a79d50114b53e00"
+    },
+    "89870349/card-11930": {
+      "kind": "supplement",
+      "official_cid": 11930,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=11930&ope=2&request_locale=ja",
+      "raw_path": "raw/card-11930.html",
+      "text_path": "text/card-11930.txt",
+      "raw_sha256": "5b0f0d3e6d3306804bd36a8e9ee26f78c92aed14bacaa867e730d6338742ad90",
+      "text_sha256": "0bc851f52479aad217fe6000c608448aa6b548beaad0267a8b1372373944b213"
+    },
+    "89870349/faq_index-11930": {
+      "kind": "supplement",
+      "official_cid": 11930,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=11930&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-11930.html",
+      "text_path": "text/faq_index-11930.txt",
+      "raw_sha256": "7c176b5d4734899ed4254eb696e26ca04214bc432d89c57019eab6812db0cad2",
+      "text_sha256": "b3496cce7eedfd355802400e5e6f23c7588c4c4fa4aed8df968e22134c7eff53"
+    },
+    "90050480/card-14113": {
+      "kind": "supplement",
+      "official_cid": 14113,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=14113&ope=2&request_locale=ja",
+      "raw_path": "raw/card-14113.html",
+      "text_path": "text/card-14113.txt",
+      "raw_sha256": "37f84ad3fc6b1f1727d6139f5c87ea2e93e828543ce170e497a436cc074ee429",
+      "text_sha256": "3b6624bc1adacf2a9edfdc5f0a66c35c57e5264d8d7983d417b074127ae9f533"
+    },
+    "90050480/faq_index-14113": {
+      "kind": "supplement",
+      "official_cid": 14113,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14113&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-14113.html",
+      "text_path": "text/faq_index-14113.txt",
+      "raw_sha256": "618eb9edb8dcc80e4d850d917669dee1c3adc1215091e830115cf71aaeacfe59",
+      "text_sha256": "b8042e10a8a7d114a4f2027ee854cccb157253c79184bfa80133eba55878acf2"
+    },
+    "90126061/card-13546": {
+      "kind": "supplement",
+      "official_cid": 13546,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=13546&ope=2&request_locale=ja",
+      "raw_path": "raw/card-13546.html",
+      "text_path": "text/card-13546.txt",
+      "raw_sha256": "695cade3ce00b5b6a993549a92722f456d96cd536f268dd0423276d5fdc9b047",
+      "text_sha256": "96d900352b2cfa53f5bdc22d149f131009153ece8b83a51bf390e4ba7abbdbe2"
+    },
+    "90126061/faq_index-13546": {
+      "kind": "supplement",
+      "official_cid": 13546,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=13546&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-13546.html",
+      "text_path": "text/faq_index-13546.txt",
+      "raw_sha256": "6ef43be7b91f467f77bd8175314227da3966554ef3f5d6d32fc38507d77f901e",
+      "text_sha256": "cc1d48490f2c28f9692cfec78e050cf06533964fd35f1a2279ac295467444719"
+    },
+    "90162951/card-12261": {
+      "kind": "supplement",
+      "official_cid": 12261,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=12261&ope=2&request_locale=ja",
+      "raw_path": "raw/card-12261.html",
+      "text_path": "text/card-12261.txt",
+      "raw_sha256": "4364c04f0aa0e4796c5a85a5664bbc0d89a36fab55743ad483682fd48bdac45e",
+      "text_sha256": "79f7ced79b69b7f73b202aec7096aded25ec5f72d9260dc68d1fd759ac29fd1b"
+    },
+    "90162951/faq_index-12261": {
+      "kind": "supplement",
+      "official_cid": 12261,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=12261&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-12261.html",
+      "text_path": "text/faq_index-12261.txt",
+      "raw_sha256": "df5b5f1c642f57249bb2852c724d7371de2365f0daaa4ec242ce32c8af92e7c0",
+      "text_sha256": "e7d254f71a12de63af97d5c13a3001465737c7b2aa17c630c268ed8101566a1e"
+    },
+    "90307498/card-14954": {
+      "kind": "supplement",
+      "official_cid": 14954,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=14954&ope=2&request_locale=ja",
+      "raw_path": "raw/card-14954.html",
+      "text_path": "text/card-14954.txt",
+      "raw_sha256": "dc9dca69dcf0d46b3e58898f8435c7ae1f922836029d311acc90dc4278db0c3e",
+      "text_sha256": "d5f8161ee97cfa27099d3e528fcc5a749740d2accddaa3270e4241f0f65b56fe"
+    },
+    "90307498/faq_index-14954": {
+      "kind": "supplement",
+      "official_cid": 14954,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14954&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-14954.html",
+      "text_path": "text/faq_index-14954.txt",
+      "raw_sha256": "a2a56a71e7fed159761c3d009833725e59b2358f8a28fd56f2149c8acd4fd634",
+      "text_sha256": "2cc08a81519ac8d1401b6290c2bbb11ac354e245c93195f38420a20537f58741"
+    },
+    "90579153/card-12705": {
+      "kind": "supplement",
+      "official_cid": 12705,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=12705&ope=2&request_locale=ja",
+      "raw_path": "raw/card-12705.html",
+      "text_path": "text/card-12705.txt",
+      "raw_sha256": "e82ef1253a09ef84fbf943f58862469bf54cfd788b81f975c7d282d86e1d4540",
+      "text_sha256": "5c3f3feb00aaa566ed5fe29fc3e078be546a207afca33a2ac16cd42fef8971c2"
+    },
+    "90579153/faq_index-12705": {
+      "kind": "supplement",
+      "official_cid": 12705,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=12705&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-12705.html",
+      "text_path": "text/faq_index-12705.txt",
+      "raw_sha256": "be65ca1fff2578316d93ab257d3bc6ec224e569fef92ed91ea359b247d0cc2c8",
+      "text_sha256": "1ded851f06070972799459b058d7c971d585c736054d6803c9a395063846c370"
+    },
+    "90590303/card-13163": {
+      "kind": "supplement",
+      "official_cid": 13163,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=13163&ope=2&request_locale=ja",
+      "raw_path": "raw/card-13163.html",
+      "text_path": "text/card-13163.txt",
+      "raw_sha256": "f9d36609e576ab9adc4c7699bbf988223d7c5d1b3fe2c1d3a72f80d4c0ac9f1c",
+      "text_sha256": "c86476629163f880e00baeb56791f41885b72517162583fc1d89b27812964a4a"
+    },
+    "90590303/faq_index-13163": {
+      "kind": "supplement",
+      "official_cid": 13163,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=13163&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-13163.html",
+      "text_path": "text/faq_index-13163.txt",
+      "raw_sha256": "f30eb4176953ff4aec3ad56545f39c4b923073090e14c722a21bf72abed94132",
+      "text_sha256": "e4ccdafd0f776594888faad45f943c8ec4591b60c6c2ee0a28983440fbf1b136"
+    },
+    "90590304/card-13163": {
+      "kind": "supplement",
+      "official_cid": 13163,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=13163&ope=2&request_locale=ja",
+      "raw_path": "raw/card-13163.html",
+      "text_path": "text/card-13163.txt",
+      "raw_sha256": "f9d36609e576ab9adc4c7699bbf988223d7c5d1b3fe2c1d3a72f80d4c0ac9f1c",
+      "text_sha256": "c86476629163f880e00baeb56791f41885b72517162583fc1d89b27812964a4a"
+    },
+    "90590304/faq_index-13163": {
+      "kind": "supplement",
+      "official_cid": 13163,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=13163&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-13163.html",
+      "text_path": "text/faq_index-13163.txt",
+      "raw_sha256": "f30eb4176953ff4aec3ad56545f39c4b923073090e14c722a21bf72abed94132",
+      "text_sha256": "e4ccdafd0f776594888faad45f943c8ec4591b60c6c2ee0a28983440fbf1b136"
+    },
+    "91691605/card-12702": {
+      "kind": "supplement",
+      "official_cid": 12702,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=12702&ope=2&request_locale=ja",
+      "raw_path": "raw/card-12702.html",
+      "text_path": "text/card-12702.txt",
+      "raw_sha256": "9ccf21817c2cf41929a5f2562d7e6476bcb0c5127ad7f324651dec6f17e6647f",
+      "text_sha256": "3e32df25a980933e8200637556b93bbbfc98c8c51890123b0cf97b314f5a79ec"
+    },
+    "91691605/faq_index-12702": {
+      "kind": "supplement",
+      "official_cid": 12702,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=12702&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-12702.html",
+      "text_path": "text/faq_index-12702.txt",
+      "raw_sha256": "f482b1209e66eaac51ba50f2e2d253d9c09efc4be6958398b03d09da5dd8e419",
+      "text_sha256": "835db602d31ce4336f2888b1285258d83ab8bc587045bbd9110b65718257df66"
+    },
+    "91714772/card-22727": {
+      "kind": "supplement",
+      "official_cid": 22727,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=22727&ope=2&request_locale=ja",
+      "raw_path": "raw/card-22727.html",
+      "text_path": "text/card-22727.txt",
+      "raw_sha256": "6c28554869c0b29dadb1fe497e5cb2633c9fd7edccbb3507d7fc59056e39c0f3",
+      "text_sha256": "ede4ae64f0de1e9d254857ab443220e40fa091916ce7691059118e21ab607ba7"
+    },
+    "91714772/faq_index-22727": {
+      "kind": "supplement",
+      "official_cid": 22727,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=22727&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-22727.html",
+      "text_path": "text/faq_index-22727.txt",
+      "raw_sha256": "8089fcd856fdf38d42b09b4eab6550d75b84a10667f5049849830db505fe7f3b",
+      "text_sha256": "b396aa4fe923433dcf60bdf3112cda3819dd0711784a6586c0077872c918b69d"
+    },
+    "91714773/card-22727": {
+      "kind": "supplement",
+      "official_cid": 22727,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=22727&ope=2&request_locale=ja",
+      "raw_path": "raw/card-22727.html",
+      "text_path": "text/card-22727.txt",
+      "raw_sha256": "6c28554869c0b29dadb1fe497e5cb2633c9fd7edccbb3507d7fc59056e39c0f3",
+      "text_sha256": "ede4ae64f0de1e9d254857ab443220e40fa091916ce7691059118e21ab607ba7"
+    },
+    "91714773/faq_index-22727": {
+      "kind": "supplement",
+      "official_cid": 22727,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=22727&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-22727.html",
+      "text_path": "text/faq_index-22727.txt",
+      "raw_sha256": "8089fcd856fdf38d42b09b4eab6550d75b84a10667f5049849830db505fe7f3b",
+      "text_sha256": "b396aa4fe923433dcf60bdf3112cda3819dd0711784a6586c0077872c918b69d"
+    },
+    "92362073/card-14674": {
+      "kind": "supplement",
+      "official_cid": 14674,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=14674&ope=2&request_locale=ja",
+      "raw_path": "raw/card-14674.html",
+      "text_path": "text/card-14674.txt",
+      "raw_sha256": "51899a11aa2db215269ee8b722177dfcbc9aaa4a70450d268f6a33931d7d1ac2",
+      "text_sha256": "3b5161bd9fdb0c8235b6f1fe233028881701108e2780df2a126ef20c70537d6f"
+    },
+    "92362073/faq_index-14674": {
+      "kind": "supplement",
+      "official_cid": 14674,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14674&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-14674.html",
+      "text_path": "text/faq_index-14674.txt",
+      "raw_sha256": "96b77de32837176f19eb6a6d1c362b149ae5afd8de2c6ac491ff1ce96085ebbb",
+      "text_sha256": "2a5f964e3be3dc4e515c00174df3eaac7f8415e8c5b7b3151729387d9d220f1d"
+    },
+    "92517928/card-22214": {
+      "kind": "supplement",
+      "official_cid": 22214,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=22214&ope=2&request_locale=ja",
+      "raw_path": "raw/card-22214.html",
+      "text_path": "text/card-22214.txt",
+      "raw_sha256": "4fabed5181f1e7d68db4fbd33a77c586082680e97b91ae4edd30f1e5f344e89a",
+      "text_sha256": "50f7f497ebc97e9d155877e34ef307567821122dff4a6bb1aa075c3cd18c62fc"
+    },
+    "92517928/faq_index-22214": {
+      "kind": "supplement",
+      "official_cid": 22214,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=22214&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-22214.html",
+      "text_path": "text/faq_index-22214.txt",
+      "raw_sha256": "c8a92b589109b0b894d72c8a6510b1ba51bade8a667ea9123fc474597f9e9d6b",
+      "text_sha256": "53a50a388c84a8f2b3c5cc2cefd501e868750543fee75cbbde2d7b9708b3577c"
+    },
+    "93347961/card-18663": {
+      "kind": "supplement",
+      "official_cid": 18663,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=18663&ope=2&request_locale=ja",
+      "raw_path": "raw/card-18663.html",
+      "text_path": "text/card-18663.txt",
+      "raw_sha256": "c0a5aef4a1b81ebc9d2fe4dd42aa16c91be8ce62fe0400d25914fc3881abfb9b",
+      "text_sha256": "b44388d104e59fd0684052e7aa5711c03bea8bedb7cd477a6421b2d3ef36d767"
+    },
+    "93347961/faq_index-18663": {
+      "kind": "supplement",
+      "official_cid": 18663,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=18663&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-18663.html",
+      "text_path": "text/faq_index-18663.txt",
+      "raw_sha256": "ba064f2b0bb5357deeb0b17a2f37a8737ae2729a190bbf736850dce4ed96029a",
+      "text_sha256": "ae32fe1b0e2cef3bfbadf211de69261d18ac3a5637339f4e8ea2469845f1121e"
+    },
+    "93431862/card-7416": {
+      "kind": "supplement",
+      "official_cid": 7416,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=7416&ope=2&request_locale=ja",
+      "raw_path": "raw/card-7416.html",
+      "text_path": "text/card-7416.txt",
+      "raw_sha256": "9d326bd6c805ca761cc721b9a832cd59f8a82915fb1e16a822480f277af50691",
+      "text_sha256": "9c44278a42fa5e865e01a19d79ff4106dc2dd8afcd8a01370fda16531ebb7260"
+    },
+    "93431862/faq_index-7416": {
+      "kind": "supplement",
+      "official_cid": 7416,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=7416&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-7416.html",
+      "text_path": "text/faq_index-7416.txt",
+      "raw_sha256": "d35f31d0ce90b3d3f3d24f35eeeed80928d4b19bab0c77b4d0fcefe24e2d00c1",
+      "text_sha256": "a39889f7a00ae41b21fc4da3eadfab8f8b2b5d77fe42717c59d4f2b482c22f93"
+    },
+    "93568288/card-11074": {
+      "kind": "supplement",
+      "official_cid": 11074,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=11074&ope=2&request_locale=ja",
+      "raw_path": "raw/card-11074.html",
+      "text_path": "text/card-11074.txt",
+      "raw_sha256": "b1e47cca7bb90b2abbe4e83bc694e2f0bab4cda70fb2a214143fdf1ca88190cb",
+      "text_sha256": "1bcbf1ec906127a3c99fbee3708c8b4ed01ea0d671241b0040a7da76902fe3ab"
+    },
+    "93568288/faq_index-11074": {
+      "kind": "supplement",
+      "official_cid": 11074,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=11074&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-11074.html",
+      "text_path": "text/faq_index-11074.txt",
+      "raw_sha256": "a17373793cb86e37708ddb64d81833940efb6c9624fd355742deb246f140679c",
+      "text_sha256": "731c01937b911dc6f46e4a50210c5922f7babece06609d54ad06a1d4768cc24a"
+    },
+    "93657021/card-13154": {
+      "kind": "supplement",
+      "official_cid": 13154,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=13154&ope=2&request_locale=ja",
+      "raw_path": "raw/card-13154.html",
+      "text_path": "text/card-13154.txt",
+      "raw_sha256": "5e0f1e383df3b16cef6bceff25ccc8d24e0262a3e4a9dae7a545e0328a1f4844",
+      "text_sha256": "f86b1d23b9d7f96ee1e2da4852ae5ef3f5d5a36ed705c24fe3be82412cb583c6"
+    },
+    "93657021/faq_index-13154": {
+      "kind": "supplement",
+      "official_cid": 13154,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=13154&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-13154.html",
+      "text_path": "text/faq_index-13154.txt",
+      "raw_sha256": "6087fb48a4ffa161578cd371f598de2181f60cdff1ee1b14457074d2ecca4d2b",
+      "text_sha256": "f401f3ac538b265772681bdeca54d0fe439f66bb1b957af64392e5153a0d4a79"
+    },
+    "93713837/card-12545": {
+      "kind": "supplement",
+      "official_cid": 12545,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=12545&ope=2&request_locale=ja",
+      "raw_path": "raw/card-12545.html",
+      "text_path": "text/card-12545.txt",
+      "raw_sha256": "50f64869434dd0cc2540bc57880a585c765351b6125dc5b39664270f92a6b99c",
+      "text_sha256": "c8261698a4c2f9be596ef5ec405a160e4a6fe56b9d323f098cb5c0a35e45926b"
+    },
+    "93713837/faq_index-12545": {
+      "kind": "supplement",
+      "official_cid": 12545,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=12545&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-12545.html",
+      "text_path": "text/faq_index-12545.txt",
+      "raw_sha256": "3ffa3a34b7af27839aad637d9a15da6298a847f5130c0647f5ab194ec957bf39",
+      "text_sha256": "0ff5857a8ebd2c6476e5f8c0c8f8bca5a0c0b4a9398ec61ddb0e7344ae1aa032"
+    },
+    "93717133/card-9729": {
+      "kind": "supplement",
+      "official_cid": 9729,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=9729&ope=2&request_locale=ja",
+      "raw_path": "raw/card-9729.html",
+      "text_path": "text/card-9729.txt",
+      "raw_sha256": "547c8948dceb2c8a1ece6368749ac5aec4d15598a7e6b68b03d7049be4f247c5",
+      "text_sha256": "3d75a49fa89aaddf9ad3f37a12be2594a2a965e1b57f651d1d7adf7e232c528a"
+    },
+    "93717133/faq_index-9729": {
+      "kind": "supplement",
+      "official_cid": 9729,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=9729&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-9729.html",
+      "text_path": "text/faq_index-9729.txt",
+      "raw_sha256": "4babd566b6fd7884d7404a2126127f6cccbb4167d7b9a90e189c04e6a582eddb",
+      "text_sha256": "0d668d50ded70c80dac8abc03f0ce2cd977b98cb486eb960f8fde07c987fbd31"
+    },
+    "93717134/card-9729": {
+      "kind": "supplement",
+      "official_cid": 9729,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=9729&ope=2&request_locale=ja",
+      "raw_path": "raw/card-9729.html",
+      "text_path": "text/card-9729.txt",
+      "raw_sha256": "547c8948dceb2c8a1ece6368749ac5aec4d15598a7e6b68b03d7049be4f247c5",
+      "text_sha256": "3d75a49fa89aaddf9ad3f37a12be2594a2a965e1b57f651d1d7adf7e232c528a"
+    },
+    "93717134/faq_index-9729": {
+      "kind": "supplement",
+      "official_cid": 9729,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=9729&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-9729.html",
+      "text_path": "text/faq_index-9729.txt",
+      "raw_sha256": "4babd566b6fd7884d7404a2126127f6cccbb4167d7b9a90e189c04e6a582eddb",
+      "text_sha256": "0d668d50ded70c80dac8abc03f0ce2cd977b98cb486eb960f8fde07c987fbd31"
+    },
+    "93717135/card-9729": {
+      "kind": "supplement",
+      "official_cid": 9729,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=9729&ope=2&request_locale=ja",
+      "raw_path": "raw/card-9729.html",
+      "text_path": "text/card-9729.txt",
+      "raw_sha256": "547c8948dceb2c8a1ece6368749ac5aec4d15598a7e6b68b03d7049be4f247c5",
+      "text_sha256": "3d75a49fa89aaddf9ad3f37a12be2594a2a965e1b57f651d1d7adf7e232c528a"
+    },
+    "93717135/faq_index-9729": {
+      "kind": "supplement",
+      "official_cid": 9729,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=9729&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-9729.html",
+      "text_path": "text/faq_index-9729.txt",
+      "raw_sha256": "4babd566b6fd7884d7404a2126127f6cccbb4167d7b9a90e189c04e6a582eddb",
+      "text_sha256": "0d668d50ded70c80dac8abc03f0ce2cd977b98cb486eb960f8fde07c987fbd31"
+    },
+    "93777634/card-17255": {
+      "kind": "supplement",
+      "official_cid": 17255,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=17255&ope=2&request_locale=ja",
+      "raw_path": "raw/card-17255.html",
+      "text_path": "text/card-17255.txt",
+      "raw_sha256": "97e8f475ca7f2186ef2a44b8711702ad122517d0c89fc9c26b1f361e61f69fdc",
+      "text_sha256": "65b2bb621aff9141ddf810915b87820120d5871cfb6425c69359055a57c242dd"
+    },
+    "93777634/faq_index-17255": {
+      "kind": "supplement",
+      "official_cid": 17255,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=17255&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-17255.html",
+      "text_path": "text/faq_index-17255.txt",
+      "raw_sha256": "7c5620147183c46b1b250e8f60c2e930e628eed9de971704407a5c5f2c0a6577",
+      "text_sha256": "48b1dee19aa032542c885a6c0ce772dcac55a2e0296020647b698ca3fe835d21"
+    },
+    "94380860/card-11071": {
+      "kind": "supplement",
+      "official_cid": 11071,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=11071&ope=2&request_locale=ja",
+      "raw_path": "raw/card-11071.html",
+      "text_path": "text/card-11071.txt",
+      "raw_sha256": "35c0500ccc7a94f715d0039aeb1b85b08e7ac6d5243c539ab6c0ca9b11102deb",
+      "text_sha256": "b0ce7a51f682d874091c5e7109d700d4000bee8ef4e0a74d34a7fc90e1c1ec94"
+    },
+    "94380860/faq_index-11071": {
+      "kind": "supplement",
+      "official_cid": 11071,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=11071&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-11071.html",
+      "text_path": "text/faq_index-11071.txt",
+      "raw_sha256": "61294a84e07d1e8b6f00b12bf5a011286f43eefbfb79f149a8cbd1726584fc74",
+      "text_sha256": "a12de70a62b6772aa7599eabf6b77699c9c8fc5c2a767693ec7cb58e6bd817c7"
+    },
+    "95134948/card-16471": {
+      "kind": "supplement",
+      "official_cid": 16471,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=16471&ope=2&request_locale=ja",
+      "raw_path": "raw/card-16471.html",
+      "text_path": "text/card-16471.txt",
+      "raw_sha256": "cb0aba2840b1391e6c28d3fbcfad18bf6712670af1fd29daa7d14f9e85075cc6",
+      "text_sha256": "ea61300bd8770b50620858a1b4d2ab73e05ed661ca8ca6c6ab552ab759bd6f20"
+    },
+    "95134948/faq_index-16471": {
+      "kind": "supplement",
+      "official_cid": 16471,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=16471&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-16471.html",
+      "text_path": "text/faq_index-16471.txt",
+      "raw_sha256": "42cc745670c73f37a38ecf0d8fea0dd96d08e2a1088185c9178b3e59d945e4bf",
+      "text_sha256": "71dfabdef2249f279b7c4bf66f6e0e82851a044b119a1da42741b793f1cf9af5"
+    },
+    "95134949/card-16471": {
+      "kind": "supplement",
+      "official_cid": 16471,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=16471&ope=2&request_locale=ja",
+      "raw_path": "raw/card-16471.html",
+      "text_path": "text/card-16471.txt",
+      "raw_sha256": "cb0aba2840b1391e6c28d3fbcfad18bf6712670af1fd29daa7d14f9e85075cc6",
+      "text_sha256": "ea61300bd8770b50620858a1b4d2ab73e05ed661ca8ca6c6ab552ab759bd6f20"
+    },
+    "95134949/faq_index-16471": {
+      "kind": "supplement",
+      "official_cid": 16471,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=16471&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-16471.html",
+      "text_path": "text/faq_index-16471.txt",
+      "raw_sha256": "42cc745670c73f37a38ecf0d8fea0dd96d08e2a1088185c9178b3e59d945e4bf",
+      "text_sha256": "71dfabdef2249f279b7c4bf66f6e0e82851a044b119a1da42741b793f1cf9af5"
+    },
+    "95362816/card-7024": {
+      "kind": "supplement",
+      "official_cid": 7024,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=7024&ope=2&request_locale=ja",
+      "raw_path": "raw/card-7024.html",
+      "text_path": "text/card-7024.txt",
+      "raw_sha256": "321c7f8b40c9d437a9c9cef7770580ce6f72844506102f51d98f868635bebfea",
+      "text_sha256": "ff4bed663a6ff7049ffe6c2e5da71a8376df35fc36f8f4f831f9e7b036fe4a46"
+    },
+    "95362816/faq_index-7024": {
+      "kind": "supplement",
+      "official_cid": 7024,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=7024&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-7024.html",
+      "text_path": "text/faq_index-7024.txt",
+      "raw_sha256": "1dff42da6790c669174ee0ed3976c506d829a5f849efe7ac58f2d27b8d9833fd",
+      "text_sha256": "00a9bbbc8b883a01440775d00b01210b85c61b722c1fa961f035208125fb4601"
+    },
+    "95474755/card-13166": {
+      "kind": "supplement",
+      "official_cid": 13166,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=13166&ope=2&request_locale=ja",
+      "raw_path": "raw/card-13166.html",
+      "text_path": "text/card-13166.txt",
+      "raw_sha256": "99fc197885a486173a9e3adebf55358f1f815d4db97ffb7edb743679e557620d",
+      "text_sha256": "9aac42bbe76ee72a04fb2da6221a56b4d3a0f829b00fda9cf25b39ffa3eb8ee6"
+    },
+    "95474755/faq_index-13166": {
+      "kind": "supplement",
+      "official_cid": 13166,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=13166&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-13166.html",
+      "text_path": "text/faq_index-13166.txt",
+      "raw_sha256": "2c9106ca0c94643f2908d425d7f0061d0bc6b251529cec8c857b12118259cafb",
+      "text_sha256": "2bbaf08a1a40c70ec9979d2cdd73b478cb207fd30ce5349edeea2398f4124590"
+    },
+    "95486586/card-11314": {
+      "kind": "supplement",
+      "official_cid": 11314,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=11314&ope=2&request_locale=ja",
+      "raw_path": "raw/card-11314.html",
+      "text_path": "text/card-11314.txt",
+      "raw_sha256": "cc2e35d60fa0bfe64355b76848f1352e9a6219bc13a0c3ef7f6f29d6d831d2e1",
+      "text_sha256": "108834d7acb1302a4b3e0eb7cadc350d8f2216189c14889883437c25e268361c"
+    },
+    "95486586/faq_index-11314": {
+      "kind": "supplement",
+      "official_cid": 11314,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=11314&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-11314.html",
+      "text_path": "text/faq_index-11314.txt",
+      "raw_sha256": "28f717e95776426f3c641a5d6ab8ddfb13e4d6ad0369fd08ea0aa77b63bae169",
+      "text_sha256": "08220034a51a7dcccea13bc3b24157731b5cacf1d75e6f47ca3ea874376cc275"
+    },
+    "95943058/card-7259": {
+      "kind": "supplement",
+      "official_cid": 7259,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=7259&ope=2&request_locale=ja",
+      "raw_path": "raw/card-7259.html",
+      "text_path": "text/card-7259.txt",
+      "raw_sha256": "f496fd0d74b18a8dbf8bbc1f9c364f6878d05b2a830ccc4575cfaa45e44dbc8d",
+      "text_sha256": "02184ad71947eb2837ea816ddf66a0d619f792006eee804763da8cb0052a238d"
+    },
+    "95943058/faq_index-7259": {
+      "kind": "supplement",
+      "official_cid": 7259,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=7259&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-7259.html",
+      "text_path": "text/faq_index-7259.txt",
+      "raw_sha256": "7e4ed4e558a8e58421995f095835456b7fbdb961dc0742aa84cb64b8e3ba22c4",
+      "text_sha256": "58f0ff09ea1f4ea722ef62acdf2ae4e5267a1750c48998bebbd946f58ff33f9c"
+    },
+    "96693371/card-9059": {
+      "kind": "supplement",
+      "official_cid": 9059,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=9059&ope=2&request_locale=ja",
+      "raw_path": "raw/card-9059.html",
+      "text_path": "text/card-9059.txt",
+      "raw_sha256": "ed2e632a0621511471e2c4966f8422bfa0d0796d59c5a2422f3b7c1f2aa550a8",
+      "text_sha256": "a306c72b3a05c54627df97a3d9cf4c33d4e61a8a8a615edac5df84a37d7fcbe4"
+    },
+    "96693371/faq_index-9059": {
+      "kind": "supplement",
+      "official_cid": 9059,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=9059&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-9059.html",
+      "text_path": "text/faq_index-9059.txt",
+      "raw_sha256": "0976c576979ca0aef8a4f290193b0443d147f6b6857bdcba8d135cb8fcd94670",
+      "text_sha256": "44556e3ede1f4b0df12de3ba1f1298b3f09da8ee787efba23f769d4bc95514d6"
+    },
+    "96864105/card-11185": {
+      "kind": "supplement",
+      "official_cid": 11185,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=11185&ope=2&request_locale=ja",
+      "raw_path": "raw/card-11185.html",
+      "text_path": "text/card-11185.txt",
+      "raw_sha256": "f47c27d198bef234e7072a3c781f8d2f475807d00ff71444c03568383ca713bf",
+      "text_sha256": "b37750d56d3d12ae0507bacb5271f2ba15461e95ee9d5fc94b6904c2c79c17cc"
+    },
+    "96864105/faq_index-11185": {
+      "kind": "supplement",
+      "official_cid": 11185,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=11185&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-11185.html",
+      "text_path": "text/faq_index-11185.txt",
+      "raw_sha256": "810d10470d30ae7945b7790fb940b8811f24d49085e532d04b5ba453ec2ed6cd",
+      "text_sha256": "73ca1986f2fc7aacfb71887f1ec4665cd3c1a6accbdcedda92e7dca966922546"
+    },
+    "97617181/card-10344": {
+      "kind": "supplement",
+      "official_cid": 10344,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=10344&ope=2&request_locale=ja",
+      "raw_path": "raw/card-10344.html",
+      "text_path": "text/card-10344.txt",
+      "raw_sha256": "7072fb951e7758f963916d3d78cf65f68c2863fa05dd5f85399179918c4f9fd3",
+      "text_sha256": "d4e8ebafabc5e849e994213a71cd04da822ddfaf6f8d111c4da08cee755874b8"
+    },
+    "97617181/faq_index-10344": {
+      "kind": "supplement",
+      "official_cid": 10344,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=10344&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-10344.html",
+      "text_path": "text/faq_index-10344.txt",
+      "raw_sha256": "c12f02b43bdd32c80245fc1b85e60cacde1bc1a9e2c5a9fcde9582f49901b1f7",
+      "text_sha256": "492b6a6e4c0c59e6736f91469a64c16e32d683d23a26284ee0c792107af62b5b"
+    },
+    "98555327/card-10338": {
+      "kind": "supplement",
+      "official_cid": 10338,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=10338&ope=2&request_locale=ja",
+      "raw_path": "raw/card-10338.html",
+      "text_path": "text/card-10338.txt",
+      "raw_sha256": "c07d6e54200b5635c730e72d825af33b10886da96485faa52eb52101180024c9",
+      "text_sha256": "326634349fb46a32828119e45d36b12a02b31df0a252e42558ceca6bbc9c989c"
+    },
+    "98555327/faq_index-10338": {
+      "kind": "supplement",
+      "official_cid": 10338,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=10338&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-10338.html",
+      "text_path": "text/faq_index-10338.txt",
+      "raw_sha256": "646f2c3594d991e1d803883125d56bfbeca0ecbfe9fb4e7901d1fa587031112c",
+      "text_sha256": "f760aa45187a4683c53a5531593710312e1b59a7577a8c33f81a40cfd9f8a977"
+    },
+    "98931282/card-23345": {
+      "kind": "supplement",
+      "official_cid": 23345,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=23345&ope=2&request_locale=ja",
+      "raw_path": "raw/card-23345.html",
+      "text_path": "text/card-23345.txt",
+      "raw_sha256": "eda8d659c77dbdd63bb00e21648d0265d6c8f4465cd5525ad6ab8243c96f6128",
+      "text_sha256": "f8c2ffca0d5ba6ef0d029da4385693c526988230257617a0df12b1a46ce5c1a4"
+    },
+    "98931282/faq_index-23345": {
+      "kind": "supplement",
+      "official_cid": 23345,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=23345&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-23345.html",
+      "text_path": "text/faq_index-23345.txt",
+      "raw_sha256": "39afbeee3063a10bb896657bee27d5b5d456db55a6202b2c34262834f74b657f",
+      "text_sha256": "47e650993d33ee732e2395210bfa75c95f9507a46d40c8296209f3824db76f33"
+    },
+    "5524387/card-14490": {
+      "kind": "supplement",
+      "official_cid": 14490,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=14490&ope=2&request_locale=ja",
+      "raw_path": "raw/card-14490.html",
+      "text_path": "text/card-14490.txt",
+      "raw_sha256": "79c7308d4b7845ef5755b87f8576fe0cc1cff850d21c0d209a50c006d0a11c22",
+      "text_sha256": "35e65500d6072076fafad9a816cc24bf8844592fcf5d0921b954b88c9338b360"
+    },
+    "5524387/faq_index-14490": {
+      "kind": "supplement",
+      "official_cid": 14490,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14490&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-14490.html",
+      "text_path": "text/faq_index-14490.txt",
+      "raw_sha256": "5c51da0e5a205b1662b773764c694c4d51b056e6eaa4b43e8e8d7ca49c6e0769",
+      "text_sha256": "74799642bec73feec759c91f48f37dc17911e4cef12eac2b6bd1af6642dc2a34"
+    },
+    "19712214/card-17059": {
+      "kind": "supplement",
+      "official_cid": 17059,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=17059&ope=2&request_locale=ja",
+      "raw_path": "raw/card-17059.html",
+      "text_path": "text/card-17059.txt",
+      "raw_sha256": "bc539c44db35ef41334b0f07df1e33e7311fe8e6c22d6d8054e5ca391c8f620e",
+      "text_sha256": "bbffcdd38d73aad45958d9a4500a4a52936efe101b21fd2a4d2fde992be569b3"
+    },
+    "19712214/faq_index-17059": {
+      "kind": "supplement",
+      "official_cid": 17059,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=17059&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-17059.html",
+      "text_path": "text/faq_index-17059.txt",
+      "raw_sha256": "9dc2c39ab924293183d01c6cd5f9bff1f5413af22e04673184a9f32e691e7027",
+      "text_sha256": "7f3c13ba23b4b02472497647023c72a80cc3294afb41a0f0dfc32e9e20ed0b0c"
+    },
+    "20934852/card-17056": {
+      "kind": "supplement",
+      "official_cid": 17056,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=17056&ope=2&request_locale=ja",
+      "raw_path": "raw/card-17056.html",
+      "text_path": "text/card-17056.txt",
+      "raw_sha256": "4d61fce011bf7858e17174127274c5997d2bac58499c1e03a766b1b21c86c72b",
+      "text_sha256": "3722e052e76d095016c8951b30db54c7d8e21f451dd7bafa9432b4e8bcdc7487"
+    },
+    "20934852/faq_index-17056": {
+      "kind": "supplement",
+      "official_cid": 17056,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=17056&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-17056.html",
+      "text_path": "text/faq_index-17056.txt",
+      "raw_sha256": "e7720621e93915124db1149ad0f8088a3642d0fadcb2cdc7fed4d801f21503b3",
+      "text_sha256": "67b4bda56cd320b64efbba35853e0c944ab864efb8e6c5a5aac194453a49181a"
+    },
+    "21057444/card-17053": {
+      "kind": "supplement",
+      "official_cid": 17053,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=17053&ope=2&request_locale=ja",
+      "raw_path": "raw/card-17053.html",
+      "text_path": "text/card-17053.txt",
+      "raw_sha256": "b1072dbcb4659eff2ece78aa3c4454e348c764b5ba578f01d582e81422df71a0",
+      "text_sha256": "cd430d34b48e6775ffd3479e6722ddd8ebd225322176f158afbebcd2c336929b"
+    },
+    "21057444/faq_index-17053": {
+      "kind": "supplement",
+      "official_cid": 17053,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=17053&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-17053.html",
+      "text_path": "text/faq_index-17053.txt",
+      "raw_sha256": "f5fe2c0b32640afc291f47af8b99095f295fba5ed86336e368eb67c74170721b",
+      "text_sha256": "fbdb611d755664419f7515fddf0959305599a5fa9d9f64d71cca40630b8342c4"
+    },
+    "27012990/card-14695": {
+      "kind": "supplement",
+      "official_cid": 14695,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=14695&ope=2&request_locale=ja",
+      "raw_path": "raw/card-14695.html",
+      "text_path": "text/card-14695.txt",
+      "raw_sha256": "63141dd297f7dbfb0d8fbacf0d69226790972fb9c492e2f9024a4a0857c4cb28",
+      "text_sha256": "5b660b84a9b3f8bd9b2a6c1c550396cbb99d30138328e7e7f126a965e6474898"
+    },
+    "27012990/faq_index-14695": {
+      "kind": "supplement",
+      "official_cid": 14695,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14695&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-14695.html",
+      "text_path": "text/faq_index-14695.txt",
+      "raw_sha256": "e1b2f188faf3a2ee41b5ab6de754dc48d961690d48df4b46f5bb7b2c6f3fa637",
+      "text_sha256": "acb9196f5a50b461403130689e3a23d995973b3a05369becd8029ff6ed5e95f9"
+    },
+    "28174796/card-14629": {
+      "kind": "supplement",
+      "official_cid": 14629,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=14629&ope=2&request_locale=ja",
+      "raw_path": "raw/card-14629.html",
+      "text_path": "text/card-14629.txt",
+      "raw_sha256": "83bdb679605a3d59cfb045ee349bab2035c6eee9350c442128ac5e36dbcb0e1f",
+      "text_sha256": "9cb63d4d42495ebf90cbad2a0cc2d410e5df26ed50dc5cd7a7bfeb7d251806af"
+    },
+    "28174796/faq_index-14629": {
+      "kind": "supplement",
+      "official_cid": 14629,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14629&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-14629.html",
+      "text_path": "text/faq_index-14629.txt",
+      "raw_sha256": "50b56dbd50ba951fcac466ebb48f8de2a8fcf13b76ad67add94539adb635986a",
+      "text_sha256": "dae398e671e8f685560f845b273b3c0f6111037505928cc8e9459e10ee991657"
+    },
+    "30691817/card-14669": {
+      "kind": "supplement",
+      "official_cid": 14669,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=14669&ope=2&request_locale=ja",
+      "raw_path": "raw/card-14669.html",
+      "text_path": "text/card-14669.txt",
+      "raw_sha256": "62b2e995953637156f61277be4d2584e43b979ee2748e9f9e83f298d0d808e4f",
+      "text_sha256": "101e9d9aab39b31ed95f97ea18f14aa1431d4f4804ebd52fb4d2758fd00dcebc"
+    },
+    "30691817/faq_index-14669": {
+      "kind": "supplement",
+      "official_cid": 14669,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14669&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-14669.html",
+      "text_path": "text/faq_index-14669.txt",
+      "raw_sha256": "de014273e608b9af25afc1d3a9d3294c185f8548dc1233569e6c154d34379a48",
+      "text_sha256": "366af2429418ceb04b307539a592658ac26270b135c12b9d6c2c309190ac968d"
+    },
+    "33945211/card-14992": {
+      "kind": "supplement",
+      "official_cid": 14992,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=14992&ope=2&request_locale=ja",
+      "raw_path": "raw/card-14992.html",
+      "text_path": "text/card-14992.txt",
+      "raw_sha256": "7ab147174f1cf20c502457ae92625ece564e7b81a804cf65f3f29b95440c3d68",
+      "text_sha256": "161a0608897481d631aa18aececb47dd41fcd8ef81e746de327dbf861e1eacf2"
+    },
+    "33945211/faq_index-14992": {
+      "kind": "supplement",
+      "official_cid": 14992,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14992&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-14992.html",
+      "text_path": "text/faq_index-14992.txt",
+      "raw_sha256": "c4bf7ac4ede0a2c6593e80e0329c094309041ad8e06705cd279dc6fc6ef9aecc",
+      "text_sha256": "6c664beea3b143a56519d9a7293f75e2e0c7ebde2d4b5101f4878ae602053537"
+    },
+    "36492575/card-14451": {
+      "kind": "supplement",
+      "official_cid": 14451,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=14451&ope=2&request_locale=ja",
+      "raw_path": "raw/card-14451.html",
+      "text_path": "text/card-14451.txt",
+      "raw_sha256": "2f1ad938b24a6be4226b015032045248280c13f2392ab872ea21a44ce14e953f",
+      "text_sha256": "f450487869d499cd5e68858b4768e3bf431d6269821c88a7556c2e89ced06e42"
+    },
+    "36492575/faq_index-14451": {
+      "kind": "supplement",
+      "official_cid": 14451,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14451&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-14451.html",
+      "text_path": "text/faq_index-14451.txt",
+      "raw_sha256": "c68ac26e64566959025a74b9d97e0c7a1bf4f68738f6d27e12124348fa096917",
+      "text_sha256": "731441c4848a0d1c170220af1b9638d2e3b30c26f83b614ddc6aa082ee95fced"
+    },
+    "37405032/card-20292": {
+      "kind": "supplement",
+      "official_cid": 20292,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=20292&ope=2&request_locale=ja",
+      "raw_path": "raw/card-20292.html",
+      "text_path": "text/card-20292.txt",
+      "raw_sha256": "6a8e0da56531e4723774917cdbb67c5aa29988fb5abed884df1ec5d2da836f56",
+      "text_sha256": "3147ec457bde292b325e0d1e093992fbb23cce582cd023825471209be7b87262"
+    },
+    "37405032/faq_index-20292": {
+      "kind": "supplement",
+      "official_cid": 20292,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=20292&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-20292.html",
+      "text_path": "text/faq_index-20292.txt",
+      "raw_sha256": "f96b342d699c87200b0ea4ca63eefe4d7f65b43a109afa320cc9e5c3fa3d5ddb",
+      "text_sha256": "7608dee97b2bd1660a3afbd2ae352a83da0f1c55a523555be7a3d5f274418eca"
+    },
+    "43735670/card-14488": {
+      "kind": "supplement",
+      "official_cid": 14488,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=14488&ope=2&request_locale=ja",
+      "raw_path": "raw/card-14488.html",
+      "text_path": "text/card-14488.txt",
+      "raw_sha256": "5b82c725321b076aa0dd66276c5f631eb788298271e3edca120788e514f2f07f",
+      "text_sha256": "9c1ee0784f3641b5ec9a6a909ec2b343522c51c3e9a79b9a5571078e956dd451"
+    },
+    "43735670/faq_index-14488": {
+      "kind": "supplement",
+      "official_cid": 14488,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14488&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-14488.html",
+      "text_path": "text/faq_index-14488.txt",
+      "raw_sha256": "f403657ec9b6219fe806e5ada41ef9d89b31e5663529d519497f4f64945b1161",
+      "text_sha256": "4651c1d09cf9c83070f31974ba2141a73b0c28fcc2e2812f58bdbfada55f29dc"
+    },
+    "47910940/card-15040": {
+      "kind": "supplement",
+      "official_cid": 15040,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=15040&ope=2&request_locale=ja",
+      "raw_path": "raw/card-15040.html",
+      "text_path": "text/card-15040.txt",
+      "raw_sha256": "568ef18a659008f5c40f65c7b71e36a47635a9042517d9999812bdf659e785aa",
+      "text_sha256": "f7a8e5d1b862a6560d278a8bac847a6b91b4c675a866dc6bcb3e3d38225fddc4"
+    },
+    "47910940/faq_index-15040": {
+      "kind": "supplement",
+      "official_cid": 15040,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=15040&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-15040.html",
+      "text_path": "text/faq_index-15040.txt",
+      "raw_sha256": "23654e05033f2273b9691e68955759fef0e5a14beffbb59c94d23e19b887cb37",
+      "text_sha256": "de38e62fd06a6791067d2c169dbcc971b69933b1c3ce9dfddb6c79d81e28f8a4"
+    },
+    "52945066/card-14516": {
+      "kind": "supplement",
+      "official_cid": 14516,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=14516&ope=2&request_locale=ja",
+      "raw_path": "raw/card-14516.html",
+      "text_path": "text/card-14516.txt",
+      "raw_sha256": "1354f747e24e2baef72ad31367a741c93cec3de131db67dd49396b86413c2b0e",
+      "text_sha256": "47144599d03caa63317115a2a348b9d05fc78596ea83bb0a83231fd3d8a3ca2e"
+    },
+    "52945066/faq_index-14516": {
+      "kind": "supplement",
+      "official_cid": 14516,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14516&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-14516.html",
+      "text_path": "text/faq_index-14516.txt",
+      "raw_sha256": "4fff1a1378dcf8ac2dd58d3555b6f8262a2779a493b2a1722c8d1c8cf2d2414d",
+      "text_sha256": "5cb6240080680c6d728c44c8601b93d933994001851de5bc05ea1f26910ccbdd"
+    },
+    "54569495/card-14630": {
+      "kind": "supplement",
+      "official_cid": 14630,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=14630&ope=2&request_locale=ja",
+      "raw_path": "raw/card-14630.html",
+      "text_path": "text/card-14630.txt",
+      "raw_sha256": "138e7303ce096d0007771a2a2aa1a1041a3c6e2d26ef0488affb15d2add867c6",
+      "text_sha256": "b779f64724d5f1485dd9dd82ff6765d9656cf4f8f6042939465eef535aff6b66"
+    },
+    "54569495/faq_index-14630": {
+      "kind": "supplement",
+      "official_cid": 14630,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14630&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-14630.html",
+      "text_path": "text/faq_index-14630.txt",
+      "raw_sha256": "5b0a1193e317906f2a92d7eaf545e02c06dbb32c1574b458b5bb350ba695af89",
+      "text_sha256": "c8466f66a4d7b0015a4ebea3ee321e6901ff562e0a40582948c82de4777925f7"
+    },
+    "57329501/card-17057": {
+      "kind": "supplement",
+      "official_cid": 17057,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=17057&ope=2&request_locale=ja",
+      "raw_path": "raw/card-17057.html",
+      "text_path": "text/card-17057.txt",
+      "raw_sha256": "6b7d8f52a111c3c23f4e545c09cd30be79f4b1121eb93264f32e34697d6fc986",
+      "text_sha256": "d7ea1226c37cf4f4f947fea73d7388185704e5fc9c3ccbcf0988e7124154013c"
+    },
+    "57329501/faq_index-17057": {
+      "kind": "supplement",
+      "official_cid": 17057,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=17057&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-17057.html",
+      "text_path": "text/faq_index-17057.txt",
+      "raw_sha256": "04afc470bdf0950678a581637de2779bcbe36800d9fb53a6991c396dc1ed4086",
+      "text_sha256": "9f64a65914b894472d0ce91f3976cb1cf25d46e30201e16743410e4bf6be4552"
+    },
+    "57541158/card-17054": {
+      "kind": "supplement",
+      "official_cid": 17054,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=17054&ope=2&request_locale=ja",
+      "raw_path": "raw/card-17054.html",
+      "text_path": "text/card-17054.txt",
+      "raw_sha256": "bae0c755519856a0e581934e5716a6c2388f24c4c12fdee66ee84a12d4c5b528",
+      "text_sha256": "da5e3f754e53062a2f5aa81817e68aed2a9163f45c41597ee76698ca5a229f1a"
+    },
+    "57541158/faq_index-17054": {
+      "kind": "supplement",
+      "official_cid": 17054,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=17054&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-17054.html",
+      "text_path": "text/faq_index-17054.txt",
+      "raw_sha256": "1064adbd804e413a875662b03706415845791ce5bb9d5f3a780a2fb517ca9fa6",
+      "text_sha256": "33e45b3705e61cf82d84a57bebd67325a9cdab2ab5e3d19cc422142aa9a5c55e"
+    },
+    "62886670/card-14452": {
+      "kind": "supplement",
+      "official_cid": 14452,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=14452&ope=2&request_locale=ja",
+      "raw_path": "raw/card-14452.html",
+      "text_path": "text/card-14452.txt",
+      "raw_sha256": "ca82ae132f9f62e112200b39bfae22ab2c5ee44ba313a9075560ed3ed0a923cb",
+      "text_sha256": "c1bbad844c05448dcd2e6f57f3ea6d550e6968139b37227eb24ae8f1f713b786"
+    },
+    "62886670/faq_index-14452": {
+      "kind": "supplement",
+      "official_cid": 14452,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14452&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-14452.html",
+      "text_path": "text/faq_index-14452.txt",
+      "raw_sha256": "6750c42169b99bb18c8401a26d16dbd4fdee349954b0bbb8e6cd088435aa676f",
+      "text_sha256": "2408d52f98d495b63222626f1b057722c62e421b0889faa1c85d9467f077ccb7"
+    },
+    "67712104/card-14667": {
+      "kind": "supplement",
+      "official_cid": 14667,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=14667&ope=2&request_locale=ja",
+      "raw_path": "raw/card-14667.html",
+      "text_path": "text/card-14667.txt",
+      "raw_sha256": "de2e567afd020b174d920161ea2609b2f7835cbabdaea0a0df869967d0e9fc68",
+      "text_sha256": "2a897da45333fb2c22613984451ab11e2487a5bfc56e9a284bf557bb538a240a"
+    },
+    "67712104/faq_index-14667": {
+      "kind": "supplement",
+      "official_cid": 14667,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14667&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-14667.html",
+      "text_path": "text/faq_index-14667.txt",
+      "raw_sha256": "2dc554e221c748b5b525a47ec4c4867585fa9224d77515badf3ff2df47557642",
+      "text_sha256": "c7267259e3e13ffa17f9ef2ae2d306fd13e2198fb78627dbd84cd29f9376e69c"
+    },
+    "79130389/card-14489": {
+      "kind": "supplement",
+      "official_cid": 14489,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=14489&ope=2&request_locale=ja",
+      "raw_path": "raw/card-14489.html",
+      "text_path": "text/card-14489.txt",
+      "raw_sha256": "5f1e384ae480d30dc4a868fd428721ecbae4b73551786dd0af8955041b4d700e",
+      "text_sha256": "bd458dca284929f3dfd3e3536996a17004389f464087a229b1b32d48719fad57"
+    },
+    "79130389/faq_index-14489": {
+      "kind": "supplement",
+      "official_cid": 14489,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14489&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-14489.html",
+      "text_path": "text/faq_index-14489.txt",
+      "raw_sha256": "99ca8800f148a9b0ab681dbc0dd54ab81ddc274c33cbe1b793420ab802bcc03e",
+      "text_sha256": "055e021726dbdb56c7da6aecba49872d77a19557fdf9a61203d6bc3c4820fedc"
+    },
+    "80627281/card-14694": {
+      "kind": "supplement",
+      "official_cid": 14694,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=14694&ope=2&request_locale=ja",
+      "raw_path": "raw/card-14694.html",
+      "text_path": "text/card-14694.txt",
+      "raw_sha256": "15e56058409c6132ba8b0e527f323cdafbe7930d68971a0bd1bcf18adf6da281",
+      "text_sha256": "0288151b7ff821c6dd8c2e2e0e3fbcafc2bf8d1ed8780194fce8fb49f4275e16"
+    },
+    "80627281/faq_index-14694": {
+      "kind": "supplement",
+      "official_cid": 14694,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14694&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-14694.html",
+      "text_path": "text/faq_index-14694.txt",
+      "raw_sha256": "1407687a01c0503b211bd06eb238e278654dda75eb95216b59f967229412c962",
+      "text_sha256": "16ec754cd1fb60df6522b8ecf52854d2623984e62165b2f9191cb2d6e9d2693b"
+    },
+    "83723605/card-17058": {
+      "kind": "supplement",
+      "official_cid": 17058,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=17058&ope=2&request_locale=ja",
+      "raw_path": "raw/card-17058.html",
+      "text_path": "text/card-17058.txt",
+      "raw_sha256": "bf2f8f85468d1a7766f6e500cde3121b0011ec5194d80672fc0dd44c4143cbcc",
+      "text_sha256": "7ae79d99c9390655868d4caef0cb1cf572460cabc0d91a69c088a2dcba38769f"
+    },
+    "83723605/faq_index-17058": {
+      "kind": "supplement",
+      "official_cid": 17058,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=17058&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-17058.html",
+      "text_path": "text/faq_index-17058.txt",
+      "raw_sha256": "09c08af20d94b01763d0acbc128e72d014ca863459a0df3ff5a2915b333b642a",
+      "text_sha256": "8f1cd7a9a8786f4567b6f26acc559c6580774d498cf699c79fe8d5fb5e019d8f"
+    },
+    "84430165/card-14517": {
+      "kind": "supplement",
+      "official_cid": 14517,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=14517&ope=2&request_locale=ja",
+      "raw_path": "raw/card-14517.html",
+      "text_path": "text/card-14517.txt",
+      "raw_sha256": "eec606dddedab65a7257c5aef4d6d12693ca92708fb9911d33b3fffd361e17d7",
+      "text_sha256": "19058383afbe3301d193850b1ae21735e9cb6d762edffc21007621d61baa9696"
+    },
+    "84430165/faq_index-14517": {
+      "kind": "supplement",
+      "official_cid": 14517,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14517&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-14517.html",
+      "text_path": "text/faq_index-14517.txt",
+      "raw_sha256": "d01fcca741ea372277288352decb3e9b6f5ee01e9ae8597b1e642ff8dad59073",
+      "text_sha256": "c31f663949ed4bad5f2be9520cbefef65b47508e0c4d42e8220ea5ab655d9250"
+    },
+    "84546257/card-17055": {
+      "kind": "supplement",
+      "official_cid": 17055,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=17055&ope=2&request_locale=ja",
+      "raw_path": "raw/card-17055.html",
+      "text_path": "text/card-17055.txt",
+      "raw_sha256": "cf742ee2174fff2586da192dff0fee9b1ed121f91f08f2394d8c67f2553e7e51",
+      "text_sha256": "72511af647f2a04b1abbc9f4d43a2820d3199c4160ed777c71ae758b431bbdc6"
+    },
+    "84546257/faq_index-17055": {
+      "kind": "supplement",
+      "official_cid": 17055,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=17055&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-17055.html",
+      "text_path": "text/faq_index-17055.txt",
+      "raw_sha256": "3a5fc7c42b730b933709fe19962c5af38fa01cbbf99d7cb9024cb5fd22098576",
+      "text_sha256": "81705889cebf4604decfcb71d61c35ea2a19660755dba0634e8c9b9fda2271d9"
+    },
+    "91027843/card-14680": {
+      "kind": "supplement",
+      "official_cid": 14680,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=14680&ope=2&request_locale=ja",
+      "raw_path": "raw/card-14680.html",
+      "text_path": "text/card-14680.txt",
+      "raw_sha256": "9d653b1d9fd5cd5225306c0c6ef678b4623cdc8ed267eb9f193006a09d804009",
+      "text_sha256": "c968aa2e968b914dc4d0b385510529fadf17bccc79bdfea058811725845a8830"
+    },
+    "91027843/faq_index-14680": {
+      "kind": "supplement",
+      "official_cid": 14680,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14680&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-14680.html",
+      "text_path": "text/faq_index-14680.txt",
+      "raw_sha256": "35653ae60da52a148f2d1dfc3cf156403077a2be169565fabaaffee4502f40cc",
+      "text_sha256": "1b6abc14c6e2714909ce58e266bf9b9b479bc88b90037f8c0224f3a00d95bc41"
+    },
+    "91953000/card-14631": {
+      "kind": "supplement",
+      "official_cid": 14631,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=14631&ope=2&request_locale=ja",
+      "raw_path": "raw/card-14631.html",
+      "text_path": "text/card-14631.txt",
+      "raw_sha256": "79478634b36225c3f135104bcc50c25ec0b55919deb7086da20dd73ccb60431e",
+      "text_sha256": "f748ddafc4d697f67d634abc34907c3d4c02548a4647385dcd7c3b1fa4a7ee3c"
+    },
+    "91953000/faq_index-14631": {
+      "kind": "supplement",
+      "official_cid": 14631,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14631&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-14631.html",
+      "text_path": "text/faq_index-14631.txt",
+      "raw_sha256": "f574ac8539d3da6e0864cdbf892cacf2d66a4b6975d329700ba77aae3d7226d7",
+      "text_sha256": "ef3f7e1eed1622ee22f4073eec405aff4e32b57ae5a259500b88719bb250d73d"
+    },
+    "94207108/card-14668": {
+      "kind": "supplement",
+      "official_cid": 14668,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=14668&ope=2&request_locale=ja",
+      "raw_path": "raw/card-14668.html",
+      "text_path": "text/card-14668.txt",
+      "raw_sha256": "b6d7357e5fda4834b6871fae7fba3fc517bd138f0458adddb451b8fc7bbb2d4d",
+      "text_sha256": "e74bbc3f77396575f20cbeac35509b632490e9ad27827de0f35ce3a97bd4aa2a"
+    },
+    "94207108/faq_index-14668": {
+      "kind": "supplement",
+      "official_cid": 14668,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14668&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-14668.html",
+      "text_path": "text/faq_index-14668.txt",
+      "raw_sha256": "00edc02b03606ebb70966435acb10cdd75d803fc2b13a75f99fcfda57842a51d",
+      "text_sha256": "bedb26ffdf6599529d2c0419cca1fbcdf2c87ef58616532a1997301e3de9e50f"
+    },
+    "99885917/card-14788": {
+      "kind": "supplement",
+      "official_cid": 14788,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=14788&ope=2&request_locale=ja",
+      "raw_path": "raw/card-14788.html",
+      "text_path": "text/card-14788.txt",
+      "raw_sha256": "bc04051129b987fd141d782c3962572d9eb7df7b11d9f54be5b2dc68e0e78e0f",
+      "text_sha256": "7d794a46a26b95aaffe395b8ea5c1d71917f4cea17255734c33efdbaf440e6a9"
+    },
+    "99885917/faq_index-14788": {
+      "kind": "supplement",
+      "official_cid": 14788,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14788&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-14788.html",
+      "text_path": "text/faq_index-14788.txt",
+      "raw_sha256": "c4e8ce16f74c711a2a2da8608e17832768270adc5990f9699da8625ce886dbc3",
+      "text_sha256": "e241d2d366dc02815a0a95bd5c517cfefd6fd2ea21c46fd2d169317a5c1450e7"
+    },
+    "3395226/card-11225": {
+      "kind": "supplement",
+      "official_cid": 11225,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=11225&ope=2&request_locale=ja",
+      "raw_path": "raw/card-11225.html",
+      "text_path": "text/card-11225.txt",
+      "raw_sha256": "882fc98a726868577db45db05de5860c38e0fc37d608ceb86d5b7159bb43f4f8",
+      "text_sha256": "0ebae1d8f6cb55846dd358c0e2ecd68da2a7982bfc670c7310413cd7684e6d60"
+    },
+    "3395226/faq_index-11225": {
+      "kind": "supplement",
+      "official_cid": 11225,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=11225&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-11225.html",
+      "text_path": "text/faq_index-11225.txt",
+      "raw_sha256": "52231b7389aaaed2c4df5b42d29fdedb5458abf68838cd01fedbda10f2b10f1d",
+      "text_sha256": "796a219e005b50d2ac8ead59202562f7de17b3719b72cc94bf0214cb7f2a1239"
+    },
+    "5908650/card-11339": {
+      "kind": "supplement",
+      "official_cid": 11339,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=11339&ope=2&request_locale=ja",
+      "raw_path": "raw/card-11339.html",
+      "text_path": "text/card-11339.txt",
+      "raw_sha256": "f774629ef77b3466fc7aa41ee343de6c96d0fba0780a62a23e83e9d87c08df83",
+      "text_sha256": "040a3d3992fae77ee16b8afbd29cc4857734259164a1846f9d0d795e457ad9da"
+    },
+    "5908650/faq_index-11339": {
+      "kind": "supplement",
+      "official_cid": 11339,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=11339&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-11339.html",
+      "text_path": "text/faq_index-11339.txt",
+      "raw_sha256": "a9c254d0b3c22b3ed7dcc08a57eeeac323e6ac03443f1c848e98a0aec4c8e1f4",
+      "text_sha256": "99dd904a300f9a5dd9d5f9c8e966642602ec51eb4b701ff780b7402fbb6917e9"
+    },
+    "14763299/card-12120": {
+      "kind": "supplement",
+      "official_cid": 12120,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=12120&ope=2&request_locale=ja",
+      "raw_path": "raw/card-12120.html",
+      "text_path": "text/card-12120.txt",
+      "raw_sha256": "a4a3e8afd384eca4c314f8d03a2f2bcc816c49765497914b0c1695cfa6ae94e2",
+      "text_sha256": "85870d89baff61fd508ff259af04a691f24fbf5d5e4313aa5d7c3403cc878afd"
+    },
+    "14763299/faq_index-12120": {
+      "kind": "supplement",
+      "official_cid": 12120,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=12120&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-12120.html",
+      "text_path": "text/faq_index-12120.txt",
+      "raw_sha256": "8389e09e8fb68e12dc0e22156161c010ac8bd04c3ad573fa9c20c39128724360",
+      "text_sha256": "32179a7776458c0ac31440ffc2142bcfe73d6ba2a4c01bbe7899d3df6093e852"
+    },
+    "16021142/card-11336": {
+      "kind": "supplement",
+      "official_cid": 11336,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=11336&ope=2&request_locale=ja",
+      "raw_path": "raw/card-11336.html",
+      "text_path": "text/card-11336.txt",
+      "raw_sha256": "5ce22be751d6f22fb2bc074654464492cae40e59ec2c98b9d6bc211f43d6184d",
+      "text_sha256": "0ca3e560a2ff1197ea310137ab1be4f9560e50fb774c8819ee70850b328fef0a"
+    },
+    "16021142/faq_index-11336": {
+      "kind": "supplement",
+      "official_cid": 11336,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=11336&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-11336.html",
+      "text_path": "text/faq_index-11336.txt",
+      "raw_sha256": "59b2d59e0740cf3b02b6800d4be91cc9aefb31e0cc26d860e76212a6b74800e0",
+      "text_sha256": "dd9c11e4b7a6dbb83eaba6f9dd336bfcfa508ea14ba4d40a1d204ccfc765ed02"
+    },
+    "24672164/card-12317": {
+      "kind": "supplement",
+      "official_cid": 12317,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=12317&ope=2&request_locale=ja",
+      "raw_path": "raw/card-12317.html",
+      "text_path": "text/card-12317.txt",
+      "raw_sha256": "3739dab5cab833c3b97ffb608268f3fcdf4d4f67d92ac5e227432e1d5e7a6ece",
+      "text_sha256": "9985964876e95eb20cb4de08640b54d6a2cf33ac79eb39d41e284602cd881d6b"
+    },
+    "24672164/faq_index-12317": {
+      "kind": "supplement",
+      "official_cid": 12317,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=12317&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-12317.html",
+      "text_path": "text/faq_index-12317.txt",
+      "raw_sha256": "598a2af0da5e2c368a09dea0634c1ec27b4984bc561d44b03a396d34c1b256f6",
+      "text_sha256": "e533c2550b0650a46f2b22a2b413166852955e9c6b0cb620211a8169897fec8e"
+    },
+    "31458630/card-19897": {
+      "kind": "supplement",
+      "official_cid": 19897,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=19897&ope=2&request_locale=ja",
+      "raw_path": "raw/card-19897.html",
+      "text_path": "text/card-19897.txt",
+      "raw_sha256": "03c8a4c16402152d40be69d9423eaa159c3d1c35e9d7782e0a401cf461dbb156",
+      "text_sha256": "fd11e653b488213fb8d38d493c5e0663ac062f43ac6ce28804fbfdd5d827896b"
+    },
+    "31458630/faq_index-19897": {
+      "kind": "supplement",
+      "official_cid": 19897,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=19897&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-19897.html",
+      "text_path": "text/faq_index-19897.txt",
+      "raw_sha256": "c2bf9e89edea61965d01f0cfa328dcf9a2e1b991c307817afda967eb438fbe07",
+      "text_sha256": "4527a359a87916d320a3815258b8798801d953791d77ce356ec81548e8dd2624"
+    },
+    "34974462/card-14943": {
+      "kind": "supplement",
+      "official_cid": 14943,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=14943&ope=2&request_locale=ja",
+      "raw_path": "raw/card-14943.html",
+      "text_path": "text/card-14943.txt",
+      "raw_sha256": "e0c39bad2d169e95e1295e79ac21f56d061d97f2111d1a4e80cc867d964b715d",
+      "text_sha256": "88126553b825060b57fe468fb21c4d13671b149ff3a237af3276f4cd4dade4b1"
+    },
+    "34974462/faq_index-14943": {
+      "kind": "supplement",
+      "official_cid": 14943,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=14943&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-14943.html",
+      "text_path": "text/faq_index-14943.txt",
+      "raw_sha256": "2385c64ce105bd57a5e39f1e07bd42c2d5200d850c4f84759a6fef7fbb092a0b",
+      "text_sha256": "3ebd7f7ba1f80d99dd7e4888a0f16eccbda214e348b5afa74f1e70380a499649"
+    },
+    "40502912/card-11223": {
+      "kind": "supplement",
+      "official_cid": 11223,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=11223&ope=2&request_locale=ja",
+      "raw_path": "raw/card-11223.html",
+      "text_path": "text/card-11223.txt",
+      "raw_sha256": "16b80406d0b6cd7fe19f312c7fd8b18bd46c380b4381587a59b287bbf2d48904",
+      "text_sha256": "f1426c9b2f58db9c7d15830ef3711771a298355915c86b124917a25bb4bffaa5"
+    },
+    "40502912/faq_index-11223": {
+      "kind": "supplement",
+      "official_cid": 11223,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=11223&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-11223.html",
+      "text_path": "text/faq_index-11223.txt",
+      "raw_sha256": "25b2f90c6991c79ade42735ea58a114d8ca165ca552d2e22b501689999121bba",
+      "text_sha256": "20679809cc34d89ea44eb19549558c5c93ed0620c08655f8dbbd966b28e4b106"
+    },
+    "41767843/card-12121": {
+      "kind": "supplement",
+      "official_cid": 12121,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=12121&ope=2&request_locale=ja",
+      "raw_path": "raw/card-12121.html",
+      "text_path": "text/card-12121.txt",
+      "raw_sha256": "3542d620a226122b15fe9705ac1fc7217facf34b8e1f1c1b9748e087998bde49",
+      "text_sha256": "2e03db89baa807624f5e8384482858730b46babbc3700f7ec9df3fda192359e6"
+    },
+    "41767843/faq_index-12121": {
+      "kind": "supplement",
+      "official_cid": 12121,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=12121&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-12121.html",
+      "text_path": "text/faq_index-12121.txt",
+      "raw_sha256": "3694c58aeb478e302de7b01bfc4b0eaed285b76fa156035cd4a5962c4767586a",
+      "text_sha256": "0ad1fa67976f49c0d7a21a8ae73e4f0682dea4a6c8df9dbabae3d3f30e52036a"
+    },
+    "42029847/card-11337": {
+      "kind": "supplement",
+      "official_cid": 11337,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=11337&ope=2&request_locale=ja",
+      "raw_path": "raw/card-11337.html",
+      "text_path": "text/card-11337.txt",
+      "raw_sha256": "12098a12f2a6523d9ffe8b947679ef0191ff892376e835cb1e0de62651c2216c",
+      "text_sha256": "caa5249d521cec71dffbff99a9f92c87621657d3aa4901c40ac2f7f35369865f"
+    },
+    "42029847/faq_index-11337": {
+      "kind": "supplement",
+      "official_cid": 11337,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=11337&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-11337.html",
+      "text_path": "text/faq_index-11337.txt",
+      "raw_sha256": "4a5c27cc2b98e3324dddb64650a8c89c40152f46cc4e4e37293b068f40a7c664",
+      "text_sha256": "3fdcf54872131efce4aca55196123e491ab11561cb46bea3aef919bbae424d96"
+    },
+    "43268675/card-11792": {
+      "kind": "supplement",
+      "official_cid": 11792,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=11792&ope=2&request_locale=ja",
+      "raw_path": "raw/card-11792.html",
+      "text_path": "text/card-11792.txt",
+      "raw_sha256": "f0d3a9bb15820626959643bd0980ae0aba6b92120dd3b63e98972e98aaf2f60f",
+      "text_sha256": "e59eafbde858995ef370558385d6fbf7fcae26296acb01af1faa6b74a6527d0a"
+    },
+    "43268675/faq_index-11792": {
+      "kind": "supplement",
+      "official_cid": 11792,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=11792&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-11792.html",
+      "text_path": "text/faq_index-11792.txt",
+      "raw_sha256": "9ca92b5aa17406177cd1975b490825bef6cf07870363e3952cfbc8bb6dd5bc31",
+      "text_sha256": "f42d1bd1c486132d4f180ee06491f4167adb76ba16b8e3b24a589771e6c94871"
+    },
+    "56208713/card-19876": {
+      "kind": "supplement",
+      "official_cid": 19876,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=19876&ope=2&request_locale=ja",
+      "raw_path": "raw/card-19876.html",
+      "text_path": "text/card-19876.txt",
+      "raw_sha256": "61de9a2b4a1031dfe2189a0c902c472be4ae86591ce813291e9480ba3042a641",
+      "text_sha256": "01cf2f0c43327a1fc1ea5edddd98a17b1e107fc0240bedeb00c6a735bf53c6ad"
+    },
+    "56208713/faq_index-19876": {
+      "kind": "supplement",
+      "official_cid": 19876,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=19876&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-19876.html",
+      "text_path": "text/faq_index-19876.txt",
+      "raw_sha256": "56401d07fd0903d20393e51da4d18ae6f7652e3b6b208a386c98b4a4a0902d34",
+      "text_sha256": "99779122d48c9681e63289dabac05a59639e9c1d65d7ac67fbe33b94e51cc85d"
+    },
+    "57594700/card-11714": {
+      "kind": "supplement",
+      "official_cid": 11714,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=11714&ope=2&request_locale=ja",
+      "raw_path": "raw/card-11714.html",
+      "text_path": "text/card-11714.txt",
+      "raw_sha256": "898b1fb4912f95474732cc6746b86080321b863ee254182615ea2ae4c4b8ab91",
+      "text_sha256": "fdc9c9dd594a16d8dc4fa2f464ba16199034b784b81db662b83966dff91f1bb2"
+    },
+    "57594700/faq_index-11714": {
+      "kind": "supplement",
+      "official_cid": 11714,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=11714&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-11714.html",
+      "text_path": "text/faq_index-11714.txt",
+      "raw_sha256": "1bb395b3fd20c1e9399ae681fd6593aee878f2ccc223eca9eadda00da14600c2",
+      "text_sha256": "2d2f0466a386df7a6c227e66131940acd091e044041f55109138fdce7ca8356b"
+    },
+    "62895219/card-11685": {
+      "kind": "supplement",
+      "official_cid": 11685,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=11685&ope=2&request_locale=ja",
+      "raw_path": "raw/card-11685.html",
+      "text_path": "text/card-11685.txt",
+      "raw_sha256": "a25a2f1bd2f28ea9b596c1a9a637680d02c5e954dff73f9d0e4fa2ffec88f7ba",
+      "text_sha256": "5efc7a1b77dad2725bf248f1a6643dbee4b842b12832459cd304ca7e89a97a5b"
+    },
+    "62895219/faq_index-11685": {
+      "kind": "supplement",
+      "official_cid": 11685,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=11685&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-11685.html",
+      "text_path": "text/faq_index-11685.txt",
+      "raw_sha256": "06b1c06b7299fefca90fe70450bd7637ce113305bc3a7a5bc83b3f1d4096a544",
+      "text_sha256": "5a469ac6814334ff50c35a357a0180d9a38a9790984dc363a96db609b3b3b28a"
+    },
+    "63804637/card-11742": {
+      "kind": "supplement",
+      "official_cid": 11742,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=11742&ope=2&request_locale=ja",
+      "raw_path": "raw/card-11742.html",
+      "text_path": "text/card-11742.txt",
+      "raw_sha256": "bfade3ef1d6e806bd77fe6110bc31cb6871637125a4eeeed118df6ff4fe970f1",
+      "text_sha256": "5c166528170c502c8ff88c5b70e9e99f7e0dd5d2855cf435a373a2a7483ff49a"
+    },
+    "63804637/faq_index-11742": {
+      "kind": "supplement",
+      "official_cid": 11742,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=11742&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-11742.html",
+      "text_path": "text/faq_index-11742.txt",
+      "raw_sha256": "0e2ecffdc4eec9938e80ab7458dd506e2d31dde9394fca6131384a55881f704d",
+      "text_sha256": "ce3f4eca0eeeb47802b99265da2282feadffe9fb8d37cce0f366230e20b051ae"
+    },
+    "64881644/card-19850": {
+      "kind": "supplement",
+      "official_cid": 19850,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=19850&ope=2&request_locale=ja",
+      "raw_path": "raw/card-19850.html",
+      "text_path": "text/card-19850.txt",
+      "raw_sha256": "2ca4fa1ef1171cae0b5da37f0b88a7aa6c6632814c7f153ec62c01880beb8156",
+      "text_sha256": "3aa2c454f7bcae071574999bc546e56d792b75b54dea8d7b0a744f521f375637"
+    },
+    "64881644/faq_index-19850": {
+      "kind": "supplement",
+      "official_cid": 19850,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=19850&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-19850.html",
+      "text_path": "text/faq_index-19850.txt",
+      "raw_sha256": "0ebed1a734cdb04fa79897e8626554d15ce79c88279d2f79a15dfa2288827260",
+      "text_sha256": "9fcec9f86d01ba32e2d300b5492643d3e994def4e4de2794113b90c5bb06c7e6"
+    },
+    "76990617/card-11224": {
+      "kind": "supplement",
+      "official_cid": 11224,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=11224&ope=2&request_locale=ja",
+      "raw_path": "raw/card-11224.html",
+      "text_path": "text/card-11224.txt",
+      "raw_sha256": "0a7adf8e75dea78d2a283918875dae67b56f6df6383175de41adec3f4dacda3c",
+      "text_sha256": "a7326c5916890b9f53532c988b10ad2cef0787ab365beacf8e0c04e281cd9c93"
+    },
+    "76990617/faq_index-11224": {
+      "kind": "supplement",
+      "official_cid": 11224,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=11224&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-11224.html",
+      "text_path": "text/faq_index-11224.txt",
+      "raw_sha256": "74f44a93cdf25d727961a9d4ad597b7d8ee7173cdd6fdc4730f4b533319d1181",
+      "text_sha256": "d67a0e8e81bf446b85c97d1e225b591e1300a93db786876bd8e2d40d1c52d5a6"
+    },
+    "79514956/card-11338": {
+      "kind": "supplement",
+      "official_cid": 11338,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=11338&ope=2&request_locale=ja",
+      "raw_path": "raw/card-11338.html",
+      "text_path": "text/card-11338.txt",
+      "raw_sha256": "87f86c5283356137bee836b643a021fc57d540d3c3a42ed1c401ec09847673b7",
+      "text_sha256": "dee8b57d0ff61ba84fbadc2be7206447aee81aa22fa15873ca285dde5cb34529"
+    },
+    "79514956/faq_index-11338": {
+      "kind": "supplement",
+      "official_cid": 11338,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=11338&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-11338.html",
+      "text_path": "text/faq_index-11338.txt",
+      "raw_sha256": "703076812b29721215c5c953a965133e76bda77bdc8e8a88a7196752fe31e000",
+      "text_sha256": "64fe34f3d03af9f9913174c4dfdb3204666a13a71f889c6284b8a553c4006be2"
+    },
+    "79757784/card-11793": {
+      "kind": "supplement",
+      "official_cid": 11793,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=11793&ope=2&request_locale=ja",
+      "raw_path": "raw/card-11793.html",
+      "text_path": "text/card-11793.txt",
+      "raw_sha256": "ca3c0d544fdb43a63adb7ecf1a4eac1c9a9827e5cc8ec6bbea244d37977a61a1",
+      "text_sha256": "a0f3772420d8c0781a97bd068a324e974a7ccaebbbe64a5ee0a7404f60d88a02"
+    },
+    "79757784/faq_index-11793": {
+      "kind": "supplement",
+      "official_cid": 11793,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=11793&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-11793.html",
+      "text_path": "text/faq_index-11793.txt",
+      "raw_sha256": "6d61d81b1968440f42518653f3d09c8d63a1b1d356064fc1be650294c645fc51",
+      "text_sha256": "3df1af41a9a90ee8de248f69b54e0927e12d9768e321881a90ae2c41199cc17a"
+    },
+    "83793721/card-19877": {
+      "kind": "supplement",
+      "official_cid": 19877,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=19877&ope=2&request_locale=ja",
+      "raw_path": "raw/card-19877.html",
+      "text_path": "text/card-19877.txt",
+      "raw_sha256": "aaeb3e21a707ce7b3bbc5da1eb79598850fd0e3d831544e258e0bc98df65912e",
+      "text_sha256": "9e57248698d761a517bd4e015de0851544ca19833f8b1174c915b60efb24e64a"
+    },
+    "83793721/faq_index-19877": {
+      "kind": "supplement",
+      "official_cid": 19877,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=19877&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-19877.html",
+      "text_path": "text/faq_index-19877.txt",
+      "raw_sha256": "5e4f8de6be490e73ff3de5bf6d7f8d2c0a6584c57bf378b02691f6ca79e60f8e",
+      "text_sha256": "1064e0c25bc7640f1826c0009dd3588c58aa45d0fe8c987c3416170d912e7e19"
+    },
+    "84988419/card-11715": {
+      "kind": "supplement",
+      "official_cid": 11715,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=11715&ope=2&request_locale=ja",
+      "raw_path": "raw/card-11715.html",
+      "text_path": "text/card-11715.txt",
+      "raw_sha256": "7c93dcdd53c6797ce12f8a8cbe3335c07cb7b4c33fa3486201ca50a8d1cca147",
+      "text_sha256": "9cf333618068b4d3d1ae03a8099c4604945c6660798846c90b6d7c4c332e4f1c"
+    },
+    "84988419/faq_index-11715": {
+      "kind": "supplement",
+      "official_cid": 11715,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=11715&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-11715.html",
+      "text_path": "text/faq_index-11715.txt",
+      "raw_sha256": "4017e1c60b19ebcf1af088317c5b2328e7c9d8717d88e641b4e9babe5355d3ed",
+      "text_sha256": "3dedeafc797e18f7e6a2217579ecc4109b473929be36e59f26c8d6e9805bd13b"
+    },
+    "84988419/faq-15094": {
+      "kind": "supplement",
+      "official_cid": 11715,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?fid=15094&ope=5&request_locale=ja",
+      "raw_path": "raw/faq-15094.html",
+      "text_path": "text/faq-15094.txt",
+      "raw_sha256": "13e02cf046a73e0754bbfe382974d0fee7554bdadc256592f83b4de6fdbed277",
+      "text_sha256": "fec9fa222d62d26738fc6c25b8be68f8b583ec5d0a26eafc40bb07deed5edd4d"
+    },
+    "90276649/card-19851": {
+      "kind": "supplement",
+      "official_cid": 19851,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=19851&ope=2&request_locale=ja",
+      "raw_path": "raw/card-19851.html",
+      "text_path": "text/card-19851.txt",
+      "raw_sha256": "741f43820d4a5d6e0898e87cd6211471c1f8cf1a395d803c9d4292426d3e9983",
+      "text_sha256": "e37041c7bb14d4b9991a29b1012b33549a1a6b4f5e616aad5e664d5043f08a01"
+    },
+    "90276649/faq_index-19851": {
+      "kind": "supplement",
+      "official_cid": 19851,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=19851&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-19851.html",
+      "text_path": "text/faq_index-19851.txt",
+      "raw_sha256": "ef87082a07f7f57d3f20f1f13ab2865b3e4d0d327703498efc088d2e74f5be71",
+      "text_sha256": "ef62607ef34d5cd46514da15054202976739ff09d6fcadfd5045a0b9482d64fe"
+    },
+    "9464441/card-15105": {
+      "kind": "supplement",
+      "official_cid": 15105,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=15105&ope=2&request_locale=ja",
+      "raw_path": "raw/card-15105.html",
+      "text_path": "text/card-15105.txt",
+      "raw_sha256": "6f872d2ec2b8dac8e610b1ee63bd7378725e18eb6a31480073940fd9ab1fb5da",
+      "text_sha256": "508a5409e12a7902c73dd8d4789498640957d02a95d9671cb9e3c541e3d49eda"
+    },
+    "9464441/faq_index-15105": {
+      "kind": "supplement",
+      "official_cid": 15105,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=15105&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-15105.html",
+      "text_path": "text/faq_index-15105.txt",
+      "raw_sha256": "bf57340a6fe3f7ac9f3bdcba993ffb024095f8071013023a3a48e93e2a0d2098",
+      "text_sha256": "f6427f206969ae07b13b38a6613aabaa3582dd50966c3f673e8b1015420d4413"
+    },
+    "10286023/card-15102": {
+      "kind": "supplement",
+      "official_cid": 15102,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=15102&ope=2&request_locale=ja",
+      "raw_path": "raw/card-15102.html",
+      "text_path": "text/card-15102.txt",
+      "raw_sha256": "c6b32ab6cb348fdd91efd61ff8752388861b0eddce962aa648428ea8aaff90dc",
+      "text_sha256": "4f8fa289db060209e5e30969fbf641a2ac595b0f19f09474e7d4556e2805afd9"
+    },
+    "10286023/faq_index-15102": {
+      "kind": "supplement",
+      "official_cid": 15102,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=15102&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-15102.html",
+      "text_path": "text/faq_index-15102.txt",
+      "raw_sha256": "23d3b376f609630d71b26b24654e52de0483e0fc6e4ed804f4d19f52a0c12496",
+      "text_sha256": "591db0a08110157a6a440eb1e31303ded4ef325dedea45b51efaa43d8791d8fd"
+    },
+    "11302671/card-15099": {
+      "kind": "supplement",
+      "official_cid": 15099,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=15099&ope=2&request_locale=ja",
+      "raw_path": "raw/card-15099.html",
+      "text_path": "text/card-15099.txt",
+      "raw_sha256": "aeaf9c66008b981e6639ceaa5529eb1757e5079425dba2d5fae21c22dde34c1a",
+      "text_sha256": "076697fe93707d90ff780dfc4b1df765396dc642268187312e19704c3e5e339a"
+    },
+    "11302671/faq_index-15099": {
+      "kind": "supplement",
+      "official_cid": 15099,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=15099&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-15099.html",
+      "text_path": "text/faq_index-15099.txt",
+      "raw_sha256": "c329ab87c18b20405b88db608a5f184d0f725f64611fe8ec62d5957c66aabf00",
+      "text_sha256": "1fc22dd6f959556a2edb6ba441aee32ab187f4d896fbc35b04271fee31403025"
+    },
+    "48519867/card-15097": {
+      "kind": "supplement",
+      "official_cid": 15097,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=15097&ope=2&request_locale=ja",
+      "raw_path": "raw/card-15097.html",
+      "text_path": "text/card-15097.txt",
+      "raw_sha256": "6e2cc79e2f13d3e0c8e15edadec0dead53c268853cf814f0548a023b1e9dd256",
+      "text_sha256": "3608dfba74c954d709e672bf750d3cb270013ec8273d0823b4a3fe032be5558a"
+    },
+    "48519867/faq_index-15097": {
+      "kind": "supplement",
+      "official_cid": 15097,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=15097&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-15097.html",
+      "text_path": "text/faq_index-15097.txt",
+      "raw_sha256": "cdc511b094f3650b5295882c1b0e902b079bfee1a831baca6a6edebc1ce52f13",
+      "text_sha256": "fa479158e96640d754a44f0a4e74cf33e5c1c15f776d15e5916b9ad8dfe965a2"
+    },
+    "85914562/card-15098": {
+      "kind": "supplement",
+      "official_cid": 15098,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=15098&ope=2&request_locale=ja",
+      "raw_path": "raw/card-15098.html",
+      "text_path": "text/card-15098.txt",
+      "raw_sha256": "c995e31e1d536537bb8c88fc181cab040c521a8caf89ca2751b0bb49025a450f",
+      "text_sha256": "57e4aaff99b2e120750615a154caa84b1dd0ddbad8bde8a1bfc914313a15b00b"
+    },
+    "85914562/faq_index-15098": {
+      "kind": "supplement",
+      "official_cid": 15098,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=15098&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-15098.html",
+      "text_path": "text/faq_index-15098.txt",
+      "raw_sha256": "6726c6c2da4abdeb6e949c4678c8290c94c847b672882acd745818d886ab4b34",
+      "text_sha256": "28545ce5b17231126471148371c5422832fc57a72d3ae39f8439b210bfdb299d"
+    },
+    "24925387/card-23346": {
+      "kind": "supplement",
+      "official_cid": 23346,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=23346&ope=2&request_locale=ja",
+      "raw_path": "raw/card-23346.html",
+      "text_path": "text/card-23346.txt",
+      "raw_sha256": "9fdb68f66ec02c0b108be17c4b5d30c1709591c53b24e5766c9be99f29bc257b",
+      "text_sha256": "316d0dcc6f619738c97187ef9d89ca60d459c584a8d36268bac65efda6548557"
+    },
+    "24925387/faq_index-23346": {
+      "kind": "supplement",
+      "official_cid": 23346,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=23346&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-23346.html",
+      "text_path": "text/faq_index-23346.txt",
+      "raw_sha256": "b5996de5735101e4c976a86eabcce75e790739618d46b4d6a8a7892215816cf5",
+      "text_sha256": "3282c0b475c2bbf77acc99ce5c448494b3c723b59dafe8cba363f39eb3919d4f"
+    },
+    "30068809/card-23385": {
+      "kind": "supplement",
+      "official_cid": 23385,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=23385&ope=2&request_locale=ja",
+      "raw_path": "raw/card-23385.html",
+      "text_path": "text/card-23385.txt",
+      "raw_sha256": "7479135bd3b0a79970545413d464bc579a421ae2ca1a5ef61493b2d0255a78c3",
+      "text_sha256": "0ae5f5edfc0e31ade92ee9d9d328507d8b58bc5182ca5f78f6b07bce60176430"
+    },
+    "30068809/faq_index-23385": {
+      "kind": "supplement",
+      "official_cid": 23385,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=23385&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-23385.html",
+      "text_path": "text/faq_index-23385.txt",
+      "raw_sha256": "a97cf9dbc5e3e28e9c3ee5ec219419d9af69a92ca3f656774e97fd62b84071ff",
+      "text_sha256": "dcae0dd4fe6a7913d6eaab833efbb62d90fd66805112e92f8cc4bb9602ec4b20"
+    },
+    "41458361/card-23371": {
+      "kind": "supplement",
+      "official_cid": 23371,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=23371&ope=2&request_locale=ja",
+      "raw_path": "raw/card-23371.html",
+      "text_path": "text/card-23371.txt",
+      "raw_sha256": "ebc16790668d8d78e57841c291d8c6b553e412620874835f7354a32268e68da5",
+      "text_sha256": "a1f1abeffe7111595e8026383fbb15a162b780ffe8313ae05b8e686d4897f779"
+    },
+    "41458361/faq_index-23371": {
+      "kind": "supplement",
+      "official_cid": 23371,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=23371&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-23371.html",
+      "text_path": "text/faq_index-23371.txt",
+      "raw_sha256": "cef568e21883fa7236f380a84807853ebc26a90f8f81b9eb0b94271fb80961fe",
+      "text_sha256": "11606175a4de531657ea5423dd310a259450cbc545726268d67042f1c2630e4b"
+    },
+    "45730592/card-15109": {
+      "kind": "supplement",
+      "official_cid": 15109,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=15109&ope=2&request_locale=ja",
+      "raw_path": "raw/card-15109.html",
+      "text_path": "text/card-15109.txt",
+      "raw_sha256": "6a1a3d30ec89c00e9110fe72d883267b9935042e1e47172eb855210f90a0ad20",
+      "text_sha256": "c3c916d50d6eca29cb7511b942decf89ce7c353507f238206fa50562d4b7e606"
+    },
+    "45730592/faq_index-15109": {
+      "kind": "supplement",
+      "official_cid": 15109,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=15109&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-15109.html",
+      "text_path": "text/faq_index-15109.txt",
+      "raw_sha256": "eed9035d339441a51343c95223f11594d0106ebfb2b8a82d837b8be37ed5dfb5",
+      "text_sha256": "791b9f6d5c194e772d7c142c180e888ca707eef1e395c85deebc91768e1ed7ab"
+    },
+    "47674738/card-15103": {
+      "kind": "supplement",
+      "official_cid": 15103,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=15103&ope=2&request_locale=ja",
+      "raw_path": "raw/card-15103.html",
+      "text_path": "text/card-15103.txt",
+      "raw_sha256": "2e0820d9874ed4891e6ed4f8f9dc75e22a1efd3ae8df1e7757743248aeefa765",
+      "text_sha256": "62ea9f0a76431c1a8ec92e466422363c801f55b689c330dc191d313f8e091d2c"
+    },
+    "47674738/faq_index-15103": {
+      "kind": "supplement",
+      "official_cid": 15103,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=15103&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-15103.html",
+      "text_path": "text/faq_index-15103.txt",
+      "raw_sha256": "122abd2d4c368ad05b447acc8b970e80e8eaf3d909824a3ca02d77c6343b1050",
+      "text_sha256": "abff374f6247098c7cc9ecffdb6060fd976b498407a6ace32c14b940859ec62e"
+    },
+    "47897376/card-15100": {
+      "kind": "supplement",
+      "official_cid": 15100,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=15100&ope=2&request_locale=ja",
+      "raw_path": "raw/card-15100.html",
+      "text_path": "text/card-15100.txt",
+      "raw_sha256": "0d7fac36dc0985735cb3a4aeb9cdb198f525f96d5772e8badaa75154167166df",
+      "text_sha256": "04ecdc62c5e3729278750c965d317d6d6e7b6257a455bcd16c24067e8ce90ce9"
+    },
+    "47897376/faq_index-15100": {
+      "kind": "supplement",
+      "official_cid": 15100,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=15100&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-15100.html",
+      "text_path": "text/faq_index-15100.txt",
+      "raw_sha256": "6200d44187134a35f9a288f7e2c5a1b69fc08be90e6be7a093654fd4ef76bc4c",
+      "text_sha256": "c2c53faa9622a5553a8f946912c49299ea68b3c76064794730c6270edf8e25b9"
+    },
+    "51420096/card-23347": {
+      "kind": "supplement",
+      "official_cid": 23347,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=23347&ope=2&request_locale=ja",
+      "raw_path": "raw/card-23347.html",
+      "text_path": "text/card-23347.txt",
+      "raw_sha256": "fbe3623aa9e14eb20453ba7f1fcbd748f9e1d8e155994f631034a035e0005575",
+      "text_sha256": "93de91fc4a8b87d7a24bd1ff28a540ddc52ad7175a56bee0ed8bffed3b2bc3e4"
+    },
+    "51420096/faq_index-23347": {
+      "kind": "supplement",
+      "official_cid": 23347,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=23347&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-23347.html",
+      "text_path": "text/faq_index-23347.txt",
+      "raw_sha256": "c3db675ce429c38e0e9f34c2a513f8ee8b54edac88439e11011a8ffb425a8f6f",
+      "text_sha256": "6e41308e908e04faf194806e53ea20a2429ae962e58e894751bba50a60be965f"
+    },
+    "72957245/card-15107": {
+      "kind": "supplement",
+      "official_cid": 15107,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=15107&ope=2&request_locale=ja",
+      "raw_path": "raw/card-15107.html",
+      "text_path": "text/card-15107.txt",
+      "raw_sha256": "b5336530586d2a65b024d1db5909b9fad8351693378f9ecd31f34213bf8cf32a",
+      "text_sha256": "6cf9fc90890fe3d39fbf6f26634c4a8cbbdb5a92c52164aeade00d00933b12c7"
+    },
+    "72957245/faq_index-15107": {
+      "kind": "supplement",
+      "official_cid": 15107,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=15107&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-15107.html",
+      "text_path": "text/faq_index-15107.txt",
+      "raw_sha256": "c718c0fd109f9810faa512134edd95ebad8f203c789cf40c80460e9b2f41ba7e",
+      "text_sha256": "a042db78b85f4e70d21560c7afb4e7bf7318d4fcf3a97b3cecde5cc59d001a38"
+    },
+    "73079836/card-15104": {
+      "kind": "supplement",
+      "official_cid": 15104,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=15104&ope=2&request_locale=ja",
+      "raw_path": "raw/card-15104.html",
+      "text_path": "text/card-15104.txt",
+      "raw_sha256": "c5305880735aab82c2a3d4d4181b2829630ae816ca2a7b529c8c60b6a284d2d1",
+      "text_sha256": "92c248cfda0bff9415664f6d19b730f9933b7a86b5623e49a6757e7aee7fa9e7"
+    },
+    "73079836/faq_index-15104": {
+      "kind": "supplement",
+      "official_cid": 15104,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=15104&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-15104.html",
+      "text_path": "text/faq_index-15104.txt",
+      "raw_sha256": "1528ffe2591d672a2a1f4c4535083e1246550e3a01a8ba43dc2b28244cc2d95a",
+      "text_sha256": "43ebebbd0cde7d2ce726cf9f4b749735cefd82961e77aeb63ad7d099427b5b1a"
+    },
+    "74891384/card-15101": {
+      "kind": "supplement",
+      "official_cid": 15101,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=15101&ope=2&request_locale=ja",
+      "raw_path": "raw/card-15101.html",
+      "text_path": "text/card-15101.txt",
+      "raw_sha256": "645f9d29561e62aff96ce5d9fd18f81a7731b7c85c05e74c72c68c2b5d2283c1",
+      "text_sha256": "4ad9f21b7b6c69857c787ff13014ea3fb6f181560f7f50154aa2af63b1d3a90a"
+    },
+    "74891384/faq_index-15101": {
+      "kind": "supplement",
+      "official_cid": 15101,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=15101&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-15101.html",
+      "text_path": "text/faq_index-15101.txt",
+      "raw_sha256": "f92844099a6105af8eccef868325e355de9fd557c2bfb4dfa8824e8c1eebf161",
+      "text_sha256": "60f0484f1553478585802af6e75e8f3b68a1fdea110def42d903e1e328516166"
+    },
+    "99927991/card-15295": {
+      "kind": "supplement",
+      "official_cid": 15295,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?cid=15295&ope=2&request_locale=ja",
+      "raw_path": "raw/card-15295.html",
+      "text_path": "text/card-15295.txt",
+      "raw_sha256": "d763fb9426196e06544c945ac6bfd7b37922a84366a0da79565186d0c12f75f8",
+      "text_sha256": "dd56c8bce4898406c0e60723a81e4c2f56be587d75938754c7f36802ebe70f4f"
+    },
+    "99927991/faq_index-15295": {
+      "kind": "supplement",
+      "official_cid": 15295,
+      "locale": "ja",
+      "url": "https://www.db.yugioh-card.com/yugiohdb/faq_search.action?cid=15295&ope=4&request_locale=ja",
+      "raw_path": "raw/faq_index-15295.html",
+      "text_path": "text/faq_index-15295.txt",
+      "raw_sha256": "9e4fbc5c0fbff85b7a2a9fae2ebc4f948c231324e8a308486c793cbf259b5084",
+      "text_sha256": "e82986ce67a4f59f0b5e3e848932012b87195d619f18f44c7453f6ddcfa2a99d"
+    }
+  }
+}

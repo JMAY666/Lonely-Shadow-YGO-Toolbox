@@ -33,6 +33,23 @@ class CapabilityTests(unittest.TestCase):
         self.assertEqual(before, self.service.document)
         self.assertFalse(self.service.path.exists())
 
+    def test_processing_prerequisites_remain_visible_in_nested_capability_facts(self):
+        effect = simple_effect('m1', 1, ['etag:effect-damage', 'etag:destroy'], [])
+        effect['structure']['processing'] = [{
+            'action': 'burn', 'selector': {'text': '原本攻击力差的效果伤害'},
+            'then': [{'action': 'destroy', 'selector': {'text': '战斗对方怪兽'},
+                      'condition': '实际造成伤害，伤害为0则不破坏'}],
+            'branches': [{'condition': '可选后续', 'actions': [
+                {'action': 'special_summon', 'selector': {'text': '墓地对象'},
+                 'condition': '前一步处理成功才适用'}]}]
+        }]
+        before = deepcopy(effect)
+        facts = self.capabilities.facts(effect)
+        self.assertTrue(any('前提 实际造成伤害，伤害为0则不破坏' in f['text'] for f in facts))
+        self.assertTrue(any('前提 前一步处理成功才适用' in f['text'] for f in facts))
+        self.assertEqual(effect, before)
+        self.assertFalse(self.service.path.exists())
+
     def test_target_facts_preserve_closed_open_and_fixed_quantities_in_snapshots(self):
         targets = [{'min_count': 1, 'max_count': 3, 'filter': '墓地火山怪兽'},
                    {'min_count': 2, 'max_count': None, 'filter': 'RR超量怪兽'},
