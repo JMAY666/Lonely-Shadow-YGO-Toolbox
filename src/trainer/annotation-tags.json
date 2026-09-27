@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_on": "2026-09-26",
+  "updated_on": "2026-09-27",
   "note": "通用效果 TAG 与受控词表。TAG 表达卡片间的共性能力；每张卡的具体参数（来源区域、数量、费用、限制）记录在标注结构里，不因共用 TAG 而可互相替代。同义词仅用于检索匹配提示，不改变定义。 第三批（2026-09-24）新增 actions.set_position、actions.take_control 处理与 cost_kinds.remove_counter 费用受控取值（定义与正反例见 docs/card-annotation-system.md §4）。 第四批按官方裁定新增分支、素材处理、复制效果、装备、LP损失、额外素材区等受控取值；不变更既有TAG ID，正反例与兼容规则见 docs/card-annotation-system.md §4。 第五批新增 place_faceup_card、modify_activation_window、allow_direct_attack、require_attack_payment 等受控动作，定义与反例见 docs/card-annotation-system.md §4；既有 TAG ID 保持不变。",
   "tags": [
     {
@@ -400,6 +400,7 @@
       "per_effect_name_soft_opt": "这个卡名的各编号效果1回合各能使用1次（同名共享）",
       "shared_name_once": "这个卡名的效果1回合只能合计使用1次（任选其一）",
       "field_once": "场上的这张卡的效果只能使用1次",
+      "graveyard_once": "这张卡在墓地存在期间，这个效果只能发动1次；具体消耗按官方卡文与裁定",
       "name_activation_once": "同名卡每回合只能发动1张／次（以原文为准）",
       "card_activation_once": "这张卡每回合只能发动1次",
       "up_to_two_per_turn": "同一效果每回合最多发动2次；是否可在同一连锁两次须另按官方规则说明",

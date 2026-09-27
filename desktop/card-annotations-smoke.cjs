@@ -292,5 +292,46 @@ module.exports = async ({page, application, root, evidence, pass}) => {
   const frozenRule=await page.evaluate(()=>api('/api/capabilities',{op:'card',code:40044918}));
   assert.ok(frozenRule.effects.some(effect=>effect.facts.some(fact=>/处理时确定/.test(fact.text))));
   await page.screenshot({path:path.join(evidence,'annotations-fast-series-stage02.png')});
+  // 1.49.9: use the actual runtime data to catch the Luna audit regressions.
+  for (const [code,action,expected,extra] of [
+      [80117527,'take_control',1,{}],
+      [82697249,'destroy',1,{cost_kind:'detach_material'}],
+      [75402014,'stat_change',0,{}],
+      [79979666,'special_summon',1,{from_zone:'hand'}],
+      [69610924,'allow_direct_attack',0,{}],
+      [81866673,'hand_reveal',0,{}],
+      [62542673,'return_to_field',1,{from_zone:'opponent_banished'}],
+      [62542673,'special_summon',0,{from_zone:'opponent_banished'}]]) {
+    const result=await page.evaluate(([code,action,extra])=>api('/api/annotations',{
+      op:'query',q:String(code),action,...extra
+    }),[code,action,extra]);
+    assert.equal(result.total,expected,`audited annotation ${code}: ${action}`);
+  }
+  const bigEye=await page.evaluate(()=>api('/api/annotations',{op:'card',code:80117527}));
+  for (const code of [75253697,77205367]) {
+    const damageTag=await page.evaluate(code=>api('/api/annotations',{
+      op:'query',q:String(code),etags:['etag:damage-modify']
+    }),code);
+    assert.equal(damageTag.total,1,'battle damage actions must also be retrievable by their common TAG');
+  }
+  assert.equal(bigEye.effects.find(e=>e.key==='m1').structure.cost[0].count,1);
+  const bubble=await page.evaluate(()=>api('/api/annotations',{op:'card',code:79979666}));
+  assert.equal(bubble.effects.find(e=>e.key==='m1').effect_type,'no_chain_effect');
+  const kragen=await page.evaluate(()=>api('/api/annotations',{op:'card',code:67557908}));
+  assert.deepEqual(kragen.effects.find(e=>e.key==='m2').structure.targeting,[]);
+  const poisoner=await page.evaluate(()=>api('/api/annotations',{op:'card',code:83414006}));
+  assert.equal(poisoner.effects.find(e=>e.key==='m2').effect_type,'trap_effect');
+  for(const code of [90162951,93431862]) {
+    const unmerged=await page.evaluate(code=>api('/api/annotations',{op:'card',code}),code);
+    assert.equal(unmerged.status,'none','unreviewed stage04 candidates must stay out of built-in data');
+  }
+  await reset();
+  await selectCard(80117527);
+  await page.locator('#anno-detail details').evaluateAll(nodes=>nodes.forEach(node=>node.open=true));
+  assert.match(await page.locator('#anno-detail').textContent(),/取除本卡1个超量素材/);
+  const auditedFacts=await page.evaluate(()=>api('/api/capabilities',{op:'card',code:80117527}));
+  assert.ok(auditedFacts.effects.some(effect=>effect.facts.some(fact=>/取除本卡1个超量素材/.test(fact.text))));
+  await page.screenshot({path:path.join(evidence,'annotations-stage03-audited-big-eye.png')});
+  pass('Audited card data: exact material cost, non-targeting, no-chain summon, trap category, negative queries and unmerged draft isolation');
   pass('Card annotations: Chinese series folders, aliases, covers, colours, collapsed filters/art, monster symbols, queries and personal corrections');
 };
